@@ -3597,6 +3597,7 @@ def render_cv_analysis(job_provider: str, user: dict[str, Any]) -> None:
                 use_container_width=True,
                 key="run_full_analysis",
             ):
+                st.session_state.groq_quota_exhausted = False
                 try:
                     with st.spinner(
                         "Analyse en cours — extraction CV, recherche, filtrage et matching IA…"
