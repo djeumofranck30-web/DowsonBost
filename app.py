@@ -167,6 +167,14 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+GROQ_KEY_PLACEHOLDERS = {
+    "",
+    "gsk_...",
+    "your_api_key",
+    "votre_cle",
+    "votre_cle_groq",
+}
+
 GEMINI_KEY_PLACEHOLDERS = {
     "",
     "votre_cle_gemini",
@@ -209,6 +217,85 @@ def gemini_key_status() -> tuple[str, str]:
         return "invalid", "Clé AQ. trop courte (copie incomplète ?)"
     prefix = key[:8] if key.startswith("AIza") else key[:6]
     return "ok", f"Format OK ({prefix}…)"
+
+
+def validate_groq_api_key(key: str = "") -> tuple[bool, str]:
+    """Check Groq API key format (does not call the network)."""
+    value = normalize_secret(key) if key else get_secret("GROQ_API_KEY")
+    if not value:
+        return False, "GROQ_API_KEY absente dans les secrets."
+    lower = value.lower()
+    if lower in GROQ_KEY_PLACEHOLDERS or "..." in value or "votre_cle" in lower:
+        return False, "Placeholder détecté — remplacez par une vraie clé `gsk_...`."
+    if not value.startswith("gsk_"):
+        return False, "Format invalide : la clé Groq doit commencer par `gsk_`."
+    if len(value) < 50:
+        return False, (
+            f"Clé trop courte ({len(value)} caractères) — "
+            "recopiez la clé complète depuis console.groq.com/keys."
+        )
+    return True, "format OK"
+
+
+def render_groq_key_help() -> None:
+    """Actionable help when Groq rejects the API key."""
+    st.markdown(
+        """
+**Clé Groq refusée (401 Invalid API Key)**
+
+1. Créez une **nouvelle clé** sur [console.groq.com/keys](https://console.groq.com/keys)
+2. **Streamlit Cloud** : *Manage app → Settings → Secrets* :
+   ```toml
+   GROQ_API_KEY = "gsk_votre_cle_complete"
+   AI_PROVIDER = "groq"
+   ```
+3. **Save** puis **Reboot app** (obligatoire après changement de secrets)
+4. Vérifiez : pas d'espace avant/après, guillemets doubles, clé non révoquée
+
+*En local*, mettez la même clé dans `.streamlit/secrets.toml`.
+        """
+    )
+
+
+def verify_groq_api_key_live() -> tuple[bool, str, list[str], bool]:
+    """Validate Groq key format and ping GET /models."""
+    format_ok, format_msg = validate_groq_api_key()
+    if not format_ok:
+        return False, format_msg, [], False
+
+    api_key = get_secret("GROQ_API_KEY")
+    try:
+        response = requests.get(
+            f"{GROQ_API_BASE}/models",
+            headers={"Authorization": f"Bearer {api_key}"},
+            timeout=30,
+        )
+    except Exception as exc:  # noqa: BLE001
+        return False, f"Réseau Groq inaccessible : {exc}", list(GROQ_PREFERRED_MODELS), False
+
+    if response.status_code == 401:
+        return False, (
+            "Clé Groq refusée (401 Invalid API Key). "
+            "Recréez une clé sur console.groq.com/keys et mettez à jour vos secrets "
+            "(Streamlit Cloud → Save → Reboot app)."
+        ), [], False
+
+    if not response.ok:
+        return (
+            False,
+            f"Groq API erreur HTTP {response.status_code}.",
+            list(GROQ_PREFERRED_MODELS),
+            False,
+        )
+
+    model_ids = [
+        item["id"]
+        for item in response.json().get("data", [])
+        if not _is_groq_model_skipped(item["id"])
+    ]
+    if not model_ids:
+        return True, "Clé valide — liste modèles vide.", list(GROQ_PREFERRED_MODELS), False
+    return True, f"Clé valide — {len(model_ids)} modèle(s) chat.", model_ids, True
 
 
 def render_gemini_key_help() -> None:
@@ -418,37 +505,18 @@ def _chat_completion(
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def fetch_groq_model_ids(api_key_fingerprint: str) -> list[str]:
-    """Fetch live chat model list from Groq API."""
-    models, _live = _fetch_groq_models_from_api()
-    return models
+def fetch_groq_model_ids(api_key_fingerprint: str) -> tuple[list[str], bool]:
+    """Fetch live chat model list from Groq API (cached when API responds OK)."""
+    models, live, _error = _fetch_groq_models_from_api()
+    return models, live
 
 
-def _fetch_groq_models_from_api() -> tuple[list[str], bool]:
-    """Return (model_ids, live_from_api). live=False when API list unavailable."""
-    api_key = get_secret("GROQ_API_KEY")
-    if not api_key:
-        return list(GROQ_PREFERRED_MODELS), False
-
-    try:
-        response = requests.get(
-            f"{GROQ_API_BASE}/models",
-            headers={"Authorization": f"Bearer {api_key}"},
-            timeout=30,
-        )
-        if not response.ok:
-            return list(GROQ_PREFERRED_MODELS), False
-
-        model_ids = [
-            item["id"]
-            for item in response.json().get("data", [])
-            if not _is_groq_model_skipped(item["id"])
-        ]
-        if model_ids:
-            return model_ids, True
-        return list(GROQ_PREFERRED_MODELS), False
-    except Exception:  # noqa: BLE001
-        return list(GROQ_PREFERRED_MODELS), False
+def _fetch_groq_models_from_api() -> tuple[list[str], bool, str]:
+    """Return (model_ids, live_from_api, error_message)."""
+    ok, message, models, live = verify_groq_api_key_live()
+    if not ok:
+        return list(GROQ_PREFERRED_MODELS), False, message
+    return models, live, ""
 
 
 def _groq_model_rank(model_id: str) -> tuple[int, str]:
@@ -570,6 +638,8 @@ def _classify_groq_error(exc: Exception) -> str:
     lower = err.lower()
     if "429" in err or "rate limit" in lower or "limite" in lower:
         return "quota / rate limit"
+    if "401" in err or "invalid api key" in lower:
+        return "clé API invalide"
     if "404" in err or "n'existe pas" in lower or "does not exist" in lower:
         return "modèle indisponible"
     if "400" in err and ("décommission" in lower or "decommission" in lower or "hors service" in lower):
@@ -583,11 +653,14 @@ def _classify_groq_error(exc: Exception) -> str:
 
 def call_groq_text(system_prompt: str, user_prompt: str) -> str:
     """Call Groq — uses live account models, caches the first working one."""
-    groq_key = get_secret("GROQ_API_KEY")
-    if not groq_key:
-        raise RuntimeError("GROQ_API_KEY manquante.")
+    format_ok, format_msg = validate_groq_api_key()
+    if not format_ok:
+        raise RuntimeError(format_msg)
 
-    live_models, live_from_api = _fetch_groq_models_from_api()
+    live_models, live_from_api, fetch_error = _fetch_groq_models_from_api()
+    if fetch_error:
+        raise RuntimeError(fetch_error)
+
     custom_model = get_secret("GROQ_MODEL")
     unique_models = build_groq_model_priority(
         live_models,
@@ -597,6 +670,7 @@ def call_groq_text(system_prompt: str, user_prompt: str) -> str:
 
     errors: list[str] = []
     rate_limited = 0
+    invalid_key = 0
     for model in unique_models:
         try:
             result = _groq_chat_raw(model, system_prompt, user_prompt)
@@ -608,9 +682,18 @@ def call_groq_text(system_prompt: str, user_prompt: str) -> str:
             errors.append(f"{model}: {label}")
             if "quota" in label or "rate limit" in label:
                 rate_limited += 1
+            if "clé api invalide" in label or "401" in str(exc):
+                invalid_key += 1
             if st.session_state.get("groq_working_model") == model:
                 st.session_state.pop("groq_working_model", None)
             continue
+
+    if invalid_key and invalid_key == len(unique_models):
+        raise RuntimeError(
+            "Clé Groq refusée (401 Invalid API Key) sur tous les appels.\n\n"
+            "La clé dans vos secrets Streamlit Cloud est invalide, expirée ou révoquée.\n"
+            "Recréez une clé sur console.groq.com/keys → Secrets → Save → Reboot app."
+        )
 
     if rate_limited and rate_limited == len(unique_models):
         raise RuntimeError(
@@ -619,11 +702,17 @@ def call_groq_text(system_prompt: str, user_prompt: str) -> str:
             + "\n".join(errors[:6])
         )
 
+    if not live_from_api:
+        raise RuntimeError(
+            "Impossible de joindre l'API Groq avec votre clé.\n"
+            + "\n".join(errors[:4])
+        )
+
     available = ", ".join(unique_models[:8]) if unique_models else "aucun"
     raise RuntimeError(
         "Aucun modèle Groq utilisable sur votre compte.\n"
         + "\n".join(errors[:8])
-        + f"\n\nModèles détectés sur votre compte : {available}.\n"
+        + f"\n\nModèles listés par l'API : {available}.\n"
         "Laissez `GROQ_MODEL` vide pour la détection auto, ou définissez un modèle "
         "de la liste sur console.groq.com/docs/models."
     )
@@ -788,11 +877,17 @@ def _gemini_generate_content(
 
 
 def test_groq_connection() -> tuple[bool, str]:
+    key_ok, key_msg, _models, live = verify_groq_api_key_live()
+    if not key_ok:
+        return False, key_msg
     try:
         reply = call_groq_text('Réponds en JSON.', '{"status":"OK"}')
-        return True, f"Connexion OK — {reply[:40]}"
+        prefix = "Connexion OK"
+        if live:
+            prefix += " (modèles API vérifiés)"
+        return True, f"{prefix} — {reply[:40]}"
     except Exception as exc:  # noqa: BLE001
-        return False, str(exc)[:300]
+        return False, str(exc)[:400]
 
 
 def test_openai_connection() -> tuple[bool, str]:
@@ -3487,7 +3582,11 @@ def render_app() -> None:
                 st.error(ai_status)
 
             if groq_configured:
-                st.success("Groq : clé présente *(gratuit)*")
+                fmt_ok, fmt_msg = validate_groq_api_key()
+                if fmt_ok:
+                    st.success(f"Groq : clé présente ({fmt_msg})")
+                else:
+                    st.error(f"Groq : {fmt_msg}")
             else:
                 st.warning("Groq : clé absente — [créer ici](https://console.groq.com/keys)")
 
@@ -3610,13 +3709,24 @@ def render_app() -> None:
                     st.success(f"{provider} — {message}")
                 else:
                     st.error(f"{provider} — {message}")
-                    if groq_configured:
+                    if groq_configured and (
+                        "401" in message
+                        or "Invalid API Key" in message
+                        or "refusée" in message
+                    ):
+                        render_groq_key_help()
+                    elif groq_configured:
                         fp = hashlib.sha256(get_secret("GROQ_API_KEY").encode()).hexdigest()[:16]
-                        models = fetch_groq_model_ids(fp)
-                        if models:
+                        models, live = fetch_groq_model_ids(fp)
+                        if live and models:
                             st.caption(
-                                "Modèles Groq détectés : "
+                                "Modèles Groq (API live) : "
                                 + ", ".join(f"`{m}`" for m in models[:6])
+                            )
+                        elif models:
+                            st.caption(
+                                "Liste modèles par défaut (API Groq non joignable) — "
+                                "vérifiez votre clé."
                             )
 
             if page == "Analyse CV" and st.button(
