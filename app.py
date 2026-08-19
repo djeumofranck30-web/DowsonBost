@@ -255,7 +255,7 @@ def render_groq_key_help() -> None:
 2. **Streamlit Cloud** : *Manage app → Settings → Secrets* :
    ```toml
    GROQ_API_KEY = "gsk_votre_cle_complete"
-   AI_PROVIDER = "groq"
+   GEMINI_API_KEY = "AIza..."   # secours auto si quota Groq
    ```
 3. **Save** puis **Reboot app** (obligatoire après changement de secrets)
 4. Vérifiez : pas d'espace avant/après, guillemets doubles, clé non révoquée
@@ -389,68 +389,87 @@ def can_use_gemini_fallback() -> bool:
 
 
 def get_ai_provider_preference() -> str:
-    """Return 'groq', 'openai', 'gemini', or 'auto' from secrets."""
-    pref = get_secret("AI_PROVIDER", "groq").lower().strip()
+    """Legacy secret — analysis always uses automatic provider selection."""
+    pref = get_secret("AI_PROVIDER", "auto").lower().strip()
     if pref in {"groq", "gemini", "openai", "auto"}:
         return pref
-    return "groq"
+    return "auto"
+
+
+def configured_llm_backends() -> dict[str, bool]:
+    """Which LLM backends have API keys configured."""
+    gemini_key = get_secret("GEMINI_API_KEY")
+    return {
+        "groq": bool(get_secret("GROQ_API_KEY")),
+        "gemini": bool(gemini_key),
+        "openai": bool(get_secret("OPENAI_API_KEY")),
+    }
+
+
+def prefers_groq_batching() -> bool:
+    """Whether to use Groq-optimized batch matching."""
+    if st.session_state.get("groq_quota_exhausted"):
+        return False
+    active = st.session_state.get("llm_backend_active")
+    if active:
+        return active == "groq"
+    chain = get_llm_provider_chain()
+    return bool(chain and chain[0] == "groq")
+
+
+def get_llm_provider_chain() -> list[str]:
+    """Auto order: Groq (free) → Gemini → OpenAI; skips exhausted backends."""
+    backends = configured_llm_backends()
+    chain: list[str] = []
+
+    sticky = st.session_state.get("llm_backend_active", "")
+    if sticky in {"groq", "gemini", "openai"} and backends.get(sticky):
+        chain.append(sticky)
+
+    if backends.get("groq") and not st.session_state.get("groq_quota_exhausted"):
+        if "groq" not in chain:
+            chain.append("groq")
+    if backends.get("gemini") and "gemini" not in chain:
+        chain.append("gemini")
+    if backends.get("openai") and "openai" not in chain:
+        chain.append("openai")
+
+    return chain
 
 
 def resolve_llm_provider() -> str:
-    """Pick the active LLM backend based on secrets and preference."""
-    pref = get_ai_provider_preference()
-    groq_key = get_secret("GROQ_API_KEY")
-    openai_key = get_secret("OPENAI_API_KEY")
-
-    if pref == "groq" and groq_key:
-        return "groq"
-    if pref == "openai" and openai_key:
-        return "openai"
-    if pref == "gemini" and should_use_gemini():
-        return "gemini"
-
-    if pref == "auto" or pref == "groq":
-        if groq_key:
-            return "groq"
-        if openai_key:
-            return "openai"
-        if should_use_gemini():
-            return "gemini"
-    elif pref == "openai" and not openai_key and groq_key:
-        return "groq"
-
-    return "none"
+    """Primary backend for display — first available in auto chain."""
+    chain = get_llm_provider_chain()
+    return chain[0] if chain else "none"
 
 
 def ai_setup_status() -> tuple[bool, str]:
     """Return (ready, message) for AI configuration."""
-    provider = resolve_llm_provider()
-    groq_key = get_secret("GROQ_API_KEY")
-    openai_key = get_secret("OPENAI_API_KEY")
-    gemini_key = get_secret("GEMINI_API_KEY")
+    backends = configured_llm_backends()
+    chain = get_llm_provider_chain()
+    labels = [name for name, ok in backends.items() if ok]
 
-    if provider == "groq":
-        return True, "Groq configuré (gratuit) — prêt."
-    if provider == "openai":
-        return True, "OpenAI configuré — vérifiez vos crédits."
-    if provider == "gemini":
-        return True, "Gemini configuré (clé AIza)."
+    if chain:
+        names = {"groq": "Groq", "gemini": "Gemini", "openai": "OpenAI"}
+        order = " → ".join(names[p] for p in chain)
+        return True, f"Sélection auto IA — ordre de bascule : {order}."
 
-    if openai_key and not groq_key:
+    if labels:
+        exhausted = st.session_state.get("groq_quota_exhausted") and backends.get("groq")
+        if exhausted and not backends.get("gemini") and not backends.get("openai"):
+            return False, (
+                "Quota Groq atteint. Ajoutez GEMINI_API_KEY (AIza…) ou OPENAI_API_KEY "
+                "en secours, ou attendez 1–2 minutes."
+            )
+
+    if get_secret("GEMINI_API_KEY", "").startswith("AQ.") and not backends.get("groq"):
         return False, (
-            "OpenAI sans crédits (erreur 429). Ajoutez **Groq gratuit** : "
-            "`GROQ_API_KEY` sur [console.groq.com/keys](https://console.groq.com/keys) "
-            "et `AI_PROVIDER = \"groq\"`"
-        )
-
-    if gemini_key and gemini_key.startswith("AQ."):
-        return False, (
-            "Clé Gemini `AQ.` incompatible. Utilisez **Groq gratuit** : "
-            "`GROQ_API_KEY` + `AI_PROVIDER = \"groq\"`"
+            "Clé Gemini AQ. souvent refusée. Ajoutez GROQ_API_KEY ou une clé AIza Gemini."
         )
 
     return False, (
-        "Aucune clé IA. Ajoutez `GROQ_API_KEY` (gratuit) dans `.streamlit/secrets.toml`."
+        "Aucune clé IA. Ajoutez au moins GROQ_API_KEY (gratuit) "
+        "dans `.streamlit/secrets.toml` ou Streamlit Cloud Secrets."
     )
 
 
@@ -461,19 +480,20 @@ def render_ai_setup_help() -> None:
     st.markdown(message)
     st.markdown(
         """
-### Option gratuite recommandée — Groq
+### Clés IA (sélection automatique)
 
-1. Créez une clé sur [console.groq.com/keys](https://console.groq.com/keys) *(gratuit)*
-2. Éditez `.streamlit/secrets.toml` :
-   ```toml
-   GROQ_API_KEY = "gsk_votre_cle"
-   AI_PROVIDER = "groq"
-   ```
-3. Redémarrez : `Ctrl+C` puis `streamlit run app.py`
+L'analyse choisit **automatiquement** le moteur disponible : Groq → Gemini → OpenAI.
 
-### Option payante — OpenAI
+1. **Groq** (gratuit) — [console.groq.com/keys](https://console.groq.com/keys)
+2. **Gemini** (secours, gratuit) — [aistudio.google.com/apikey](https://aistudio.google.com/apikey) *(format AIza…)*
+3. **OpenAI** (secours, crédits) — optionnel
 
-Ajoutez des crédits sur [platform.openai.com/settings/billing](https://platform.openai.com/settings/organization/billing)
+```toml
+GROQ_API_KEY = "gsk_votre_cle"
+GEMINI_API_KEY = "AIza..."   # recommandé en secours si quota Groq
+```
+
+Redémarrez : `Ctrl+C` puis `streamlit run app.py`
         """
     )
 
@@ -509,7 +529,7 @@ def _chat_completion(
         if "429" in err or "insufficient_quota" in err or "credit_balance" in err:
             raise RuntimeError(
                 "Crédits OpenAI épuisés (429). Utilisez Groq gratuit : "
-                "console.groq.com/keys → GROQ_API_KEY + AI_PROVIDER=groq"
+                "console.groq.com/keys → GROQ_API_KEY (+ GEMINI_API_KEY en secours)"
             ) from exc
         raise
 
@@ -891,7 +911,7 @@ def _gemini_generate_content(
         "Solutions :\n"
         "1. Ajoutez OPENAI_API_KEY dans secrets.toml (recommandé)\n"
         "2. Ou créez une clé AIza depuis Google Cloud Console → Credentials\n"
-        "3. Ou définissez AI_PROVIDER = \"openai\" dans secrets.toml"
+        "3. Ou ajoutez GROQ_API_KEY / GEMINI_API_KEY pour la sélection automatique"
     )
 
 
@@ -921,27 +941,18 @@ def test_openai_connection() -> tuple[bool, str]:
 
 
 def test_ai_connection() -> tuple[bool, str, str]:
-    """Test configured AI provider(s). Returns (ok, message, provider)."""
+    """Test auto LLM chain — returns (ok, message, provider label)."""
     ready, status_msg = ai_setup_status()
-    provider = resolve_llm_provider()
-
     if not ready:
         return False, status_msg, "—"
 
-    if provider == "groq":
-        ok, msg = test_groq_connection()
-        return ok, msg, "Groq"
-    if provider == "openai":
-        ok, msg = test_openai_connection()
-        return ok, msg, "OpenAI"
-    if provider == "gemini":
-        try:
-            reply = _gemini_generate_content([{"text": "Réponds uniquement: OK"}])
-            return True, f"Gemini OK — {reply[:30]}", "Gemini"
-        except Exception as exc:
-            return False, str(exc)[:300], "Gemini"
-
-    return False, status_msg, "—"
+    try:
+        reply = call_llm('Réponds en JSON.', '{"status":"OK"}')
+        label = st.session_state.get("active_llm_provider", "Auto")
+        return True, f"Connexion OK — {reply[:40]}", label
+    except RuntimeError as exc:
+        st.session_state.pop("llm_backend_active", None)
+        return False, str(exc)[:400], "—"
 
 
 def call_gemini_text(system_prompt: str, user_prompt: str) -> str:
@@ -971,7 +982,7 @@ def extract_text_ocr(pdf_bytes: bytes) -> str:
         image_b64 = base64.standard_b64encode(pixmap.tobytes("png")).decode("ascii")
 
         page_text = ""
-        if should_use_gemini() and not gemini_failed:
+        if configured_llm_backends().get("gemini") and not gemini_failed:
             try:
                 page_text = _gemini_generate_content(
                     parts=[
@@ -1123,80 +1134,70 @@ def fallback_match_result(job: dict[str, Any]) -> dict[str, Any]:
     )
 
 
-def call_llm(system_prompt: str, user_prompt: str) -> str:
-    """Call Groq, OpenAI, or Gemini with automatic fallback."""
-    if st.session_state.get("groq_quota_exhausted") and can_use_gemini_fallback():
-        try:
-            st.session_state.active_llm_provider = "Gemini (secours — quota Groq)"
-            return call_gemini_text(system_prompt, user_prompt)
-        except RuntimeError:
-            pass
-
-    provider = resolve_llm_provider()
-
+def _call_llm_backend(provider: str, system_prompt: str, user_prompt: str) -> str:
+    """Invoke a single LLM backend by id."""
     if provider == "groq":
         st.session_state.active_llm_provider = "Groq (gratuit)"
-        try:
-            return call_groq_text(system_prompt, user_prompt)
-        except (GroqRateLimitError, RuntimeError) as exc:
-            quota_hit = isinstance(exc, GroqRateLimitError) or (
-                "quota" in str(exc).lower() or "rate limit" in str(exc).lower()
-            )
-            if quota_hit:
-                st.session_state.groq_quota_exhausted = True
-
-            if get_secret("OPENAI_API_KEY"):
-                st.session_state.active_llm_provider = "OpenAI (secours — Groq indisponible)"
-                if quota_hit:
-                    st.session_state.setdefault("analysis_notices", []).append(
-                        {
-                            "level": "warning",
-                            "text": "Quota Groq atteint — bascule temporaire sur OpenAI.",
-                        }
-                    )
-                return call_openai_text(system_prompt, user_prompt)
-
-            if can_use_gemini_fallback():
-                try:
-                    st.session_state.active_llm_provider = "Gemini (secours — Groq indisponible)"
-                    if quota_hit:
-                        st.session_state.setdefault("analysis_notices", []).append(
-                            {
-                                "level": "warning",
-                                "text": "Quota Groq atteint — bascule temporaire sur Gemini.",
-                            }
-                        )
-                    return call_gemini_text(system_prompt, user_prompt)
-                except RuntimeError as gemini_exc:
-                    gemini_key = get_secret("GEMINI_API_KEY")
-                    if quota_hit and gemini_key.startswith("AQ."):
-                        raise GroqRateLimitError(
-                            "Quota Groq atteint et clé Gemini AQ. refusée par Google.\n\n"
-                            "Créez une clé AIza sur https://aistudio.google.com/apikey "
-                            "(pas le format AQ.), mettez-la dans vos secrets Streamlit Cloud, "
-                            "puis Reboot app.\n\n"
-                            f"Détail Gemini : {str(gemini_exc)[:200]}"
-                        ) from exc
-                    raise
-
-            if quota_hit:
-                raise GroqRateLimitError(
-                    f"{exc}\n\nAjoutez GEMINI_API_KEY (gratuit, format AIza…) ou "
-                    "OPENAI_API_KEY en secours dans vos secrets, ou attendez 1–2 minutes."
-                ) from exc
-            raise
-
-    if provider == "openai":
-        st.session_state.active_llm_provider = "OpenAI"
-        return call_openai_text(system_prompt, user_prompt)
-
+        return call_groq_text(system_prompt, user_prompt)
     if provider == "gemini":
         st.session_state.active_llm_provider = "Gemini"
         return call_gemini_text(system_prompt, user_prompt)
+    if provider == "openai":
+        st.session_state.active_llm_provider = "OpenAI"
+        return call_openai_text(system_prompt, user_prompt)
+    raise RuntimeError(f"Moteur IA inconnu : {provider}")
+
+
+def _append_llm_switch_notice(from_provider: str, to_provider: str, reason: str) -> None:
+    labels = {"groq": "Groq", "gemini": "Gemini", "openai": "OpenAI"}
+    st.session_state.setdefault("analysis_notices", []).append(
+        {
+            "level": "warning",
+            "text": (
+                f"{labels.get(from_provider, from_provider)} indisponible ({reason}) — "
+                f"bascule sur {labels.get(to_provider, to_provider)}."
+            ),
+        }
+    )
+
+
+def call_llm(system_prompt: str, user_prompt: str) -> str:
+    """Auto-select Groq, Gemini or OpenAI — no manual preference required."""
+    chain = get_llm_provider_chain()
+    if not chain:
+        raise RuntimeError(
+            "Aucune clé IA utilisable. Ajoutez GROQ_API_KEY, GEMINI_API_KEY ou OPENAI_API_KEY."
+        )
+
+    errors: list[str] = []
+    for idx, provider in enumerate(chain):
+        try:
+            result = _call_llm_backend(provider, system_prompt, user_prompt)
+            st.session_state.llm_backend_active = provider
+            return result
+        except GroqRateLimitError as exc:
+            st.session_state.groq_quota_exhausted = True
+            if st.session_state.get("llm_backend_active") == "groq":
+                st.session_state.pop("llm_backend_active", None)
+            errors.append(f"Groq : quota / rate limit")
+            if idx + 1 < len(chain):
+                _append_llm_switch_notice("groq", chain[idx + 1], "quota atteint")
+            continue
+        except RuntimeError as exc:
+            err = str(exc)
+            errors.append(f"{provider} : {err[:120]}")
+            if "401" in err or "invalid api key" in err.lower():
+                if provider == "groq":
+                    st.session_state.groq_quota_exhausted = True
+            if idx + 1 < len(chain):
+                _append_llm_switch_notice(provider, chain[idx + 1], "erreur")
+            continue
 
     raise RuntimeError(
-        "Aucune clé IA utilisable. Ajoutez GROQ_API_KEY (gratuit) sur "
-        "console.groq.com/keys ou des crédits OpenAI."
+        "Aucun moteur IA disponible pour cette requête.\n"
+        + "\n".join(errors[:4])
+        + "\n\nAjoutez plusieurs clés (Groq + Gemini AIza…) pour la bascule auto, "
+        "ou attendez 1–2 minutes si seul Groq est configuré."
     )
 
 
@@ -1982,7 +1983,7 @@ def build_matching_results(
     """AI-match job candidates and return the best offers by correspondence score."""
     pool_size = min(len(jobs), MATCHING_CANDIDATE_POOL)
     candidates = rank_jobs_for_cv(jobs, cv_text, keywords, top_n=pool_size)
-    use_groq = resolve_llm_provider() == "groq"
+    use_groq = prefers_groq_batching()
     batch_size = GROQ_MATCH_BATCH_SIZE if use_groq else 1
 
     results: list[dict[str, Any]] = []
@@ -2604,6 +2605,8 @@ def init_session_state() -> None:
         st.session_state.auth_view = "login"
     if "groq_quota_exhausted" not in st.session_state:
         st.session_state.groq_quota_exhausted = False
+    if "llm_backend_active" not in st.session_state:
+        st.session_state.llm_backend_active = None
 
 
 def _flush_analysis_notices() -> None:
@@ -3598,6 +3601,7 @@ def render_cv_analysis(job_provider: str, user: dict[str, Any]) -> None:
                 key="run_full_analysis",
             ):
                 st.session_state.groq_quota_exhausted = False
+                st.session_state.llm_backend_active = None
                 try:
                     with st.spinner(
                         "Analyse en cours — extraction CV, recherche, filtrage et matching IA…"
@@ -3734,12 +3738,21 @@ def render_app() -> None:
 
             openai_configured = bool(get_secret("OPENAI_API_KEY"))
             groq_configured = bool(get_secret("GROQ_API_KEY"))
-            ai_pref = get_ai_provider_preference()
+            gemini_configured = bool(get_secret("GEMINI_API_KEY"))
             ai_ready, ai_status = ai_setup_status()
-            active = resolve_llm_provider()
+            chain = get_llm_provider_chain()
+            active = st.session_state.get(
+                "active_llm_provider",
+                resolve_llm_provider(),
+            )
 
-            st.markdown(f"**Préférence IA :** `{ai_pref}`")
-            st.markdown(f"**Actif :** `{active}`")
+            st.markdown("**Mode IA :** sélection automatique")
+            if chain:
+                st.caption(
+                    "Ordre de bascule : "
+                    + " → ".join({"groq": "Groq", "gemini": "Gemini", "openai": "OpenAI"}[p] for p in chain)
+                )
+            st.markdown(f"**Moteur en cours :** `{active}`")
 
             if ai_ready:
                 st.success(ai_status)
@@ -3756,7 +3769,10 @@ def render_app() -> None:
                 st.warning("Groq : clé absente — [créer ici](https://console.groq.com/keys)")
 
             if openai_configured:
-                st.info("OpenAI : clé présente *(crédits requis)*")
+                st.info("OpenAI : clé présente *(secours, crédits requis)*")
+
+            if gemini_configured:
+                st.info("Gemini : clé présente *(secours)*")
 
             if has_adzuna:
                 st.caption(f"Adzuna : app_id `{adzuna_id[:4]}…`, clé {len(adzuna_key)} caractères")
@@ -3902,6 +3918,7 @@ def render_app() -> None:
                 st.session_state.pdf_fingerprint = None
                 st.session_state.analysis_notices = []
                 st.session_state.groq_quota_exhausted = False
+                st.session_state.llm_backend_active = None
                 st.success("Cache vidé.")
                 st.rerun()
 
