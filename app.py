@@ -120,20 +120,23 @@ GEMINI_MODEL = "gemini-2.0-flash"
 GEMINI_FALLBACK_MODELS = ("gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-flash")
 GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta"
 OPENAI_MODEL = "gpt-4o-mini"
-GROQ_MODEL = "llama-3.1-8b-instant"
+GROQ_MODEL = "openai/gpt-oss-20b"
 GROQ_API_BASE = "https://api.groq.com/openai/v1"
-# Ordre de priorité — modèles stables sur le tier gratuit Groq.
+# Modèles Groq actuels (2025–2026) — les anciens llama-3.x / gemma2 sont décommissionnés.
 GROQ_PREFERRED_MODELS = (
+    "openai/gpt-oss-20b",
+    "meta-llama/llama-4-scout-17b-16e-instruct",
+    "qwen/qwen3-32b",
+    "moonshotai/kimi-k2-instruct",
+    "groq/compound-mini",
+    "compound-beta-mini",
+    "openai/gpt-oss-120b",
+    "meta-llama/llama-4-maverick-17b-128e-instruct",
     "llama-3.1-8b-instant",
     "llama-3.3-70b-versatile",
-    "llama-3.1-70b-versatile",
-    "gemma2-9b-it",
-    "llama3-8b-8192",
-    "llama3-70b-8192",
-    "mixtral-8x7b-32768",
-    "groq/compound-mini",
 )
 GROQ_FALLBACK_MODELS = GROQ_PREFERRED_MODELS
+# Uniquement les modèles non-chat (pas les llama-4 / gpt-oss / qwen).
 GROQ_SKIP_MODEL_SUBSTRINGS = (
     "whisper",
     "embed",
@@ -141,10 +144,6 @@ GROQ_SKIP_MODEL_SUBSTRINGS = (
     "distil-whisper",
     "orpheus",
     "canopylabs",
-    "gpt-oss",
-    "qwen",
-    "llama-4",
-    "deepseek",
 )
 from auth import (
     authenticate_user,
@@ -421,9 +420,15 @@ def _chat_completion(
 @st.cache_data(ttl=3600, show_spinner=False)
 def fetch_groq_model_ids(api_key_fingerprint: str) -> list[str]:
     """Fetch live chat model list from Groq API."""
+    models, _live = _fetch_groq_models_from_api()
+    return models
+
+
+def _fetch_groq_models_from_api() -> tuple[list[str], bool]:
+    """Return (model_ids, live_from_api). live=False when API list unavailable."""
     api_key = get_secret("GROQ_API_KEY")
     if not api_key:
-        return list(GROQ_PREFERRED_MODELS)
+        return list(GROQ_PREFERRED_MODELS), False
 
     try:
         response = requests.get(
@@ -432,49 +437,90 @@ def fetch_groq_model_ids(api_key_fingerprint: str) -> list[str]:
             timeout=30,
         )
         if not response.ok:
-            return list(GROQ_PREFERRED_MODELS)
+            return list(GROQ_PREFERRED_MODELS), False
 
         model_ids = [
             item["id"]
             for item in response.json().get("data", [])
             if not _is_groq_model_skipped(item["id"])
         ]
-        return model_ids or list(GROQ_PREFERRED_MODELS)
+        if model_ids:
+            return model_ids, True
+        return list(GROQ_PREFERRED_MODELS), False
     except Exception:  # noqa: BLE001
-        return list(GROQ_PREFERRED_MODELS)
+        return list(GROQ_PREFERRED_MODELS), False
+
+
+def _groq_model_rank(model_id: str) -> tuple[int, str]:
+    """Sort key: lower = higher priority."""
+    try:
+        return GROQ_PREFERRED_MODELS.index(model_id), model_id
+    except ValueError:
+        pass
+    lower = model_id.lower()
+    if "gpt-oss-20b" in lower:
+        return 10, model_id
+    if "scout" in lower and "llama-4" in lower:
+        return 15, model_id
+    if "qwen" in lower:
+        return 20, model_id
+    if "kimi" in lower:
+        return 25, model_id
+    if "compound-mini" in lower or "compound-beta-mini" in lower:
+        return 30, model_id
+    if "llama-2" in lower:
+        return 35, model_id
+    if "gpt-oss-120b" in lower:
+        return 45, model_id
+    if "maverick" in lower:
+        return 50, model_id
+    if lower.startswith("llama-3") or lower.startswith("llama3"):
+        return 90, model_id
+    return 40, model_id
 
 
 def _is_groq_model_skipped(model_id: str) -> bool:
-    """Skip audio, embedding, preview and quota-heavy models on free tier."""
+    """Skip audio, embedding and moderation-only models."""
     lower = model_id.lower()
     if any(token in lower for token in GROQ_SKIP_MODEL_SUBSTRINGS):
-        return True
-    if "compound" in lower and "compound-mini" not in lower:
         return True
     return False
 
 
-def build_groq_model_priority(live_models: list[str], custom_model: str = "") -> list[str]:
-    """Build an ordered model list: preferred stable models first."""
+def build_groq_model_priority(
+    live_models: list[str],
+    custom_model: str = "",
+    *,
+    live_from_api: bool = True,
+) -> list[str]:
+    """Build model try-order from the account's live model list."""
     live_set = set(live_models)
     ordered: list[str] = []
 
-    if custom_model:
-        ordered.append(custom_model)
+    cached = st.session_state.get("groq_working_model", "")
+    if cached and (not live_from_api or cached in live_set):
+        ordered.append(cached)
 
-    for model in GROQ_PREFERRED_MODELS:
-        if model in ordered:
-            continue
-        if not live_set or model in live_set:
-            ordered.append(model)
+    if custom_model and (not live_from_api or custom_model in live_set):
+        if custom_model in ordered:
+            ordered.remove(custom_model)
+        ordered.insert(0, custom_model)
 
-    for model in live_models:
-        if model not in ordered and not _is_groq_model_skipped(model):
-            ordered.append(model)
+    candidates = [
+        model
+        for model in live_models
+        if not _is_groq_model_skipped(model) and (not live_from_api or model in live_set)
+    ]
+    candidates.sort(key=_groq_model_rank)
 
-    for model in GROQ_PREFERRED_MODELS:
+    for model in candidates:
         if model not in ordered:
             ordered.append(model)
+
+    if not live_from_api:
+        for model in GROQ_PREFERRED_MODELS:
+            if model not in ordered:
+                ordered.append(model)
 
     seen: set[str] = set()
     return [m for m in ordered if m and not (m in seen or seen.add(m))]
@@ -518,38 +564,68 @@ def _groq_chat_raw(
     return content.strip()
 
 
+def _classify_groq_error(exc: Exception) -> str:
+    """Short label for Groq model errors."""
+    err = str(exc)
+    lower = err.lower()
+    if "429" in err or "rate limit" in lower or "limite" in lower:
+        return "quota / rate limit"
+    if "404" in err or "n'existe pas" in lower or "does not exist" in lower:
+        return "modèle indisponible"
+    if "400" in err and ("décommission" in lower or "decommission" in lower or "hors service" in lower):
+        return "modèle décommissionné"
+    if "400" in err and ("terms" in lower or "conditions" in lower):
+        return "conditions d'utilisation non acceptées"
+    if "réponse groq vide" in lower or "empty" in lower:
+        return "réponse vide"
+    return err[:100]
+
+
 def call_groq_text(system_prompt: str, user_prompt: str) -> str:
-    """Call Groq — tries stable free-tier models first."""
+    """Call Groq — uses live account models, caches the first working one."""
     groq_key = get_secret("GROQ_API_KEY")
     if not groq_key:
         raise RuntimeError("GROQ_API_KEY manquante.")
 
-    fp = hashlib.sha256(groq_key.encode()).hexdigest()[:16]
-    live_models = fetch_groq_model_ids(fp)
+    live_models, live_from_api = _fetch_groq_models_from_api()
     custom_model = get_secret("GROQ_MODEL")
-    unique_models = build_groq_model_priority(live_models, custom_model)
+    unique_models = build_groq_model_priority(
+        live_models,
+        custom_model,
+        live_from_api=live_from_api,
+    )
 
     errors: list[str] = []
+    rate_limited = 0
     for model in unique_models:
         try:
             result = _groq_chat_raw(model, system_prompt, user_prompt)
+            st.session_state.groq_working_model = model
             st.session_state.active_llm_provider = f"Groq ({model})"
             return result
         except Exception as exc:  # noqa: BLE001
-            err = str(exc)
-            if "429" in err or "rate limit" in err.lower() or "limite" in err.lower():
-                errors.append(f"{model}: quota / rate limit")
-            elif "400" in err and ("terms" in err.lower() or "conditions" in err.lower()):
-                errors.append(f"{model}: conditions d'utilisation non acceptées")
-            else:
-                errors.append(f"{model}: {err[:100]}")
+            label = _classify_groq_error(exc)
+            errors.append(f"{model}: {label}")
+            if "quota" in label or "rate limit" in label:
+                rate_limited += 1
+            if st.session_state.get("groq_working_model") == model:
+                st.session_state.pop("groq_working_model", None)
             continue
 
+    if rate_limited and rate_limited == len(unique_models):
+        raise RuntimeError(
+            "Quota Groq atteint sur tous les modèles disponibles.\n"
+            "Attendez 1–2 minutes puis relancez l'analyse.\n\n"
+            + "\n".join(errors[:6])
+        )
+
+    available = ", ".join(unique_models[:8]) if unique_models else "aucun"
     raise RuntimeError(
-        "Aucun modèle Groq disponible sur votre compte.\n"
-        + "\n".join(errors[:6])
-        + "\n\nConseil : ajoutez `GROQ_MODEL = \"llama-3.1-8b-instant\"` dans vos secrets "
-        "ou vérifiez votre clé sur console.groq.com/keys."
+        "Aucun modèle Groq utilisable sur votre compte.\n"
+        + "\n".join(errors[:8])
+        + f"\n\nModèles détectés sur votre compte : {available}.\n"
+        "Laissez `GROQ_MODEL` vide pour la détection auto, ou définissez un modèle "
+        "de la liste sur console.groq.com/docs/models."
     )
 
 
@@ -939,7 +1015,16 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
 
     if provider == "groq":
         st.session_state.active_llm_provider = "Groq (gratuit)"
-        return call_groq_text(system_prompt, user_prompt)
+        try:
+            return call_groq_text(system_prompt, user_prompt)
+        except RuntimeError:
+            if get_secret("OPENAI_API_KEY"):
+                st.session_state.active_llm_provider = "OpenAI (secours — Groq indisponible)"
+                return call_openai_text(system_prompt, user_prompt)
+            if should_use_gemini():
+                st.session_state.active_llm_provider = "Gemini (secours — Groq indisponible)"
+                return call_gemini_text(system_prompt, user_prompt)
+            raise
 
     if provider == "openai":
         st.session_state.active_llm_provider = "OpenAI"
