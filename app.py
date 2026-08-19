@@ -366,19 +366,26 @@ def is_aq_gemini_key(key: str = "") -> bool:
     return value.startswith("AQ.")
 
 
-def should_use_gemini() -> bool:
+def should_use_gemini(*, for_fallback: bool = False) -> bool:
     """Whether to attempt Gemini calls."""
     gemini_key = get_secret("GEMINI_API_KEY")
     if not gemini_key:
         return False
 
     pref = get_ai_provider_preference()
-    if pref == "openai":
+    if pref == "openai" and not for_fallback:
         return False
     if pref == "gemini":
         return True
-    # auto: skip AQ. keys (Google bug — 401 ACCESS_TOKEN_TYPE_UNSUPPORTED)
+    if for_fallback:
+        return True
+    # auto / groq primary: skip AQ. keys (often 401 on Google side)
     return not gemini_key.startswith("AQ.")
+
+
+def can_use_gemini_fallback() -> bool:
+    """Gemini key present — may be used when Groq quota is hit."""
+    return bool(get_secret("GEMINI_API_KEY"))
 
 
 def get_ai_provider_preference() -> str:
@@ -1118,6 +1125,13 @@ def fallback_match_result(job: dict[str, Any]) -> dict[str, Any]:
 
 def call_llm(system_prompt: str, user_prompt: str) -> str:
     """Call Groq, OpenAI, or Gemini with automatic fallback."""
+    if st.session_state.get("groq_quota_exhausted") and can_use_gemini_fallback():
+        try:
+            st.session_state.active_llm_provider = "Gemini (secours — quota Groq)"
+            return call_gemini_text(system_prompt, user_prompt)
+        except RuntimeError:
+            pass
+
     provider = resolve_llm_provider()
 
     if provider == "groq":
@@ -1128,6 +1142,9 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
             quota_hit = isinstance(exc, GroqRateLimitError) or (
                 "quota" in str(exc).lower() or "rate limit" in str(exc).lower()
             )
+            if quota_hit:
+                st.session_state.groq_quota_exhausted = True
+
             if get_secret("OPENAI_API_KEY"):
                 st.session_state.active_llm_provider = "OpenAI (secours — Groq indisponible)"
                 if quota_hit:
@@ -1138,20 +1155,34 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
                         }
                     )
                 return call_openai_text(system_prompt, user_prompt)
-            if should_use_gemini():
-                st.session_state.active_llm_provider = "Gemini (secours — Groq indisponible)"
-                if quota_hit:
-                    st.session_state.setdefault("analysis_notices", []).append(
-                        {
-                            "level": "warning",
-                            "text": "Quota Groq atteint — bascule temporaire sur Gemini.",
-                        }
-                    )
-                return call_gemini_text(system_prompt, user_prompt)
+
+            if can_use_gemini_fallback():
+                try:
+                    st.session_state.active_llm_provider = "Gemini (secours — Groq indisponible)"
+                    if quota_hit:
+                        st.session_state.setdefault("analysis_notices", []).append(
+                            {
+                                "level": "warning",
+                                "text": "Quota Groq atteint — bascule temporaire sur Gemini.",
+                            }
+                        )
+                    return call_gemini_text(system_prompt, user_prompt)
+                except RuntimeError as gemini_exc:
+                    gemini_key = get_secret("GEMINI_API_KEY")
+                    if quota_hit and gemini_key.startswith("AQ."):
+                        raise GroqRateLimitError(
+                            "Quota Groq atteint et clé Gemini AQ. refusée par Google.\n\n"
+                            "Créez une clé AIza sur https://aistudio.google.com/apikey "
+                            "(pas le format AQ.), mettez-la dans vos secrets Streamlit Cloud, "
+                            "puis Reboot app.\n\n"
+                            f"Détail Gemini : {str(gemini_exc)[:200]}"
+                        ) from exc
+                    raise
+
             if quota_hit:
                 raise GroqRateLimitError(
-                    f"{exc}\n\nAjoutez GEMINI_API_KEY (gratuit) ou OPENAI_API_KEY en secours "
-                    "dans vos secrets, ou attendez 1–2 minutes."
+                    f"{exc}\n\nAjoutez GEMINI_API_KEY (gratuit, format AIza…) ou "
+                    "OPENAI_API_KEY en secours dans vos secrets, ou attendez 1–2 minutes."
                 ) from exc
             raise
 
@@ -2571,6 +2602,8 @@ def init_session_state() -> None:
         st.session_state.analysis_notices = []
     if "auth_view" not in st.session_state:
         st.session_state.auth_view = "login"
+    if "groq_quota_exhausted" not in st.session_state:
+        st.session_state.groq_quota_exhausted = False
 
 
 def _flush_analysis_notices() -> None:
@@ -3867,6 +3900,7 @@ def render_app() -> None:
                 st.session_state.analysis = None
                 st.session_state.pdf_fingerprint = None
                 st.session_state.analysis_notices = []
+                st.session_state.groq_quota_exhausted = False
                 st.success("Cache vidé.")
                 st.rerun()
 
