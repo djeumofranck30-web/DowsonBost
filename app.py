@@ -87,8 +87,20 @@ from job_providers import (
 MIN_CV_TEXT_LENGTH = 50
 MAX_OCR_PAGES = 5
 CACHE_TTL_SECONDS = 86_400  # 24 h
+TOP_MATCHING_JOBS = 10
+MATCHING_CANDIDATE_POOL = 25
 
-APP_VERSION = "3.0.0-multi-engines"
+# Theme — aligned with the login page (split-screen purple)
+THEME_BG_GRADIENT = "linear-gradient(160deg, #ddd6fe 0%, #c4b5fd 45%, #a78bfa 100%)"
+THEME_PRIMARY = "#7c3aed"
+THEME_PRIMARY_DARK = "#6d28d9"
+THEME_PRIMARY_DEEP = "#312e81"
+THEME_SURFACE = "#ffffff"
+THEME_SURFACE_SOFT = "#f5f3ff"
+THEME_MUTED = "#64748b"
+THEME_ACCENT = "#6366f1"
+
+APP_VERSION = "3.1.0-ui-refresh"
 
 ADZUNA_COUNTRY_CODES = {
     "France": "fr",
@@ -110,15 +122,29 @@ GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta"
 OPENAI_MODEL = "gpt-4o-mini"
 GROQ_MODEL = "llama-3.1-8b-instant"
 GROQ_API_BASE = "https://api.groq.com/openai/v1"
-GROQ_FALLBACK_MODELS = (
-    "meta-llama/llama-4-scout-17b-16e-instruct",
-    "openai/gpt-oss-20b",
-    "openai/gpt-oss-120b",
-    "qwen/qwen3-32b",
+# Ordre de priorité — modèles stables sur le tier gratuit Groq.
+GROQ_PREFERRED_MODELS = (
     "llama-3.1-8b-instant",
     "llama-3.3-70b-versatile",
+    "llama-3.1-70b-versatile",
+    "gemma2-9b-it",
+    "llama3-8b-8192",
     "llama3-70b-8192",
+    "mixtral-8x7b-32768",
     "groq/compound-mini",
+)
+GROQ_FALLBACK_MODELS = GROQ_PREFERRED_MODELS
+GROQ_SKIP_MODEL_SUBSTRINGS = (
+    "whisper",
+    "embed",
+    "guard",
+    "distil-whisper",
+    "orpheus",
+    "canopylabs",
+    "gpt-oss",
+    "qwen",
+    "llama-4",
+    "deepseek",
 )
 from auth import (
     authenticate_user,
@@ -394,10 +420,10 @@ def _chat_completion(
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def fetch_groq_model_ids(api_key_fingerprint: str) -> list[str]:
-    """Fetch live model list from Groq API."""
+    """Fetch live chat model list from Groq API."""
     api_key = get_secret("GROQ_API_KEY")
     if not api_key:
-        return list(GROQ_FALLBACK_MODELS)
+        return list(GROQ_PREFERRED_MODELS)
 
     try:
         response = requests.get(
@@ -406,17 +432,52 @@ def fetch_groq_model_ids(api_key_fingerprint: str) -> list[str]:
             timeout=30,
         )
         if not response.ok:
-            return list(GROQ_FALLBACK_MODELS)
+            return list(GROQ_PREFERRED_MODELS)
 
-        skip_tokens = ("whisper", "embed", "guard", "distil-whisper")
         model_ids = [
             item["id"]
             for item in response.json().get("data", [])
-            if not any(token in item["id"].lower() for token in skip_tokens)
+            if not _is_groq_model_skipped(item["id"])
         ]
-        return model_ids or list(GROQ_FALLBACK_MODELS)
+        return model_ids or list(GROQ_PREFERRED_MODELS)
     except Exception:  # noqa: BLE001
-        return list(GROQ_FALLBACK_MODELS)
+        return list(GROQ_PREFERRED_MODELS)
+
+
+def _is_groq_model_skipped(model_id: str) -> bool:
+    """Skip audio, embedding, preview and quota-heavy models on free tier."""
+    lower = model_id.lower()
+    if any(token in lower for token in GROQ_SKIP_MODEL_SUBSTRINGS):
+        return True
+    if "compound" in lower and "compound-mini" not in lower:
+        return True
+    return False
+
+
+def build_groq_model_priority(live_models: list[str], custom_model: str = "") -> list[str]:
+    """Build an ordered model list: preferred stable models first."""
+    live_set = set(live_models)
+    ordered: list[str] = []
+
+    if custom_model:
+        ordered.append(custom_model)
+
+    for model in GROQ_PREFERRED_MODELS:
+        if model in ordered:
+            continue
+        if not live_set or model in live_set:
+            ordered.append(model)
+
+    for model in live_models:
+        if model not in ordered and not _is_groq_model_skipped(model):
+            ordered.append(model)
+
+    for model in GROQ_PREFERRED_MODELS:
+        if model not in ordered:
+            ordered.append(model)
+
+    seen: set[str] = set()
+    return [m for m in ordered if m and not (m in seen or seen.add(m))]
 
 
 def _groq_chat_raw(
@@ -458,7 +519,7 @@ def _groq_chat_raw(
 
 
 def call_groq_text(system_prompt: str, user_prompt: str) -> str:
-    """Call Groq — uses live model list from your account."""
+    """Call Groq — tries stable free-tier models first."""
     groq_key = get_secret("GROQ_API_KEY")
     if not groq_key:
         raise RuntimeError("GROQ_API_KEY manquante.")
@@ -466,30 +527,29 @@ def call_groq_text(system_prompt: str, user_prompt: str) -> str:
     fp = hashlib.sha256(groq_key.encode()).hexdigest()[:16]
     live_models = fetch_groq_model_ids(fp)
     custom_model = get_secret("GROQ_MODEL")
-
-    if custom_model:
-        models = [custom_model] + [m for m in live_models if m != custom_model]
-    else:
-        # Prefer live models, then static fallbacks
-        models = live_models + [m for m in GROQ_FALLBACK_MODELS if m not in live_models]
-
-    seen: set[str] = set()
-    unique_models = [m for m in models if m and not (m in seen or seen.add(m))]
+    unique_models = build_groq_model_priority(live_models, custom_model)
 
     errors: list[str] = []
-    for model in unique_models[:8]:
+    for model in unique_models:
         try:
             result = _groq_chat_raw(model, system_prompt, user_prompt)
             st.session_state.active_llm_provider = f"Groq ({model})"
             return result
         except Exception as exc:  # noqa: BLE001
-            errors.append(f"{model}: {str(exc)[:100]}")
+            err = str(exc)
+            if "429" in err or "rate limit" in err.lower() or "limite" in err.lower():
+                errors.append(f"{model}: quota / rate limit")
+            elif "400" in err and ("terms" in err.lower() or "conditions" in err.lower()):
+                errors.append(f"{model}: conditions d'utilisation non acceptées")
+            else:
+                errors.append(f"{model}: {err[:100]}")
             continue
 
     raise RuntimeError(
         "Aucun modèle Groq disponible sur votre compte.\n"
-        + "\n".join(errors[:5])
-        + "\n\nVérifiez votre clé sur console.groq.com/keys ou recréez-en une."
+        + "\n".join(errors[:6])
+        + "\n\nConseil : ajoutez `GROQ_MODEL = \"llama-3.1-8b-instant\"` dans vos secrets "
+        "ou vérifiez votre clé sur console.groq.com/keys."
     )
 
 
@@ -1571,7 +1631,7 @@ def rank_jobs_for_cv(
     jobs: list[dict[str, Any]],
     cv_text: str,
     keywords: list[str],
-    top_n: int = 5,
+    top_n: int = TOP_MATCHING_JOBS,
 ) -> list[dict[str, Any]]:
     """Pre-rank jobs by keyword overlap before deep AI matching."""
     cv_lower = cv_text.lower()
@@ -1584,6 +1644,32 @@ def rank_jobs_for_cv(
         return hits * 10 - gaps * 2
 
     return sorted(jobs, key=quick_score, reverse=True)[:top_n]
+
+
+def build_matching_results(
+    jobs: list[dict[str, Any]],
+    cv_text: str,
+    keywords: list[str],
+    top_n: int = TOP_MATCHING_JOBS,
+) -> tuple[list[dict[str, Any]], int]:
+    """AI-match job candidates and return the best offers by correspondence score."""
+    pool_size = min(len(jobs), MATCHING_CANDIDATE_POOL)
+    candidates = rank_jobs_for_cv(jobs, cv_text, keywords, top_n=pool_size)
+
+    results: list[dict[str, Any]] = []
+    partial_matches = 0
+    for job in candidates:
+        job_json = json.dumps(job, sort_keys=True, ensure_ascii=False)
+        match = cached_match_cv_to_job(cv_text, job_json)
+        if match.get("_fallback"):
+            partial_matches += 1
+        results.append({"job": job, "match": match})
+
+    results.sort(
+        key=lambda entry: int(entry["match"].get("score_correspondance", 0)),
+        reverse=True,
+    )
+    return results[:top_n], partial_matches
 
 
 # ---------------------------------------------------------------------------
@@ -1704,13 +1790,7 @@ def run_full_analysis(
         job_provider, query, location, country, metier
     )
     jobs = search_result["jobs"]
-    ranked_jobs = rank_jobs_for_cv(jobs, cv_text, keywords)
-
-    results: list[dict[str, Any]] = []
-    for job in ranked_jobs:
-        job_json = json.dumps(job, sort_keys=True, ensure_ascii=False)
-        match = cached_match_cv_to_job(cv_text, job_json)
-        results.append({"job": job, "match": match})
+    results, _partial = build_matching_results(jobs, cv_text, keywords)
 
     return {
         "cv_text": cv_text,
@@ -1725,7 +1805,238 @@ def run_full_analysis(
 
 
 # ---------------------------------------------------------------------------
-# UI
+# UI — theme & layout
+# ---------------------------------------------------------------------------
+
+
+def render_app_styles() -> None:
+    """Global styles for the authenticated app (matches login palette)."""
+    st.markdown(
+        f"""
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        html, body, [data-testid="stAppViewContainer"] {{
+            background: {THEME_BG_GRADIENT} !important;
+            font-family: 'Inter', sans-serif;
+        }}
+
+        [data-testid="stHeader"] {{
+            background: transparent;
+        }}
+
+        /* —— Sidebar —— */
+        [data-testid="stSidebar"] {{
+            background: rgba(255, 255, 255, 0.97) !important;
+            border-right: 1px solid rgba(124, 58, 237, 0.12);
+            box-shadow: 4px 0 24px rgba(76, 29, 149, 0.08);
+        }}
+        [data-testid="stSidebar"] [data-testid="stMarkdown"] h1,
+        [data-testid="stSidebar"] [data-testid="stMarkdown"] h2,
+        [data-testid="stSidebar"] [data-testid="stMarkdown"] h3 {{
+            color: {THEME_PRIMARY_DEEP} !important;
+        }}
+        [data-testid="stSidebar"] .sidebar-brand {{
+            text-align: center;
+            padding: 0.5rem 0 1rem 0;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+            margin-bottom: 0.75rem;
+        }}
+        [data-testid="stSidebar"] .sidebar-brand-name {{
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: {THEME_PRIMARY_DEEP};
+            margin: 0;
+        }}
+        [data-testid="stSidebar"] .sidebar-brand-name span {{
+            color: {THEME_PRIMARY};
+        }}
+        [data-testid="stSidebar"] .sidebar-user {{
+            font-size: 0.82rem;
+            color: {THEME_MUTED};
+            margin: 0.35rem 0 0 0;
+        }}
+        [data-testid="stSidebar"] div[data-testid="stRadio"] > div {{
+            gap: 0.35rem;
+        }}
+        [data-testid="stSidebar"] div[data-testid="stRadio"] label {{
+            background: {THEME_SURFACE_SOFT};
+            border: 1px solid rgba(124, 58, 237, 0.12);
+            border-radius: 10px !important;
+            padding: 0.55rem 0.85rem !important;
+            font-weight: 600 !important;
+            color: {THEME_PRIMARY_DEEP} !important;
+        }}
+        [data-testid="stSidebar"] div[data-testid="stRadio"] label[data-checked="true"],
+        [data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) {{
+            background: linear-gradient(135deg, {THEME_PRIMARY}, {THEME_PRIMARY_DARK}) !important;
+            color: #fff !important;
+            border-color: transparent !important;
+        }}
+
+        /* —— Main area —— */
+        .main .block-container {{
+            padding-top: 1.25rem;
+            padding-bottom: 2.5rem;
+            max-width: 1080px;
+        }}
+
+        .app-page-hero {{
+            background: {THEME_SURFACE};
+            border-radius: 20px;
+            padding: 1.5rem 1.75rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 14px 36px rgba(76, 29, 149, 0.12);
+            border: 1px solid rgba(124, 58, 237, 0.08);
+        }}
+        .app-page-hero h1 {{
+            margin: 0 0 0.35rem 0;
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: {THEME_PRIMARY_DEEP};
+        }}
+        .app-page-hero p {{
+            margin: 0;
+            color: {THEME_MUTED};
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }}
+        .app-badge {{
+            display: inline-block;
+            background: {THEME_SURFACE_SOFT};
+            color: {THEME_PRIMARY};
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 0.25rem 0.65rem;
+            border-radius: 999px;
+            margin-bottom: 0.65rem;
+        }}
+
+        [data-testid="stVerticalBlockBorderWrapper"] {{
+            background: {THEME_SURFACE} !important;
+            border-radius: 18px !important;
+            border: 1px solid rgba(124, 58, 237, 0.1) !important;
+            box-shadow: 0 12px 32px rgba(76, 29, 149, 0.1) !important;
+            padding: 0.35rem 0.5rem 0.75rem 0.5rem;
+        }}
+
+        .section-title {{
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: {THEME_PRIMARY_DEEP};
+            margin: 0 0 0.75rem 0;
+        }}
+
+        /* —— Buttons —— */
+        .stButton > button[kind="primary"],
+        div[data-testid="stFormSubmitButton"] button,
+        .stDownloadButton > button {{
+            background: linear-gradient(135deg, {THEME_PRIMARY}, {THEME_PRIMARY_DARK}) !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 999px !important;
+            font-weight: 600 !important;
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.3) !important;
+        }}
+        .stButton > button[kind="primary"]:hover,
+        div[data-testid="stFormSubmitButton"] button:hover {{
+            background: linear-gradient(135deg, {THEME_PRIMARY_DARK}, #5b21b6) !important;
+            color: #fff !important;
+        }}
+        .stButton > button[kind="secondary"] {{
+            border-radius: 999px !important;
+            border-color: rgba(124, 58, 237, 0.35) !important;
+            color: {THEME_PRIMARY} !important;
+        }}
+
+        /* —— Metrics —— */
+        [data-testid="stMetric"] {{
+            background: {THEME_SURFACE_SOFT};
+            border: 1px solid rgba(124, 58, 237, 0.1);
+            border-radius: 14px;
+            padding: 0.65rem 0.85rem;
+        }}
+        [data-testid="stMetricLabel"] {{
+            color: {THEME_MUTED} !important;
+        }}
+        [data-testid="stMetricValue"] {{
+            color: {THEME_PRIMARY_DEEP} !important;
+        }}
+
+        /* —— Job cards —— */
+        .job-match-card {{
+            background: {THEME_SURFACE};
+            border-radius: 18px;
+            padding: 1.25rem 1.5rem 0.5rem 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(124, 58, 237, 0.1);
+            box-shadow: 0 10px 28px rgba(76, 29, 149, 0.08);
+            border-left: 4px solid {THEME_PRIMARY};
+        }}
+        .job-match-card h3 {{
+            color: {THEME_PRIMARY_DEEP};
+            margin-top: 0;
+        }}
+        .job-score-pill {{
+            text-align: center;
+            padding: 1rem;
+            border-radius: 14px;
+        }}
+
+        /* —— File uploader —— */
+        [data-testid="stFileUploader"] section {{
+            background: {THEME_SURFACE_SOFT};
+            border: 2px dashed rgba(124, 58, 237, 0.25);
+            border-radius: 16px;
+            padding: 0.5rem;
+        }}
+
+        /* —— Expanders & alerts on white cards —— */
+        .main [data-testid="stAlert"] {{
+            border-radius: 12px;
+        }}
+
+        h2, h3, h4 {{
+            color: {THEME_PRIMARY_DEEP} !important;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_page_hero(title: str, subtitle: str, badge: str = "") -> None:
+    """Top hero block for each main page."""
+    badge_html = f'<span class="app-badge">{html.escape(badge)}</span>' if badge else ""
+    st.markdown(
+        f"""
+        <div class="app-page-hero">
+            {badge_html}
+            <h1>{html.escape(title)}</h1>
+            <p>{html.escape(subtitle)}</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_sidebar_brand(user_email: str) -> None:
+    """Branded sidebar header."""
+    st.markdown(
+        f"""
+        <div class="sidebar-brand">
+            <p class="sidebar-brand-name"><span>Dowson</span>Bost</p>
+            <p class="sidebar-user">{html.escape(user_email)}</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ---------------------------------------------------------------------------
+# UI — components
 # ---------------------------------------------------------------------------
 
 
@@ -1736,6 +2047,7 @@ def render_job_card(job: dict[str, Any], match: dict[str, Any], rank: int) -> No
         "#22c55e" if score >= 75 else "#eab308" if score >= 50 else "#ef4444"
     )
 
+    st.markdown('<div class="job-match-card">', unsafe_allow_html=True)
     st.markdown(f"### #{rank} — {job['title']}")
     col1, col2, col3 = st.columns([2, 2, 1])
 
@@ -1763,8 +2075,8 @@ def render_job_card(job: dict[str, Any], match: dict[str, Any], rank: int) -> No
 
     with col3:
         st.markdown(
-            f"<div style='text-align:center;padding:1rem;border-radius:12px;"
-            f"background:{score_color}22;border:2px solid {score_color}'>"
+            f"<div class='job-score-pill' style='background:{score_color}22;"
+            f"border:2px solid {score_color}'>"
             f"<span style='font-size:2rem;font-weight:bold;color:{score_color}'>"
             f"{score}%</span><br><small>Correspondance</small></div>",
             unsafe_allow_html=True,
@@ -1777,77 +2089,81 @@ def render_job_card(job: dict[str, Any], match: dict[str, Any], rank: int) -> No
     if job.get("url"):
         st.link_button("Postuler →", job["url"], use_container_width=False)
 
-    st.divider()
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def render_cv_profile_summary(criteria: dict[str, Any], user_profile: dict[str, Any]) -> None:
     """Display enriched CV profile and user matching preferences."""
-    st.subheader("Profil candidat & critères de recherche")
-
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Métier visé", criteria.get("metier", "—"))
-    cv_level = criteria.get("niveau_experience", "—")
-    profile_level = user_profile.get("experience_level", "confirme")
-    c2.metric(
-        "Niveau",
-        EXPERIENCE_LABELS.get(profile_level, profile_level)
-        if profile_level != "tous"
-        else f"CV: {cv_level}",
-    )
-    c3.metric("Contrat recherché", user_profile.get("contract_type", "—"))
-    c4.metric("Zone", user_profile.get("home_city", "—"))
-
-    profile_sectors = user_profile.get("target_sectors") or []
-    cv_sectors = criteria.get("secteurs") or []
-    active_sectors = profile_sectors or cv_sectors
-    if active_sectors:
-        st.caption("**Secteurs ciblés :** " + ", ".join(active_sectors))
-
-    geo_labels = {
-        "ville": "Même ville",
-        "departement": "Même département",
-        "rayon": f"Rayon {user_profile.get('search_radius_km', 20)} km",
-    }
-    region_text, dept_text, city_text = format_profile_geo_summary(user_profile)
-    st.caption(
-        f"Filtrage géographique : **{geo_labels.get(user_profile.get('geo_filter_mode', 'departement'), '—')}** · "
-        f"{user_profile.get('country', 'France')} · "
-        f"Régions : **{region_text}** · "
-        f"Départements : **{dept_text}** · "
-        f"Villes : **{city_text}**"
+    st.markdown(
+        '<p class="section-title">Profil candidat & critères de recherche</p>',
+        unsafe_allow_html=True,
     )
 
-    tech = criteria.get("competences_techniques") or criteria.get("mots_cles") or []
-    soft = criteria.get("soft_skills") or []
-    if tech:
-        st.markdown("**Compétences techniques :** " + " · ".join(f"`{kw}`" for kw in tech))
-    if soft:
-        st.markdown("**Soft skills :** " + " · ".join(f"`{kw}`" for kw in soft))
+    with st.container(border=True):
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Métier visé", criteria.get("metier", "—"))
+        cv_level = criteria.get("niveau_experience", "—")
+        profile_level = user_profile.get("experience_level", "confirme")
+        c2.metric(
+            "Niveau",
+            EXPERIENCE_LABELS.get(profile_level, profile_level)
+            if profile_level != "tous"
+            else f"CV: {cv_level}",
+        )
+        c3.metric("Contrat recherché", user_profile.get("contract_type", "—"))
+        c4.metric("Zone", user_profile.get("home_city", "—"))
 
-    col_a, col_b = st.columns(2)
-    with col_a:
-        diplomes = criteria.get("diplomes_certifications") or []
-        if diplomes:
-            st.markdown("**Diplômes / certifications**")
-            for item in diplomes:
-                st.write(f"- {item}")
-        secteurs = criteria.get("secteurs") or []
-        if secteurs:
-            st.markdown("**Secteurs :** " + ", ".join(secteurs))
-    with col_b:
-        experiences = criteria.get("experiences") or []
-        if experiences:
-            st.markdown("**Expériences clés**")
-            for exp in experiences[:4]:
-                if isinstance(exp, dict):
-                    st.write(
-                        f"- {exp.get('poste', '—')} · {exp.get('entreprise', '—')} "
-                        f"({exp.get('duree', '—')})"
-                    )
-        if criteria.get("mobilite_geographique"):
-            st.markdown(f"**Mobilité (CV) :** {criteria['mobilite_geographique']}")
-        if criteria.get("disponibilites"):
-            st.markdown(f"**Disponibilités (CV) :** {criteria['disponibilites']}")
+        profile_sectors = user_profile.get("target_sectors") or []
+        cv_sectors = criteria.get("secteurs") or []
+        active_sectors = profile_sectors or cv_sectors
+        if active_sectors:
+            st.caption("**Secteurs ciblés :** " + ", ".join(active_sectors))
+
+        geo_labels = {
+            "ville": "Même ville",
+            "departement": "Même département",
+            "rayon": f"Rayon {user_profile.get('search_radius_km', 20)} km",
+        }
+        region_text, dept_text, city_text = format_profile_geo_summary(user_profile)
+        st.caption(
+            f"Filtrage géographique : **{geo_labels.get(user_profile.get('geo_filter_mode', 'departement'), '—')}** · "
+            f"{user_profile.get('country', 'France')} · "
+            f"Régions : **{region_text}** · "
+            f"Départements : **{dept_text}** · "
+            f"Villes : **{city_text}**"
+        )
+
+        tech = criteria.get("competences_techniques") or criteria.get("mots_cles") or []
+        soft = criteria.get("soft_skills") or []
+        if tech:
+            st.markdown("**Compétences techniques :** " + " · ".join(f"`{kw}`" for kw in tech))
+        if soft:
+            st.markdown("**Soft skills :** " + " · ".join(f"`{kw}`" for kw in soft))
+
+        col_a, col_b = st.columns(2)
+        with col_a:
+            diplomes = criteria.get("diplomes_certifications") or []
+            if diplomes:
+                st.markdown("**Diplômes / certifications**")
+                for item in diplomes:
+                    st.write(f"- {item}")
+            secteurs = criteria.get("secteurs") or []
+            if secteurs:
+                st.markdown("**Secteurs :** " + ", ".join(secteurs))
+        with col_b:
+            experiences = criteria.get("experiences") or []
+            if experiences:
+                st.markdown("**Expériences clés**")
+                for exp in experiences[:4]:
+                    if isinstance(exp, dict):
+                        st.write(
+                            f"- {exp.get('poste', '—')} · {exp.get('entreprise', '—')} "
+                            f"({exp.get('duree', '—')})"
+                        )
+            if criteria.get("mobilite_geographique"):
+                st.markdown(f"**Mobilité (CV) :** {criteria['mobilite_geographique']}")
+            if criteria.get("disponibilites"):
+                st.markdown(f"**Disponibilités (CV) :** {criteria['disponibilites']}")
 
 
 def render_analysis_results(analysis: dict[str, Any]) -> None:
@@ -1881,33 +2197,42 @@ def render_analysis_results(analysis: dict[str, Any]) -> None:
         f"Top {len(analysis['results'])} analysé(s)."
     )
 
-    col_export, col_info = st.columns([1, 2])
-    with col_export:
-        try:
-            if not analysis.get("report_pdf"):
-                analysis["report_pdf"] = generate_matching_report_pdf(
-                    criteria,
-                    analysis["results"],
-                    method_label,
-                )
-            st.download_button(
-                label="Télécharger le rapport (PDF)",
-                data=analysis["report_pdf"],
-                file_name="rapport_matching_dowsonbost.pdf",
-                mime="application/pdf",
-                type="primary",
-                use_container_width=True,
-                key="download_matching_report",
-            )
-        except Exception as exc:  # noqa: BLE001
-            st.error(f"Export PDF indisponible : {exc}")
-    with col_info:
-        st.caption(
-            "Le rapport PDF inclut les 5 offres, scores, mots-clés manquants "
-            "et conseils d'optimisation."
-        )
+    st.markdown(
+        '<p class="section-title">Résultats & rapport PDF</p>',
+        unsafe_allow_html=True,
+    )
 
-    st.subheader("Top 5 — Rapport de matching & optimisation CV")
+    with st.container(border=True):
+        col_export, col_info = st.columns([1, 2])
+        with col_export:
+            try:
+                if not analysis.get("report_pdf"):
+                    analysis["report_pdf"] = generate_matching_report_pdf(
+                        criteria,
+                        analysis["results"],
+                        method_label,
+                    )
+                st.download_button(
+                    label="Télécharger le rapport (PDF)",
+                    data=analysis["report_pdf"],
+                    file_name="rapport_matching_dowsonbost.pdf",
+                    mime="application/pdf",
+                    type="primary",
+                    use_container_width=True,
+                    key="download_matching_report",
+                )
+            except Exception as exc:  # noqa: BLE001
+                st.error(f"Export PDF indisponible : {exc}")
+        with col_info:
+            st.caption(
+                f"Le rapport PDF inclut les {TOP_MATCHING_JOBS} offres, scores, mots-clés manquants "
+                "et conseils d'optimisation."
+            )
+
+    st.markdown(
+        f'<p class="section-title">Top {TOP_MATCHING_JOBS} — Matching & optimisation CV</p>',
+        unsafe_allow_html=True,
+    )
     for idx, entry in enumerate(analysis["results"], start=1):
         render_job_card(entry["job"], entry["match"], idx)
 
@@ -1933,6 +2258,8 @@ def init_session_state() -> None:
         st.session_state.gemini_fallback_warned = False
     if "analysis_notices" not in st.session_state:
         st.session_state.analysis_notices = []
+    if "auth_view" not in st.session_state:
+        st.session_state.auth_view = "login"
 
 
 def _flush_analysis_notices() -> None:
@@ -2079,15 +2406,7 @@ def run_cv_analysis_pipeline(
             }
         )
 
-    ranked_jobs = rank_jobs_for_cv(jobs, cv_text, keywords)
-    results: list[dict[str, Any]] = []
-    partial_matches = 0
-    for job in ranked_jobs:
-        job_json = json.dumps(job, sort_keys=True, ensure_ascii=False)
-        match = cached_match_cv_to_job(cv_text, job_json)
-        if match.get("_fallback"):
-            partial_matches += 1
-        results.append({"job": job, "match": match})
+    results, partial_matches = build_matching_results(jobs, cv_text, keywords)
 
     if partial_matches:
         notices.append(
@@ -2281,30 +2600,217 @@ def render_city_selector(
     return [parse_city_option(label) for label in selected_labels], False
 
 
+def _auth_time_greeting() -> tuple[str, str]:
+    """Return headline and sub-greeting for the auth panel."""
+    hour = datetime.now().hour
+    if 5 <= hour < 12:
+        return "Bonjour !", "Bonne matinée"
+    if 12 <= hour < 18:
+        return "Bonjour !", "Bon après-midi"
+    if 18 <= hour < 23:
+        return "Bonsoir !", "Bonne soirée"
+    return "Bonsoir !", "Bonne nuit"
+
+
+def _auth_illustration_svg() -> str:
+    """Night-scene SVG for the left auth panel."""
+    return """
+<svg class="auth-illustration" viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <rect width="320" height="220" fill="#6d28d9"/>
+  <circle cx="248" cy="52" r="34" fill="#fde047"/>
+  <ellipse cx="210" cy="58" rx="38" ry="18" fill="#5b21b6"/>
+  <ellipse cx="255" cy="62" rx="30" ry="14" fill="#5b21b6"/>
+  <path d="M0 150 Q80 120 160 145 T320 138 L320 220 L0 220 Z" fill="#7c3aed"/>
+  <path d="M0 170 Q90 145 180 168 T320 158 L320 220 L0 220 Z" fill="#8b5cf6"/>
+  <path d="M0 188 Q100 165 200 185 T320 176 L320 220 L0 220 Z" fill="#a78bfa"/>
+  <line x1="40" y1="28" x2="58" y2="8" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+  <line x1="120" y1="18" x2="128" y2="2" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+  <line x1="180" y1="36" x2="198" y2="16" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="90" cy="40" r="2" fill="#fff"/>
+  <circle cx="150" cy="24" r="2" fill="#fff"/>
+  <circle cx="200" cy="30" r="2" fill="#fff"/>
+</svg>
+"""
+
+
+def _auth_left_panel_html() -> str:
+    """Decorative left column for the auth card."""
+    return f"""
+<div class="auth-left-panel">
+  {_auth_illustration_svg()}
+  <p class="auth-left-title">
+    Connectez-vous pour accéder à<br/>l'expérience complète {html.escape(APP_NAME)}
+  </p>
+  <p class="auth-left-tip">
+    Astuce : complétez votre profil pour un matching d'offres plus précis.
+  </p>
+</div>
+"""
+
+
 def render_auth_styles() -> None:
-    """Inject CSS for the login/register page."""
+    """Inject CSS for the split-screen login page."""
     st.markdown(
         """
         <style>
-        .dowson-hero {
+        [data-testid="stAppViewContainer"] {
+            background: linear-gradient(160deg, #ddd6fe 0%, #c4b5fd 45%, #a78bfa 100%);
+        }
+        [data-testid="stHeader"], [data-testid="stToolbar"], footer {
+            visibility: hidden;
+            height: 0;
+        }
+        .block-container {
+            padding-top: 2.5rem;
+            padding-bottom: 2.5rem;
+            max-width: 920px;
+        }
+        .auth-card-row [data-testid="column"] {
+            padding: 0 !important;
+        }
+        .auth-card-row [data-testid="column"]:first-child > div {
+            background: #7c3aed;
+            border-radius: 28px 0 0 28px;
+            min-height: 560px;
+            box-shadow: 0 24px 48px rgba(76, 29, 149, 0.18);
+        }
+        .auth-card-row [data-testid="column"]:last-child > div {
+            background: #ffffff;
+            border-radius: 0 28px 28px 0;
+            min-height: 560px;
+            box-shadow: 0 24px 48px rgba(76, 29, 149, 0.18);
+            padding: 2.5rem 2.75rem 2rem 2.75rem !important;
+        }
+        .auth-left-panel {
+            color: #fff;
             text-align: center;
-            padding: 1.5rem 0 0.5rem 0;
+            padding: 2.5rem 2rem 2rem 2rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
-        .dowson-hero h1 {
-            font-size: 2.4rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
+        .auth-illustration {
+            width: min(100%, 280px);
+            height: auto;
+            margin-bottom: 1.75rem;
+            border-radius: 12px;
         }
-        .dowson-hero p {
-            color: #94a3b8;
+        .auth-left-title {
             font-size: 1.05rem;
+            line-height: 1.55;
+            font-weight: 500;
+            margin: 0 0 0.75rem 0;
+            color: rgba(255,255,255,0.96);
         }
-        .dowson-card {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-top: 1rem;
+        .auth-left-tip {
+            font-size: 0.82rem;
+            line-height: 1.45;
+            margin: 0;
+            color: rgba(255,255,255,0.78);
+        }
+        .auth-greeting-main {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #312e81;
+            margin: 0 0 0.15rem 0;
+            line-height: 1.15;
+        }
+        .auth-greeting-sub {
+            font-size: 1.55rem;
+            font-weight: 700;
+            color: #312e81;
+            margin: 0 0 1.35rem 0;
+            line-height: 1.2;
+        }
+        .auth-form-title {
+            font-size: 0.95rem;
+            color: #64748b;
+            margin: 0 0 1.5rem 0;
+        }
+        .auth-card-row div[data-testid="stTextInput"] label {
+            color: #64748b !important;
+            font-size: 0.82rem !important;
+            font-weight: 500 !important;
+        }
+        .auth-card-row div[data-testid="stTextInput"] input {
+            background: transparent !important;
+            border: none !important;
+            border-bottom: 2px solid #e2e8f0 !important;
+            border-radius: 0 !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            color: #1e293b !important;
+            box-shadow: none !important;
+        }
+        .auth-card-row div[data-testid="stTextInput"] input:focus {
+            border-bottom-color: #7c3aed !important;
+            box-shadow: none !important;
+        }
+        .auth-card-row div[data-testid="stFormSubmitButton"] button {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 999px !important;
+            padding: 0.72rem 1.5rem !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.02em;
+            margin-top: 0.5rem;
+            box-shadow: 0 10px 24px rgba(124, 58, 237, 0.35);
+        }
+        .auth-card-row div[data-testid="stFormSubmitButton"] button:hover {
+            background: linear-gradient(135deg, #6d28d9, #5b21b6) !important;
+            color: #fff !important;
+            border: none !important;
+        }
+        .auth-link-row {
+            display: flex;
+            justify-content: flex-end;
+            margin: -0.35rem 0 0.75rem 0;
+        }
+        .auth-link-row button {
+            background: transparent !important;
+            border: none !important;
+            color: #6366f1 !important;
+            font-size: 0.82rem !important;
+            padding: 0 !important;
+            min-height: 0 !important;
+            box-shadow: none !important;
+        }
+        .auth-link-row button:hover {
+            color: #4f46e5 !important;
+            text-decoration: underline;
+        }
+        .auth-footer-link button {
+            background: transparent !important;
+            border: none !important;
+            color: #64748b !important;
+            font-size: 0.9rem !important;
+            font-weight: 500 !important;
+            width: 100%;
+            box-shadow: none !important;
+        }
+        .auth-footer-link button:hover {
+            color: #7c3aed !important;
+        }
+        .auth-back-link button {
+            background: transparent !important;
+            border: none !important;
+            color: #7c3aed !important;
+            font-size: 0.85rem !important;
+            padding-left: 0 !important;
+            box-shadow: none !important;
+        }
+        @media (max-width: 768px) {
+            .auth-card-row [data-testid="column"]:first-child > div {
+                border-radius: 28px 28px 0 0;
+                min-height: 280px;
+            }
+            .auth-card-row [data-testid="column"]:last-child > div {
+                border-radius: 0 0 28px 28px;
+                min-height: auto;
+            }
         }
         </style>
         """,
@@ -2312,165 +2818,202 @@ def render_auth_styles() -> None:
     )
 
 
-def render_auth_page() -> None:
-    """Login and registration page."""
-    render_auth_styles()
-
+def _render_auth_login_form() -> None:
+    """Login form in the right panel."""
+    headline, sub = _auth_time_greeting()
+    st.markdown(f'<p class="auth-greeting-main">{headline}</p>', unsafe_allow_html=True)
+    st.markdown(f'<p class="auth-greeting-sub">{sub}</p>', unsafe_allow_html=True)
     st.markdown(
-        f"""
-        <div class="dowson-hero">
-            <h1>{APP_NAME}</h1>
-            <p>Auto Job Finder & CV Matcher — connectez-vous pour accéder à l'outil</p>
-        </div>
-        """,
+        '<p class="auth-form-title">Connectez-vous à votre compte</p>',
         unsafe_allow_html=True,
     )
-
-    _left, center, _right = st.columns([1, 1.2, 1])
-    with center:
-        tab_login, tab_register, tab_reset = st.tabs(
-            ["Connexion", "Créer un compte", "Mot de passe oublié"]
+    with st.form("login_form", clear_on_submit=False):
+        login_email = st.text_input("E-mail", placeholder="vous@exemple.com")
+        login_password = st.text_input(
+            "Mot de passe", type="password", placeholder="••••••••"
         )
+        if st.form_submit_button("Se connecter", use_container_width=True):
+            ok, message, user = authenticate_user(login_email, login_password)
+            if ok and user:
+                st.session_state.authenticated = True
+                st.session_state.user = user
+                st.session_state.auth_view = "login"
+                st.success(message)
+                st.rerun()
+            else:
+                st.error(message)
+    st.markdown('<div class="auth-link-row">', unsafe_allow_html=True)
+    if st.button("Mot de passe oublié ?", key="auth_go_reset"):
+        st.session_state.auth_view = "reset"
+        st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
 
-        with tab_login:
-            with st.form("login_form", clear_on_submit=False):
-                login_email = st.text_input("E-mail", placeholder="vous@exemple.com")
-                login_password = st.text_input(
-                    "Mot de passe", type="password", placeholder="••••••••"
-                )
-                if st.form_submit_button(
-                    "Se connecter", type="primary", use_container_width=True
-                ):
-                    ok, message, user = authenticate_user(login_email, login_password)
-                    if ok and user:
-                        st.session_state.authenticated = True
-                        st.session_state.user = user
-                        st.success(message)
-                        st.rerun()
-                    else:
-                        st.error(message)
 
-        with tab_register:
-            st.markdown("**Localisation**")
-            reg_admin_regions, reg_departments = render_region_department_selectors(
-                {},
-                key_prefix="register",
-            )
-            reg_cities, reg_all_cities = render_city_selector(
-                {},
-                key_prefix="register",
-                selected_departments=reg_departments,
-                country="France",
-            )
-            with st.form("register_form", clear_on_submit=False):
-                reg_name = st.text_input("Nom complet", placeholder="Jean Dupont")
-                reg_email = st.text_input("E-mail", placeholder="vous@exemple.com")
-                reg_password = st.text_input(
-                    "Mot de passe", type="password", placeholder="8 caractères minimum"
-                )
-                reg_password2 = st.text_input(
-                    "Confirmer le mot de passe", type="password"
-                )
-                st.markdown("**Préférences de recherche d'emploi**")
-                r1, r2 = st.columns(2)
-                with r1:
-                    reg_home_city = st.text_input(
-                        "Ville de domicile (centre du rayon)",
-                        placeholder="Lyon",
-                    )
-                    reg_postal = st.text_input("Code postal", placeholder="69001")
-                with r2:
-                    reg_country = st.selectbox(
-                        "Pays",
-                        COUNTRY_OPTIONS,
-                        index=0,
-                    )
-                    reg_contract = st.selectbox(
-                        "Type de contrat recherché",
-                        CONTRACT_TYPES,
-                        index=0,
-                    )
-                reg_geo = st.selectbox(
-                    "Contrainte de distance supplémentaire",
-                    GEO_FILTER_MODES,
-                    index=1,
-                    format_func=lambda x: {
-                        "ville": "Villes sélectionnées uniquement",
-                        "departement": "Pays, régions, départements et villes sélectionnés",
-                        "rayon": "Critères ci-dessus + rayon autour du domicile",
-                    }[x],
-                )
-                reg_radius = st.slider("Rayon (km)", 5, 100, 20, disabled=(reg_geo != "rayon"))
-                reg_experience = st.selectbox(
-                    "Niveau d'expérience recherché",
-                    EXPERIENCE_LEVELS,
-                    index=1,
-                    format_func=lambda x: EXPERIENCE_LABELS[x],
-                )
-                reg_sectors = st.multiselect(
-                    "Secteurs d'activité ciblés (optionnel — sinon déduits du CV)",
-                    SECTOR_OPTIONS,
-                    default=["Informatique"],
-                    key="register_target_sectors",
-                )
-                if st.form_submit_button(
-                    "Créer mon compte", type="primary", use_container_width=True
-                ):
-                    if reg_password != reg_password2:
-                        st.error("Les mots de passe ne correspondent pas.")
-                    else:
-                        cities = reg_cities
-                        if not reg_all_cities and not cities and reg_home_city.strip():
-                            cities = [reg_home_city.strip()]
-                        ok, message = register_user(
-                            reg_name,
-                            reg_email,
-                            reg_password,
-                            home_city=reg_home_city,
-                            postal_code=reg_postal,
-                            admin_regions=reg_admin_regions,
-                            selected_departments=reg_departments,
-                            selected_cities=cities,
-                            all_cities=reg_all_cities,
-                            country=reg_country,
-                            contract_type=reg_contract,
-                            geo_filter_mode=reg_geo,
-                            search_radius_km=reg_radius,
-                            experience_level=reg_experience,
-                            target_sectors=reg_sectors,
-                        )
-                        if ok:
-                            st.success(message)
-                        else:
-                            st.error(message)
+def _render_auth_reset_form() -> None:
+    """Password reset form."""
+    st.markdown('<p class="auth-greeting-main">Réinitialisation</p>', unsafe_allow_html=True)
+    st.markdown(
+        '<p class="auth-greeting-sub">Nouveau mot de passe</p>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<p class="auth-form-title">E-mail et nom complet identiques à l\'inscription</p>',
+        unsafe_allow_html=True,
+    )
+    with st.form("reset_form", clear_on_submit=False):
+        reset_email = st.text_input("E-mail", placeholder="vous@exemple.com")
+        reset_name = st.text_input("Nom complet", placeholder="Jean Dupont")
+        reset_password_1 = st.text_input(
+            "Nouveau mot de passe", type="password", placeholder="8 caractères minimum"
+        )
+        reset_password_2 = st.text_input(
+            "Confirmer le nouveau mot de passe", type="password"
+        )
+        if st.form_submit_button(
+            "Réinitialiser le mot de passe", use_container_width=True
+        ):
+            if reset_password_1 != reset_password_2:
+                st.error("Les mots de passe ne correspondent pas.")
+            else:
+                ok, message = reset_password(reset_email, reset_name, reset_password_1)
+                if ok:
+                    st.success(message)
+                    st.session_state.auth_view = "login"
+                else:
+                    st.error(message)
 
-        with tab_reset:
-            st.caption(
-                "Saisissez votre e-mail et votre **nom complet** (identique à l'inscription) "
-                "pour définir un nouveau mot de passe."
+
+def _render_auth_register_form() -> None:
+    """Registration form."""
+    st.markdown('<p class="auth-greeting-main">Bienvenue !</p>', unsafe_allow_html=True)
+    st.markdown(
+        '<p class="auth-greeting-sub">Créer un compte</p>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<p class="auth-form-title">Configurez votre profil de recherche d\'emploi</p>',
+        unsafe_allow_html=True,
+    )
+    st.markdown("**Localisation**")
+    reg_admin_regions, reg_departments = render_region_department_selectors(
+        {},
+        key_prefix="register",
+    )
+    reg_cities, reg_all_cities = render_city_selector(
+        {},
+        key_prefix="register",
+        selected_departments=reg_departments,
+        country="France",
+    )
+    with st.form("register_form", clear_on_submit=False):
+        reg_name = st.text_input("Nom complet", placeholder="Jean Dupont")
+        reg_email = st.text_input("E-mail", placeholder="vous@exemple.com")
+        reg_password = st.text_input(
+            "Mot de passe", type="password", placeholder="8 caractères minimum"
+        )
+        reg_password2 = st.text_input("Confirmer le mot de passe", type="password")
+        st.markdown("**Préférences de recherche d'emploi**")
+        r1, r2 = st.columns(2)
+        with r1:
+            reg_home_city = st.text_input(
+                "Ville de domicile (centre du rayon)",
+                placeholder="Lyon",
             )
-            with st.form("reset_form", clear_on_submit=False):
-                reset_email = st.text_input("E-mail", placeholder="vous@exemple.com")
-                reset_name = st.text_input("Nom complet", placeholder="Jean Dupont")
-                reset_password_1 = st.text_input(
-                    "Nouveau mot de passe", type="password", placeholder="8 caractères minimum"
+            reg_postal = st.text_input("Code postal", placeholder="69001")
+        with r2:
+            reg_country = st.selectbox("Pays", COUNTRY_OPTIONS, index=0)
+            reg_contract = st.selectbox(
+                "Type de contrat recherché", CONTRACT_TYPES, index=0
+            )
+        reg_geo = st.selectbox(
+            "Contrainte de distance supplémentaire",
+            GEO_FILTER_MODES,
+            index=1,
+            format_func=lambda x: {
+                "ville": "Villes sélectionnées uniquement",
+                "departement": "Pays, régions, départements et villes sélectionnés",
+                "rayon": "Critères ci-dessus + rayon autour du domicile",
+            }[x],
+        )
+        reg_radius = st.slider("Rayon (km)", 5, 100, 20, disabled=(reg_geo != "rayon"))
+        reg_experience = st.selectbox(
+            "Niveau d'expérience recherché",
+            EXPERIENCE_LEVELS,
+            index=1,
+            format_func=lambda x: EXPERIENCE_LABELS[x],
+        )
+        reg_sectors = st.multiselect(
+            "Secteurs d'activité ciblés (optionnel — sinon déduits du CV)",
+            SECTOR_OPTIONS,
+            default=["Informatique"],
+            key="register_target_sectors",
+        )
+        if st.form_submit_button("Créer mon compte", use_container_width=True):
+            if reg_password != reg_password2:
+                st.error("Les mots de passe ne correspondent pas.")
+            else:
+                cities = reg_cities
+                if not reg_all_cities and not cities and reg_home_city.strip():
+                    cities = [reg_home_city.strip()]
+                ok, message = register_user(
+                    reg_name,
+                    reg_email,
+                    reg_password,
+                    home_city=reg_home_city,
+                    postal_code=reg_postal,
+                    admin_regions=reg_admin_regions,
+                    selected_departments=reg_departments,
+                    selected_cities=cities,
+                    all_cities=reg_all_cities,
+                    country=reg_country,
+                    contract_type=reg_contract,
+                    geo_filter_mode=reg_geo,
+                    search_radius_km=reg_radius,
+                    experience_level=reg_experience,
+                    target_sectors=reg_sectors,
                 )
-                reset_password_2 = st.text_input(
-                    "Confirmer le nouveau mot de passe", type="password"
-                )
-                if st.form_submit_button(
-                    "Réinitialiser le mot de passe", type="primary", use_container_width=True
-                ):
-                    if reset_password_1 != reset_password_2:
-                        st.error("Les mots de passe ne correspondent pas.")
-                    else:
-                        ok, message = reset_password(
-                            reset_email, reset_name, reset_password_1
-                        )
-                        if ok:
-                            st.success(message)
-                        else:
-                            st.error(message)
+                if ok:
+                    st.success(message)
+                    st.session_state.auth_view = "login"
+                else:
+                    st.error(message)
+
+
+def render_auth_page() -> None:
+    """Split-screen login, registration and password reset."""
+    render_auth_styles()
+    view = st.session_state.get("auth_view", "login")
+
+    _spacer_left, card_col, _spacer_right = st.columns([0.15, 1.7, 0.15])
+    with card_col:
+        st.markdown('<div class="auth-card-row">', unsafe_allow_html=True)
+        panel_left, panel_right = st.columns(2, gap="small")
+
+        with panel_left:
+            st.markdown(_auth_left_panel_html(), unsafe_allow_html=True)
+
+        with panel_right:
+            if view == "login":
+                _render_auth_login_form()
+            elif view == "register":
+                _render_auth_register_form()
+            else:
+                _render_auth_reset_form()
+
+            st.markdown('<div class="auth-footer-link">', unsafe_allow_html=True)
+            if view == "login":
+                if st.button("Créer un compte", key="auth_go_register", use_container_width=True):
+                    st.session_state.auth_view = "register"
+                    st.rerun()
+            else:
+                st.markdown('<div class="auth-back-link">', unsafe_allow_html=True)
+                if st.button("← Retour à la connexion", key="auth_go_login"):
+                    st.session_state.auth_view = "login"
+                    st.rerun()
+                st.markdown("</div>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
 def render_profile_page(user: dict[str, Any]) -> None:
@@ -2478,164 +3021,168 @@ def render_profile_page(user: dict[str, Any]) -> None:
     _flush_analysis_notices()
     profile = get_user_by_id(user["id"]) or user
 
-    st.subheader("Mon profil")
-    st.caption("Gérez vos informations personnelles et votre mot de passe.")
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.metric("E-mail", profile.get("email", "—"))
-    with col2:
-        member_since = profile.get("created_at", "")
-        st.metric(
-            "Membre depuis",
-            format_member_since(member_since) if member_since else "—",
-        )
-
-    st.markdown("---")
+    with st.container(border=True):
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("E-mail", profile.get("email", "—"))
+        with col2:
+            member_since = profile.get("created_at", "")
+            st.metric(
+                "Membre depuis",
+                format_member_since(member_since) if member_since else "—",
+            )
 
     col_info, col_password = st.columns(2)
 
     with col_info:
-        st.markdown("#### Informations personnelles")
-        admin_regions, selected_departments = render_region_department_selectors(
-            profile,
-            key_prefix=f"profile_{user['id']}",
-        )
-        profile_cities, profile_all_cities = render_city_selector(
-            profile,
-            key_prefix=f"profile_{user['id']}",
-            selected_departments=selected_departments,
-            country=profile.get("country", "France"),
-        )
-        with st.form("profile_form"):
-            new_name = st.text_input(
-                "Nom complet",
-                value=profile.get("full_name", ""),
+        with st.container(border=True):
+            st.markdown(
+                '<p class="section-title">Informations personnelles</p>',
+                unsafe_allow_html=True,
             )
-            p1, p2 = st.columns(2)
-            with p1:
-                home_city = st.text_input(
-                    "Ville de domicile (centre du rayon)",
-                    value=profile.get("home_city", ""),
+            admin_regions, selected_departments = render_region_department_selectors(
+                profile,
+                key_prefix=f"profile_{user['id']}",
+            )
+            profile_cities, profile_all_cities = render_city_selector(
+                profile,
+                key_prefix=f"profile_{user['id']}",
+                selected_departments=selected_departments,
+                country=profile.get("country", "France"),
+            )
+            with st.form("profile_form"):
+                new_name = st.text_input(
+                    "Nom complet",
+                    value=profile.get("full_name", ""),
                 )
-                postal_code = st.text_input(
-                    "Code postal",
-                    value=profile.get("postal_code", ""),
+                p1, p2 = st.columns(2)
+                with p1:
+                    home_city = st.text_input(
+                        "Ville de domicile (centre du rayon)",
+                        value=profile.get("home_city", ""),
+                    )
+                    postal_code = st.text_input(
+                        "Code postal",
+                        value=profile.get("postal_code", ""),
+                    )
+                with p2:
+                    profile_country_value = st.selectbox(
+                        "Pays",
+                        COUNTRY_OPTIONS,
+                        index=COUNTRY_OPTIONS.index(profile.get("country", "France"))
+                        if profile.get("country") in COUNTRY_OPTIONS
+                        else 0,
+                    )
+                    contract_type = st.selectbox(
+                        "Type de contrat recherché",
+                        CONTRACT_TYPES,
+                        index=CONTRACT_TYPES.index(profile.get("contract_type", "CDI"))
+                        if profile.get("contract_type") in CONTRACT_TYPES
+                        else 0,
+                    )
+                geo_mode = st.selectbox(
+                    "Contrainte de distance supplémentaire",
+                    GEO_FILTER_MODES,
+                    index=GEO_FILTER_MODES.index(profile.get("geo_filter_mode", "departement"))
+                    if profile.get("geo_filter_mode") in GEO_FILTER_MODES
+                    else 1,
+                    format_func=lambda x: {
+                        "ville": "Villes sélectionnées uniquement",
+                        "departement": "Pays, régions, départements et villes sélectionnés",
+                        "rayon": "Critères ci-dessus + rayon autour du domicile",
+                    }[x],
                 )
-            with p2:
-                profile_country_value = st.selectbox(
-                    "Pays",
-                    COUNTRY_OPTIONS,
-                    index=COUNTRY_OPTIONS.index(profile.get("country", "France"))
-                    if profile.get("country") in COUNTRY_OPTIONS
-                    else 0,
+                search_radius = st.slider(
+                    "Rayon de recherche (km)",
+                    5,
+                    100,
+                    int(profile.get("search_radius_km") or 20),
+                    disabled=(geo_mode != "rayon"),
                 )
-                contract_type = st.selectbox(
-                    "Type de contrat recherché",
-                    CONTRACT_TYPES,
-                    index=CONTRACT_TYPES.index(profile.get("contract_type", "CDI"))
-                    if profile.get("contract_type") in CONTRACT_TYPES
-                    else 0,
+                exp_index = (
+                    EXPERIENCE_LEVELS.index(profile.get("experience_level", "confirme"))
+                    if profile.get("experience_level") in EXPERIENCE_LEVELS
+                    else 1
                 )
-            geo_mode = st.selectbox(
-                "Contrainte de distance supplémentaire",
-                GEO_FILTER_MODES,
-                index=GEO_FILTER_MODES.index(profile.get("geo_filter_mode", "departement"))
-                if profile.get("geo_filter_mode") in GEO_FILTER_MODES
-                else 1,
-                format_func=lambda x: {
-                    "ville": "Villes sélectionnées uniquement",
-                    "departement": "Pays, régions, départements et villes sélectionnés",
-                    "rayon": "Critères ci-dessus + rayon autour du domicile",
-                }[x],
-            )
-            search_radius = st.slider(
-                "Rayon de recherche (km)",
-                5,
-                100,
-                int(profile.get("search_radius_km") or 20),
-                disabled=(geo_mode != "rayon"),
-            )
-            exp_index = (
-                EXPERIENCE_LEVELS.index(profile.get("experience_level", "confirme"))
-                if profile.get("experience_level") in EXPERIENCE_LEVELS
-                else 1
-            )
-            experience_level = st.selectbox(
-                "Niveau d'expérience recherché",
-                EXPERIENCE_LEVELS,
-                index=exp_index,
-                format_func=lambda x: EXPERIENCE_LABELS[x],
-            )
-            current_sectors = profile.get("target_sectors") or []
-            sectors_key = f"profile_sectors_{user['id']}"
-            if sectors_key not in st.session_state:
-                st.session_state[sectors_key] = [
-                    s for s in current_sectors if s in SECTOR_OPTIONS
-                ]
-            target_sectors = st.multiselect(
-                "Secteurs d'activité ciblés",
-                SECTOR_OPTIONS,
-                help="Laisser vide pour utiliser les secteurs détectés dans le CV.",
-                key=sectors_key,
-            )
-            st.caption(
-                "Seules les offres correspondant à votre **pays**, **régions**, "
-                "**départements**, **villes**, **contrat**, **niveau** et **secteur(s)** "
-                "seront proposées."
-            )
-            if st.form_submit_button("Enregistrer le profil", use_container_width=True):
-                cities = profile_cities
-                if not profile_all_cities and not cities and home_city.strip():
-                    cities = [home_city.strip()]
-                ok, message, updated = update_user_profile(
-                    user["id"],
-                    new_name,
-                    home_city,
-                    postal_code,
-                    admin_regions,
-                    selected_departments,
-                    cities,
-                    profile_all_cities,
-                    profile_country_value,
-                    contract_type,
-                    geo_mode,
-                    search_radius,
-                    experience_level,
-                    target_sectors,
+                experience_level = st.selectbox(
+                    "Niveau d'expérience recherché",
+                    EXPERIENCE_LEVELS,
+                    index=exp_index,
+                    format_func=lambda x: EXPERIENCE_LABELS[x],
                 )
-                if ok and updated:
-                    st.session_state.user = updated
-                    st.session_state.pop(sectors_key, None)
-                    prefix = f"profile_{user['id']}"
-                    st.session_state.pop(f"{prefix}_admin_regions", None)
-                    st.session_state.pop(f"{prefix}_department_labels", None)
-                    st.session_state.pop(f"{prefix}_last_admin_regions", None)
-                    st.session_state.pop(f"{prefix}_selected_cities", None)
-                    st.session_state.pop(f"{prefix}_last_departments_for_cities", None)
-                    st.session_state.pop(f"{prefix}_all_cities", None)
-                    st.session_state.analysis_notices = [
-                        {"level": "success", "text": message}
+                current_sectors = profile.get("target_sectors") or []
+                sectors_key = f"profile_sectors_{user['id']}"
+                if sectors_key not in st.session_state:
+                    st.session_state[sectors_key] = [
+                        s for s in current_sectors if s in SECTOR_OPTIONS
                     ]
-                    st.rerun()
-                else:
-                    st.error(message)
-
-    with col_password:
-        st.markdown("#### Changer le mot de passe")
-        with st.form("password_form"):
-            current_pw = st.text_input("Mot de passe actuel", type="password")
-            new_pw = st.text_input("Nouveau mot de passe", type="password")
-            new_pw2 = st.text_input("Confirmer le nouveau mot de passe", type="password")
-            if st.form_submit_button("Modifier le mot de passe", use_container_width=True):
-                if new_pw != new_pw2:
-                    st.error("Les nouveaux mots de passe ne correspondent pas.")
-                else:
-                    ok, message = change_password(user["id"], current_pw, new_pw)
-                    if ok:
-                        st.success(message)
+                target_sectors = st.multiselect(
+                    "Secteurs d'activité ciblés",
+                    SECTOR_OPTIONS,
+                    help="Laisser vide pour utiliser les secteurs détectés dans le CV.",
+                    key=sectors_key,
+                )
+                st.caption(
+                    "Seules les offres correspondant à votre **pays**, **régions**, "
+                    "**départements**, **villes**, **contrat**, **niveau** et **secteur(s)** "
+                    "seront proposées."
+                )
+                if st.form_submit_button("Enregistrer le profil", use_container_width=True):
+                    cities = profile_cities
+                    if not profile_all_cities and not cities and home_city.strip():
+                        cities = [home_city.strip()]
+                    ok, message, updated = update_user_profile(
+                        user["id"],
+                        new_name,
+                        home_city,
+                        postal_code,
+                        admin_regions,
+                        selected_departments,
+                        cities,
+                        profile_all_cities,
+                        profile_country_value,
+                        contract_type,
+                        geo_mode,
+                        search_radius,
+                        experience_level,
+                        target_sectors,
+                    )
+                    if ok and updated:
+                        st.session_state.user = updated
+                        st.session_state.pop(sectors_key, None)
+                        prefix = f"profile_{user['id']}"
+                        st.session_state.pop(f"{prefix}_admin_regions", None)
+                        st.session_state.pop(f"{prefix}_department_labels", None)
+                        st.session_state.pop(f"{prefix}_last_admin_regions", None)
+                        st.session_state.pop(f"{prefix}_selected_cities", None)
+                        st.session_state.pop(f"{prefix}_last_departments_for_cities", None)
+                        st.session_state.pop(f"{prefix}_all_cities", None)
+                        st.session_state.analysis_notices = [
+                            {"level": "success", "text": message}
+                        ]
+                        st.rerun()
                     else:
                         st.error(message)
+
+    with col_password:
+        with st.container(border=True):
+            st.markdown(
+                '<p class="section-title">Changer le mot de passe</p>',
+                unsafe_allow_html=True,
+            )
+            with st.form("password_form"):
+                current_pw = st.text_input("Mot de passe actuel", type="password")
+                new_pw = st.text_input("Nouveau mot de passe", type="password")
+                new_pw2 = st.text_input("Confirmer le nouveau mot de passe", type="password")
+                if st.form_submit_button("Modifier le mot de passe", use_container_width=True):
+                    if new_pw != new_pw2:
+                        st.error("Les nouveaux mots de passe ne correspondent pas.")
+                    else:
+                        ok, message = change_password(user["id"], current_pw, new_pw)
+                        if ok:
+                            st.success(message)
+                        else:
+                            st.error(message)
 
 
 def render_cv_analysis(job_provider: str, user: dict[str, Any]) -> None:
@@ -2658,117 +3205,126 @@ def render_cv_analysis(job_provider: str, user: dict[str, Any]) -> None:
     active_level = resolve_experience_level(user_profile, {})
     active_sectors = resolve_target_sectors(user_profile, {})
     region_text, dept_text, city_text = format_profile_geo_summary(user_profile)
-    st.caption(
-        f"Filtres actifs : contrat **{user_profile.get('contract_type')}** · "
-        f"pays **{user_profile.get('country', 'France')}** · "
-        f"niveau **{EXPERIENCE_LABELS.get(active_level, active_level)}** · "
-        f"secteurs **{', '.join(active_sectors) if active_sectors else 'CV'}** · "
-        f"régions **{region_text}** · départements **{dept_text}** · "
-        f"villes **{city_text}**"
-    )
 
-    uploaded_file = st.file_uploader(
-        "Déposez votre CV (PDF)",
-        type=["pdf"],
-        help="PDF natif ou scanné — l'OCR Gemini s'active automatiquement si besoin.",
-        key="cv_pdf_uploader",
-    )
+    with st.container(border=True):
+        st.markdown(
+            '<p class="section-title">Déposer votre CV</p>',
+            unsafe_allow_html=True,
+        )
+        st.caption(
+            f"Filtres actifs : contrat **{user_profile.get('contract_type')}** · "
+            f"pays **{user_profile.get('country', 'France')}** · "
+            f"niveau **{EXPERIENCE_LABELS.get(active_level, active_level)}** · "
+            f"secteurs **{', '.join(active_sectors) if active_sectors else 'CV'}** · "
+            f"régions **{region_text}** · départements **{dept_text}** · "
+            f"villes **{city_text}**"
+        )
 
-    current_fp = None
-    pdf_bytes = None
-    if uploaded_file is not None:
-        pdf_bytes = uploaded_file.read()
-        current_fp = pdf_fingerprint(pdf_bytes)
+        uploaded_file = st.file_uploader(
+            "Déposez votre CV (PDF)",
+            type=["pdf"],
+            help="PDF natif ou scanné — l'OCR Gemini s'active automatiquement si besoin.",
+            key="cv_pdf_uploader",
+        )
 
-    fp_matches = bool(
-        st.session_state.analysis
-        and current_fp
-        and st.session_state.pdf_fingerprint == current_fp
-    )
+        current_fp = None
+        pdf_bytes = None
+        if uploaded_file is not None:
+            pdf_bytes = uploaded_file.read()
+            current_fp = pdf_fingerprint(pdf_bytes)
+
+        fp_matches = bool(
+            st.session_state.analysis
+            and current_fp
+            and st.session_state.pdf_fingerprint == current_fp
+        )
+
+        if not uploaded_file:
+            if st.session_state.analysis:
+                pass
+            else:
+                st.info("Uploadez votre CV pour démarrer l'analyse automatique.")
+        else:
+            if fp_matches:
+                st.info("Résultats en cache pour ce CV — relancez pour forcer une nouvelle analyse.")
+            if st.button(
+                "Lancer l'analyse complète",
+                type="primary",
+                use_container_width=True,
+                key="run_full_analysis",
+            ):
+                try:
+                    with st.spinner(
+                        "Analyse en cours — extraction CV, recherche, filtrage et matching IA…"
+                    ):
+                        analysis, notices = run_cv_analysis_pipeline(
+                            pdf_bytes,
+                            job_provider,
+                            user_profile,
+                        )
+                    st.session_state.analysis_notices = notices
+                    if analysis:
+                        st.session_state.analysis = analysis
+                        st.session_state.pdf_fingerprint = current_fp
+                    else:
+                        st.session_state.analysis = None
+                        st.session_state.pdf_fingerprint = None
+                except requests.HTTPError as exc:
+                    body = exc.response.text[:300] if exc.response is not None else str(exc)
+                    status = exc.response.status_code if exc.response is not None else None
+                    st.session_state.analysis_notices = []
+                    if status == 401 or (body and "401" in body):
+                        st.session_state.adzuna_error_body = body
+                    else:
+                        st.session_state.analysis_notices = [
+                            {
+                                "level": "error",
+                                "text": (
+                                    f"Erreur API emploi : {status} — {body}"
+                                    if status is not None
+                                    else str(exc)
+                                ),
+                            }
+                        ]
+                except json.JSONDecodeError:
+                    st.session_state.analysis_notices = [
+                        {
+                            "level": "error",
+                            "text": (
+                                "L'IA a renvoyé une réponse invalide lors de l'extraction du CV. "
+                                "Sidebar → **Vider le cache**, puis relancez l'analyse."
+                            ),
+                        }
+                    ]
+                except RuntimeError as exc:
+                    st.session_state.analysis_notices = [
+                        {"level": "error", "text": str(exc)}
+                    ]
+                except Exception as exc:  # noqa: BLE001
+                    error_text = str(exc)
+                    if (
+                        "API key not valid" in error_text
+                        or "API_KEY_INVALID" in error_text
+                        or "ACCESS_TOKEN_TYPE_UNSUPPORTED" in error_text
+                        or "invalid authentication credentials" in error_text.lower()
+                    ):
+                        st.session_state.analysis_notices = [
+                            {
+                                "level": "error",
+                                "text": "Clé Gemini invalide — consultez l'aide dans la sidebar.",
+                            }
+                        ]
+                    else:
+                        st.session_state.analysis_notices = [
+                            {"level": "error", "text": f"Erreur inattendue : {exc}"}
+                        ]
+                st.rerun()
 
     if not uploaded_file:
         if st.session_state.analysis:
             _flush_analysis_notices()
             render_analysis_results(st.session_state.analysis)
-        else:
-            st.info("Uploadez votre CV pour démarrer l'analyse automatique.")
         return
-
-    if fp_matches:
-        st.info("Résultats en cache pour ce CV — relancez pour forcer une nouvelle analyse.")
-
-    if st.button(
-        "Lancer l'analyse complète",
-        type="primary",
-        use_container_width=True,
-        key="run_full_analysis",
-    ):
-        try:
-            with st.spinner(
-                "Analyse en cours — extraction CV, recherche, filtrage et matching IA…"
-            ):
-                analysis, notices = run_cv_analysis_pipeline(
-                    pdf_bytes,
-                    job_provider,
-                    user_profile,
-                )
-            st.session_state.analysis_notices = notices
-            if analysis:
-                st.session_state.analysis = analysis
-                st.session_state.pdf_fingerprint = current_fp
-            else:
-                st.session_state.analysis = None
-                st.session_state.pdf_fingerprint = None
-        except requests.HTTPError as exc:
-            body = exc.response.text[:300] if exc.response is not None else str(exc)
-            status = exc.response.status_code if exc.response is not None else None
-            st.session_state.analysis_notices = []
-            if status == 401 or (body and "401" in body):
-                st.session_state.adzuna_error_body = body
-            else:
-                st.session_state.analysis_notices = [
-                    {
-                        "level": "error",
-                        "text": (
-                            f"Erreur API emploi : {status} — {body}"
-                            if status is not None
-                            else str(exc)
-                        ),
-                    }
-                ]
-        except json.JSONDecodeError:
-            st.session_state.analysis_notices = [
-                {
-                    "level": "error",
-                    "text": (
-                        "L'IA a renvoyé une réponse invalide lors de l'extraction du CV. "
-                        "Sidebar → **Vider le cache**, puis relancez l'analyse."
-                    ),
-                }
-            ]
-        except RuntimeError as exc:
-            st.session_state.analysis_notices = [
-                {"level": "error", "text": str(exc)}
-            ]
-        except Exception as exc:  # noqa: BLE001
-            error_text = str(exc)
-            if (
-                "API key not valid" in error_text
-                or "API_KEY_INVALID" in error_text
-                or "ACCESS_TOKEN_TYPE_UNSUPPORTED" in error_text
-                or "invalid authentication credentials" in error_text.lower()
-            ):
-                st.session_state.analysis_notices = [
-                    {
-                        "level": "error",
-                        "text": "Clé Gemini invalide — consultez l'aide dans la sidebar.",
-                    }
-                ]
-            else:
-                st.session_state.analysis_notices = [
-                    {"level": "error", "text": f"Erreur inattendue : {exc}"}
-                ]
-        st.rerun()
 
     if st.session_state.pop("adzuna_error_body", None):
         render_adzuna_auth_help(get_secret("ADZUNA_APP_ID"))
@@ -2781,11 +3337,17 @@ def render_cv_analysis(job_provider: str, user: dict[str, Any]) -> None:
 
 def render_app() -> None:
     """Main application shell with navigation."""
+    render_app_styles()
     user = st.session_state.user or {}
+    user_name = user.get("full_name") or "Utilisateur"
+
+    provider_secrets = provider_secrets_from_getter(get_secret)
+    default_provider = default_job_provider(secrets=provider_secrets)
+    default_provider_index = JOB_PROVIDER_SIDEBAR_ORDER.index(default_provider)
+    job_provider = default_provider
 
     with st.sidebar:
-        st.header(APP_NAME)
-        st.caption(f"Connecté : **{user.get('email', '')}**")
+        render_sidebar_brand(user.get("email", ""))
 
         page = st.radio(
             "Navigation",
@@ -2802,19 +3364,6 @@ def render_app() -> None:
             st.rerun()
 
         st.markdown("---")
-        st.header("Configuration")
-        st.caption(f"Version : `{APP_VERSION}`")
-
-        adzuna_id = get_secret("ADZUNA_APP_ID")
-        adzuna_key = get_secret("ADZUNA_APP_KEY")
-        provider_secrets = provider_secrets_from_getter(get_secret)
-        serp_configured = bool(provider_secrets["serpapi_api_key"])
-        jooble_configured = bool(provider_secrets["jooble_api_key"])
-        careerjet_configured = bool(provider_secrets["careerjet_api_key"])
-        apify_configured = bool(provider_secrets["apify_api_token"])
-        has_adzuna = bool(adzuna_id and adzuna_key)
-        default_provider = default_job_provider(secrets=provider_secrets)
-        default_provider_index = JOB_PROVIDER_SIDEBAR_ORDER.index(default_provider)
 
         job_provider = st.selectbox(
             "Moteur(s) de recherche d'emploi",
@@ -2827,171 +3376,190 @@ def render_app() -> None:
             ),
         )
 
-        gemini_status, gemini_message = gemini_key_status()
-        openai_configured = bool(get_secret("OPENAI_API_KEY"))
-        groq_configured = bool(get_secret("GROQ_API_KEY"))
-        ai_pref = get_ai_provider_preference()
-        ai_ready, ai_status = ai_setup_status()
-        active = resolve_llm_provider()
+        with st.expander("Configuration & tests", expanded=False):
+            st.caption(f"Version : `{APP_VERSION}`")
 
-        st.markdown(f"**Préférence IA :** `{ai_pref}`")
-        st.markdown(f"**Actif :** `{active}`")
+            adzuna_id = get_secret("ADZUNA_APP_ID")
+            adzuna_key = get_secret("ADZUNA_APP_KEY")
+            serp_configured = bool(provider_secrets["serpapi_api_key"])
+            jooble_configured = bool(provider_secrets["jooble_api_key"])
+            careerjet_configured = bool(provider_secrets["careerjet_api_key"])
+            apify_configured = bool(provider_secrets["apify_api_token"])
+            has_adzuna = bool(adzuna_id and adzuna_key)
 
-        if ai_ready:
-            st.success(ai_status)
-        else:
-            st.error(ai_status)
+            openai_configured = bool(get_secret("OPENAI_API_KEY"))
+            groq_configured = bool(get_secret("GROQ_API_KEY"))
+            ai_pref = get_ai_provider_preference()
+            ai_ready, ai_status = ai_setup_status()
+            active = resolve_llm_provider()
 
-        if groq_configured:
-            st.success("Groq : clé présente *(gratuit)*")
-        else:
-            st.warning("Groq : clé absente — [créer ici](https://console.groq.com/keys)")
+            st.markdown(f"**Préférence IA :** `{ai_pref}`")
+            st.markdown(f"**Actif :** `{active}`")
 
-        if openai_configured:
-            st.info("OpenAI : clé présente *(crédits requis)*")
-
-        if has_adzuna:
-            st.caption(f"Adzuna : app_id `{adzuna_id[:4]}…`, clé {len(adzuna_key)} caractères")
-        else:
-            st.warning("Adzuna : identifiants incomplets")
-
-        st.success("Welcome to the Jungle : actif *(gratuit, sans clé API)*")
-
-        if jooble_configured:
-            st.success("Jooble : clé présente")
-        else:
-            st.caption("Jooble : [clé gratuite](https://fr.jooble.org/api/about)")
-
-        if careerjet_configured:
-            st.success("OptionCarriere / Careerjet : clé présente")
-        else:
-            st.caption(
-                "OptionCarriere : [clé gratuite](https://www.optioncarriere.com/partners/api)"
-            )
-
-        if apify_configured:
-            st.success("JobTeaser (Apify) : token présent")
-        else:
-            st.caption("JobTeaser : token Apify requis — [apify.com](https://apify.com/)")
-
-        if serp_configured:
-            st.success("SerpApi : clé présente *(Indeed, LinkedIn, Glassdoor, Google Jobs)*")
-        else:
-            st.caption("SerpApi : non configuré — [serpapi.com](https://serpapi.com/)")
-
-        if st.button(
-            "Tester Welcome to the Jungle",
-            use_container_width=True,
-            key="test_wttj",
-        ):
-            ok, message = test_wttj_connection()
-            if ok:
-                st.success(message)
+            if ai_ready:
+                st.success(ai_status)
             else:
-                st.warning(message)
+                st.error(ai_status)
 
-        if st.button("Tester Jooble", use_container_width=True, key="test_jooble"):
-            ok, message = test_jooble_connection(provider_secrets["jooble_api_key"])
-            if ok:
-                st.success(message)
+            if groq_configured:
+                st.success("Groq : clé présente *(gratuit)*")
             else:
-                st.warning(message)
+                st.warning("Groq : clé absente — [créer ici](https://console.groq.com/keys)")
 
-        if st.button(
-            "Tester OptionCarriere",
-            use_container_width=True,
-            key="test_optioncarriere",
-        ):
-            ok, message = test_optioncarriere_connection(
-                provider_secrets["careerjet_api_key"]
-            )
-            if ok:
-                st.success(message)
+            if openai_configured:
+                st.info("OpenAI : clé présente *(crédits requis)*")
+
+            if has_adzuna:
+                st.caption(f"Adzuna : app_id `{adzuna_id[:4]}…`, clé {len(adzuna_key)} caractères")
             else:
-                st.warning(message)
+                st.warning("Adzuna : identifiants incomplets")
 
-        if st.button("Tester JobTeaser", use_container_width=True, key="test_jobteaser"):
-            ok, message = test_jobteaser_connection(provider_secrets["apify_api_token"])
-            if ok:
-                st.success(message)
+            st.success("Welcome to the Jungle : actif *(gratuit, sans clé API)*")
+
+            if jooble_configured:
+                st.success("Jooble : clé présente")
             else:
-                st.warning(message)
+                st.caption("Jooble : [clé gratuite](https://fr.jooble.org/api/about)")
 
-        if st.button("Tester Indeed (SerpApi)", use_container_width=True, key="test_indeed"):
-            ok, message = test_serpapi_platform_connection(
-                provider_secrets["serpapi_api_key"], "indeed"
-            )
-            if ok:
-                st.success(message)
+            if careerjet_configured:
+                st.success("OptionCarriere / Careerjet : clé présente")
             else:
-                st.warning(message)
+                st.caption(
+                    "OptionCarriere : [clé gratuite](https://www.optioncarriere.com/partners/api)"
+                )
 
-        if st.button(
-            "Tester LinkedIn (SerpApi)",
-            use_container_width=True,
-            key="test_linkedin",
-        ):
-            ok, message = test_serpapi_platform_connection(
-                provider_secrets["serpapi_api_key"], "linkedin"
-            )
-            if ok:
-                st.success(message)
+            if apify_configured:
+                st.success("JobTeaser (Apify) : token présent")
             else:
-                st.warning(message)
+                st.caption("JobTeaser : token Apify requis — [apify.com](https://apify.com/)")
 
-        if st.button(
-            "Tester Glassdoor (SerpApi)",
-            use_container_width=True,
-            key="test_glassdoor",
-        ):
-            ok, message = test_serpapi_platform_connection(
-                provider_secrets["serpapi_api_key"], "glassdoor"
-            )
-            if ok:
-                st.success(message)
+            if serp_configured:
+                st.success("SerpApi : clé présente *(Indeed, LinkedIn, Glassdoor, Google Jobs)*")
             else:
-                st.warning(message)
+                st.caption("SerpApi : non configuré — [serpapi.com](https://serpapi.com/)")
 
-        if st.button("Tester connexion Adzuna", use_container_width=True, key="test_adzuna"):
-            ok, message = test_adzuna_connection()
-            if ok:
-                st.success(message)
-            else:
-                st.error(message)
-                render_adzuna_auth_help(adzuna_id)
+            if st.button(
+                "Tester Welcome to the Jungle",
+                use_container_width=True,
+                key="test_wttj",
+            ):
+                ok, message = test_wttj_connection()
+                if ok:
+                    st.success(message)
+                else:
+                    st.warning(message)
 
-        if st.button("Tester connexion IA", use_container_width=True, key="test_ai"):
-            ok, message, provider = test_ai_connection()
-            if ok:
-                st.success(f"{provider} — {message}")
-            else:
-                st.error(f"{provider} — {message}")
-                if groq_configured:
-                    fp = hashlib.sha256(get_secret("GROQ_API_KEY").encode()).hexdigest()[:16]
-                    models = fetch_groq_model_ids(fp)
-                    if models:
-                        st.caption("Modèles Groq détectés : " + ", ".join(f"`{m}`" for m in models[:6]))
+            if st.button("Tester Jooble", use_container_width=True, key="test_jooble"):
+                ok, message = test_jooble_connection(provider_secrets["jooble_api_key"])
+                if ok:
+                    st.success(message)
+                else:
+                    st.warning(message)
 
-        if page == "Analyse CV" and st.button(
-            "Vider le cache", use_container_width=True, key="clear_cache"
-        ):
-            st.cache_data.clear()
-            st.session_state.analysis = None
-            st.session_state.pdf_fingerprint = None
-            st.session_state.analysis_notices = []
-            st.success("Cache vidé.")
-            st.rerun()
+            if st.button(
+                "Tester OptionCarriere",
+                use_container_width=True,
+                key="test_optioncarriere",
+            ):
+                ok, message = test_optioncarriere_connection(
+                    provider_secrets["careerjet_api_key"]
+                )
+                if ok:
+                    st.success(message)
+                else:
+                    st.warning(message)
 
-    st.title(APP_NAME)
+            if st.button("Tester JobTeaser", use_container_width=True, key="test_jobteaser"):
+                ok, message = test_jobteaser_connection(provider_secrets["apify_api_token"])
+                if ok:
+                    st.success(message)
+                else:
+                    st.warning(message)
+
+            if st.button("Tester Indeed (SerpApi)", use_container_width=True, key="test_indeed"):
+                ok, message = test_serpapi_platform_connection(
+                    provider_secrets["serpapi_api_key"], "indeed"
+                )
+                if ok:
+                    st.success(message)
+                else:
+                    st.warning(message)
+
+            if st.button(
+                "Tester LinkedIn (SerpApi)",
+                use_container_width=True,
+                key="test_linkedin",
+            ):
+                ok, message = test_serpapi_platform_connection(
+                    provider_secrets["serpapi_api_key"], "linkedin"
+                )
+                if ok:
+                    st.success(message)
+                else:
+                    st.warning(message)
+
+            if st.button(
+                "Tester Glassdoor (SerpApi)",
+                use_container_width=True,
+                key="test_glassdoor",
+            ):
+                ok, message = test_serpapi_platform_connection(
+                    provider_secrets["serpapi_api_key"], "glassdoor"
+                )
+                if ok:
+                    st.success(message)
+                else:
+                    st.warning(message)
+
+            if st.button("Tester connexion Adzuna", use_container_width=True, key="test_adzuna"):
+                ok, message = test_adzuna_connection()
+                if ok:
+                    st.success(message)
+                else:
+                    st.error(message)
+                    render_adzuna_auth_help(adzuna_id)
+
+            if st.button("Tester connexion IA", use_container_width=True, key="test_ai"):
+                ok, message, provider = test_ai_connection()
+                if ok:
+                    st.success(f"{provider} — {message}")
+                else:
+                    st.error(f"{provider} — {message}")
+                    if groq_configured:
+                        fp = hashlib.sha256(get_secret("GROQ_API_KEY").encode()).hexdigest()[:16]
+                        models = fetch_groq_model_ids(fp)
+                        if models:
+                            st.caption(
+                                "Modèles Groq détectés : "
+                                + ", ".join(f"`{m}`" for m in models[:6])
+                            )
+
+            if page == "Analyse CV" and st.button(
+                "Vider le cache", use_container_width=True, key="clear_cache"
+            ):
+                st.cache_data.clear()
+                st.session_state.analysis = None
+                st.session_state.pdf_fingerprint = None
+                st.session_state.analysis_notices = []
+                st.success("Cache vidé.")
+                st.rerun()
 
     if page == "Mon profil":
+        render_page_hero(
+            "Mon profil",
+            "Gérez vos préférences de recherche : zone géographique, contrat, "
+            "niveau d'expérience et secteurs ciblés.",
+            badge="Compte",
+        )
         render_profile_page(user)
         return
 
-    st.caption(
-        f"Bienvenue **{user.get('full_name', 'Utilisateur')}** — déposez votre CV. "
-        "L'IA analyse votre profil, recherche les offres et ne retient que celles "
-        "correspondant à **votre contrat** et **votre zone géographique** (Mon profil)."
+    render_page_hero(
+        "Analyse CV",
+        f"Bienvenue {user_name} — déposez votre CV. L'IA analyse votre profil, "
+        "recherche les offres et ne retient que celles correspondant à votre contrat "
+        "et à votre zone géographique.",
+        badge="Matching IA",
     )
     render_cv_analysis(job_provider, user)
 
