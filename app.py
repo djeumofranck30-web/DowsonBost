@@ -12,6 +12,7 @@ import io
 import json
 import os
 import re
+import time
 import unicodedata
 from datetime import datetime
 from typing import Any
@@ -53,6 +54,10 @@ from job_filters import (
 
 APP_NAME = "DowsonBost"
 
+
+class GroqRateLimitError(RuntimeError):
+    """Groq rate limit — quota org-wide, other models won't help immediately."""
+
 from job_providers import (
     JOB_PROVIDER_ADZUNA,
     JOB_PROVIDER_ALL,
@@ -88,7 +93,10 @@ MIN_CV_TEXT_LENGTH = 50
 MAX_OCR_PAGES = 5
 CACHE_TTL_SECONDS = 86_400  # 24 h
 TOP_MATCHING_JOBS = 10
-MATCHING_CANDIDATE_POOL = 25
+MATCHING_CANDIDATE_POOL = 12
+GROQ_MATCH_BATCH_SIZE = 5
+GROQ_INTER_CALL_DELAY_SEC = 1.2
+GROQ_RATE_LIMIT_RETRY_SEC = 3.0
 
 # Theme — aligned with the login page (split-screen purple)
 THEME_BG_GRADIENT = "linear-gradient(160deg, #ddd6fe 0%, #c4b5fd 45%, #a78bfa 100%)"
@@ -651,6 +659,11 @@ def _classify_groq_error(exc: Exception) -> str:
     return err[:100]
 
 
+def _is_groq_rate_limit(exc: Exception) -> bool:
+    label = _classify_groq_error(exc)
+    return "quota" in label or "rate limit" in label or "429" in str(exc)
+
+
 def call_groq_text(system_prompt: str, user_prompt: str) -> str:
     """Call Groq — uses live account models, caches the first working one."""
     format_ok, format_msg = validate_groq_api_key()
@@ -669,37 +682,36 @@ def call_groq_text(system_prompt: str, user_prompt: str) -> str:
     )
 
     errors: list[str] = []
-    rate_limited = 0
     invalid_key = 0
     for model in unique_models:
-        try:
-            result = _groq_chat_raw(model, system_prompt, user_prompt)
-            st.session_state.groq_working_model = model
-            st.session_state.active_llm_provider = f"Groq ({model})"
-            return result
-        except Exception as exc:  # noqa: BLE001
-            label = _classify_groq_error(exc)
-            errors.append(f"{model}: {label}")
-            if "quota" in label or "rate limit" in label:
-                rate_limited += 1
-            if "clé api invalide" in label or "401" in str(exc):
-                invalid_key += 1
-            if st.session_state.get("groq_working_model") == model:
-                st.session_state.pop("groq_working_model", None)
-            continue
+        for attempt in range(2):
+            try:
+                result = _groq_chat_raw(model, system_prompt, user_prompt)
+                st.session_state.groq_working_model = model
+                st.session_state.active_llm_provider = f"Groq ({model})"
+                return result
+            except Exception as exc:  # noqa: BLE001
+                label = _classify_groq_error(exc)
+                if _is_groq_rate_limit(exc):
+                    if attempt == 0:
+                        time.sleep(GROQ_RATE_LIMIT_RETRY_SEC)
+                        continue
+                    raise GroqRateLimitError(
+                        "Quota Groq atteint (rate limit). Attendez 1–2 minutes "
+                        "ou configurez GEMINI_API_KEY / OPENAI_API_KEY en secours."
+                    ) from exc
+                errors.append(f"{model}: {label}")
+                if "clé api invalide" in label or "401" in str(exc):
+                    invalid_key += 1
+                if st.session_state.get("groq_working_model") == model:
+                    st.session_state.pop("groq_working_model", None)
+                break
 
-    if invalid_key and invalid_key == len(unique_models):
+    if invalid_key and invalid_key >= len(unique_models):
         raise RuntimeError(
             "Clé Groq refusée (401 Invalid API Key) sur tous les appels.\n\n"
             "La clé dans vos secrets Streamlit Cloud est invalide, expirée ou révoquée.\n"
             "Recréez une clé sur console.groq.com/keys → Secrets → Save → Reboot app."
-        )
-
-    if rate_limited and rate_limited == len(unique_models):
-        raise RuntimeError(
-            "Quota Groq atteint sur tous les modèles disponibles.\n"
-            "Attendez 1–2 minutes puis relancez l'analyse.\n\n"
-            + "\n".join(errors[:6])
         )
 
     if not live_from_api:
@@ -1112,13 +1124,35 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
         st.session_state.active_llm_provider = "Groq (gratuit)"
         try:
             return call_groq_text(system_prompt, user_prompt)
-        except RuntimeError:
+        except (GroqRateLimitError, RuntimeError) as exc:
+            quota_hit = isinstance(exc, GroqRateLimitError) or (
+                "quota" in str(exc).lower() or "rate limit" in str(exc).lower()
+            )
             if get_secret("OPENAI_API_KEY"):
                 st.session_state.active_llm_provider = "OpenAI (secours — Groq indisponible)"
+                if quota_hit:
+                    st.session_state.setdefault("analysis_notices", []).append(
+                        {
+                            "level": "warning",
+                            "text": "Quota Groq atteint — bascule temporaire sur OpenAI.",
+                        }
+                    )
                 return call_openai_text(system_prompt, user_prompt)
             if should_use_gemini():
                 st.session_state.active_llm_provider = "Gemini (secours — Groq indisponible)"
+                if quota_hit:
+                    st.session_state.setdefault("analysis_notices", []).append(
+                        {
+                            "level": "warning",
+                            "text": "Quota Groq atteint — bascule temporaire sur Gemini.",
+                        }
+                    )
                 return call_gemini_text(system_prompt, user_prompt)
+            if quota_hit:
+                raise GroqRateLimitError(
+                    f"{exc}\n\nAjoutez GEMINI_API_KEY (gratuit) ou OPENAI_API_KEY en secours "
+                    "dans vos secrets, ou attendez 1–2 minutes."
+                ) from exc
             raise
 
     if provider == "openai":
@@ -1409,6 +1443,83 @@ Règles :
     return fallback_match_result(job)
 
 
+BATCH_MATCH_SYSTEM_PROMPT = """Tu es un coach carrière expert en ATS et recrutement.
+Compare le CV du candidat à chaque offre d'emploi listée et produis un rapport par offre.
+Réponds UNIQUEMENT avec un tableau JSON valide, sans markdown ni texte autour.
+Le tableau doit contenir EXACTEMENT un objet par offre, dans le MÊME ordre que les offres fournies :
+[
+  {
+    "score_correspondance": 85,
+    "titre_cv_recommande": "Titre de CV optimisé pour cette offre",
+    "mots_cles_manquants": ["mot1", "mot2"],
+    "conseils": ["Conseil 1", "Conseil 2", "Conseil 3"]
+  }
+]
+Règles :
+- score_correspondance : entier 0-100.
+- mots_cles_manquants : 3 à 8 termes par offre.
+- conseils : exactement 3 phrases concrètes par offre.
+- Réponds en français."""
+
+
+def _job_summary_for_match(job: dict[str, Any], desc_limit: int = 1500) -> str:
+    return (
+        f"Titre : {job.get('title', '')}\n"
+        f"Entreprise : {job.get('company', '')}\n"
+        f"Lieu : {job.get('location', '')}\n"
+        f"Contrat : {job.get('contract_type', '')}\n"
+        f"Description :\n{job.get('description', '')[:desc_limit]}"
+    )
+
+
+def match_cv_to_jobs_batch(cv_text: str, jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Compare CV against several job offers in one LLM call (saves Groq quota)."""
+    if not jobs:
+        return []
+    if len(jobs) == 1:
+        return [match_cv_to_job(cv_text, jobs[0])]
+
+    offers_block = "\n\n".join(
+        f"--- OFFRE {idx} ---\n{_job_summary_for_match(job)}"
+        for idx, job in enumerate(jobs, start=1)
+    )
+    user_prompt = f"CV candidat :\n{cv_text[:5000]}\n\n{offers_block}"
+
+    for attempt in range(2):
+        try:
+            prompt = BATCH_MATCH_SYSTEM_PROMPT
+            if attempt == 1:
+                prompt += (
+                    "\n\nRAPPEL : retourne UNIQUEMENT le tableau JSON, "
+                    f"avec exactement {len(jobs)} objet(s), dans l'ordre des offres."
+                )
+            raw = call_llm(prompt, user_prompt)
+            parsed = _parse_json_response(raw)
+            if not isinstance(parsed, list):
+                raise ValueError("Réponse batch invalide (attendu: tableau JSON).")
+
+            results: list[dict[str, Any]] = []
+            for idx, job in enumerate(jobs):
+                item = parsed[idx] if idx < len(parsed) else {}
+                if isinstance(item, dict):
+                    results.append(_normalize_match_result(item, job))
+                else:
+                    results.append(fallback_match_result(job))
+            return results
+        except GroqRateLimitError:
+            raise
+        except (json.JSONDecodeError, TypeError, ValueError):
+            if attempt == 0:
+                continue
+            break
+        except RuntimeError as exc:
+            if "quota" in str(exc).lower() or "rate limit" in str(exc).lower():
+                raise
+            break
+
+    return [fallback_match_result(job) for job in jobs]
+
+
 # ---------------------------------------------------------------------------
 # Cached wrappers (24 h TTL — avoids re-billing APIs on Streamlit reruns)
 # ---------------------------------------------------------------------------
@@ -1443,6 +1554,11 @@ def cached_search_jobs(
 @st.cache_data(ttl=CACHE_TTL_SECONDS, show_spinner=False)
 def cached_match_cv_to_job(cv_text: str, job_json: str) -> dict[str, Any]:
     return match_cv_to_job(cv_text, json.loads(job_json))
+
+
+@st.cache_data(ttl=CACHE_TTL_SECONDS, show_spinner=False)
+def cached_match_cv_to_jobs_batch(cv_text: str, jobs_json: str) -> list[dict[str, Any]]:
+    return match_cv_to_jobs_batch(cv_text, json.loads(jobs_json))
 
 
 # ---------------------------------------------------------------------------
@@ -1835,15 +1951,30 @@ def build_matching_results(
     """AI-match job candidates and return the best offers by correspondence score."""
     pool_size = min(len(jobs), MATCHING_CANDIDATE_POOL)
     candidates = rank_jobs_for_cv(jobs, cv_text, keywords, top_n=pool_size)
+    use_groq = resolve_llm_provider() == "groq"
+    batch_size = GROQ_MATCH_BATCH_SIZE if use_groq else 1
 
     results: list[dict[str, Any]] = []
     partial_matches = 0
-    for job in candidates:
-        job_json = json.dumps(job, sort_keys=True, ensure_ascii=False)
-        match = cached_match_cv_to_job(cv_text, job_json)
-        if match.get("_fallback"):
-            partial_matches += 1
-        results.append({"job": job, "match": match})
+    for batch_start in range(0, len(candidates), batch_size):
+        if batch_start > 0 and use_groq:
+            time.sleep(GROQ_INTER_CALL_DELAY_SEC)
+
+        batch = candidates[batch_start : batch_start + batch_size]
+        if len(batch) == 1:
+            job = batch[0]
+            job_json = json.dumps(job, sort_keys=True, ensure_ascii=False)
+            match = cached_match_cv_to_job(cv_text, job_json)
+            batch_results = [(job, match)]
+        else:
+            jobs_json = json.dumps(batch, sort_keys=True, ensure_ascii=False)
+            matches = cached_match_cv_to_jobs_batch(cv_text, jobs_json)
+            batch_results = list(zip(batch, matches))
+
+        for job, match in batch_results:
+            if match.get("_fallback"):
+                partial_matches += 1
+            results.append({"job": job, "match": match})
 
     results.sort(
         key=lambda entry: int(entry["match"].get("score_correspondance", 0)),
