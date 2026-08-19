@@ -6,6 +6,7 @@ Upload CV (PDF) → AI extraction → Job search → CV matching report
 from __future__ import annotations
 
 import base64
+import contextlib
 import hashlib
 import html
 import io
@@ -124,8 +125,17 @@ ADZUNA_COUNTRY_CODES = {
 }
 
 
-GEMINI_MODEL = "gemini-2.0-flash"
-GEMINI_FALLBACK_MODELS = ("gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-flash")
+GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_FALLBACK_MODELS = (
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
+    "gemini-1.5-flash",
+)
+GEMINI_INTERACTION_MODELS = (
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+)
 GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta"
 OPENAI_MODEL = "gpt-4o-mini"
 GROQ_MODEL = "openai/gpt-oss-20b"
@@ -255,7 +265,7 @@ def render_groq_key_help() -> None:
 2. **Streamlit Cloud** : *Manage app → Settings → Secrets* :
    ```toml
    GROQ_API_KEY = "gsk_votre_cle_complete"
-   GEMINI_API_KEY = "AIza..."   # secours auto si quota Groq
+   GEMINI_API_KEY = "AQ...."   # ou AIza... — secours auto si quota Groq
    ```
 3. **Save** puis **Reboot app** (obligatoire après changement de secrets)
 4. Vérifiez : pas d'espace avant/après, guillemets doubles, clé non révoquée
@@ -361,26 +371,14 @@ def _extract_gemini_text(data: dict[str, Any]) -> str:
 
 
 def is_aq_gemini_key(key: str = "") -> bool:
-    """Detect new Google auth keys (AQ.) — currently broken on many accounts."""
+    """Detect Google authorization keys (AQ.) issued by AI Studio since 2025."""
     value = key.strip() if key else get_secret("GEMINI_API_KEY")
     return value.startswith("AQ.")
 
 
-def should_use_gemini(*, for_fallback: bool = False) -> bool:
-    """Whether to attempt Gemini calls."""
-    gemini_key = get_secret("GEMINI_API_KEY")
-    if not gemini_key:
-        return False
-
-    pref = get_ai_provider_preference()
-    if pref == "openai" and not for_fallback:
-        return False
-    if pref == "gemini":
-        return True
-    if for_fallback:
-        return True
-    # auto / groq primary: skip AQ. keys (often 401 on Google side)
-    return not gemini_key.startswith("AQ.")
+def should_use_gemini(**_kwargs: Any) -> bool:
+    """Whether a Gemini API key is configured."""
+    return bool(get_secret("GEMINI_API_KEY"))
 
 
 def can_use_gemini_fallback() -> bool:
@@ -458,14 +456,9 @@ def ai_setup_status() -> tuple[bool, str]:
         exhausted = st.session_state.get("groq_quota_exhausted") and backends.get("groq")
         if exhausted and not backends.get("gemini") and not backends.get("openai"):
             return False, (
-                "Quota Groq atteint. Ajoutez GEMINI_API_KEY (AIza…) ou OPENAI_API_KEY "
+                "Quota Groq atteint. Ajoutez GEMINI_API_KEY ou OPENAI_API_KEY "
                 "en secours, ou attendez 1–2 minutes."
             )
-
-    if get_secret("GEMINI_API_KEY", "").startswith("AQ.") and not backends.get("groq"):
-        return False, (
-            "Clé Gemini AQ. souvent refusée. Ajoutez GROQ_API_KEY ou une clé AIza Gemini."
-        )
 
     return False, (
         "Aucune clé IA. Ajoutez au moins GROQ_API_KEY (gratuit) "
@@ -485,12 +478,12 @@ def render_ai_setup_help() -> None:
 L'analyse choisit **automatiquement** le moteur disponible : Groq → Gemini → OpenAI.
 
 1. **Groq** (gratuit) — [console.groq.com/keys](https://console.groq.com/keys)
-2. **Gemini** (secours, gratuit) — [aistudio.google.com/apikey](https://aistudio.google.com/apikey) *(format AIza…)*
+2. **Gemini** (secours, gratuit) — [aistudio.google.com/apikey](https://aistudio.google.com/apikey) *(AIza ou AQ.)*
 3. **OpenAI** (secours, crédits) — optionnel
 
 ```toml
 GROQ_API_KEY = "gsk_votre_cle"
-GEMINI_API_KEY = "AIza..."   # recommandé en secours si quota Groq
+GEMINI_API_KEY = "AQ...."   # ou AIza... — secours auto si quota Groq
 ```
 
 Redémarrez : `Ctrl+C` puis `streamlit run app.py`
@@ -803,21 +796,47 @@ def call_openai_vision(ocr_prompt: str, image_b64: str) -> str:
     return (content or "").strip()
 
 
-def _gemini_via_sdk(
-    parts: list[dict[str, Any]],
-    system_prompt: str | None,
-    model: str,
-) -> str | None:
-    """Try Gemini via google-genai SDK. Returns None if SDK unavailable or fails."""
+@contextlib.contextmanager
+def _gemini_isolated_credentials():
+    """Avoid mixing Application Default Credentials with API-key auth (AQ. keys)."""
+    saved: dict[str, str] = {}
+    for var in (
+        "GOOGLE_APPLICATION_CREDENTIALS",
+        "GCLOUD_PROJECT",
+        "GOOGLE_CLOUD_PROJECT",
+        "GOOGLE_GENAI_USE_VERTEXAI",
+    ):
+        if var in os.environ:
+            saved[var] = os.environ.pop(var)
+    try:
+        yield
+    finally:
+        os.environ.update(saved)
+
+
+@st.cache_resource(show_spinner=False)
+def _cached_gemini_client(api_key_fingerprint: str, api_key: str):
+    """Singleton Gemini SDK client per API key."""
+    from google import genai
+    from google.genai import types
+
+    return genai.Client(
+        api_key=api_key,
+        vertexai=False,
+        http_options=types.HttpOptions(api_version="v1beta"),
+    )
+
+
+def _gemini_client():
     api_key = get_secret("GEMINI_API_KEY")
     if not api_key:
-        return None
+        raise RuntimeError("GEMINI_API_KEY manquante.")
+    fp = hashlib.sha256(api_key.encode()).hexdigest()[:16]
+    return _cached_gemini_client(fp, api_key)
 
-    try:
-        from google import genai
-        from google.genai import types
-    except ImportError:
-        return None
+
+def _parts_to_sdk(parts: list[dict[str, Any]]) -> list[Any]:
+    from google.genai import types
 
     sdk_parts: list[Any] = []
     for part in parts:
@@ -831,38 +850,88 @@ def _gemini_via_sdk(
                     mime_type=inline["mime_type"],
                 )
             )
+    return sdk_parts
 
-    config = types.GenerateContentConfig(temperature=0.2)
-    if system_prompt:
-        config.system_instruction = system_prompt
 
-    for api_version in ("v1beta", "v1alpha", "v1"):
-        try:
-            client = genai.Client(
-                api_key=api_key,
-                http_options=types.HttpOptions(api_version=api_version),
+def _parts_to_interaction_input(parts: list[dict[str, Any]]) -> Any:
+    """Build Interactions API input (text + optional image)."""
+    interaction_input: list[dict[str, Any]] = []
+    for part in parts:
+        if "text" in part:
+            interaction_input.append({"type": "text", "text": part["text"]})
+        elif "inline_data" in part:
+            inline = part["inline_data"]
+            interaction_input.append(
+                {
+                    "type": "image",
+                    "data": inline["data"],
+                    "mime_type": inline.get("mime_type", "image/png"),
+                }
             )
+    if len(interaction_input) == 1 and interaction_input[0]["type"] == "text":
+        return interaction_input[0]["text"]
+    return interaction_input
+
+
+def _gemini_via_interactions(
+    parts: list[dict[str, Any]],
+    system_prompt: str | None,
+    model: str,
+) -> tuple[str | None, str | None]:
+    """Try Gemini Interactions API (recommended for AQ. authorization keys)."""
+    try:
+        with _gemini_isolated_credentials():
+            client = _gemini_client()
+            kwargs: dict[str, Any] = {
+                "model": model,
+                "input": _parts_to_interaction_input(parts),
+            }
+            if system_prompt:
+                kwargs["system_instruction"] = system_prompt
+            interaction = client.interactions.create(**kwargs)
+            output = getattr(interaction, "output_text", None)
+            if output and str(output).strip():
+                return str(output).strip(), None
+            return None, f"{model}/Interactions: réponse vide"
+    except Exception as exc:  # noqa: BLE001
+        return None, f"{model}/Interactions: {str(exc)[:160]}"
+
+
+def _gemini_via_sdk(
+    parts: list[dict[str, Any]],
+    system_prompt: str | None,
+    model: str,
+) -> tuple[str | None, str | None]:
+    """Try Gemini generateContent via google-genai SDK."""
+    try:
+        from google.genai import types
+
+        with _gemini_isolated_credentials():
+            client = _gemini_client()
+            config = types.GenerateContentConfig(temperature=0.2)
+            if system_prompt:
+                config.system_instruction = system_prompt
             response = client.models.generate_content(
                 model=model,
-                contents=sdk_parts,
+                contents=_parts_to_sdk(parts),
                 config=config,
             )
             if response.text:
-                return response.text.strip()
-        except Exception:  # noqa: BLE001 — try next API version/model
-            continue
-    return None
+                return response.text.strip(), None
+            return None, f"{model}/SDK: réponse vide"
+    except Exception as exc:  # noqa: BLE001
+        return None, f"{model}/SDK: {str(exc)[:160]}"
 
 
 def _gemini_via_rest(
     parts: list[dict[str, Any]],
     system_prompt: str | None,
     model: str,
-) -> str | None:
-    """Try Gemini via REST. Returns None on failure."""
+) -> tuple[str | None, str | None]:
+    """Try Gemini REST generateContent (AIza and AQ. keys via x-goog-api-key)."""
     api_key = get_secret("GEMINI_API_KEY")
     if not api_key:
-        return None
+        return None, "REST: clé absente"
 
     url = f"{GEMINI_API_BASE}/models/{model}:generateContent"
     payload: dict[str, Any] = {
@@ -872,47 +941,90 @@ def _gemini_via_rest(
     if system_prompt:
         payload["systemInstruction"] = {"parts": [{"text": system_prompt}]}
 
-    headers = {"Content-Type": "application/json"}
-    for request_kwargs in (
-        {"headers": {**headers, "x-goog-api-key": api_key}},
-        {"params": {"key": api_key}, "headers": headers},
-    ):
-        response = requests.post(url, json=payload, timeout=90, **request_kwargs)
-        if response.ok:
-            return _extract_gemini_text(response.json())
-    return None
+    header_attempts: list[dict[str, str]] = [
+        {"Content-Type": "application/json", "x-goog-api-key": api_key},
+    ]
+    if is_aq_gemini_key(api_key):
+        header_attempts.append(
+            {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}",
+            }
+        )
+
+    last_error = ""
+    for headers in header_attempts:
+        try:
+            response = requests.post(url, json=payload, headers=headers, timeout=90)
+            if response.ok:
+                return _extract_gemini_text(response.json()), None
+            last_error = f"HTTP {response.status_code} — {response.text[:120]}"
+        except Exception as exc:  # noqa: BLE001
+            last_error = str(exc)[:120]
+
+    return None, f"{model}/REST: {last_error}"
 
 
 def _gemini_generate_content(
     parts: list[dict[str, Any]],
     system_prompt: str | None = None,
 ) -> str:
-    """Call Gemini with SDK + REST fallbacks across several models."""
+    """Call Gemini — supports AIza and AQ. authorization keys."""
     api_key = get_secret("GEMINI_API_KEY")
     if not api_key:
         raise RuntimeError("GEMINI_API_KEY manquante.")
 
-    errors: list[str] = []
+    key_label = "AQ." if is_aq_gemini_key(api_key) else "AIza"
+    models_to_try = list(GEMINI_INTERACTION_MODELS if is_aq_gemini_key(api_key) else GEMINI_FALLBACK_MODELS)
     for model in GEMINI_FALLBACK_MODELS:
-        sdk_text = _gemini_via_sdk(parts, system_prompt, model)
-        if sdk_text:
-            st.session_state.active_llm_provider = f"Gemini ({model}, SDK)"
-            return sdk_text
-        errors.append(f"{model}/SDK: échec")
+        if model not in models_to_try:
+            models_to_try.append(model)
 
-        rest_text = _gemini_via_rest(parts, system_prompt, model)
-        if rest_text:
-            st.session_state.active_llm_provider = f"Gemini ({model}, REST)"
-            return rest_text
-        errors.append(f"{model}/REST: échec")
+    errors: list[str] = []
+    for model in models_to_try:
+        if is_aq_gemini_key(api_key):
+            text, err = _gemini_via_interactions(parts, system_prompt, model)
+            if text:
+                st.session_state.active_llm_provider = f"Gemini ({model}, Interactions, {key_label})"
+                return text
+            if err:
+                errors.append(err)
+
+        text, err = _gemini_via_sdk(parts, system_prompt, model)
+        if text:
+            st.session_state.active_llm_provider = f"Gemini ({model}, SDK, {key_label})"
+            return text
+        if err:
+            errors.append(err)
+
+        text, err = _gemini_via_rest(parts, system_prompt, model)
+        if text:
+            st.session_state.active_llm_provider = f"Gemini ({model}, REST, {key_label})"
+            return text
+        if err:
+            errors.append(err)
 
     raise RuntimeError(
-        "Connexion Gemini impossible (clé AQ. non reconnue par Google).\n"
-        "Solutions :\n"
-        "1. Ajoutez OPENAI_API_KEY dans secrets.toml (recommandé)\n"
-        "2. Ou créez une clé AIza depuis Google Cloud Console → Credentials\n"
-        "3. Ou ajoutez GROQ_API_KEY / GEMINI_API_KEY pour la sélection automatique"
+        f"Connexion Gemini impossible (clé {key_label}).\n"
+        + "\n".join(errors[:6])
+        + "\n\nVérifiez que l'API Generative Language est activée sur votre projet Google Cloud "
+        "et que la clé est active sur aistudio.google.com/apikey."
     )
+
+
+def test_gemini_connection() -> tuple[bool, str]:
+    """Quick Gemini connectivity check (AIza or AQ. keys)."""
+    status, message = gemini_key_status()
+    if status != "ok":
+        return False, message
+    try:
+        reply = _gemini_generate_content(
+            parts=[{"text": 'Réponds uniquement: {"status":"OK"}'}],
+            system_prompt="Réponds en JSON valide uniquement.",
+        )
+        return True, f"Connexion OK — {reply[:40]}"
+    except Exception as exc:  # noqa: BLE001
+        return False, str(exc)[:400]
 
 
 def test_groq_connection() -> tuple[bool, str]:
@@ -3772,7 +3884,11 @@ def render_app() -> None:
                 st.info("OpenAI : clé présente *(secours, crédits requis)*")
 
             if gemini_configured:
-                st.info("Gemini : clé présente *(secours)*")
+                g_status, g_msg = gemini_key_status()
+                if g_status == "ok":
+                    st.info(f"Gemini : clé présente ({g_msg}) — secours auto")
+                else:
+                    st.warning(f"Gemini : {g_msg}")
 
             if has_adzuna:
                 st.caption(f"Adzuna : app_id `{adzuna_id[:4]}…`, clé {len(adzuna_key)} caractères")
