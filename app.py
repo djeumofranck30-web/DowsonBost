@@ -101,13 +101,24 @@ MIN_CV_TEXT_LENGTH = 50
 MAX_OCR_PAGES = 5
 CACHE_TTL_SECONDS = 86_400  # 24 h
 TOP_MATCHING_JOBS = 30
-MATCHING_CANDIDATE_POOL = 45
+MATCHING_CANDIDATE_POOL = 30
 GROQ_MATCH_BATCH_SIZE = 1
 GROQ_INTER_CALL_DELAY_SEC = 1.2
 GROQ_RATE_LIMIT_RETRY_SEC = 3.0
 PARALLEL_MATCH_MAX_WORKERS = 6
 PARALLEL_MATCH_KEYS_PER_PROVIDER = 3
+SEARCH_LOCATION_MAX_WORKERS = 4
+CV_MATCH_TEXT_LIMIT_WITH_PROFILE = 4500
 ATS_MATCH_MAX_TOKENS = 3500
+
+ANALYSIS_DEPTH_OPTIONS = ("rapide", "standard", "complet")
+ANALYSIS_DEPTH_LABELS = {
+    "rapide": "Rapide — 15 offres (~2× plus vite)",
+    "standard": "Standard — 30 offres (recommandé)",
+    "complet": "Complet — 45 offres analysées (plus lent)",
+}
+ANALYSIS_DEPTH_POOL = {"rapide": 18, "standard": 30, "complet": 45}
+ANALYSIS_DEPTH_TOP = {"rapide": 15, "standard": 30, "complet": 30}
 
 # Theme — aligned with the login page (split-screen purple)
 THEME_BG_GRADIENT = "linear-gradient(160deg, #ddd6fe 0%, #c4b5fd 45%, #a78bfa 100%)"
@@ -119,7 +130,7 @@ THEME_SURFACE_SOFT = "#f5f3ff"
 THEME_MUTED = "#64748b"
 THEME_ACCENT = "#6366f1"
 
-APP_VERSION = "3.8.2-profile-publication-filter"
+APP_VERSION = "3.8.4-pdf-unicode-fix"
 
 ADZUNA_COUNTRY_CODES = {
     "France": "fr",
@@ -2215,7 +2226,7 @@ def build_cv_match_context(
         if exp_lines:
             sections.append("Expériences professionnelles :\n" + "\n".join(exp_lines))
 
-    sections.append(f"Texte intégral du CV :\n{cv_text[:9000]}")
+    sections.append(f"Texte intégral du CV :\n{cv_text[:CV_MATCH_TEXT_LIMIT_WITH_PROFILE if cv_profile else 9000]}")
     return "\n\n".join(sections)
 
 
@@ -2538,6 +2549,39 @@ def search_jobs_with_fallback(
     }
 
 
+def _search_jobs_at_profile_location(
+    provider: str,
+    query: str,
+    loc: str,
+    country: str,
+    metier: str,
+    contract_type: str,
+    alternate_queries: list[str] | None,
+    max_age_days: int,
+) -> dict[str, Any]:
+    """Run one provider search for a single profile zone."""
+    if provider == JOB_PROVIDER_ALL:
+        return _search_all_providers_with_fallback(
+            query,
+            loc,
+            country,
+            metier,
+            contract_type,
+            alternate_queries,
+            max_age_days=max_age_days,
+        )
+    return search_jobs_with_fallback(
+        provider,
+        query,
+        loc,
+        country,
+        metier,
+        contract_type,
+        alternate_queries,
+        max_age_days=max_age_days,
+    )
+
+
 def search_jobs_for_profile(
     provider: str,
     query: str,
@@ -2555,19 +2599,39 @@ def search_jobs_for_profile(
     strategies: list[str] = []
     query_used = query
 
-    for loc in profile_locations:
-        if provider == JOB_PROVIDER_ALL:
-            result = _search_all_providers_with_fallback(
-                query,
-                loc,
-                country,
-                metier,
-                contract_type,
-                alternate_queries,
-                max_age_days=max_age_days,
-            )
-        else:
-            result = search_jobs_with_fallback(
+    if len(profile_locations) <= 1:
+        location_iter = profile_locations or [""]
+    else:
+        location_iter = profile_locations
+
+    worker_count = min(SEARCH_LOCATION_MAX_WORKERS, len(location_iter))
+    if worker_count > 1:
+        with ThreadPoolExecutor(max_workers=worker_count) as executor:
+            futures = [
+                executor.submit(
+                    _search_jobs_at_profile_location,
+                    provider,
+                    query,
+                    loc,
+                    country,
+                    metier,
+                    contract_type,
+                    alternate_queries,
+                    max_age_days,
+                )
+                for loc in location_iter
+            ]
+            for future in as_completed(futures):
+                result = future.result()
+                if result.get("jobs"):
+                    merged = merge_job_lists([merged, result["jobs"]])
+                    query_used = result.get("query_used") or query_used
+                    providers_used.extend(result.get("providers_used") or [])
+                    if result.get("strategy"):
+                        strategies.append(str(result["strategy"]))
+    else:
+        for loc in location_iter:
+            result = _search_jobs_at_profile_location(
                 provider,
                 query,
                 loc,
@@ -2575,14 +2639,14 @@ def search_jobs_for_profile(
                 metier,
                 contract_type,
                 alternate_queries,
-                max_age_days=max_age_days,
+                max_age_days,
             )
-        if result.get("jobs"):
-            merged = merge_job_lists([merged, result["jobs"]])
-            query_used = result.get("query_used") or query_used
-            providers_used.extend(result.get("providers_used") or [])
-            if result.get("strategy"):
-                strategies.append(str(result["strategy"]))
+            if result.get("jobs"):
+                merged = merge_job_lists([merged, result["jobs"]])
+                query_used = result.get("query_used") or query_used
+                providers_used.extend(result.get("providers_used") or [])
+                if result.get("strategy"):
+                    strategies.append(str(result["strategy"]))
 
     if merged:
         location_label = ", ".join(profile_locations[:4])
@@ -2890,16 +2954,17 @@ def build_matching_results(
     keywords: list[str],
     top_n: int = TOP_MATCHING_JOBS,
     *,
+    pool_size: int | None = None,
     cv_profile: dict[str, Any] | None = None,
     target_job_title: str = "",
 ) -> tuple[list[dict[str, Any]], int]:
     """AI-match job candidates and return the best offers by correspondence score."""
-    pool_size = min(len(jobs), MATCHING_CANDIDATE_POOL)
+    candidate_limit = min(len(jobs), pool_size or MATCHING_CANDIDATE_POOL)
     candidates = rank_jobs_for_cv(
         jobs,
         cv_text,
         keywords,
-        top_n=pool_size,
+        top_n=candidate_limit,
         target_job_title=target_job_title,
         cv_profile=cv_profile,
     )
@@ -2984,6 +3049,7 @@ def build_matching_results(
 _PDF_CHAR_REPLACEMENTS = {
     "\u2014": "-",  # em dash
     "\u2013": "-",  # en dash
+    "\u2212": "-",  # minus sign
     "\u00b7": "-",  # middle dot
     "\u2022": "-",  # bullet
     "\u2026": "...",  # ellipsis
@@ -2992,6 +3058,11 @@ _PDF_CHAR_REPLACEMENTS = {
     "\u201c": '"',
     "\u201d": '"',
     "\u00a0": " ",
+    "\u202f": " ",
+    "\u200b": "",
+    "\u00ad": "",
+    "\u2192": "->",
+    "\u2190": "<-",
 }
 
 
@@ -3003,11 +3074,14 @@ def pdf_safe_text(value: Any, default: str = "-") -> str:
     for src, dst in _PDF_CHAR_REPLACEMENTS.items():
         text = text.replace(src, dst)
     text = unicodedata.normalize("NFKC", text)
-    try:
-        text.encode("latin-1")
-        return text
-    except UnicodeEncodeError:
-        return text.encode("latin-1", errors="replace").decode("latin-1")
+    return text.encode("latin-1", errors="replace").decode("latin-1")
+
+
+def sanitize_pdf_html(html_content: str) -> str:
+    """Ensure HTML passed to fpdf2 only contains Latin-1 characters."""
+    for src, dst in _PDF_CHAR_REPLACEMENTS.items():
+        html_content = html_content.replace(src, dst)
+    return html_content.encode("latin-1", errors="replace").decode("latin-1")
 
 
 def pdf_escape(value: Any, default: str = "-") -> str:
@@ -3058,7 +3132,7 @@ def generate_matching_report_pdf(
 
         body_html += f"""
         <hr>
-        <h2>#{idx} - {pdf_escape(job.get('title', 'N/A'))} — Score ATS {score}%</h2>
+        <h2>#{idx} - {pdf_escape(job.get('title', 'N/A'))} - Score ATS {score}%</h2>
         <p><b>Synthese :</b> {pdf_escape(match.get('synthese_ats', '-'))}</p>
         <ul>
             <li><b>Entreprise :</b> {pdf_escape(job.get('company', 'N/A'))}</li>
@@ -3078,7 +3152,7 @@ def generate_matching_report_pdf(
         <ol>{mods_html}</ol>
         """
 
-    pdf.write_html(body_html)
+    pdf.write_html(sanitize_pdf_html(body_html))
     return bytes(pdf.output())
 
 
@@ -3698,9 +3772,14 @@ def run_cv_analysis_pipeline(
     pdf_bytes: bytes,
     job_provider: str,
     user_profile: dict[str, Any],
+    *,
+    matching_pool: int | None = None,
+    matching_top: int | None = None,
 ) -> tuple[dict[str, Any] | None, list[dict[str, str]]]:
     """Run the CV analysis pipeline without mutating the Streamlit DOM."""
     notices: list[dict[str, str]] = []
+    pool_size = matching_pool or MATCHING_CANDIDATE_POOL
+    top_n = matching_top or TOP_MATCHING_JOBS
 
     target_title = str(user_profile.get("target_job_title", "")).strip()
     if not target_title:
@@ -3712,12 +3791,18 @@ def run_cv_analysis_pipeline(
         )
         return None, notices
 
-    search_plan = cached_build_job_search_plan(target_title)
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        plan_future = executor.submit(cached_build_job_search_plan, target_title)
+        cv_future = executor.submit(extract_cv_text, pdf_bytes)
+        search_plan = plan_future.result()
+        cv_text, method = cv_future.result()
+
     query = search_plan.get("query_recherche") or target_title
     metier = search_plan.get("metier") or target_title
     alternate_queries = tuple(search_plan.get("variantes") or ())
     country = user_profile.get("country", "France")
     contract_type = user_profile.get("contract_type", "CDI")
+    profile_json = json.dumps(user_profile, ensure_ascii=False, sort_keys=True)
 
     notices.append(
         {
@@ -3737,18 +3822,22 @@ def run_cv_analysis_pipeline(
         }
     )
 
-    search_result = cached_search_jobs(
-        job_provider,
-        query,
-        country,
-        json.dumps(user_profile, ensure_ascii=False, sort_keys=True),
-        metier,
-        contract_type=contract_type,
-        alternate_queries=alternate_queries,
-    )
-    raw_jobs = search_result["jobs"]
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        search_future = executor.submit(
+            cached_search_jobs,
+            job_provider,
+            query,
+            country,
+            profile_json,
+            metier,
+            contract_type=contract_type,
+            alternate_queries=alternate_queries,
+        )
+        criteria_future = executor.submit(cached_extract_criteria, cv_text)
+        search_result = search_future.result()
+        criteria = criteria_future.result()
 
-    cv_text, method = extract_cv_text(pdf_bytes)
+    raw_jobs = search_result["jobs"]
     if method == "ocr":
         notices.append(
             {
@@ -3757,7 +3846,6 @@ def run_cv_analysis_pipeline(
             }
         )
 
-    criteria = cached_extract_criteria(cv_text)
     if criteria.get("_heuristic"):
         notices.append(
             {
@@ -3862,6 +3950,8 @@ def run_cv_analysis_pipeline(
         jobs,
         cv_text,
         keywords,
+        top_n=top_n,
+        pool_size=pool_size,
         cv_profile=criteria,
         target_job_title=target_title,
     )
@@ -3882,7 +3972,7 @@ def run_cv_analysis_pipeline(
             "level": "info",
             "text": (
                 f"Matching ATS en parallèle ({parallel_match_summary()}) sur "
-                f"**{min(len(jobs), MATCHING_CANDIDATE_POOL)}** candidats — "
+                f"**{min(len(jobs), pool_size)}** candidats — "
                 f"**{len(results)}** meilleures offres avec score, compétences et modifications CV."
             ),
         }
@@ -4684,7 +4774,12 @@ def render_profile_page(user: dict[str, Any]) -> None:
                             st.error(message)
 
 
-def render_cv_analysis(job_provider: str, user: dict[str, Any]) -> None:
+def render_cv_analysis(
+    job_provider: str,
+    user: dict[str, Any],
+    *,
+    analysis_depth: str = "standard",
+) -> None:
     """CV upload and matching workflow."""
     ready, _ = ai_setup_status()
     if not ready:
@@ -4706,6 +4801,9 @@ def render_cv_analysis(job_provider: str, user: dict[str, Any]) -> None:
     active_sectors = resolve_target_sectors(user_profile, {})
     region_text, dept_text, city_text = format_profile_geo_summary(user_profile)
     publication_filter = normalize_job_max_age_days(user_profile.get("job_max_age_days"))
+    depth_key = analysis_depth if analysis_depth in ANALYSIS_DEPTH_POOL else "standard"
+    depth_pool = ANALYSIS_DEPTH_POOL[depth_key]
+    depth_top = ANALYSIS_DEPTH_TOP[depth_key]
 
     with st.container(border=True):
         st.markdown(
@@ -4725,7 +4823,8 @@ def render_cv_analysis(job_provider: str, user: dict[str, Any]) -> None:
             f"niveau **{EXPERIENCE_LABELS.get(active_level, active_level)}** · "
             f"secteurs **{', '.join(active_sectors) if active_sectors else 'CV'}** · "
             f"régions **{region_text}** · départements **{dept_text}** · "
-            f"villes **{city_text}**"
+            f"villes **{city_text}** · "
+            f"mode **{ANALYSIS_DEPTH_LABELS[depth_key]}**"
         )
 
         uploaded_file = st.file_uploader(
@@ -4774,6 +4873,8 @@ def render_cv_analysis(job_provider: str, user: dict[str, Any]) -> None:
                             pdf_bytes,
                             job_provider,
                             user_profile,
+                            matching_pool=depth_pool,
+                            matching_top=depth_top,
                         )
                     st.session_state.analysis_notices = notices
                     if analysis:
@@ -4888,6 +4989,24 @@ def render_app() -> None:
                 "Indeed, LinkedIn et Glassdoor passent par SerpApi. JobTeaser utilise Apify."
             ),
         )
+
+        analysis_depth = st.session_state.get("analysis_depth", "standard")
+        if page == "Analyse CV":
+            current_depth = st.session_state.get("analysis_depth", "standard")
+            if current_depth not in ANALYSIS_DEPTH_OPTIONS:
+                current_depth = "standard"
+            analysis_depth = st.selectbox(
+                "Profondeur d'analyse",
+                ANALYSIS_DEPTH_OPTIONS,
+                index=ANALYSIS_DEPTH_OPTIONS.index(current_depth),
+                format_func=lambda key: ANALYSIS_DEPTH_LABELS[key],
+                help=(
+                    "Le matching IA (1 appel par offre) est l'étape la plus longue. "
+                    "Choisissez **Rapide** pour réduire le temps d'attente."
+                ),
+                key="analysis_depth_select",
+            )
+            st.session_state.analysis_depth = analysis_depth
 
         with st.expander("Configuration & tests", expanded=False):
             st.caption(f"Version : `{APP_VERSION}`")
@@ -5126,7 +5245,7 @@ def render_app() -> None:
         f"(filtre publication défini dans Mon profil) puis analyse votre profil en mode ATS.",
         badge="Matching IA",
     )
-    render_cv_analysis(job_provider, user)
+    render_cv_analysis(job_provider, user, analysis_depth=analysis_depth)
 
 
 def main() -> None:
