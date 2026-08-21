@@ -176,7 +176,7 @@ from auth import (
     reset_password,
     update_user_profile,
 )
-from database import configure_database, database_connection_hint, database_status
+from database import DatabaseConfigError, configure_database, database_connection_hint, database_status
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -4270,6 +4270,18 @@ def main() -> None:
             password=get_secret("DATABASE_PASSWORD"),
         )
         init_db()
+    except DatabaseConfigError as exc:
+        st.error("**Configuration base de données incorrecte.**")
+        st.code(str(exc))
+        st.markdown(
+            "**Corrigez vos secrets Streamlit ainsi :**\n\n"
+            "```toml\n"
+            'DATABASE_URL = "postgresql://postgres.ongzgribavyjprbrawzd@aws-0-eu-west-2.pooler.supabase.com:6543/postgres"\n'
+            'DATABASE_PASSWORD = "votre_mot_de_passe"\n'
+            "```\n\n"
+            "Ne mettez **jamais** le mot de passe dans DATABASE_URL si il contient `@`, `#`, `!`, etc."
+        )
+        return
     except Exception as exc:  # noqa: BLE001
         st.error("**Impossible de se connecter à la base de données.**")
         st.code(str(exc))

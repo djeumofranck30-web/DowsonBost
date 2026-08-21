@@ -13,6 +13,7 @@ SQLITE_PATH = Path(__file__).parent / "data" / "users.db"
 
 _backend: str = "sqlite"
 _database_url: str = ""
+_database_password: str = ""
 _configured = False
 
 
@@ -25,6 +26,14 @@ def _strip_quotes(value: str) -> str:
     if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
         return value[1:-1].strip()
     return value
+
+
+def _clean_password(value: str) -> str:
+    """Strip quotes and accidental bracket wrapping from passwords."""
+    password = _strip_quotes(value)
+    if len(password) >= 2 and password[0] == "[" and password[-1] == "]":
+        password = password[1:-1]
+    return password
 
 
 def _merge_password_into_url(url: str, password: str) -> str:
@@ -44,7 +53,7 @@ def _merge_password_into_url(url: str, password: str) -> str:
 def normalize_database_url(url: str, password_override: str = "") -> str:
     """Normalize and validate a PostgreSQL connection URL."""
     url = _strip_quotes(url)
-    password_override = _strip_quotes(password_override)
+    password_override = _clean_password(password_override)
 
     if not url:
         return ""
@@ -58,16 +67,22 @@ def normalize_database_url(url: str, password_override: str = "") -> str:
         )
 
     if "[YOUR-PASSWORD]" in url or "YOUR-PASSWORD" in url:
-        if password_override:
-            url = url.replace("[YOUR-PASSWORD]", quote(password_override, safe=""))
-        else:
-            raise DatabaseConfigError(
-                "Remplacez [YOUR-PASSWORD] dans DATABASE_URL par votre mot de passe Supabase, "
-                "ou ajoutez DATABASE_PASSWORD dans les secrets Streamlit."
-            )
+        url = url.replace("[YOUR-PASSWORD]", "")
+        if ":@" in url:
+            url = url.replace(":@", "@")
+
+    parsed = urlparse(url)
+    if parsed.password and ("@" in unquote(parsed.password) or "[" in parsed.password):
+        raise DatabaseConfigError(
+            "Le mot de passe dans DATABASE_URL contient @ ou des crochets — "
+            "retirez-le de l'URL et utilisez DATABASE_PASSWORD à la place."
+        )
 
     if password_override:
         url = _merge_password_into_url(url, password_override)
+    elif not urlparse(url).password:
+        # URL without password — DATABASE_PASSWORD will be merged at connect time.
+        pass
 
     parsed = urlparse(url)
     if not parsed.hostname:
@@ -90,15 +105,23 @@ def normalize_database_url(url: str, password_override: str = "") -> str:
 
 def configure_database(url: str = "", password: str = "") -> str:
     """Select SQLite (default) or PostgreSQL when DATABASE_URL is set."""
-    global _backend, _database_url, _configured
+    global _backend, _database_url, _database_password, _configured
     raw_url = (url or os.getenv("DATABASE_URL", "")).strip()
-    raw_password = (password or os.getenv("DATABASE_PASSWORD", "")).strip()
+    raw_password = _clean_password(password or os.getenv("DATABASE_PASSWORD", ""))
 
     if raw_url.startswith(("postgres://", "postgresql://")):
         _database_url = normalize_database_url(raw_url, raw_password)
+        _database_password = raw_password
+        if not urlparse(_database_url).password and not _database_password:
+            raise DatabaseConfigError(
+                "Mot de passe PostgreSQL manquant. Ajoutez DATABASE_PASSWORD dans les secrets Streamlit."
+            )
+        if _database_password and not urlparse(_database_url).password:
+            _database_url = _merge_password_into_url(_database_url, _database_password)
         _backend = "postgres"
     else:
         _database_url = ""
+        _database_password = ""
         _backend = "sqlite"
     _configured = True
     return _backend
@@ -168,7 +191,7 @@ def database_connection_hint(exc: BaseException) -> str:
 
 
 def postgres_connect_kwargs(url: str) -> dict[str, Any]:
-    """Build psycopg keyword args — avoids URI parsing bugs in libpq."""
+    """Build psycopg connection parameters."""
     parsed = urlparse(url)
     query = parse_qs(parsed.query)
     host = parsed.hostname
@@ -178,7 +201,7 @@ def postgres_connect_kwargs(url: str) -> dict[str, Any]:
     password = unquote(parsed.password or "")
     if not password:
         raise DatabaseConfigError(
-            "Mot de passe PostgreSQL manquant. Ajoutez-le dans DATABASE_URL ou DATABASE_PASSWORD."
+            "Mot de passe PostgreSQL manquant. Ajoutez DATABASE_PASSWORD dans les secrets Streamlit."
         )
 
     sslmode = (query.get("sslmode") or ["require"])[0]
@@ -191,6 +214,14 @@ def postgres_connect_kwargs(url: str) -> dict[str, Any]:
         "sslmode": sslmode,
         "connect_timeout": 20,
     }
+
+
+def postgres_conninfo(url: str) -> str:
+    """Build a libpq conninfo string with proper escaping (handles @ in passwords)."""
+    import psycopg
+
+    params = postgres_connect_kwargs(url)
+    return psycopg.conninfo.make_conninfo(**params)
 
 
 def postgres_connection_summary(url: str) -> str:
@@ -247,8 +278,8 @@ def connect() -> Iterator[Any]:
         from psycopg.rows import dict_row
 
         try:
-            params = postgres_connect_kwargs(_database_url)
-            with psycopg.connect(**params, row_factory=dict_row) as conn:
+            conninfo = postgres_conninfo(_database_url)
+            with psycopg.connect(conninfo, row_factory=dict_row) as conn:
                 yield conn
         except DatabaseConfigError:
             raise
