@@ -131,7 +131,7 @@ THEME_SURFACE_SOFT = "#f5f3ff"
 THEME_MUTED = "#64748b"
 THEME_ACCENT = "#6366f1"
 
-APP_VERSION = "3.9.2-delete-account"
+APP_VERSION = "3.9.3-profile-ui-redesign"
 
 ADZUNA_COUNTRY_CODES = {
     "France": "fr",
@@ -3413,11 +3413,11 @@ def render_app_styles() -> None:
         }}
 
         .delete-account-zone {{
-            margin-top: 1.25rem;
+            margin-top: 0.5rem;
             padding: 1.25rem 1.5rem;
             border-radius: 16px;
-            border: 1px solid rgba(220, 38, 38, 0.25);
-            background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%);
+            border: 1px dashed rgba(220, 38, 38, 0.35);
+            background: #fffafa;
         }}
         .delete-account-zone .delete-account-title {{
             color: #991b1b;
@@ -3461,6 +3461,67 @@ def render_app_styles() -> None:
             border: 1px solid #d1d5db !important;
             font-weight: 600 !important;
             border-radius: 12px !important;
+        }}
+
+        .profile-header-card {{
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            padding: 1.5rem 1.75rem;
+            margin-bottom: 1.25rem;
+            border-radius: 18px;
+            background: linear-gradient(135deg, {THEME_SURFACE} 0%, {THEME_SURFACE_SOFT} 100%);
+            border: 1px solid rgba(124, 58, 237, 0.12);
+            box-shadow: 0 8px 24px rgba(109, 40, 217, 0.08);
+        }}
+        .profile-avatar {{
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, {THEME_PRIMARY} 0%, {THEME_ACCENT} 100%);
+            color: #fff;
+            font-size: 1.35rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }}
+        .profile-header-text h2 {{
+            margin: 0 0 0.2rem 0 !important;
+            font-size: 1.35rem !important;
+            color: {THEME_PRIMARY_DEEP} !important;
+        }}
+        .profile-header-text p {{
+            margin: 0 0 0.45rem 0;
+            color: {THEME_MUTED};
+            font-size: 0.95rem;
+        }}
+        .profile-badge {{
+            display: inline-block;
+            padding: 0.25rem 0.65rem;
+            border-radius: 999px;
+            background: rgba(124, 58, 237, 0.1);
+            color: {THEME_PRIMARY_DARK};
+            font-size: 0.8rem;
+            font-weight: 600;
+        }}
+        .profile-section-card {{
+            padding: 0.25rem 0.5rem 0.5rem;
+        }}
+        .profile-section-card .section-title {{
+            margin-bottom: 0.35rem;
+        }}
+        .profile-section-hint {{
+            color: {THEME_MUTED};
+            font-size: 0.88rem;
+            margin: 0 0 0.85rem 0;
+        }}
+        .profile-divider {{
+            height: 1px;
+            background: rgba(124, 58, 237, 0.1);
+            margin: 1.5rem 0;
+            border: none;
         }}
 
         /* —— File uploader —— */
@@ -3936,31 +3997,39 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
 def render_notification_settings(user: dict[str, Any], job_provider: str) -> None:
     """Alert email and scheduled search preferences."""
     settings = get_notification_settings(int(user["id"]))
-    with st.container(border=True):
-        st.markdown(
-            '<p class="section-title">Alertes e-mail & recherche automatique</p>',
-            unsafe_allow_html=True,
+    st.markdown(
+        '<p class="section-title">Alertes & recherche automatique</p>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<p class="profile-section-hint">'
+        "Recevez un e-mail après chaque analyse ou planifiez une recherche récurrente."
+        "</p>",
+        unsafe_allow_html=True,
+    )
+    if not email_configured():
+        st.caption(
+            "Configurez `RESEND_API_KEY` + `EMAIL_FROM`, ou `SMTP_HOST` / `SMTP_USER` "
+            "dans secrets pour activer les alertes."
         )
-        if not email_configured():
-            st.caption(
-                "Configurez `RESEND_API_KEY` + `EMAIL_FROM`, ou `SMTP_HOST` / `SMTP_USER` "
-                "dans secrets pour activer les alertes."
-            )
-        with st.form(f"notification_settings_{user['id']}"):
-            email_alerts = st.checkbox(
-                "Recevoir un e-mail quand de nouvelles offres correspondent",
-                value=bool(settings.get("email_alerts_enabled")),
-            )
-            alert_min_score = st.slider(
-                "Score minimum pour l'alerte",
-                50,
-                95,
-                int(settings.get("alert_min_score", 70)),
-            )
-            auto_search = st.checkbox(
-                "Recherche automatique planifiée (nécessite un CV enregistré)",
-                value=bool(settings.get("auto_search_enabled")),
-            )
+    with st.form(f"notification_settings_{user['id']}"):
+        email_alerts = st.checkbox(
+            "E-mail quand de nouvelles offres correspondent",
+            value=bool(settings.get("email_alerts_enabled")),
+        )
+        alert_min_score = st.slider(
+            "Score minimum pour l'alerte",
+            50,
+            95,
+            int(settings.get("alert_min_score", 70)),
+        )
+        auto_search = st.checkbox(
+            "Recherche automatique planifiée",
+            value=bool(settings.get("auto_search_enabled")),
+            help="Nécessite au moins une analyse CV enregistrée.",
+        )
+        sched_col1, sched_col2, sched_col3 = st.columns(3)
+        with sched_col1:
             weekday = st.selectbox(
                 "Jour",
                 AUTO_SEARCH_WEEKDAYS,
@@ -3969,35 +4038,37 @@ def render_notification_settings(user: dict[str, Any], job_provider: str) -> Non
                 else 0,
                 format_func=lambda value: AUTO_SEARCH_WEEKDAY_LABELS[value],
             )
+        with sched_col2:
             hour = st.selectbox(
                 "Heure (UTC)",
                 list(range(24)),
                 index=int(settings.get("auto_search_hour", 8)),
             )
+        with sched_col3:
             auto_depth = st.selectbox(
-                "Profondeur recherche auto",
+                "Profondeur",
                 ANALYSIS_DEPTH_OPTIONS,
                 index=ANALYSIS_DEPTH_OPTIONS.index(settings.get("auto_search_depth", "standard"))
                 if settings.get("auto_search_depth") in ANALYSIS_DEPTH_OPTIONS
                 else 1,
                 format_func=lambda key: ANALYSIS_DEPTH_LABELS[key],
             )
-            if st.form_submit_button("Enregistrer alertes & planning", use_container_width=True):
-                save_notification_settings(
-                    int(user["id"]),
-                    {
-                        "email_alerts_enabled": email_alerts,
-                        "alert_min_score": alert_min_score,
-                        "alert_frequency": "after_search",
-                        "auto_search_enabled": auto_search,
-                        "auto_search_weekday": weekday,
-                        "auto_search_hour": hour,
-                        "auto_search_provider": job_provider,
-                        "auto_search_depth": auto_depth,
-                    },
-                )
-                st.success("Préférences enregistrées.")
-                st.rerun()
+        if st.form_submit_button("Enregistrer alertes & planning", use_container_width=True):
+            save_notification_settings(
+                int(user["id"]),
+                {
+                    "email_alerts_enabled": email_alerts,
+                    "alert_min_score": alert_min_score,
+                    "alert_frequency": "after_search",
+                    "auto_search_enabled": auto_search,
+                    "auto_search_weekday": weekday,
+                    "auto_search_hour": hour,
+                    "auto_search_provider": job_provider,
+                    "auto_search_depth": auto_depth,
+                },
+            )
+            st.success("Préférences enregistrées.")
+            st.rerun()
 
 
 def run_auto_search_for_user(user: dict[str, Any], job_provider: str) -> None:
@@ -5167,13 +5238,12 @@ def render_delete_account_section(user: dict[str, Any]) -> None:
 
     st.markdown('<div class="delete-account-zone">', unsafe_allow_html=True)
     st.markdown(
-        '<p class="delete-account-title">Zone de suppression du compte</p>',
+        '<p class="delete-account-title">Supprimer mon compte</p>',
         unsafe_allow_html=True,
     )
     st.markdown(
         '<p class="delete-account-text">'
-        "Cette action est définitive : profil, historique d'analyses, "
-        "suivi candidatures et CV enregistrés seront effacés."
+        "Action définitive — profil, historique, candidatures et CV seront effacés."
         "</p>",
         unsafe_allow_html=True,
     )
@@ -5227,63 +5297,66 @@ def render_delete_account_section(user: dict[str, Any]) -> None:
     st.markdown("</div>", unsafe_allow_html=True)
 
 
-def render_profile_page(user: dict[str, Any]) -> None:
-    """Profile settings: view info, update name, change password."""
+def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
+    """Profile settings — identity, search prefs, security, alerts, delete account."""
     _flush_analysis_notices()
     profile = get_user_by_id(user["id"]) or user
+    current_age = normalize_job_max_age_days(profile.get("job_max_age_days"))
+    member_since = profile.get("created_at", "")
+    full_name = profile.get("full_name", "Utilisateur")
+    initials = "".join(word[0].upper() for word in full_name.split()[:2]) or "?"
+
+    st.markdown(
+        f"""
+        <div class="profile-header-card">
+            <div class="profile-avatar">{html.escape(initials)}</div>
+            <div class="profile-header-text">
+                <h2>{html.escape(full_name)}</h2>
+                <p>{html.escape(profile.get("email", "—"))}</p>
+                <span class="profile-badge">Membre depuis {html.escape(format_member_since(member_since) if member_since else "—")}</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     with st.container(border=True):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("E-mail", profile.get("email", "—"))
-        with col2:
-            member_since = profile.get("created_at", "")
-            st.metric(
-                "Membre depuis",
-                format_member_since(member_since) if member_since else "—",
-            )
+        st.markdown('<div class="profile-section-card">', unsafe_allow_html=True)
+        st.markdown(
+            '<p class="section-title">Profil de recherche</p>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            '<p class="profile-section-hint">'
+            "Ces réglages sont utilisés pour filtrer les offres et lancer vos analyses CV."
+            "</p>",
+            unsafe_allow_html=True,
+        )
 
-    col_info, col_password = st.columns(2)
+        admin_regions, selected_departments = render_region_department_selectors(
+            profile,
+            key_prefix=f"profile_{user['id']}",
+        )
+        profile_cities, profile_all_cities = render_city_selector(
+            profile,
+            key_prefix=f"profile_{user['id']}",
+            selected_departments=selected_departments,
+            country=profile.get("country", "France"),
+        )
 
-    with col_info:
-        with st.container(border=True):
-            st.markdown(
-                '<p class="section-title">Filtre par date de publication</p>',
-                unsafe_allow_html=True,
-            )
-            st.caption(
-                "Choisissez l'ancienneté maximale des offres. "
-                "La recherche d'emploi et l'analyse CV n'incluront que les annonces "
-                "publiées dans cette période."
-            )
-            current_age = normalize_job_max_age_days(profile.get("job_max_age_days"))
-            st.info(f"Filtre actif : **{job_max_age_label(current_age)}**")
-
-        with st.container(border=True):
-            st.markdown(
-                '<p class="section-title">Informations personnelles</p>',
-                unsafe_allow_html=True,
-            )
-            admin_regions, selected_departments = render_region_department_selectors(
-                profile,
-                key_prefix=f"profile_{user['id']}",
-            )
-            profile_cities, profile_all_cities = render_city_selector(
-                profile,
-                key_prefix=f"profile_{user['id']}",
-                selected_departments=selected_departments,
-                country=profile.get("country", "France"),
-            )
-            with st.form("profile_form"):
-                target_job_title = st.text_input(
-                    "Intitulé du poste visé",
-                    value=profile.get("target_job_title", ""),
-                    help="Utilisé en priorité pour la recherche d'offres avant l'analyse de votre CV.",
-                )
+        with st.form("profile_form"):
+            id_col1, id_col2 = st.columns(2)
+            with id_col1:
                 new_name = st.text_input(
                     "Nom complet",
                     value=profile.get("full_name", ""),
                 )
+                target_job_title = st.text_input(
+                    "Poste visé",
+                    value=profile.get("target_job_title", ""),
+                    help="Utilisé en priorité pour la recherche d'offres.",
+                )
+            with id_col2:
                 profile_country_value = st.selectbox(
                     "Pays",
                     COUNTRY_OPTIONS,
@@ -5292,11 +5365,25 @@ def render_profile_page(user: dict[str, Any]) -> None:
                     else 0,
                 )
                 contract_type = st.selectbox(
-                    "Type de contrat recherché",
+                    "Type de contrat",
                     CONTRACT_TYPES,
                     index=CONTRACT_TYPES.index(profile.get("contract_type", "CDI"))
                     if profile.get("contract_type") in CONTRACT_TYPES
                     else 0,
+                )
+
+            pref_col1, pref_col2 = st.columns(2)
+            with pref_col1:
+                exp_index = (
+                    EXPERIENCE_LEVELS.index(profile.get("experience_level", "confirme"))
+                    if profile.get("experience_level") in EXPERIENCE_LEVELS
+                    else 1
+                )
+                experience_level = st.selectbox(
+                    "Niveau d'expérience",
+                    EXPERIENCE_LEVELS,
+                    index=exp_index,
+                    format_func=lambda x: EXPERIENCE_LABELS[x],
                 )
                 geo_mode = st.selectbox(
                     "Périmètre géographique",
@@ -5305,29 +5392,12 @@ def render_profile_page(user: dict[str, Any]) -> None:
                     if profile.get("geo_filter_mode") in GEO_FILTER_MODES
                     else 1,
                     format_func=lambda x: {
-                        "ville": "Villes sélectionnées uniquement",
-                        "departement": "Pays, régions, départements et villes sélectionnés",
-                        "rayon": "Zones sélectionnées + rayon autour de la première ville",
+                        "ville": "Villes sélectionnées",
+                        "departement": "Régions, départements & villes",
+                        "rayon": "Zones + rayon autour d'une ville",
                     }[x],
                 )
-                search_radius = st.slider(
-                    "Rayon de recherche (km)",
-                    5,
-                    100,
-                    int(profile.get("search_radius_km") or 20),
-                    disabled=(geo_mode != "rayon"),
-                )
-                exp_index = (
-                    EXPERIENCE_LEVELS.index(profile.get("experience_level", "confirme"))
-                    if profile.get("experience_level") in EXPERIENCE_LEVELS
-                    else 1
-                )
-                experience_level = st.selectbox(
-                    "Niveau d'expérience recherché",
-                    EXPERIENCE_LEVELS,
-                    index=exp_index,
-                    format_func=lambda x: EXPERIENCE_LABELS[x],
-                )
+            with pref_col2:
                 current_sectors = profile.get("target_sectors") or []
                 sectors_key = f"profile_sectors_{user['id']}"
                 if sectors_key not in st.session_state:
@@ -5335,77 +5405,89 @@ def render_profile_page(user: dict[str, Any]) -> None:
                         s for s in current_sectors if s in SECTOR_OPTIONS
                     ]
                 target_sectors = st.multiselect(
-                    "Secteurs d'activité ciblés",
+                    "Secteurs ciblés",
                     SECTOR_OPTIONS,
                     help="Laisser vide pour utiliser les secteurs détectés dans le CV.",
                     key=sectors_key,
                 )
-                st.markdown("**Date de publication des offres**")
-                profile_age_index = (
-                    JOB_MAX_AGE_DAYS_OPTIONS.index(current_age)
-                    if current_age in JOB_MAX_AGE_DAYS_OPTIONS
-                    else JOB_MAX_AGE_DAYS_OPTIONS.index(7)
+                search_radius = st.slider(
+                    "Rayon (km)",
+                    5,
+                    100,
+                    int(profile.get("search_radius_km") or 20),
+                    disabled=(geo_mode != "rayon"),
                 )
-                job_max_age_days = st.radio(
-                    "Rechercher les offres publiées depuis :",
-                    JOB_MAX_AGE_DAYS_OPTIONS,
-                    index=profile_age_index,
-                    format_func=lambda days: JOB_MAX_AGE_LABELS[days],
-                    help="Ce réglage s'applique à toutes vos recherches d'offres.",
-                    horizontal=False,
-                )
-                st.caption(
-                    "Seules les offres correspondant à votre **pays**, **régions**, "
-                    "**départements**, **villes**, **contrat**, **niveau**, **secteur(s)** "
-                    "et **période de publication** seront proposées."
-                )
-                if st.form_submit_button("Enregistrer le profil", use_container_width=True):
-                    cities = profile_cities
-                    ok, message, updated = update_user_profile(
-                        user["id"],
-                        new_name,
-                        profile.get("home_city", ""),
-                        profile.get("postal_code", ""),
-                        admin_regions,
-                        selected_departments,
-                        cities,
-                        profile_all_cities,
-                        profile_country_value,
-                        contract_type,
-                        geo_mode,
-                        search_radius,
-                        experience_level,
-                        target_sectors,
-                        target_job_title,
-                        job_max_age_days,
-                    )
-                    if ok and updated:
-                        st.session_state.user = updated
-                        st.session_state.pop(sectors_key, None)
-                        prefix = f"profile_{user['id']}"
-                        st.session_state.pop(f"{prefix}_admin_regions", None)
-                        st.session_state.pop(f"{prefix}_department_labels", None)
-                        st.session_state.pop(f"{prefix}_last_admin_regions", None)
-                        st.session_state.pop(f"{prefix}_selected_cities", None)
-                        st.session_state.pop(f"{prefix}_last_departments_for_cities", None)
-                        st.session_state.pop(f"{prefix}_all_cities", None)
-                        st.session_state.analysis_notices = [
-                            {"level": "success", "text": message}
-                        ]
-                        st.rerun()
-                    else:
-                        st.error(message)
 
-    with col_password:
+            st.markdown("**Offres publiées depuis**")
+            profile_age_index = (
+                JOB_MAX_AGE_DAYS_OPTIONS.index(current_age)
+                if current_age in JOB_MAX_AGE_DAYS_OPTIONS
+                else JOB_MAX_AGE_DAYS_OPTIONS.index(7)
+            )
+            job_max_age_days = st.radio(
+                "Période de publication",
+                JOB_MAX_AGE_DAYS_OPTIONS,
+                index=profile_age_index,
+                format_func=lambda days: JOB_MAX_AGE_LABELS[days],
+                horizontal=True,
+                label_visibility="collapsed",
+            )
+
+            if st.form_submit_button(
+                "Enregistrer le profil",
+                use_container_width=True,
+                type="primary",
+            ):
+                ok, message, updated = update_user_profile(
+                    user["id"],
+                    new_name,
+                    profile.get("home_city", ""),
+                    profile.get("postal_code", ""),
+                    admin_regions,
+                    selected_departments,
+                    profile_cities,
+                    profile_all_cities,
+                    profile_country_value,
+                    contract_type,
+                    geo_mode,
+                    search_radius,
+                    experience_level,
+                    target_sectors,
+                    target_job_title,
+                    job_max_age_days,
+                )
+                if ok and updated:
+                    st.session_state.user = updated
+                    st.session_state.pop(sectors_key, None)
+                    prefix = f"profile_{user['id']}"
+                    for suffix in (
+                        "admin_regions",
+                        "department_labels",
+                        "last_admin_regions",
+                        "selected_cities",
+                        "last_departments_for_cities",
+                        "all_cities",
+                    ):
+                        st.session_state.pop(f"{prefix}_{suffix}", None)
+                    st.session_state.analysis_notices = [
+                        {"level": "success", "text": message}
+                    ]
+                    st.rerun()
+                st.error(message)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    sec_col1, sec_col2 = st.columns(2)
+    with sec_col1:
         with st.container(border=True):
+            st.markdown('<div class="profile-section-card">', unsafe_allow_html=True)
             st.markdown(
-                '<p class="section-title">Changer le mot de passe</p>',
+                '<p class="section-title">Mot de passe</p>',
                 unsafe_allow_html=True,
             )
             with st.form("password_form"):
                 current_pw = st.text_input("Mot de passe actuel", type="password")
                 new_pw = st.text_input("Nouveau mot de passe", type="password")
-                new_pw2 = st.text_input("Confirmer le nouveau mot de passe", type="password")
+                new_pw2 = st.text_input("Confirmer", type="password")
                 if st.form_submit_button("Modifier le mot de passe", use_container_width=True):
                     if new_pw != new_pw2:
                         st.error("Les nouveaux mots de passe ne correspondent pas.")
@@ -5415,7 +5497,15 @@ def render_profile_page(user: dict[str, Any]) -> None:
                             st.success(message)
                         else:
                             st.error(message)
+            st.markdown("</div>", unsafe_allow_html=True)
 
+    with sec_col2:
+        with st.container(border=True):
+            st.markdown('<div class="profile-section-card">', unsafe_allow_html=True)
+            render_notification_settings(user, job_provider)
+            st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown('<hr class="profile-divider">', unsafe_allow_html=True)
     render_delete_account_section(user)
 
 
@@ -5890,12 +5980,10 @@ def render_app() -> None:
     if page == "Mon profil":
         render_page_hero(
             "Mon profil",
-            "Définissez le poste visé, la date de publication des offres (24 h, 3, 7 ou 30 jours), "
-            "votre zone géographique, votre contrat et vos secteurs ciblés.",
+            "Gérez votre identité, vos critères de recherche, la sécurité du compte et les alertes.",
             badge="Compte",
         )
-        render_profile_page(user)
-        render_notification_settings(user, job_provider)
+        render_profile_page(user, job_provider)
         return
 
     if page == "Historique":
