@@ -750,6 +750,48 @@ def reset_password(email: str, full_name: str, new_password: str) -> tuple[bool,
     return True, "Mot de passe réinitialisé. Vous pouvez vous connecter."
 
 
+def delete_user_account(user_id: int) -> tuple[bool, str]:
+    """Permanently delete a user and all associated data."""
+    init_db()
+    from persistence import init_persistence_tables
+
+    init_persistence_tables()
+    with _connect() as conn:
+        row = conn.execute(
+            adapt_sql("SELECT id, email FROM users WHERE id = ?"),
+            (user_id,),
+        ).fetchone()
+        if not row:
+            return False, "Utilisateur introuvable."
+
+        conn.execute(
+            adapt_sql("DELETE FROM analysis_results WHERE user_id = ?"),
+            (user_id,),
+        )
+        conn.execute(
+            adapt_sql("DELETE FROM analyses WHERE user_id = ?"),
+            (user_id,),
+        )
+        conn.execute(
+            adapt_sql("DELETE FROM scheduled_runs WHERE user_id = ?"),
+            (user_id,),
+        )
+        conn.execute(
+            adapt_sql("DELETE FROM cv_documents WHERE user_id = ?"),
+            (user_id,),
+        )
+        conn.execute(
+            adapt_sql("DELETE FROM user_notification_settings WHERE user_id = ?"),
+            (user_id,),
+        )
+        conn.execute(
+            adapt_sql("DELETE FROM users WHERE id = ?"),
+            (user_id,),
+        )
+
+    return True, "Votre compte a été supprimé définitivement."
+
+
 def format_member_since(iso_date: str) -> str:
     """Format registration date for display."""
     try:

@@ -131,7 +131,7 @@ THEME_SURFACE_SOFT = "#f5f3ff"
 THEME_MUTED = "#64748b"
 THEME_ACCENT = "#6366f1"
 
-APP_VERSION = "3.9.1-adapted-cv-modifications"
+APP_VERSION = "3.9.2-delete-account"
 
 ADZUNA_COUNTRY_CODES = {
     "France": "fr",
@@ -191,6 +191,7 @@ GROQ_SKIP_MODEL_SUBSTRINGS = (
 from auth import (
     authenticate_user,
     change_password,
+    delete_user_account,
     format_member_since,
     get_user_by_id,
     init_db,
@@ -3411,6 +3412,57 @@ def render_app_styles() -> None:
             border-radius: 14px;
         }}
 
+        .delete-account-zone {{
+            margin-top: 1.25rem;
+            padding: 1.25rem 1.5rem;
+            border-radius: 16px;
+            border: 1px solid rgba(220, 38, 38, 0.25);
+            background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%);
+        }}
+        .delete-account-zone .delete-account-title {{
+            color: #991b1b;
+            font-weight: 700;
+            font-size: 1.05rem;
+            margin: 0 0 0.35rem 0;
+        }}
+        .delete-account-zone .delete-account-text {{
+            color: #7f1d1d;
+            font-size: 0.92rem;
+            margin: 0 0 1rem 0;
+        }}
+        div[data-testid="stButton"] button.delete-confirm-btn {{
+            background: #991b1b !important;
+            color: #ffffff !important;
+            border: none !important;
+            font-weight: 700 !important;
+            border-radius: 12px !important;
+        }}
+        .delete-account-zone .delete-account-trigger + div[data-testid="stButton"] button {{
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+            color: #ffffff !important;
+            border: none !important;
+            font-weight: 600 !important;
+            border-radius: 12px !important;
+            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.25) !important;
+        }}
+        .delete-account-zone .delete-account-trigger + div[data-testid="stButton"] button:hover {{
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+        }}
+        .delete-account-zone .delete-confirm-yes + div[data-testid="stButton"] button {{
+            background: #991b1b !important;
+            color: #ffffff !important;
+            border: none !important;
+            font-weight: 700 !important;
+            border-radius: 12px !important;
+        }}
+        .delete-account-zone .delete-confirm-no + div[data-testid="stButton"] button {{
+            background: #ffffff !important;
+            color: #374151 !important;
+            border: 1px solid #d1d5db !important;
+            font-weight: 600 !important;
+            border-radius: 12px !important;
+        }}
+
         /* —— File uploader —— */
         [data-testid="stFileUploader"] section {{
             background: {THEME_SURFACE_SOFT};
@@ -5108,6 +5160,73 @@ def render_auth_page() -> None:
         st.markdown("</div>", unsafe_allow_html=True)
 
 
+def render_delete_account_section(user: dict[str, Any]) -> None:
+    """Danger zone — delete account with confirmation."""
+    user_id = int(user["id"])
+    confirm_key = f"delete_account_confirm_{user_id}"
+
+    st.markdown('<div class="delete-account-zone">', unsafe_allow_html=True)
+    st.markdown(
+        '<p class="delete-account-title">Zone de suppression du compte</p>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<p class="delete-account-text">'
+        "Cette action est définitive : profil, historique d'analyses, "
+        "suivi candidatures et CV enregistrés seront effacés."
+        "</p>",
+        unsafe_allow_html=True,
+    )
+
+    if not st.session_state.get(confirm_key):
+        st.markdown('<div class="delete-account-trigger">', unsafe_allow_html=True)
+        if st.button(
+            "Supprimer mon compte",
+            key=f"delete_account_btn_{user_id}",
+            use_container_width=True,
+        ):
+            st.session_state[confirm_key] = True
+            st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
+    else:
+        st.warning(
+            "Vous êtes sur le point de supprimer votre compte. "
+            "**Êtes-vous sûr de vouloir supprimer votre compte ?**"
+        )
+        yes_col, no_col = st.columns(2)
+        with yes_col:
+            st.markdown('<div class="delete-confirm-yes">', unsafe_allow_html=True)
+            if st.button(
+                "Oui, supprimer définitivement",
+                key=f"delete_account_yes_{user_id}",
+                use_container_width=True,
+            ):
+                ok, message = delete_user_account(user_id)
+                if ok:
+                    st.session_state.pop(confirm_key, None)
+                    st.session_state.authenticated = False
+                    st.session_state.user = None
+                    st.session_state.analysis = None
+                    st.session_state.pdf_fingerprint = None
+                    st.session_state.analysis_notices = []
+                    st.session_state.auth_view = "login"
+                    st.rerun()
+                st.error(message)
+            st.markdown("</div>", unsafe_allow_html=True)
+        with no_col:
+            st.markdown('<div class="delete-confirm-no">', unsafe_allow_html=True)
+            if st.button(
+                "Non, annuler",
+                key=f"delete_account_no_{user_id}",
+                use_container_width=True,
+            ):
+                st.session_state.pop(confirm_key, None)
+                st.rerun()
+            st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
 def render_profile_page(user: dict[str, Any]) -> None:
     """Profile settings: view info, update name, change password."""
     _flush_analysis_notices()
@@ -5296,6 +5415,8 @@ def render_profile_page(user: dict[str, Any]) -> None:
                             st.success(message)
                         else:
                             st.error(message)
+
+    render_delete_account_section(user)
 
 
 def render_cv_analysis(
