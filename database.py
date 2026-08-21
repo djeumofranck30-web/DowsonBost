@@ -7,6 +7,7 @@ import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Iterator
+from urllib.parse import parse_qs, quote, urlencode, urlparse, urlunparse
 
 SQLITE_PATH = Path(__file__).parent / "data" / "users.db"
 
@@ -15,14 +16,91 @@ _database_url: str = ""
 _configured = False
 
 
-def configure_database(url: str = "") -> str:
+class DatabaseConfigError(ValueError):
+    """Invalid DATABASE_URL configuration."""
+
+
+def _strip_quotes(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+        return value[1:-1].strip()
+    return value
+
+
+def _merge_password_into_url(url: str, password: str) -> str:
+    """Inject or replace password in a PostgreSQL URL."""
+    parsed = urlparse(url)
+    if not parsed.scheme or not parsed.hostname:
+        raise DatabaseConfigError("DATABASE_URL invalide — format attendu : postgresql://user:pass@host:port/db")
+
+    username = parsed.username or "postgres"
+    encoded_password = quote(password, safe="")
+    host = parsed.hostname
+    port = f":{parsed.port}" if parsed.port else ""
+    netloc = f"{username}:{encoded_password}@{host}{port}"
+    return urlunparse(parsed._replace(netloc=netloc))
+
+
+def normalize_database_url(url: str, password_override: str = "") -> str:
+    """Normalize and validate a PostgreSQL connection URL."""
+    url = _strip_quotes(url)
+    password_override = _strip_quotes(password_override)
+
+    if not url:
+        return ""
+
+    if url.startswith("postgres://"):
+        url = "postgresql://" + url[len("postgres://") :]
+
+    if not url.startswith("postgresql://"):
+        raise DatabaseConfigError(
+            "DATABASE_URL doit commencer par postgresql:// (copiez l'URL depuis Supabase → Connect)."
+        )
+
+    if "[YOUR-PASSWORD]" in url or "YOUR-PASSWORD" in url:
+        if password_override:
+            url = url.replace("[YOUR-PASSWORD]", quote(password_override, safe=""))
+        else:
+            raise DatabaseConfigError(
+                "Remplacez [YOUR-PASSWORD] dans DATABASE_URL par votre mot de passe Supabase, "
+                "ou ajoutez DATABASE_PASSWORD dans les secrets Streamlit."
+            )
+
+    if password_override:
+        url = _merge_password_into_url(url, password_override)
+
+    parsed = urlparse(url)
+    if not parsed.hostname:
+        raise DatabaseConfigError("DATABASE_URL invalide — hôte manquant.")
+
+    if not parsed.path or parsed.path == "/":
+        url = urlunparse(parsed._replace(path="/postgres"))
+
+    parsed = urlparse(url)
+    query = parse_qs(parsed.query, keep_blank_values=True)
+    host = (parsed.hostname or "").lower()
+
+    if "supabase" in host or "neon" in host:
+        if "sslmode" not in query:
+            query["sslmode"] = ["require"]
+        if "pooler.supabase.com" in host and parsed.port == 6543 and "pgbouncer" not in query:
+            query["pgbouncer"] = ["true"]
+
+    new_query = urlencode([(k, v[0]) for k, v in query.items()])
+    return urlunparse(parsed._replace(query=new_query))
+
+
+def configure_database(url: str = "", password: str = "") -> str:
     """Select SQLite (default) or PostgreSQL when DATABASE_URL is set."""
     global _backend, _database_url, _configured
-    url = (url or os.getenv("DATABASE_URL", "")).strip()
-    _database_url = url
-    if url.startswith(("postgres://", "postgresql://")):
+    raw_url = (url or os.getenv("DATABASE_URL", "")).strip()
+    raw_password = (password or os.getenv("DATABASE_PASSWORD", "")).strip()
+
+    if raw_url.startswith(("postgres://", "postgresql://")):
+        _database_url = normalize_database_url(raw_url, raw_password)
         _backend = "postgres"
     else:
+        _database_url = ""
         _backend = "sqlite"
     _configured = True
     return _backend
@@ -30,7 +108,7 @@ def configure_database(url: str = "") -> str:
 
 def ensure_configured() -> None:
     if not _configured:
-        configure_database(os.getenv("DATABASE_URL", ""))
+        configure_database(os.getenv("DATABASE_URL", ""), os.getenv("DATABASE_PASSWORD", ""))
 
 
 def database_backend() -> str:
@@ -44,8 +122,6 @@ def database_status() -> tuple[str, str]:
     if _backend == "postgres":
         host = "PostgreSQL distant"
         try:
-            from urllib.parse import urlparse
-
             parsed = urlparse(_database_url)
             if parsed.hostname:
                 host = parsed.hostname
@@ -56,6 +132,33 @@ def database_status() -> tuple[str, str]:
         "SQLite local (data/users.db) — les comptes sont effacés à chaque redéploiement "
         "Streamlit Cloud. Ajoutez DATABASE_URL (Supabase/Neon) dans les secrets."
     )
+
+
+def database_connection_hint(exc: BaseException) -> str:
+    """User-facing hint from a PostgreSQL connection failure."""
+    message = str(exc).lower()
+    hints = [
+        "Vérifiez DATABASE_URL dans Streamlit Cloud → Settings → Secrets, puis Reboot app.",
+    ]
+    if "password" in message or "authentication" in message:
+        hints.append(
+            "Mot de passe incorrect : réinitialisez-le dans Supabase (Settings → Database), "
+            "puis mettez-le dans DATABASE_URL ou DATABASE_PASSWORD."
+        )
+        hints.append(
+            "Si le mot de passe contient @ # ! % etc., utilisez DATABASE_PASSWORD séparément "
+            "(sans l'encoder) ou encodez-le dans l'URL."
+        )
+    if "ssl" in message or "certificate" in message:
+        hints.append("L'URL doit inclure sslmode=require (ajouté automatiquement pour Supabase).")
+    if "timeout" in message or "could not translate host" in message or "name or service not known" in message:
+        hints.append(
+            "Utilisez l'URL du pooler Supabase (Connect → Session pooler ou Transaction pooler), "
+            "pas la connexion directe db.xxx.supabase.co si elle échoue."
+        )
+    if "placeholder" in message or "your-password" in message:
+        hints.append("Remplacez [YOUR-PASSWORD] par le vrai mot de passe Supabase.")
+    return "\n".join(f"- {hint}" for hint in hints)
 
 
 def adapt_sql(sql: str) -> str:
@@ -99,8 +202,19 @@ def connect() -> Iterator[Any]:
         import psycopg
         from psycopg.rows import dict_row
 
-        with psycopg.connect(_database_url, row_factory=dict_row) as conn:
-            yield conn
+        try:
+            with psycopg.connect(
+                _database_url,
+                row_factory=dict_row,
+                connect_timeout=20,
+            ) as conn:
+                yield conn
+        except DatabaseConfigError:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            raise RuntimeError(
+                "Connexion PostgreSQL impossible.\n" + database_connection_hint(exc)
+            ) from exc
     else:
         SQLITE_PATH.parent.mkdir(parents=True, exist_ok=True)
         conn = sqlite3.connect(str(SQLITE_PATH), check_same_thread=False)

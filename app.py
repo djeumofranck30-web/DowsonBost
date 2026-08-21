@@ -176,7 +176,7 @@ from auth import (
     reset_password,
     update_user_profile,
 )
-from database import configure_database, database_status
+from database import configure_database, database_connection_hint, database_status
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -4264,8 +4264,33 @@ def render_app() -> None:
 
 def main() -> None:
     """Application entry point — auth gate then main tool."""
-    configure_database(get_secret("DATABASE_URL"))
-    init_db()
+    try:
+        configure_database(
+            get_secret("DATABASE_URL"),
+            password=get_secret("DATABASE_PASSWORD"),
+        )
+        init_db()
+    except Exception as exc:  # noqa: BLE001
+        st.error("**Impossible de se connecter à la base de données.**")
+        st.code(str(exc))
+        if get_secret("DATABASE_URL"):
+            st.info(database_connection_hint(exc))
+            st.markdown(
+                "**Format attendu dans Streamlit Secrets :**\n\n"
+                "```toml\n"
+                'DATABASE_URL = "postgresql://postgres.xxxxx:[MOT_DE_PASSE]@aws-0-eu-west-2.pooler.supabase.com:6543/postgres"\n'
+                "# OU si le mot de passe contient des caractères spéciaux :\n"
+                'DATABASE_URL = "postgresql://postgres.xxxxx@aws-0-eu-west-2.pooler.supabase.com:6543/postgres"\n'
+                'DATABASE_PASSWORD = "votre_mot_de_passe"\n'
+                "```"
+            )
+        else:
+            st.warning(
+                "DATABASE_URL absent — l'app utilise SQLite local (comptes non conservés en production). "
+                "Ajoutez l'URL PostgreSQL Supabase dans les secrets."
+            )
+        return
+
     init_session_state()
 
     if not st.session_state.authenticated:
