@@ -28,6 +28,7 @@ from job_filters import (
     SECTOR_OPTIONS,
     normalize_contract_type,
     normalize_experience_level,
+    normalize_job_max_age_days,
     parse_target_sectors,
     serialize_target_sectors,
 )
@@ -54,6 +55,7 @@ _USER_COLUMNS = [
     ("selected_cities", "TEXT NOT NULL DEFAULT '[]'", "TEXT NOT NULL DEFAULT '[]'"),
     ("all_cities", "INTEGER NOT NULL DEFAULT 0", "INTEGER NOT NULL DEFAULT 0"),
     ("target_job_title", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
+    ("job_max_age_days", "INTEGER NOT NULL DEFAULT 7", "INTEGER NOT NULL DEFAULT 7"),
 ]
 
 
@@ -89,7 +91,8 @@ def _create_users_table(conn: Any) -> None:
                 selected_departments TEXT NOT NULL DEFAULT '[]',
                 selected_cities TEXT NOT NULL DEFAULT '[]',
                 all_cities INTEGER NOT NULL DEFAULT 0,
-                target_job_title TEXT NOT NULL DEFAULT ''
+                target_job_title TEXT NOT NULL DEFAULT '',
+                job_max_age_days INTEGER NOT NULL DEFAULT 7
             )
             """
         )
@@ -125,7 +128,8 @@ def _create_users_table(conn: Any) -> None:
             selected_departments TEXT NOT NULL DEFAULT '[]',
             selected_cities TEXT NOT NULL DEFAULT '[]',
             all_cities INTEGER NOT NULL DEFAULT 0,
-            target_job_title TEXT NOT NULL DEFAULT ''
+            target_job_title TEXT NOT NULL DEFAULT '',
+            job_max_age_days INTEGER NOT NULL DEFAULT 7
         )
         """
     )
@@ -213,11 +217,19 @@ def _migrate_legacy_geo_to_multi(conn: Any) -> None:
             )
 
 
+_DB_SCHEMA_KEY: tuple[str, ...] = tuple(col[0] for col in _USER_COLUMNS)
+_db_initialized_for: tuple[str, ...] | None = None
+
+
 def init_db() -> None:
-    """Create users table if it does not exist."""
+    """Create users table if it does not exist (once per process / schema version)."""
+    global _db_initialized_for
+    if _db_initialized_for == _DB_SCHEMA_KEY:
+        return
     with _connect() as conn:
         _create_users_table(conn)
         _migrate_users(conn)
+    _db_initialized_for = _DB_SCHEMA_KEY
 
 
 def _hash_password(password: str) -> str:
@@ -304,7 +316,7 @@ _USER_SELECT_SQL = """
     contract_type, search_radius_km, geo_filter_mode,
     experience_level, target_sectors, country,
     admin_regions, selected_departments, selected_cities, all_cities,
-    target_job_title
+    target_job_title, job_max_age_days
 """
 
 
@@ -365,6 +377,9 @@ def _row_to_user(row: Any, include_created: bool = False) -> dict:
         "experience_level": row["experience_level"],
         "target_sectors": parse_target_sectors(row["target_sectors"]),
         "target_job_title": (row["target_job_title"] or "").strip(),
+        "job_max_age_days": normalize_job_max_age_days(
+            row["job_max_age_days"] if "job_max_age_days" in row.keys() else 7
+        ),
     }
     if include_created:
         user["created_at"] = row["created_at"]
@@ -409,6 +424,7 @@ def register_user(
     experience_level: str = "confirme",
     target_sectors: list[str] | None = None,
     target_job_title: str = "",
+    job_max_age_days: int = 7,
 ) -> tuple[bool, str]:
     """Register a new user. Returns (success, message)."""
     full_name = " ".join(full_name.strip().split())
@@ -441,6 +457,7 @@ def register_user(
     experience_level = normalize_experience_level(experience_level)
     sectors = target_sectors or []
     job_title = " ".join(target_job_title.strip().split())
+    publication_days = normalize_job_max_age_days(job_max_age_days)
 
     if len(full_name) < 2:
         return False, "Le nom doit contenir au moins 2 caractères."
@@ -480,9 +497,9 @@ def register_user(
                         department_code, department_name, contract_type,
                         search_radius_km, geo_filter_mode, experience_level, target_sectors,
                         country, admin_regions, selected_departments, selected_cities, all_cities,
-                        target_job_title
+                        target_job_title, job_max_age_days
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """
                 ),
                 (
@@ -507,6 +524,7 @@ def register_user(
                     serialize_selected_cities(cities),
                     1 if all_cities else 0,
                     job_title,
+                    publication_days,
                 ),
             )
     except Exception as exc:  # noqa: BLE001
@@ -561,6 +579,7 @@ def update_user_profile(
     experience_level: str = "confirme",
     target_sectors: list[str] | None = None,
     target_job_title: str = "",
+    job_max_age_days: int = 7,
 ) -> tuple[bool, str, dict | None]:
     """Update user profile and job-matching preferences."""
     full_name = " ".join(full_name.strip().split())
@@ -581,6 +600,7 @@ def update_user_profile(
     experience_level = normalize_experience_level(experience_level)
     sectors = target_sectors or []
     job_title = " ".join(target_job_title.strip().split())
+    publication_days = normalize_job_max_age_days(job_max_age_days)
 
     if len(full_name) < 2:
         return False, "Le nom doit contenir au moins 2 caractères.", None
@@ -613,7 +633,7 @@ def update_user_profile(
                     contract_type = ?, search_radius_km = ?, geo_filter_mode = ?,
                     experience_level = ?, target_sectors = ?, country = ?,
                     admin_regions = ?, selected_departments = ?, selected_cities = ?,
-                    all_cities = ?, target_job_title = ?
+                    all_cities = ?, target_job_title = ?, job_max_age_days = ?
                 WHERE id = ?
                 """
             ),
@@ -636,6 +656,7 @@ def update_user_profile(
                 serialize_selected_cities(cities),
                 1 if all_cities else 0,
                 job_title,
+                publication_days,
                 user_id,
             ),
         )

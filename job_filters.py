@@ -6,6 +6,7 @@ import json
 import math
 import re
 import unicodedata
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import requests
@@ -34,6 +35,15 @@ GEO_FILTER_MODES = (
     "departement",
     "rayon",
 )
+
+JOB_MAX_AGE_DAYS_OPTIONS = (1, 3, 7, 30)
+DEFAULT_JOB_MAX_AGE_DAYS = 7
+JOB_MAX_AGE_LABELS: dict[int, str] = {
+    1: "24 dernières heures",
+    3: "3 derniers jours",
+    7: "7 derniers jours",
+    30: "30 derniers jours",
+}
 
 EXPERIENCE_LEVELS = (
     "junior",
@@ -431,6 +441,114 @@ def infer_job_contract(job: dict[str, Any]) -> str:
     return ""
 
 
+def normalize_job_max_age_days(value: Any) -> int:
+    """Normalize publication age filter (days)."""
+    try:
+        days = int(value)
+    except (TypeError, ValueError):
+        days = DEFAULT_JOB_MAX_AGE_DAYS
+    if days == 14:
+        days = 7
+    if days not in JOB_MAX_AGE_DAYS_OPTIONS:
+        return DEFAULT_JOB_MAX_AGE_DAYS
+    return days
+
+
+def job_max_age_label(days: int) -> str:
+    return JOB_MAX_AGE_LABELS.get(normalize_job_max_age_days(days), JOB_MAX_AGE_LABELS[7])
+
+
+_RELATIVE_AGE_PATTERN = re.compile(
+    r"(\d+)\s*(?:day|days|jour|jours|hour|hours|heure|heures|week|weeks|semaine|semaines)"
+    r"|il\s+y\s+a\s+(\d+)\s*(?:jour|jours|heure|heures|semaine|semaines)",
+    re.IGNORECASE,
+)
+
+
+def parse_job_published_at(job: dict[str, Any]) -> datetime | None:
+    """Parse publication datetime from a normalized job dict."""
+    raw = job.get("published_at") or job.get("created_at") or job.get("posted_at")
+    if raw is None or raw == "":
+        return None
+
+    if isinstance(raw, (int, float)):
+        ts = float(raw)
+        if ts > 1e12:
+            ts /= 1000.0
+        try:
+            return datetime.fromtimestamp(ts, tz=timezone.utc)
+        except (OSError, OverflowError, ValueError):
+            return None
+
+    text = str(raw).strip()
+    if not text:
+        return None
+
+    lowered = text.lower()
+    if lowered in {"today", "aujourd'hui", "aujourdhui"}:
+        return datetime.now(timezone.utc)
+
+    rel = _RELATIVE_AGE_PATTERN.search(lowered)
+    if rel:
+        amount = int(rel.group(1) or rel.group(2) or "0")
+        if amount <= 0:
+            return datetime.now(timezone.utc)
+        unit = lowered[rel.start() : rel.end()]
+        if any(token in unit for token in ("hour", "heure")):
+            return datetime.now(timezone.utc) - timedelta(hours=amount)
+        if any(token in unit for token in ("week", "semaine")):
+            return datetime.now(timezone.utc) - timedelta(days=amount * 7)
+        return datetime.now(timezone.utc) - timedelta(days=amount)
+
+    iso_candidates = [text.replace("Z", "+00:00")]
+    if "T" not in text and re.match(r"\d{4}-\d{2}-\d{2}", text):
+        iso_candidates.append(f"{text}T00:00:00+00:00")
+    for candidate in iso_candidates:
+        try:
+            dt = datetime.fromisoformat(candidate)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt.astimezone(timezone.utc)
+        except ValueError:
+            continue
+
+    for fmt in ("%d/%m/%Y", "%Y-%m-%d %H:%M:%S", "%d.%m.%Y"):
+        try:
+            dt = datetime.strptime(text[:19], fmt)
+            return dt.replace(tzinfo=timezone.utc)
+        except ValueError:
+            continue
+    return None
+
+
+def job_matches_publication_age(
+    job: dict[str, Any],
+    max_age_days: int,
+    *,
+    now: datetime | None = None,
+) -> bool:
+    """Keep jobs published within the last max_age_days (skip if date unknown)."""
+    max_age_days = normalize_job_max_age_days(max_age_days)
+    published = parse_job_published_at(job)
+    if published is None:
+        return True
+    reference = now or datetime.now(timezone.utc)
+    return published >= reference - timedelta(days=max_age_days)
+
+
+def format_job_published_label(job: dict[str, Any]) -> str:
+    """Human-readable publication age for UI."""
+    published = parse_job_published_at(job)
+    if not published:
+        return "Date inconnue"
+    days = (datetime.now(timezone.utc) - published).days
+    if days <= 0:
+        return "Aujourd'hui"
+    if days == 1:
+        return "Hier"
+    return f"Il y a {days} jours"
+
+
 def enrich_query_for_contract(query: str, contract_type: str) -> str:
     """Add contract keyword to job search query when missing."""
     cleaned = query.strip()
@@ -466,6 +584,10 @@ def format_filter_rejection_hint(
     if stats.get("rejected_sector", 0):
         sectors = stats.get("target_sectors") or []
         parts.append(f"secteur(s) **{', '.join(sectors) if sectors else 'CV'}**")
+    if stats.get("rejected_publication_age", 0):
+        parts.append(
+            f"date de publication (**{job_max_age_label(profile.get('job_max_age_days', 7))}**)"
+        )
     return " · ".join(parts) if parts else "filtres stricts du profil"
 
 
@@ -824,6 +946,7 @@ def apply_strict_job_filters(
     mode = str(profile.get("geo_filter_mode", "departement"))
     experience_level = resolve_experience_level(profile, cv_profile)
     target_sectors = resolve_target_sectors(profile, cv_profile)
+    max_age_days = normalize_job_max_age_days(profile.get("job_max_age_days"))
 
     user_coords: tuple[float, float] | None = None
     job_coords_cache: dict[str, tuple[float, float] | None] = {}
@@ -837,12 +960,17 @@ def apply_strict_job_filters(
         "rejected_geo": 0,
         "rejected_experience": 0,
         "rejected_sector": 0,
+        "rejected_publication_age": 0,
         "kept": 0,
         "experience_level": experience_level,
         "target_sectors": target_sectors,
+        "job_max_age_days": max_age_days,
     }
 
     for job in jobs:
+        if not job_matches_publication_age(job, max_age_days):
+            stats["rejected_publication_age"] += 1
+            continue
         if not job_matches_contract(job, user_contract):
             stats["rejected_contract"] += 1
             continue

@@ -151,8 +151,9 @@ def _standard_job(
     *,
     contract_type: str = "",
     source: str = "",
+    published_at: str | int | float = "",
 ) -> dict[str, Any]:
-    return {
+    job: dict[str, Any] = {
         "title": title or "N/A",
         "company": company or "N/A",
         "location": location or "N/A",
@@ -161,6 +162,9 @@ def _standard_job(
         "contract_type": contract_type,
         "source": source,
     }
+    if published_at not in ("", None):
+        job["published_at"] = published_at
+    return job
 
 
 def _serpapi_country_gl(country: str) -> str:
@@ -255,6 +259,13 @@ def _wttj_hit_to_job(hit: dict[str, Any]) -> dict[str, Any]:
         description_parts.append(f"Expérience minimum : {experience}")
     description = "\n\n".join(part for part in description_parts if part)
     raw_contract = str(hit.get("contract_type", "") or hit.get("contract_type_en", "")).strip().lower()
+    published = (
+        hit.get("published_at")
+        or hit.get("published_at_date")
+        or hit.get("created_at")
+        or hit.get("updated_at")
+        or ""
+    )
     return {
         "title": hit.get("name", "N/A"),
         "company": company,
@@ -263,6 +274,7 @@ def _wttj_hit_to_job(hit: dict[str, Any]) -> dict[str, Any]:
         "url": _wttj_job_url(hit),
         "contract_type": raw_contract,
         "source": "Welcome to the Jungle",
+        "published_at": published,
     }
 
 
@@ -391,6 +403,7 @@ def search_jobs_jooble(
                         str(item.get("link", "")),
                         contract_type=str(item.get("type", "")),
                         source="Jooble",
+                        published_at=item.get("updated") or item.get("pubDate") or item.get("date", ""),
                     )
                 )
             if len(batch) < results_per_page:
@@ -459,6 +472,7 @@ def search_jobs_optioncarriere(
                         description,
                         str(item.get("url", "")),
                         source="OptionCarriere",
+                        published_at=item.get("date", ""),
                     )
                 )
             if page >= int(payload.get("pages") or 1):
@@ -474,6 +488,7 @@ def _parse_serpapi_google_jobs(data: dict[str, Any], source_label: str) -> list[
         apply_options = item.get("apply_options") or []
         apply_url = apply_options[0].get("link", "") if apply_options else ""
         via = str(item.get("via", "")).strip()
+        extensions = item.get("detected_extensions") or {}
         jobs.append(
             _standard_job(
                 str(item.get("title", "")),
@@ -481,10 +496,9 @@ def _parse_serpapi_google_jobs(data: dict[str, Any], source_label: str) -> list[
                 str(item.get("location", "")),
                 str(item.get("description", "")),
                 apply_url or str(item.get("share_link", "")),
-                contract_type=str(
-                    (item.get("detected_extensions") or {}).get("schedule_type", "")
-                ),
+                contract_type=str(extensions.get("schedule_type", "")),
                 source=f"{source_label} ({via})" if via else source_label,
+                published_at=extensions.get("posted_at") or item.get("date", ""),
             )
         )
     return jobs

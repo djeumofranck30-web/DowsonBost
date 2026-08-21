@@ -15,6 +15,7 @@ import os
 import re
 import time
 import unicodedata
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import Any
 
@@ -49,6 +50,11 @@ from job_filters import (
     build_profile_search_locations,
     enrich_query_for_contract,
     format_filter_rejection_hint,
+    format_job_published_label,
+    job_max_age_label,
+    JOB_MAX_AGE_DAYS_OPTIONS,
+    JOB_MAX_AGE_LABELS,
+    normalize_job_max_age_days,
     profile_ready_for_matching,
     resolve_experience_level,
     resolve_target_sectors,
@@ -94,11 +100,14 @@ from job_providers import (
 MIN_CV_TEXT_LENGTH = 50
 MAX_OCR_PAGES = 5
 CACHE_TTL_SECONDS = 86_400  # 24 h
-TOP_MATCHING_JOBS = 10
-MATCHING_CANDIDATE_POOL = 12
-GROQ_MATCH_BATCH_SIZE = 5
+TOP_MATCHING_JOBS = 30
+MATCHING_CANDIDATE_POOL = 45
+GROQ_MATCH_BATCH_SIZE = 1
 GROQ_INTER_CALL_DELAY_SEC = 1.2
 GROQ_RATE_LIMIT_RETRY_SEC = 3.0
+PARALLEL_MATCH_MAX_WORKERS = 6
+PARALLEL_MATCH_KEYS_PER_PROVIDER = 3
+ATS_MATCH_MAX_TOKENS = 3500
 
 # Theme — aligned with the login page (split-screen purple)
 THEME_BG_GRADIENT = "linear-gradient(160deg, #ddd6fe 0%, #c4b5fd 45%, #a78bfa 100%)"
@@ -110,7 +119,7 @@ THEME_SURFACE_SOFT = "#f5f3ff"
 THEME_MUTED = "#64748b"
 THEME_ACCENT = "#6366f1"
 
-APP_VERSION = "3.4.0-profile-geo-search"
+APP_VERSION = "3.8.2-profile-publication-filter"
 
 ADZUNA_COUNTRY_CODES = {
     "France": "fr",
@@ -222,7 +231,140 @@ def get_secret(key: str, default: str = "") -> str:
         raw = st.secrets[key]
     except (KeyError, FileNotFoundError, AttributeError):
         raw = os.getenv(key, default)
+    if isinstance(raw, list):
+        return normalize_secret(str(raw[0])) if raw else default
     return normalize_secret(raw)
+
+
+def get_secret_raw(key: str, default: Any = "") -> Any:
+    """Read secret without forcing to a single string (supports TOML arrays)."""
+    try:
+        return st.secrets[key]
+    except (KeyError, FileNotFoundError, AttributeError):
+        return os.getenv(key, default)
+
+
+def _split_api_keys(raw: Any) -> list[str]:
+    """Parse one or many API keys from a secret (string, list, comma/newline separated)."""
+    candidates: list[str] = []
+    if isinstance(raw, list):
+        candidates = [str(item) for item in raw]
+    elif raw:
+        candidates = re.split(r"[\n,;]+", str(raw))
+
+    keys: list[str] = []
+    seen: set[str] = set()
+    for item in candidates:
+        key = normalize_secret(item)
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        keys.append(key)
+    return keys
+
+
+def _is_valid_provider_key(provider: str, key: str) -> bool:
+    lower = key.lower()
+    if provider == "groq":
+        if lower in GROQ_KEY_PLACEHOLDERS or "..." in key or "votre_cle" in lower:
+            return False
+        return key.startswith("gsk_") and len(key) >= 50
+    if provider == "gemini":
+        if lower in GEMINI_KEY_PLACEHOLDERS or "votre_cle" in lower:
+            return False
+        return (key.startswith("AIza") and len(key) >= 35) or (
+            key.startswith("AQ.") and len(key) >= 20
+        )
+    if provider == "openai":
+        return key.startswith("sk-") and len(key) > 20
+    return bool(key)
+
+
+def get_provider_api_keys(provider: str) -> list[str]:
+    """Return all configured API keys for a provider (singular + plural secrets)."""
+    plural_names = {
+        "groq": "GROQ_API_KEYS",
+        "gemini": "GEMINI_API_KEYS",
+        "openai": "OPENAI_API_KEYS",
+    }
+    singular_names = {
+        "groq": "GROQ_API_KEY",
+        "gemini": "GEMINI_API_KEY",
+        "openai": "OPENAI_API_KEY",
+    }
+    collected = _split_api_keys(get_secret_raw(plural_names[provider], ""))
+    single = get_secret(singular_names[provider])
+    if single and single not in collected:
+        collected.insert(0, single)
+
+    valid: list[str] = []
+    seen: set[str] = set()
+    for key in collected:
+        if key in seen or not _is_valid_provider_key(provider, key):
+            continue
+        seen.add(key)
+        valid.append(key)
+    return valid
+
+
+def collect_parallel_llm_slots(
+    max_per_provider: int = PARALLEL_MATCH_KEYS_PER_PROVIDER,
+) -> list[tuple[str, str]]:
+    """Build Groq + Gemini key slots (up to 3 each) for parallel ATS matching."""
+    slots: list[tuple[str, str]] = []
+    seen_pairs: set[tuple[str, str]] = set()
+    groq_ok = not st.session_state.get("groq_quota_exhausted")
+
+    for provider in ("groq", "gemini"):
+        if provider == "groq" and not groq_ok:
+            continue
+        for key in get_provider_api_keys(provider)[:max_per_provider]:
+            pair = (provider, key)
+            if pair in seen_pairs:
+                continue
+            seen_pairs.add(pair)
+            slots.append(pair)
+
+    if not slots:
+        for provider in ("openai",):
+            for key in get_provider_api_keys(provider)[:max_per_provider]:
+                pair = (provider, key)
+                if pair not in seen_pairs:
+                    seen_pairs.add(pair)
+                    slots.append(pair)
+
+    return slots
+
+
+def count_parallel_keys_by_provider() -> dict[str, int]:
+    slots = collect_parallel_llm_slots(PARALLEL_MATCH_KEYS_PER_PROVIDER)
+    return {
+        "groq": sum(1 for provider, _ in slots if provider == "groq"),
+        "gemini": sum(1 for provider, _ in slots if provider == "gemini"),
+        "openai": sum(1 for provider, _ in slots if provider == "openai"),
+        "total": len(slots),
+    }
+
+
+def parallel_match_summary() -> str:
+    """Human-readable summary of parallel matching keys."""
+    counts = count_parallel_keys_by_provider()
+    if counts["total"] == 0:
+        return "aucune clé IA"
+    parts: list[str] = []
+    if counts["groq"]:
+        parts.append(f"{counts['groq']} Groq")
+    if counts["gemini"]:
+        parts.append(f"{counts['gemini']} Gemini")
+    if counts["openai"]:
+        parts.append(f"{counts['openai']} OpenAI")
+    workers = min(PARALLEL_MATCH_MAX_WORKERS, counts["total"])
+    if counts["total"] == 1:
+        slots = collect_parallel_llm_slots(PARALLEL_MATCH_KEYS_PER_PROVIDER)
+        provider, key = slots[0]
+        labels = {"groq": "Groq", "gemini": "Gemini", "openai": "OpenAI"}
+        return f"1 clé {labels.get(provider, provider)} ({key[:8]}…)"
+    return f"{counts['total']} clés ({' + '.join(parts)}) · {workers} workers parallèles"
 
 
 def gemini_key_status() -> tuple[str, str]:
@@ -631,16 +773,19 @@ def _groq_chat_raw(
     model: str,
     system_prompt: str,
     user_prompt: str,
+    *,
+    api_key: str | None = None,
+    max_tokens: int = 1200,
 ) -> str:
     """Direct HTTP call to Groq chat completions (no json_mode — better compatibility)."""
-    api_key = get_secret("GROQ_API_KEY")
+    groq_key = api_key or get_secret("GROQ_API_KEY")
     json_instruction = (
         "\n\nIMPORTANT : réponds UNIQUEMENT avec un objet JSON valide, sans markdown."
     )
     payload = {
         "model": model,
         "temperature": 0.1,
-        "max_tokens": 1200,
+        "max_tokens": max_tokens,
         "messages": [
             {"role": "system", "content": system_prompt + json_instruction},
             {"role": "user", "content": user_prompt},
@@ -649,7 +794,7 @@ def _groq_chat_raw(
     response = requests.post(
         f"{GROQ_API_BASE}/chat/completions",
         headers={
-            "Authorization": f"Bearer {api_key}",
+            "Authorization": f"Bearer {groq_key}",
             "Content-Type": "application/json",
         },
         json=payload,
@@ -689,8 +834,32 @@ def _is_groq_rate_limit(exc: Exception) -> bool:
     return "quota" in label or "rate limit" in label or "429" in str(exc)
 
 
-def call_groq_text(system_prompt: str, user_prompt: str) -> str:
+def call_groq_text(
+    system_prompt: str,
+    user_prompt: str,
+    *,
+    api_key: str | None = None,
+    max_tokens: int = 1200,
+) -> str:
     """Call Groq — uses live account models, caches the first working one."""
+    if api_key:
+        model = get_secret("GROQ_MODEL") or st.session_state.get("groq_working_model") or GROQ_MODEL
+        for attempt in range(2):
+            try:
+                return _groq_chat_raw(
+                    model,
+                    system_prompt,
+                    user_prompt,
+                    api_key=api_key,
+                    max_tokens=max_tokens,
+                )
+            except Exception as exc:  # noqa: BLE001
+                if _is_groq_rate_limit(exc) and attempt == 0:
+                    time.sleep(GROQ_RATE_LIMIT_RETRY_SEC)
+                    continue
+                raise
+        raise RuntimeError("Appel Groq échoué avec la clé fournie.")
+
     format_ok, format_msg = validate_groq_api_key()
     if not format_ok:
         raise RuntimeError(format_msg)
@@ -755,9 +924,28 @@ def call_groq_text(system_prompt: str, user_prompt: str) -> str:
     )
 
 
-def call_openai_text(system_prompt: str, user_prompt: str) -> str:
+def call_gemini_text(
+    system_prompt: str,
+    user_prompt: str,
+    *,
+    api_key: str | None = None,
+) -> str:
+    """Call Gemini via native REST API."""
+    return _gemini_generate_content(
+        parts=[{"text": user_prompt}],
+        system_prompt=system_prompt,
+        api_key=api_key,
+    )
+
+
+def call_openai_text(
+    system_prompt: str,
+    user_prompt: str,
+    *,
+    api_key: str | None = None,
+) -> str:
     """Call OpenAI chat completions."""
-    openai_key = get_secret("OPENAI_API_KEY")
+    openai_key = api_key or get_secret("OPENAI_API_KEY")
     if not openai_key:
         raise RuntimeError("OPENAI_API_KEY manquante.")
 
@@ -801,16 +989,16 @@ def call_openai_vision(ocr_prompt: str, image_b64: str) -> str:
     return (content or "").strip()
 
 
-def _fetch_gemini_models_from_api() -> tuple[list[str], bool]:
+def _fetch_gemini_models_from_api(api_key: str | None = None) -> tuple[list[str], bool]:
     """List models supporting generateContent for this API key."""
-    api_key = get_secret("GEMINI_API_KEY")
-    if not api_key:
+    gemini_key = api_key or get_secret("GEMINI_API_KEY")
+    if not gemini_key:
         return list(GEMINI_PREFERRED_MODELS), False
 
     try:
         response = requests.get(
             f"{GEMINI_API_BASE}/models",
-            headers={"x-goog-api-key": api_key},
+            headers={"x-goog-api-key": gemini_key},
             timeout=30,
         )
         if not response.ok:
@@ -903,12 +1091,16 @@ def _cached_gemini_client(api_key_fingerprint: str, api_key: str):
     )
 
 
+def _gemini_client_for_key(api_key: str):
+    fp = hashlib.sha256(api_key.encode()).hexdigest()[:16]
+    return _cached_gemini_client(fp, api_key)
+
+
 def _gemini_client():
     api_key = get_secret("GEMINI_API_KEY")
     if not api_key:
         raise RuntimeError("GEMINI_API_KEY manquante.")
-    fp = hashlib.sha256(api_key.encode()).hexdigest()[:16]
-    return _cached_gemini_client(fp, api_key)
+    return _gemini_client_for_key(api_key)
 
 
 def _parts_to_sdk(parts: list[dict[str, Any]]) -> list[Any]:
@@ -977,13 +1169,15 @@ def _gemini_via_sdk(
     parts: list[dict[str, Any]],
     system_prompt: str | None,
     model: str,
+    *,
+    api_key: str,
 ) -> tuple[str | None, str | None]:
     """Try Gemini generateContent via google-genai SDK."""
     try:
         from google.genai import types
 
         with _gemini_isolated_credentials():
-            client = _gemini_client()
+            client = _gemini_client_for_key(api_key)
             config = types.GenerateContentConfig(temperature=0.2)
             if system_prompt:
                 config.system_instruction = system_prompt
@@ -1003,9 +1197,10 @@ def _gemini_via_rest(
     parts: list[dict[str, Any]],
     system_prompt: str | None,
     model: str,
+    *,
+    api_key: str,
 ) -> tuple[str | None, str | None]:
     """Try Gemini REST generateContent (AIza and AQ. keys via x-goog-api-key)."""
-    api_key = get_secret("GEMINI_API_KEY")
     if not api_key:
         return None, "REST: clé absente"
 
@@ -1044,28 +1239,32 @@ def _gemini_via_rest(
 def _gemini_generate_content(
     parts: list[dict[str, Any]],
     system_prompt: str | None = None,
+    *,
+    api_key: str | None = None,
 ) -> str:
     """Call Gemini — supports AIza and AQ. authorization keys."""
-    api_key = get_secret("GEMINI_API_KEY")
-    if not api_key:
+    gemini_key = api_key or get_secret("GEMINI_API_KEY")
+    if not gemini_key:
         raise RuntimeError("GEMINI_API_KEY manquante.")
 
-    key_label = "AQ." if is_aq_gemini_key(api_key) else "AIza"
-    live_models, live_from_api = _fetch_gemini_models_from_api()
+    key_label = "AQ." if is_aq_gemini_key(gemini_key) else "AIza"
+    live_models, live_from_api = _fetch_gemini_models_from_api(gemini_key)
     models_to_try = build_gemini_model_priority(live_models, live_from_api=live_from_api)
 
     errors: list[str] = []
     for model in models_to_try:
-        text, err = _gemini_via_sdk(parts, system_prompt, model)
+        text, err = _gemini_via_sdk(parts, system_prompt, model, api_key=gemini_key)
         if text:
-            st.session_state.active_llm_provider = f"Gemini ({model}, SDK, {key_label})"
+            if not api_key:
+                st.session_state.active_llm_provider = f"Gemini ({model}, SDK, {key_label})"
             return text
         if err:
             errors.append(err)
 
-        text, err = _gemini_via_rest(parts, system_prompt, model)
+        text, err = _gemini_via_rest(parts, system_prompt, model, api_key=gemini_key)
         if text:
-            st.session_state.active_llm_provider = f"Gemini ({model}, REST, {key_label})"
+            if not api_key:
+                st.session_state.active_llm_provider = f"Gemini ({model}, REST, {key_label})"
             return text
         if err:
             errors.append(err)
@@ -1073,9 +1272,10 @@ def _gemini_generate_content(
         if _gemini_supports_interactions(model):
             text, err = _gemini_via_interactions(parts, system_prompt, model)
             if text:
-                st.session_state.active_llm_provider = (
-                    f"Gemini ({model}, Interactions, {key_label})"
-                )
+                if not api_key:
+                    st.session_state.active_llm_provider = (
+                        f"Gemini ({model}, Interactions, {key_label})"
+                    )
                 return text
             if err:
                 errors.append(err)
@@ -1143,14 +1343,6 @@ def test_ai_connection() -> tuple[bool, str, str]:
     except RuntimeError as exc:
         st.session_state.pop("llm_backend_active", None)
         return False, str(exc)[:400], "—"
-
-
-def call_gemini_text(system_prompt: str, user_prompt: str) -> str:
-    """Call Gemini via native REST API."""
-    return _gemini_generate_content(
-        parts=[{"text": user_prompt}],
-        system_prompt=system_prompt,
-    )
 
 
 def extract_text_ocr(pdf_bytes: bytes) -> str:
@@ -1257,18 +1449,99 @@ def _parse_json_response(raw: str) -> dict[str, Any]:
     raise last_error or json.JSONDecodeError("JSON introuvable", raw, 0)
 
 
+def _as_str_list(value: Any, *, max_items: int = 20) -> list[str]:
+    """Coerce LLM output to a clean string list."""
+    if isinstance(value, str):
+        items = [part.strip() for part in re.split(r"[,;\n]", value) if part.strip()]
+    elif isinstance(value, list):
+        items = [str(item).strip() for item in value if str(item).strip()]
+    else:
+        items = []
+    seen: set[str] = set()
+    unique: list[str] = []
+    for item in items:
+        key = item.lower()
+        if key not in seen:
+            seen.add(key)
+            unique.append(item)
+    return unique[:max_items]
+
+
+def _normalize_score(value: Any, default: int = 50) -> int:
+    try:
+        return max(0, min(100, int(value)))
+    except (TypeError, ValueError):
+        return default
+
+
+def _normalize_skills_analysis(raw: Any) -> dict[str, list[str]]:
+    data = raw if isinstance(raw, dict) else {}
+    return {
+        "cv_techniques": _as_str_list(data.get("cv_techniques")),
+        "cv_transversales": _as_str_list(data.get("cv_transversales")),
+        "cv_outils": _as_str_list(data.get("cv_outils")),
+        "cv_certifications": _as_str_list(data.get("cv_certifications")),
+        "cv_langages": _as_str_list(data.get("cv_langages")),
+        "offre_obligatoires": _as_str_list(data.get("offre_obligatoires")),
+        "offre_souhaitees": _as_str_list(data.get("offre_souhaitees")),
+        "offre_technos": _as_str_list(data.get("offre_technos")),
+        "presentes": _as_str_list(data.get("presentes")),
+        "partielles": _as_str_list(data.get("partielles")),
+        "manquantes": _as_str_list(data.get("manquantes")),
+    }
+
+
+def _normalize_experience_analysis(raw: Any) -> dict[str, Any]:
+    data = raw if isinstance(raw, dict) else {}
+    relevant: list[dict[str, str]] = []
+    for item in (data.get("experiences_pertinentes") or [])[:6]:
+        if isinstance(item, dict):
+            relevant.append(
+                {
+                    "poste": str(item.get("poste", "")).strip(),
+                    "duree": str(item.get("duree", "")).strip(),
+                    "missions_liees": str(item.get("missions_liees", "")).strip(),
+                    "secteur": str(item.get("secteur", "")).strip(),
+                }
+            )
+        elif isinstance(item, str) and item.strip():
+            relevant.append(
+                {"poste": item.strip(), "duree": "", "missions_liees": "", "secteur": ""}
+            )
+    return {
+        "niveau_offre": str(data.get("niveau_offre", "")).strip(),
+        "niveau_cv": str(data.get("niveau_cv", "")).strip(),
+        "alignement_niveau": str(data.get("alignement_niveau", "")).strip(),
+        "experiences_pertinentes": relevant,
+        "ecarts": _as_str_list(data.get("ecarts"), max_items=8),
+    }
+
+
+def _compute_ats_score(data: dict[str, Any]) -> int:
+    """Weighted ATS score from sub-scores when provided."""
+    components = (
+        ("score_competences", 0.40),
+        ("score_experiences", 0.25),
+        ("score_titre", 0.20),
+        ("score_localisation", 0.15),
+    )
+    weighted_parts: list[tuple[int, float]] = []
+    for key, weight in components:
+        if data.get(key) is not None:
+            weighted_parts.append((_normalize_score(data.get(key)), weight))
+    if len(weighted_parts) == len(components):
+        return round(sum(score * weight for score, weight in weighted_parts))
+    return _normalize_score(data.get("score_correspondance"))
+
+
 def _normalize_match_result(
     data: dict[str, Any],
     job: dict[str, Any] | None = None,
     *,
     fallback: bool = False,
 ) -> dict[str, Any]:
-    """Ensure a job-match payload has the expected shape."""
-    score_raw = data.get("score_correspondance", 50)
-    try:
-        score = max(0, min(100, int(score_raw)))
-    except (TypeError, ValueError):
-        score = 50
+    """Ensure a job-match payload has the expected ATS shape."""
+    score = _compute_ats_score(data)
 
     conseils_raw = data.get("conseils", [])
     if isinstance(conseils_raw, str):
@@ -1281,24 +1554,42 @@ def _normalize_match_result(
         conseils.append(
             "Relancez l'analyse pour obtenir des conseils personnalisés sur cette offre."
         )
-    conseils = conseils[:3]
+    conseils = conseils[:5]
+
+    mods_raw = data.get("modifications_cv") or data.get("modifications") or []
+    if isinstance(mods_raw, str):
+        modifications = [mods_raw]
+    elif isinstance(mods_raw, list):
+        modifications = [str(m).strip() for m in mods_raw if str(m).strip()]
+    else:
+        modifications = []
+    if not modifications:
+        modifications = conseils[:5]
+    modifications = modifications[:8]
 
     mots_raw = data.get("mots_cles_manquants", [])
-    if isinstance(mots_raw, str):
-        mots = [mots_raw]
-    elif isinstance(mots_raw, list):
-        mots = [str(m).strip() for m in mots_raw if str(m).strip()]
+    skills = _normalize_skills_analysis(data.get("analyse_competences"))
+    if not mots_raw and skills["manquantes"]:
+        mots = skills["manquantes"][:8]
     else:
-        mots = []
-    mots = mots[:8]
+        mots = _as_str_list(mots_raw, max_items=8)
 
     default_title = job.get("title", "Profil candidat") if job else "Profil candidat"
     titre = str(data.get("titre_cv_recommande") or default_title).strip()
+    synthese = str(data.get("synthese_ats", "") or data.get("resume_ats", "")).strip()
 
-    result = {
+    result: dict[str, Any] = {
         "score_correspondance": score,
+        "score_competences": _normalize_score(data.get("score_competences"), score),
+        "score_experiences": _normalize_score(data.get("score_experiences"), score),
+        "score_titre": _normalize_score(data.get("score_titre"), score),
+        "score_localisation": _normalize_score(data.get("score_localisation"), score),
         "titre_cv_recommande": titre,
+        "synthese_ats": synthese,
+        "analyse_competences": skills,
+        "analyse_experiences": _normalize_experience_analysis(data.get("analyse_experiences")),
         "mots_cles_manquants": mots,
+        "modifications_cv": modifications,
         "conseils": conseils,
     }
     if fallback:
@@ -1307,12 +1598,31 @@ def _normalize_match_result(
 
 
 def fallback_match_result(job: dict[str, Any]) -> dict[str, Any]:
-    """Minimal match report when the LLM response cannot be parsed."""
+    """Minimal ATS match report when the LLM response cannot be parsed."""
     return _normalize_match_result(
         {
             "score_correspondance": 50,
+            "score_competences": 50,
+            "score_experiences": 50,
+            "score_titre": 50,
+            "score_localisation": 50,
             "titre_cv_recommande": job.get("title", "Profil candidat"),
+            "synthese_ats": "Analyse partielle — relancez l'analyse pour un rapport ATS complet.",
+            "analyse_competences": {
+                "manquantes": [],
+                "presentes": [],
+                "partielles": [],
+            },
+            "analyse_experiences": {
+                "alignement_niveau": "indéterminé",
+                "ecarts": ["Analyse expérience non disponible"],
+            },
             "mots_cles_manquants": [],
+            "modifications_cv": [
+                "Relancez l'analyse après avoir vidé le cache pour un matching ATS détaillé.",
+                "Alignez le titre de votre CV sur l'intitulé exact de l'offre.",
+                "Reprenez les compétences techniques listées dans la description de l'offre.",
+            ],
             "conseils": [
                 "Analyse partielle — relancez l'analyse pour des conseils détaillés.",
                 "Alignez le titre de votre CV sur l'intitulé exact de l'offre.",
@@ -1324,18 +1634,121 @@ def fallback_match_result(job: dict[str, Any]) -> dict[str, Any]:
     )
 
 
-def _call_llm_backend(provider: str, system_prompt: str, user_prompt: str) -> str:
+ATS_MATCH_SYSTEM_PROMPT = """Tu es un expert ATS (Applicant Tracking System) et recruteur senior.
+Analyse en profondeur la correspondance entre le CV du candidat et l'offre d'emploi.
+
+MÉTHODOLOGIE OBLIGATOIRE :
+
+1) COMPÉTENCES (cœur de l'analyse)
+   Du CV, identifie : compétences techniques, compétences transversales, outils, certifications, langages.
+   De l'offre, extrais : compétences obligatoires, compétences souhaitées, technos/stack de l'entreprise.
+   Compare et classe chaque compétence clé de l'offre en : presente / partielle / manquante.
+
+2) EXPÉRIENCES PROFESSIONNELLES
+   Du CV : intitulés de postes, missions réalisées, durées, secteurs.
+   De l'offre : niveau demandé (junior, confirmé, senior), type de missions attendues.
+   Détermine si le candidat a déjà réalisé ce qui est demandé.
+
+3) SCORE ATS (0-100) — calcule chaque sous-score puis le score global pondéré :
+   - score_competences (40 %) : matching compétences techniques + outils + langages + certifications
+   - score_experiences (25 %) : adéquation parcours, missions passées, durée, secteur, niveau
+   - score_titre (20 %) : alignement poste visé / titre CV / intitulé offre
+   - score_localisation (15 %) : lieu et type de contrat
+
+Réponds UNIQUEMENT en JSON valide, sans markdown :
+{
+  "score_correspondance": 78,
+  "score_competences": 82,
+  "score_experiences": 70,
+  "score_titre": 85,
+  "score_localisation": 90,
+  "synthese_ats": "Phrase de synthèse en 1-2 lignes sur la pertinence globale",
+  "titre_cv_recommande": "Titre de CV optimisé pour cette offre",
+  "analyse_competences": {
+    "cv_techniques": ["compétence1"],
+    "cv_transversales": ["support"],
+    "cv_outils": ["Jira"],
+    "cv_certifications": ["CCNA"],
+    "cv_langages": ["Python"],
+    "offre_obligatoires": ["compétence exigée"],
+    "offre_souhaitees": ["compétence souhaitée"],
+    "offre_technos": ["techno entreprise"],
+    "presentes": ["compétence matchée"],
+    "partielles": ["compétence partielle"],
+    "manquantes": ["compétence absente"]
+  },
+  "analyse_experiences": {
+    "niveau_offre": "confirme",
+    "niveau_cv": "confirme",
+    "alignement_niveau": "bon|moyen|faible",
+    "experiences_pertinentes": [
+      {"poste": "...", "duree": "...", "missions_liees": "...", "secteur": "..."}
+    ],
+    "ecarts": ["écart concret par rapport à l'offre"]
+  },
+  "mots_cles_manquants": ["mot1", "mot2"],
+  "modifications_cv": [
+    "Modification 1 concrète et actionnable sur le CV pour cette offre",
+    "Modification 2",
+    "Modification 3",
+    "Modification 4",
+    "Modification 5"
+  ],
+  "conseils": ["Conseil 1", "Conseil 2", "Conseil 3"]
+}
+
+Règles :
+- Sois strict et réaliste comme un ATS professionnel (ne mets pas 90% si des compétences clés manquent).
+- modifications_cv : 5 à 8 actions précises (formulations CV, sections à ajouter, mots-clés ATS à intégrer).
+- mots_cles_manquants : 3 à 10 termes de l'offre absents ou faibles dans le CV.
+- Réponds en français."""
+
+
+def _call_llm_backend(
+    provider: str,
+    system_prompt: str,
+    user_prompt: str,
+    *,
+    api_key: str | None = None,
+    max_tokens: int = 1200,
+) -> str:
     """Invoke a single LLM backend by id."""
     if provider == "groq":
-        st.session_state.active_llm_provider = "Groq (gratuit)"
-        return call_groq_text(system_prompt, user_prompt)
+        if not api_key:
+            st.session_state.active_llm_provider = "Groq (gratuit)"
+        return call_groq_text(
+            system_prompt,
+            user_prompt,
+            api_key=api_key,
+            max_tokens=max_tokens,
+        )
     if provider == "gemini":
-        st.session_state.active_llm_provider = "Gemini"
-        return call_gemini_text(system_prompt, user_prompt)
+        if not api_key:
+            st.session_state.active_llm_provider = "Gemini"
+        return call_gemini_text(system_prompt, user_prompt, api_key=api_key)
     if provider == "openai":
-        st.session_state.active_llm_provider = "OpenAI"
-        return call_openai_text(system_prompt, user_prompt)
+        if not api_key:
+            st.session_state.active_llm_provider = "OpenAI"
+        return call_openai_text(system_prompt, user_prompt, api_key=api_key)
     raise RuntimeError(f"Moteur IA inconnu : {provider}")
+
+
+def call_llm_direct(
+    provider: str,
+    system_prompt: str,
+    user_prompt: str,
+    *,
+    api_key: str,
+    max_tokens: int = ATS_MATCH_MAX_TOKENS,
+) -> str:
+    """Thread-safe LLM call with an explicit provider/key (parallel matching)."""
+    return _call_llm_backend(
+        provider,
+        system_prompt,
+        user_prompt,
+        api_key=api_key,
+        max_tokens=max_tokens,
+    )
 
 
 def _append_llm_switch_notice(from_provider: str, to_provider: str, reason: str) -> None:
@@ -1410,10 +1823,12 @@ Chaque valeur doit provenir du contenu du CV (ou être déduite du profil).
 Retourne UNIQUEMENT un objet JSON valide avec ces clés :
 - metier : intitulé de poste concret visé
 - query_recherche : requête courte pour moteur d'emploi (métier + compétence clé, sans ville)
-- competences_techniques : tableau de compétences techniques
-- soft_skills : tableau de compétences comportementales
-- experiences : tableau d'objets {poste, entreprise, duree}
-- diplomes_certifications : tableau de diplômes/certifications
+- competences_techniques : tableau de compétences techniques (ex: Windows Server, VMware, Cisco, PHP…)
+- soft_skills : tableau de compétences transversales (ex: support, gestion incidents, documentation…)
+- outils : tableau d'outils maîtrisés (ex: Jira, Git, Mailcow, Active Directory…)
+- langages : tableau de langages (ex: Python, Java, PHP…)
+- experiences : tableau d'objets {poste, entreprise, duree, missions, secteur}
+- diplomes_certifications : tableau de diplômes et certifications
 - secteurs : tableau de secteurs d'activité
 - niveau_experience : junior, confirme ou senior
 - mots_cles : tableau de 5 à 10 mots-clés dominants
@@ -1421,7 +1836,7 @@ Retourne UNIQUEMENT un objet JSON valide avec ces clés :
 - disponibilites : texte libre (si mentionné, sinon "")
 
 Exemple valide :
-{"metier":"Technicien Systèmes et Réseau","query_recherche":"Technicien systèmes réseau Linux","competences_techniques":["Linux","Windows Server","VMware"],"soft_skills":["Rigueur","Travail en équipe"],"experiences":[{"poste":"Technicien support","entreprise":"ACME","duree":"2020-2024"}],"diplomes_certifications":["BTS SIO"],"secteurs":["Informatique","Télécoms"],"niveau_experience":"confirme","mots_cles":["Linux","Réseau","Active Directory"],"mobilite_geographique":"Île-de-France","disponibilites":"Immédiate"}"""
+{"metier":"Technicien Systèmes et Réseau","query_recherche":"Technicien systèmes réseau Linux","competences_techniques":["Linux","Windows Server","VMware","Cisco"],"soft_skills":["Support N2","Gestion incidents","Documentation"],"outils":["Active Directory","Mailcow","Git"],"langages":["Python","Bash"],"experiences":[{"poste":"Technicien support","entreprise":"ACME","duree":"2020-2024","missions":"Administration serveurs Linux, virtualisation VMware","secteur":"Informatique"}],"diplomes_certifications":["BTS SIO","Certification Cisco CCNA"],"secteurs":["Informatique","Télécoms"],"niveau_experience":"confirme","mots_cles":["Linux","Réseau","Active Directory"],"mobilite_geographique":"Île-de-France","disponibilites":"Immédiate"}"""
 
 CRITERIA_RETRY_PROMPT = CRITERIA_SYSTEM_PROMPT + """
 
@@ -1579,6 +1994,8 @@ def heuristic_criteria_from_cv(cv_text: str) -> dict[str, Any]:
         "mots_cles": mots_cles or ["Informatique"],
         "competences_techniques": mots_cles or ["Informatique"],
         "soft_skills": [],
+        "outils": [],
+        "langages": [],
         "experiences": [],
         "diplomes_certifications": [],
         "secteurs": ["Informatique"],
@@ -1622,6 +2039,8 @@ def normalize_cv_profile(raw: dict[str, Any]) -> dict[str, Any]:
         "query_recherche": query,
         "competences_techniques": as_str_list("competences_techniques") or mots_cles[:8],
         "soft_skills": as_str_list("soft_skills"),
+        "outils": as_str_list("outils"),
+        "langages": as_str_list("langages"),
         "experiences": experiences[:8],
         "diplomes_certifications": as_str_list("diplomes_certifications"),
         "secteurs": as_str_list("secteurs"),
@@ -1671,36 +2090,28 @@ def extract_search_criteria(cv_text: str) -> dict[str, Any]:
     return extract_cv_profile(cv_text)
 
 
-def match_cv_to_job(cv_text: str, job: dict[str, Any]) -> dict[str, Any]:
-    """Compare CV against a single job offer and return optimization advice."""
-    system_prompt = """Tu es un coach carrière expert en ATS et recrutement.
-Compare le CV du candidat à l'offre d'emploi et produis un rapport d'optimisation.
-Réponds UNIQUEMENT en JSON valide, sans markdown ni texte autour :
-{
-  "score_correspondance": 85,
-  "titre_cv_recommande": "Titre de CV optimisé pour cette offre",
-  "mots_cles_manquants": ["mot1", "mot2"],
-  "conseils": [
-    "Conseil 1 spécifique et actionnable",
-    "Conseil 2 spécifique et actionnable",
-    "Conseil 3 spécifique et actionnable"
-  ]
-}
-Règles :
-- score_correspondance : entier 0-100 (skills, expérience, séniorité, localisation).
-- mots_cles_manquants : 3 à 8 termes présents dans l'offre mais absents ou faibles dans le CV.
-- conseils : exactement 3 phrases concrètes adaptées à CETTE offre.
-- Réponds en français."""
+def match_cv_to_job(
+    cv_text: str,
+    job: dict[str, Any],
+    *,
+    cv_profile: dict[str, Any] | None = None,
+    target_job_title: str = "",
+    llm_provider: str | None = None,
+    llm_api_key: str | None = None,
+) -> dict[str, Any]:
+    """Compare CV against a single job offer and return ATS optimization advice."""
+    system_prompt = ATS_MATCH_SYSTEM_PROMPT
 
-    desc_limit = 3500
+    desc_limit = 5000
     job_summary = (
         f"Titre : {job.get('title', '')}\n"
         f"Entreprise : {job.get('company', '')}\n"
         f"Lieu : {job.get('location', '')}\n"
-        f"Contrat : {job.get('contract_type', '')}\n"
+        f"Contrat : {job.get('contract_type', '') or job.get('inferred_contract', '')}\n"
         f"Description :\n{job.get('description', '')[:desc_limit]}"
     )
-    user_prompt = f"CV candidat :\n{cv_text[:6000]}\n\nOffre :\n{job_summary}"
+    candidate_block = build_cv_match_context(cv_text, cv_profile, target_job_title)
+    user_prompt = f"{candidate_block}\n\nOffre à évaluer :\n{job_summary}"
 
     for attempt in range(2):
         try:
@@ -1710,56 +2121,140 @@ Règles :
                     "\n\nRAPPEL CRITIQUE : retourne UNIQUEMENT l'objet JSON, "
                     "rien avant ni après. Pas de commentaire."
                 )
-            raw = call_llm(prompt, user_prompt)
+            if llm_provider and llm_api_key:
+                raw = call_llm_direct(
+                    llm_provider,
+                    prompt,
+                    user_prompt,
+                    api_key=llm_api_key,
+                )
+            else:
+                raw = call_llm(prompt, user_prompt)
             return _normalize_match_result(_parse_json_response(raw), job)
         except (json.JSONDecodeError, TypeError, ValueError):
             if attempt == 0:
                 continue
+        except GroqRateLimitError:
+            raise
+        except RuntimeError as exc:
+            if llm_provider and llm_api_key and attempt == 0:
+                continue
+            if llm_provider and llm_api_key:
+                return fallback_match_result(job)
+            raise exc
 
     return fallback_match_result(job)
 
 
-BATCH_MATCH_SYSTEM_PROMPT = """Tu es un coach carrière expert en ATS et recrutement.
-Compare le CV du candidat à chaque offre d'emploi listée et produis un rapport par offre.
-Réponds UNIQUEMENT avec un tableau JSON valide, sans markdown ni texte autour.
-Le tableau doit contenir EXACTEMENT un objet par offre, dans le MÊME ordre que les offres fournies :
-[
-  {
-    "score_correspondance": 85,
-    "titre_cv_recommande": "Titre de CV optimisé pour cette offre",
-    "mots_cles_manquants": ["mot1", "mot2"],
-    "conseils": ["Conseil 1", "Conseil 2", "Conseil 3"]
-  }
-]
-Règles :
-- score_correspondance : entier 0-100.
-- mots_cles_manquants : 3 à 8 termes par offre.
-- conseils : exactement 3 phrases concrètes par offre.
-- Réponds en français."""
+BATCH_MATCH_SYSTEM_PROMPT = ATS_MATCH_SYSTEM_PROMPT + """
+
+MODE BATCH : retourne un TABLEAU JSON avec EXACTEMENT un objet par offre, dans le MÊME ordre."""
 
 
-def _job_summary_for_match(job: dict[str, Any], desc_limit: int = 1500) -> str:
+def build_cv_match_context(
+    cv_text: str,
+    cv_profile: dict[str, Any] | None = None,
+    target_job_title: str = "",
+) -> str:
+    """Structured candidate summary for matching prompts."""
+    sections: list[str] = []
+
+    if target_job_title.strip():
+        sections.append(f"Poste visé (profil utilisateur) : {target_job_title.strip()}")
+
+    if cv_profile:
+        metier = str(cv_profile.get("metier", "")).strip()
+        if metier:
+            sections.append(f"Métier extrait du CV : {metier}")
+        niveau = str(cv_profile.get("niveau_experience", "")).strip()
+        if niveau:
+            sections.append(f"Niveau d'expérience : {niveau}")
+        competences = (
+            cv_profile.get("competences_techniques")
+            or cv_profile.get("mots_cles")
+            or []
+        )
+        if competences:
+            sections.append(
+                f"Compétences techniques : {', '.join(str(c) for c in competences[:20])}"
+            )
+        soft = cv_profile.get("soft_skills") or []
+        if soft:
+            sections.append(f"Compétences transversales : {', '.join(str(s) for s in soft[:12])}")
+        outils = cv_profile.get("outils") or []
+        if outils:
+            sections.append(f"Outils : {', '.join(str(o) for o in outils[:15])}")
+        langages = cv_profile.get("langages") or []
+        if langages:
+            sections.append(f"Langages : {', '.join(str(l) for l in langages[:10])}")
+        certs = cv_profile.get("diplomes_certifications") or []
+        if certs:
+            sections.append(f"Certifications / diplômes : {', '.join(str(c) for c in certs[:10])}")
+        secteurs = cv_profile.get("secteurs") or []
+        if secteurs:
+            sections.append(f"Secteurs : {', '.join(str(s) for s in secteurs[:6])}")
+        experiences = cv_profile.get("experiences") or []
+        exp_lines: list[str] = []
+        for exp in experiences[:6]:
+            if isinstance(exp, dict):
+                poste = exp.get("poste") or exp.get("title") or exp.get("role") or ""
+                entreprise = exp.get("entreprise") or exp.get("company") or ""
+                duree = exp.get("duree") or exp.get("period") or ""
+                missions = exp.get("missions") or exp.get("description") or ""
+                secteur = exp.get("secteur") or exp.get("sector") or ""
+                header = " — ".join(p for p in (poste, entreprise, duree) if p)
+                if header:
+                    detail = f"- {header}"
+                    if secteur:
+                        detail += f" [{secteur}]"
+                    if missions:
+                        detail += f" : {str(missions)[:200]}"
+                    exp_lines.append(detail)
+            elif isinstance(exp, str) and exp.strip():
+                exp_lines.append(f"- {exp.strip()}")
+        if exp_lines:
+            sections.append("Expériences professionnelles :\n" + "\n".join(exp_lines))
+
+    sections.append(f"Texte intégral du CV :\n{cv_text[:9000]}")
+    return "\n\n".join(sections)
+
+
+def _job_summary_for_match(job: dict[str, Any], desc_limit: int = 5000) -> str:
     return (
         f"Titre : {job.get('title', '')}\n"
         f"Entreprise : {job.get('company', '')}\n"
         f"Lieu : {job.get('location', '')}\n"
-        f"Contrat : {job.get('contract_type', '')}\n"
+        f"Contrat : {job.get('contract_type', '') or job.get('inferred_contract', '')}\n"
         f"Description :\n{job.get('description', '')[:desc_limit]}"
     )
 
 
-def match_cv_to_jobs_batch(cv_text: str, jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def match_cv_to_jobs_batch(
+    cv_text: str,
+    jobs: list[dict[str, Any]],
+    *,
+    cv_profile: dict[str, Any] | None = None,
+    target_job_title: str = "",
+) -> list[dict[str, Any]]:
     """Compare CV against several job offers in one LLM call (saves Groq quota)."""
     if not jobs:
         return []
     if len(jobs) == 1:
-        return [match_cv_to_job(cv_text, jobs[0])]
+        return [
+            match_cv_to_job(
+                cv_text,
+                jobs[0],
+                cv_profile=cv_profile,
+                target_job_title=target_job_title,
+            )
+        ]
 
     offers_block = "\n\n".join(
         f"--- OFFRE {idx} ---\n{_job_summary_for_match(job)}"
         for idx, job in enumerate(jobs, start=1)
     )
-    user_prompt = f"CV candidat :\n{cv_text[:5000]}\n\n{offers_block}"
+    candidate_block = build_cv_match_context(cv_text, cv_profile, target_job_title)
+    user_prompt = f"{candidate_block}\n\nOffres à évaluer (dans l'ordre) :\n{offers_block}"
 
     for attempt in range(2):
         try:
@@ -1777,10 +2272,17 @@ def match_cv_to_jobs_batch(cv_text: str, jobs: list[dict[str, Any]]) -> list[dic
             results: list[dict[str, Any]] = []
             for idx, job in enumerate(jobs):
                 item = parsed[idx] if idx < len(parsed) else {}
-                if isinstance(item, dict):
+                if isinstance(item, dict) and item.get("score_correspondance") is not None:
                     results.append(_normalize_match_result(item, job))
                 else:
-                    results.append(fallback_match_result(job))
+                    results.append(
+                        match_cv_to_job(
+                            cv_text,
+                            job,
+                            cv_profile=cv_profile,
+                            target_job_title=target_job_title,
+                        )
+                    )
             return results
         except GroqRateLimitError:
             raise
@@ -1793,7 +2295,15 @@ def match_cv_to_jobs_batch(cv_text: str, jobs: list[dict[str, Any]]) -> list[dic
                 raise
             break
 
-    return [fallback_match_result(job) for job in jobs]
+    return [
+        match_cv_to_job(
+            cv_text,
+            job,
+            cv_profile=cv_profile,
+            target_job_title=target_job_title,
+        )
+        for job in jobs
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -1831,13 +2341,35 @@ def cached_search_jobs(
 
 
 @st.cache_data(ttl=CACHE_TTL_SECONDS, show_spinner=False)
-def cached_match_cv_to_job(cv_text: str, job_json: str) -> dict[str, Any]:
-    return match_cv_to_job(cv_text, json.loads(job_json))
+def cached_match_cv_to_job(
+    cv_text: str,
+    job_json: str,
+    profile_json: str = "",
+    target_job_title: str = "",
+) -> dict[str, Any]:
+    cv_profile = json.loads(profile_json) if profile_json else None
+    return match_cv_to_job(
+        cv_text,
+        json.loads(job_json),
+        cv_profile=cv_profile,
+        target_job_title=target_job_title,
+    )
 
 
 @st.cache_data(ttl=CACHE_TTL_SECONDS, show_spinner=False)
-def cached_match_cv_to_jobs_batch(cv_text: str, jobs_json: str) -> list[dict[str, Any]]:
-    return match_cv_to_jobs_batch(cv_text, json.loads(jobs_json))
+def cached_match_cv_to_jobs_batch(
+    cv_text: str,
+    jobs_json: str,
+    profile_json: str = "",
+    target_job_title: str = "",
+) -> list[dict[str, Any]]:
+    cv_profile = json.loads(profile_json) if profile_json else None
+    return match_cv_to_jobs_batch(
+        cv_text,
+        json.loads(jobs_json),
+        cv_profile=cv_profile,
+        target_job_title=target_job_title,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -1941,6 +2473,7 @@ def search_jobs_with_fallback(
     metier: str = "",
     contract_type: str = "",
     alternate_queries: list[str] | None = None,
+    max_age_days: int = 0,
 ) -> dict[str, Any]:
     """Search jobs by métier — location-first when a zone is provided."""
     if provider == JOB_PROVIDER_ALL:
@@ -1983,7 +2516,9 @@ def search_jobs_with_fallback(
         if not q_try or key in seen:
             continue
         seen.add(key)
-        jobs = search_jobs(provider, q_try, loc_try, country, contract_type)
+        jobs = search_jobs(
+            provider, q_try, loc_try, country, contract_type, max_age_days=max_age_days
+        )
         if jobs:
             return {
                 "jobs": jobs,
@@ -2013,6 +2548,7 @@ def search_jobs_for_profile(
     alternate_queries: list[str] | None = None,
 ) -> dict[str, Any]:
     """Search across all profile zones (cities, departments, regions) and merge results."""
+    max_age_days = normalize_job_max_age_days(profile.get("job_max_age_days"))
     profile_locations = build_profile_search_locations(profile)
     merged: list[dict[str, Any]] = []
     providers_used: list[str] = []
@@ -2028,6 +2564,7 @@ def search_jobs_for_profile(
                 metier,
                 contract_type,
                 alternate_queries,
+                max_age_days=max_age_days,
             )
         else:
             result = search_jobs_with_fallback(
@@ -2038,6 +2575,7 @@ def search_jobs_for_profile(
                 metier,
                 contract_type,
                 alternate_queries,
+                max_age_days=max_age_days,
             )
         if result.get("jobs"):
             merged = merge_job_lists([merged, result["jobs"]])
@@ -2067,6 +2605,7 @@ def search_jobs_for_profile(
         metier,
         contract_type,
         alternate_queries,
+        max_age_days=max_age_days,
     )
 
 
@@ -2077,6 +2616,7 @@ def _search_all_providers_with_fallback(
     metier: str = "",
     contract_type: str = "",
     alternate_queries: list[str] | None = None,
+    max_age_days: int = 0,
 ) -> dict[str, Any]:
     """Query every configured provider and merge unique results."""
     secrets = provider_secrets_from_getter(get_secret)
@@ -2105,7 +2645,14 @@ def _search_all_providers_with_fallback(
         loc = location.strip()
         for provider in providers:
             try:
-                batch = search_jobs(provider, q_try, loc, country, contract_type)
+                batch = search_jobs(
+                    provider,
+                    q_try,
+                    loc,
+                    country,
+                    contract_type,
+                    max_age_days=max_age_days,
+                )
             except (RuntimeError, requests.HTTPError):
                 continue
             if batch:
@@ -2135,6 +2682,7 @@ def search_jobs_adzuna(
     country_code: str,
     results_per_page: int = 50,
     max_pages: int = 3,
+    max_days_old: int = 0,
 ) -> list[dict[str, Any]]:
     """Search jobs via Adzuna REST API (multi-page when searching country-wide)."""
     app_id = get_secret("ADZUNA_APP_ID")
@@ -2158,6 +2706,8 @@ def search_jobs_adzuna(
         }
         if location.strip():
             params["where"] = location.strip()
+        if max_days_old and max_days_old > 0:
+            params["max_days_old"] = max_days_old
 
         response = requests.get(
             url,
@@ -2193,6 +2743,7 @@ def search_jobs_adzuna(
                     "url": job_url,
                     "contract_type": item.get("contract_type", ""),
                     "source": "Adzuna",
+                    "published_at": item.get("created", ""),
                 }
             )
 
@@ -2219,6 +2770,7 @@ def search_jobs(
     location: str,
     country: str,
     contract_type: str = "",
+    max_age_days: int = 0,
 ) -> list[dict[str, Any]]:
     """Dispatch job search to the selected provider."""
     secrets = provider_secrets_from_getter(get_secret)
@@ -2285,7 +2837,7 @@ def search_jobs(
         )
 
     country_code = resolve_country_code(country)
-    return search_jobs_adzuna(query, location, country_code)
+    return search_jobs_adzuna(query, location, country_code, max_days_old=max_age_days)
 
 
 def rank_jobs_for_cv(
@@ -2293,16 +2845,41 @@ def rank_jobs_for_cv(
     cv_text: str,
     keywords: list[str],
     top_n: int = TOP_MATCHING_JOBS,
+    *,
+    target_job_title: str = "",
+    cv_profile: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
-    """Pre-rank jobs by keyword overlap before deep AI matching."""
+    """Pre-rank jobs by keyword and title overlap before deep AI matching."""
     cv_lower = cv_text.lower()
-    keyword_set = {kw.lower() for kw in keywords}
+    keyword_set = {kw.lower() for kw in keywords if kw and len(kw) > 1}
+    if cv_profile:
+        for kw in (cv_profile.get("competences_techniques") or [])[:15]:
+            if kw:
+                keyword_set.add(str(kw).lower())
+        for kw in (cv_profile.get("mots_cles") or [])[:10]:
+            if kw:
+                keyword_set.add(str(kw).lower())
+
+    stopwords = {
+        "de", "du", "des", "le", "la", "les", "en", "et", "ou", "un", "une",
+        "pour", "par", "sur", "avec", "the", "and", "or",
+    }
+    target_tokens = {
+        t for t in re.findall(r"\w+", target_job_title.lower()) if t not in stopwords and len(t) > 2
+    }
+    metier = str((cv_profile or {}).get("metier", "")).strip()
+    metier_tokens = {
+        t for t in re.findall(r"\w+", metier.lower()) if t not in stopwords and len(t) > 2
+    }
 
     def quick_score(job: dict[str, Any]) -> int:
-        blob = f"{job.get('title', '')} {job.get('description', '')}".lower()
+        title = str(job.get("title", "")).lower()
+        blob = f"{title} {job.get('description', '')}".lower()
         hits = sum(1 for kw in keyword_set if kw in blob)
-        gaps = sum(1 for kw in keyword_set if kw in blob and kw not in cv_lower)
-        return hits * 10 - gaps * 2
+        cv_hits = sum(1 for kw in keyword_set if kw in blob and kw in cv_lower)
+        title_overlap = sum(1 for token in target_tokens if token in title)
+        metier_overlap = sum(1 for token in metier_tokens if token in title)
+        return hits * 8 + cv_hits * 5 + title_overlap * 18 + metier_overlap * 12
 
     return sorted(jobs, key=quick_score, reverse=True)[:top_n]
 
@@ -2312,31 +2889,83 @@ def build_matching_results(
     cv_text: str,
     keywords: list[str],
     top_n: int = TOP_MATCHING_JOBS,
+    *,
+    cv_profile: dict[str, Any] | None = None,
+    target_job_title: str = "",
 ) -> tuple[list[dict[str, Any]], int]:
     """AI-match job candidates and return the best offers by correspondence score."""
     pool_size = min(len(jobs), MATCHING_CANDIDATE_POOL)
-    candidates = rank_jobs_for_cv(jobs, cv_text, keywords, top_n=pool_size)
-    use_groq = prefers_groq_batching()
-    batch_size = GROQ_MATCH_BATCH_SIZE if use_groq else 1
+    candidates = rank_jobs_for_cv(
+        jobs,
+        cv_text,
+        keywords,
+        top_n=pool_size,
+        target_job_title=target_job_title,
+        cv_profile=cv_profile,
+    )
+
+    key_slots = collect_parallel_llm_slots(PARALLEL_MATCH_KEYS_PER_PROVIDER)
+    worker_count = min(PARALLEL_MATCH_MAX_WORKERS, max(1, len(key_slots)))
+    use_parallel = worker_count > 1 and len(candidates) > 1
 
     results: list[dict[str, Any]] = []
     partial_matches = 0
-    for batch_start in range(0, len(candidates), batch_size):
-        if batch_start > 0 and use_groq:
-            time.sleep(GROQ_INTER_CALL_DELAY_SEC)
 
-        batch = candidates[batch_start : batch_start + batch_size]
-        if len(batch) == 1:
-            job = batch[0]
-            job_json = json.dumps(job, sort_keys=True, ensure_ascii=False)
-            match = cached_match_cv_to_job(cv_text, job_json)
-            batch_results = [(job, match)]
-        else:
-            jobs_json = json.dumps(batch, sort_keys=True, ensure_ascii=False)
-            matches = cached_match_cv_to_jobs_batch(cv_text, jobs_json)
-            batch_results = list(zip(batch, matches))
+    def _match_one(index: int, job: dict[str, Any]) -> tuple[int, dict[str, Any], dict[str, Any]]:
+        provider, api_key = key_slots[index % len(key_slots)]
+        try:
+            match = match_cv_to_job(
+                cv_text,
+                job,
+                cv_profile=cv_profile,
+                target_job_title=target_job_title,
+                llm_provider=provider,
+                llm_api_key=api_key,
+            )
+        except Exception:  # noqa: BLE001 — fallback per offer
+            match = fallback_match_result(job)
+        return index, job, match
 
-        for job, match in batch_results:
+    if use_parallel:
+        ordered: list[tuple[int, dict[str, Any], dict[str, Any]] | None] = [None] * len(candidates)
+        with ThreadPoolExecutor(max_workers=worker_count) as executor:
+            futures = [
+                executor.submit(_match_one, index, job)
+                for index, job in enumerate(candidates)
+            ]
+            for future in as_completed(futures):
+                index, job, match = future.result()
+                ordered[index] = (index, job, match)
+        for item in ordered:
+            if item is None:
+                continue
+            _, job, match = item
+            if match.get("_fallback"):
+                partial_matches += 1
+            results.append({"job": job, "match": match})
+    else:
+        profile_json = json.dumps(cv_profile or {}, sort_keys=True, ensure_ascii=False)
+        provider, api_key = key_slots[0] if key_slots else (None, None)
+        for index, job in enumerate(candidates):
+            if index > 0:
+                time.sleep(GROQ_INTER_CALL_DELAY_SEC)
+            if provider and api_key:
+                match = match_cv_to_job(
+                    cv_text,
+                    job,
+                    cv_profile=cv_profile,
+                    target_job_title=target_job_title,
+                    llm_provider=provider,
+                    llm_api_key=api_key,
+                )
+            else:
+                job_json = json.dumps(job, sort_keys=True, ensure_ascii=False)
+                match = cached_match_cv_to_job(
+                    cv_text,
+                    job_json,
+                    profile_json,
+                    target_job_title,
+                )
             if match.get("_fallback"):
                 partial_matches += 1
             results.append({"job": job, "match": match})
@@ -2417,26 +3046,36 @@ def generate_matching_report_pdf(
         job = entry["job"]
         match = entry["match"]
         score = int(match.get("score_correspondance", 0))
+        skills = match.get("analyse_competences") or {}
+        exp_analysis = match.get("analyse_experiences") or {}
         missing = ", ".join(match.get("mots_cles_manquants", []))
-        tips_html = "".join(
-            f"<li>{pdf_escape(tip)}</li>"
-            for tip in match.get("conseils", [])[:3]
+        mods_html = "".join(
+            f"<li>{pdf_escape(mod)}</li>"
+            for mod in (match.get("modifications_cv") or match.get("conseils", []))[:8]
         )
+        presentes = ", ".join(skills.get("presentes", []))
+        manquantes = ", ".join(skills.get("manquantes", []))
 
         body_html += f"""
         <hr>
-        <h2>#{idx} - {pdf_escape(job.get('title', 'N/A'))} ({score}%)</h2>
+        <h2>#{idx} - {pdf_escape(job.get('title', 'N/A'))} — Score ATS {score}%</h2>
+        <p><b>Synthese :</b> {pdf_escape(match.get('synthese_ats', '-'))}</p>
         <ul>
             <li><b>Entreprise :</b> {pdf_escape(job.get('company', 'N/A'))}</li>
             <li><b>Lieu :</b> {pdf_escape(job.get('location', 'N/A'))}</li>
             <li><b>Contrat :</b> {pdf_escape(job.get('contract_type') or '-')}</li>
-            <li><b>Source :</b> {pdf_escape(job.get('source', ''))}</li>
-            <li><b>Lien :</b> {pdf_escape(job.get('url', '-'))}</li>
+            <li><b>Scores :</b> Competences {match.get('score_competences', score)}% |
+                Experiences {match.get('score_experiences', score)}% |
+                Titre {match.get('score_titre', score)}% |
+                Lieu {match.get('score_localisation', score)}%</li>
             <li><b>Titre CV recommande :</b> {pdf_escape(match.get('titre_cv_recommande', 'N/A'))}</li>
-            <li><b>Mots-cles manquants :</b> {pdf_escape(missing or '-')}</li>
+            <li><b>Competences presentes :</b> {pdf_escape(presentes or '-')}</li>
+            <li><b>Competences manquantes :</b> {pdf_escape(manquantes or missing or '-')}</li>
+            <li><b>Niveau offre / CV :</b> {pdf_escape(exp_analysis.get('niveau_offre', '-'))} / {pdf_escape(exp_analysis.get('niveau_cv', '-'))}</li>
+            <li><b>Lien :</b> {pdf_escape(job.get('url', '-'))}</li>
         </ul>
-        <h3>Conseils d'optimisation</h3>
-        <ol>{tips_html}</ol>
+        <h3>Modifications a apporter au CV</h3>
+        <ol>{mods_html}</ol>
         """
 
     pdf.write_html(body_html)
@@ -2470,7 +3109,12 @@ def run_full_analysis(
         metier,
     )
     jobs = search_result["jobs"]
-    results, _partial = build_matching_results(jobs, cv_text, keywords)
+    results, _partial = build_matching_results(
+        jobs,
+        cv_text,
+        keywords,
+        cv_profile=criteria,
+    )
 
     return {
         "cv_text": cv_text,
@@ -2494,11 +3138,9 @@ def render_app_styles() -> None:
     st.markdown(
         f"""
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
         html, body, [data-testid="stAppViewContainer"] {{
             background: {THEME_BG_GRADIENT} !important;
-            font-family: 'Inter', sans-serif;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
         }}
 
         [data-testid="stHeader"] {{
@@ -2720,15 +3362,34 @@ def render_sidebar_brand(user_email: str) -> None:
 # ---------------------------------------------------------------------------
 
 
+def _score_color(score: int) -> str:
+    if score >= 75:
+        return "#22c55e"
+    if score >= 50:
+        return "#eab308"
+    return "#ef4444"
+
+
+def _render_skill_tags(label: str, items: list[str]) -> None:
+    if not items:
+        return
+    st.markdown(f"**{label}**")
+    st.write(", ".join(f"`{item}`" for item in items[:15]))
+
+
 def render_job_card(job: dict[str, Any], match: dict[str, Any], rank: int) -> None:
-    """Render a single job match card."""
+    """Render a single job match card with ATS deep analysis."""
     score = int(match.get("score_correspondance", 0))
-    score_color = (
-        "#22c55e" if score >= 75 else "#eab308" if score >= 50 else "#ef4444"
-    )
+    score_color = _score_color(score)
+    skills = match.get("analyse_competences") or {}
+    exp_analysis = match.get("analyse_experiences") or {}
 
     st.markdown('<div class="job-match-card">', unsafe_allow_html=True)
     st.markdown(f"### #{rank} — {job['title']}")
+
+    if match.get("synthese_ats"):
+        st.caption(match["synthese_ats"])
+
     col1, col2, col3 = st.columns([2, 2, 1])
 
     with col1:
@@ -2737,34 +3398,89 @@ def render_job_card(job: dict[str, Any], match: dict[str, Any], rank: int) -> No
         if job.get("contract_type") or job.get("inferred_contract"):
             contract_label = job.get("inferred_contract") or job.get("contract_type")
             st.markdown(f"**Contrat :** {contract_label}")
-        if job.get("inferred_experience"):
-            st.markdown(f"**Niveau :** {EXPERIENCE_LABELS.get(job['inferred_experience'], job['inferred_experience'])}")
-        if job.get("inferred_sector"):
-            st.markdown(f"**Secteur :** {job['inferred_sector']}")
+        st.markdown(f"**Publication :** {format_job_published_label(job)}")
         st.markdown(f"**Source :** {job.get('source', '')}")
+        st.markdown(f"**Titre CV recommandé :** {match.get('titre_cv_recommande', 'N/A')}")
 
     with col2:
-        st.markdown(
-            f"**Titre CV recommandé :** "
-            f"{match.get('titre_cv_recommande', 'N/A')}"
-        )
-        missing = match.get("mots_cles_manquants", [])
-        if missing:
-            st.markdown("**Mots-clés manquants :**")
-            st.write(", ".join(f"`{kw}`" for kw in missing))
+        sc1, sc2, sc3, sc4 = st.columns(4)
+        sc1.metric("Compétences", f"{match.get('score_competences', score)}%")
+        sc2.metric("Expériences", f"{match.get('score_experiences', score)}%")
+        sc3.metric("Titre", f"{match.get('score_titre', score)}%")
+        sc4.metric("Lieu/Contrat", f"{match.get('score_localisation', score)}%")
+        st.caption("Barème ATS : compétences 40 % · expériences 25 % · titre 20 % · lieu 15 %")
 
     with col3:
         st.markdown(
             f"<div class='job-score-pill' style='background:{score_color}22;"
             f"border:2px solid {score_color}'>"
             f"<span style='font-size:2rem;font-weight:bold;color:{score_color}'>"
-            f"{score}%</span><br><small>Correspondance</small></div>",
+            f"{score}%</span><br><small>Score ATS global</small></div>",
             unsafe_allow_html=True,
         )
 
-    st.markdown("**3 conseils d'ajustement du CV :**")
-    for i, tip in enumerate(match.get("conseils", [])[:3], start=1):
-        st.info(f"{i}. {tip}")
+    with st.expander("Analyse compétences (matching ATS)", expanded=rank <= 3):
+        c_left, c_right = st.columns(2)
+        with c_left:
+            st.markdown("**Profil candidat (CV)**")
+            _render_skill_tags("Techniques", skills.get("cv_techniques", []))
+            _render_skill_tags("Transversales", skills.get("cv_transversales", []))
+            _render_skill_tags("Outils", skills.get("cv_outils", []))
+            _render_skill_tags("Langages", skills.get("cv_langages", []))
+            _render_skill_tags("Certifications", skills.get("cv_certifications", []))
+        with c_right:
+            st.markdown("**Exigences de l'offre**")
+            _render_skill_tags("Obligatoires", skills.get("offre_obligatoires", []))
+            _render_skill_tags("Souhaitées", skills.get("offre_souhaitees", []))
+            _render_skill_tags("Technos entreprise", skills.get("offre_technos", []))
+        st.markdown("---")
+        st.markdown("**Résultat du matching compétences**")
+        m1, m2, m3 = st.columns(3)
+        with m1:
+            _render_skill_tags("Présentes dans le CV", skills.get("presentes", []))
+        with m2:
+            _render_skill_tags("Partielles", skills.get("partielles", []))
+        with m3:
+            _render_skill_tags("Manquantes", skills.get("manquantes", []))
+
+    with st.expander("Analyse expériences professionnelles", expanded=False):
+        niveau_offre = exp_analysis.get("niveau_offre") or "—"
+        niveau_cv = exp_analysis.get("niveau_cv") or "—"
+        align = exp_analysis.get("alignement_niveau") or "—"
+        st.markdown(
+            f"**Niveau offre :** {niveau_offre} · "
+            f"**Niveau CV :** {niveau_cv} · "
+            f"**Alignement :** {align}"
+        )
+        for exp in exp_analysis.get("experiences_pertinentes", []):
+            if not isinstance(exp, dict):
+                continue
+            poste = exp.get("poste", "")
+            if not poste:
+                continue
+            line = f"**{poste}**"
+            if exp.get("duree"):
+                line += f" ({exp['duree']})"
+            if exp.get("secteur"):
+                line += f" — {exp['secteur']}"
+            st.markdown(line)
+            if exp.get("missions_liees"):
+                st.caption(exp["missions_liees"])
+        ecarts = exp_analysis.get("ecarts") or []
+        if ecarts:
+            st.markdown("**Écarts identifiés :**")
+            for gap in ecarts:
+                st.warning(gap)
+
+    modifications = match.get("modifications_cv") or match.get("conseils") or []
+    st.markdown("**Modifications à apporter au CV pour cette offre :**")
+    for i, mod in enumerate(modifications[:8], start=1):
+        st.info(f"{i}. {mod}")
+
+    missing = match.get("mots_cles_manquants", [])
+    if missing:
+        st.markdown("**Mots-clés ATS manquants dans le CV :**")
+        st.write(", ".join(f"`{kw}`" for kw in missing))
 
     if job.get("url"):
         st.link_button("Postuler →", job["url"], use_container_width=False)
@@ -2822,6 +3538,12 @@ def render_cv_profile_summary(criteria: dict[str, Any], user_profile: dict[str, 
             st.markdown("**Compétences techniques :** " + " · ".join(f"`{kw}`" for kw in tech))
         if soft:
             st.markdown("**Soft skills :** " + " · ".join(f"`{kw}`" for kw in soft))
+        outils = criteria.get("outils") or []
+        langages = criteria.get("langages") or []
+        if outils:
+            st.markdown("**Outils :** " + " · ".join(f"`{o}`" for o in outils))
+        if langages:
+            st.markdown("**Langages :** " + " · ".join(f"`{l}`" for l in langages))
 
         col_a, col_b = st.columns(2)
         with col_a:
@@ -2839,10 +3561,13 @@ def render_cv_profile_summary(criteria: dict[str, Any], user_profile: dict[str, 
                 st.markdown("**Expériences clés**")
                 for exp in experiences[:4]:
                     if isinstance(exp, dict):
-                        st.write(
+                        line = (
                             f"- {exp.get('poste', '—')} · {exp.get('entreprise', '—')} "
                             f"({exp.get('duree', '—')})"
                         )
+                        if exp.get("missions"):
+                            line += f" — {exp['missions'][:120]}"
+                        st.write(line)
             if criteria.get("mobilite_geographique"):
                 st.markdown(f"**Mobilité (CV) :** {criteria['mobilite_geographique']}")
             if criteria.get("disponibilites"):
@@ -2872,12 +3597,13 @@ def render_analysis_results(analysis: dict[str, Any]) -> None:
             f"{filter_stats.get('rejected_contract', 0)} contrat · "
             f"{filter_stats.get('rejected_geo', 0)} zone · "
             f"{filter_stats.get('rejected_experience', 0)} niveau · "
-            f"{filter_stats.get('rejected_sector', 0)} secteur."
+            f"{filter_stats.get('rejected_sector', 0)} secteur · "
+            f"{filter_stats.get('rejected_publication_age', 0)} publication."
         )
 
     st.success(
         f"{analysis['jobs_found']} offre(s) éligible(s) après filtrage. "
-        f"Top {len(analysis['results'])} analysé(s)."
+        f"Top **{len(analysis['results'])}** analysé(s) et classé(s) par score ATS (compétences, expériences, titre, lieu)."
     )
 
     st.markdown(
@@ -2908,12 +3634,13 @@ def render_analysis_results(analysis: dict[str, Any]) -> None:
                 st.error(f"Export PDF indisponible : {exc}")
         with col_info:
             st.caption(
-                f"Le rapport PDF inclut les {TOP_MATCHING_JOBS} offres, scores, mots-clés manquants "
-                "et conseils d'optimisation."
+                f"Le rapport PDF inclut les {TOP_MATCHING_JOBS} offres, scores ATS détaillés, "
+                "matching compétences, analyse expériences et modifications CV."
             )
 
+    result_count = len(analysis.get("results", []))
     st.markdown(
-        f'<p class="section-title">Top {TOP_MATCHING_JOBS} — Matching & optimisation CV</p>',
+        f'<p class="section-title">Top {result_count} — Analyse ATS & optimisations CV</p>',
         unsafe_allow_html=True,
     )
     for idx, entry in enumerate(analysis["results"], start=1):
@@ -2998,6 +3725,14 @@ def run_cv_analysis_pipeline(
             "text": (
                 f"Poste visé : **{target_title}** — l'IA recherche des offres "
                 f"correspondantes ou proches (`{query}`)."
+            ),
+        }
+    )
+    notices.append(
+        {
+            "level": "info",
+            "text": (
+                f"Filtre publication : **{job_max_age_label(user_profile.get('job_max_age_days', 7))}**."
             ),
         }
     )
@@ -3104,7 +3839,8 @@ def run_cv_analysis_pipeline(
                     f"{filter_stats.get('rejected_contract', 0)} rejetées contrat · "
                     f"{filter_stats.get('rejected_geo', 0)} rejetées zone · "
                     f"{filter_stats.get('rejected_experience', 0)} rejetées niveau · "
-                    f"{filter_stats.get('rejected_sector', 0)} rejetées secteur."
+                    f"{filter_stats.get('rejected_sector', 0)} rejetées secteur · "
+                    f"{filter_stats.get('rejected_publication_age', 0)} rejetées publication."
                 ),
             }
         )
@@ -3122,7 +3858,13 @@ def run_cv_analysis_pipeline(
             }
         )
 
-    results, partial_matches = build_matching_results(jobs, cv_text, keywords)
+    results, partial_matches = build_matching_results(
+        jobs,
+        cv_text,
+        keywords,
+        cv_profile=criteria,
+        target_job_title=target_title,
+    )
 
     if partial_matches:
         notices.append(
@@ -3134,6 +3876,17 @@ def run_cv_analysis_pipeline(
                 ),
             }
         )
+
+    notices.append(
+        {
+            "level": "info",
+            "text": (
+                f"Matching ATS en parallèle ({parallel_match_summary()}) sur "
+                f"**{min(len(jobs), MATCHING_CANDIDATE_POOL)}** candidats — "
+                f"**{len(results)}** meilleures offres avec score, compétences et modifications CV."
+            ),
+        }
+    )
 
     analysis = {
         "cv_text": cv_text,
@@ -3668,6 +4421,13 @@ def _render_auth_register_form() -> None:
             default=["Informatique"],
             key="register_target_sectors",
         )
+        reg_publication_age = st.radio(
+            "Rechercher les offres publiées depuis :",
+            JOB_MAX_AGE_DAYS_OPTIONS,
+            index=JOB_MAX_AGE_DAYS_OPTIONS.index(7),
+            format_func=lambda days: JOB_MAX_AGE_LABELS[days],
+            help="Seules les offres publiées dans cette période seront recherchées.",
+        )
         if st.form_submit_button("Créer mon compte", use_container_width=True):
             if reg_password != reg_password2:
                 st.error("Les mots de passe ne correspondent pas.")
@@ -3688,6 +4448,7 @@ def _render_auth_register_form() -> None:
                     experience_level=reg_experience,
                     target_sectors=reg_sectors,
                     target_job_title=reg_target_job,
+                    job_max_age_days=reg_publication_age,
                 )
                 if ok:
                     st.success(message)
@@ -3752,6 +4513,19 @@ def render_profile_page(user: dict[str, Any]) -> None:
     col_info, col_password = st.columns(2)
 
     with col_info:
+        with st.container(border=True):
+            st.markdown(
+                '<p class="section-title">Filtre par date de publication</p>',
+                unsafe_allow_html=True,
+            )
+            st.caption(
+                "Choisissez l'ancienneté maximale des offres. "
+                "La recherche d'emploi et l'analyse CV n'incluront que les annonces "
+                "publiées dans cette période."
+            )
+            current_age = normalize_job_max_age_days(profile.get("job_max_age_days"))
+            st.info(f"Filtre actif : **{job_max_age_label(current_age)}**")
+
         with st.container(border=True):
             st.markdown(
                 '<p class="section-title">Informations personnelles</p>',
@@ -3833,10 +4607,24 @@ def render_profile_page(user: dict[str, Any]) -> None:
                     help="Laisser vide pour utiliser les secteurs détectés dans le CV.",
                     key=sectors_key,
                 )
+                st.markdown("**Date de publication des offres**")
+                profile_age_index = (
+                    JOB_MAX_AGE_DAYS_OPTIONS.index(current_age)
+                    if current_age in JOB_MAX_AGE_DAYS_OPTIONS
+                    else JOB_MAX_AGE_DAYS_OPTIONS.index(7)
+                )
+                job_max_age_days = st.radio(
+                    "Rechercher les offres publiées depuis :",
+                    JOB_MAX_AGE_DAYS_OPTIONS,
+                    index=profile_age_index,
+                    format_func=lambda days: JOB_MAX_AGE_LABELS[days],
+                    help="Ce réglage s'applique à toutes vos recherches d'offres.",
+                    horizontal=False,
+                )
                 st.caption(
                     "Seules les offres correspondant à votre **pays**, **régions**, "
-                    "**départements**, **villes**, **contrat**, **niveau** et **secteur(s)** "
-                    "seront proposées."
+                    "**départements**, **villes**, **contrat**, **niveau**, **secteur(s)** "
+                    "et **période de publication** seront proposées."
                 )
                 if st.form_submit_button("Enregistrer le profil", use_container_width=True):
                     cities = profile_cities
@@ -3856,6 +4644,7 @@ def render_profile_page(user: dict[str, Any]) -> None:
                         experience_level,
                         target_sectors,
                         target_job_title,
+                        job_max_age_days,
                     )
                     if ok and updated:
                         st.session_state.user = updated
@@ -3916,10 +4705,11 @@ def render_cv_analysis(job_provider: str, user: dict[str, Any]) -> None:
     active_level = resolve_experience_level(user_profile, {})
     active_sectors = resolve_target_sectors(user_profile, {})
     region_text, dept_text, city_text = format_profile_geo_summary(user_profile)
+    publication_filter = normalize_job_max_age_days(user_profile.get("job_max_age_days"))
 
     with st.container(border=True):
         st.markdown(
-            '<p class="section-title">Étape 2 — Déposer votre CV</p>',
+            '<p class="section-title">Déposer votre CV</p>',
             unsafe_allow_html=True,
         )
         st.markdown(f"**Poste visé :** {target_title}")
@@ -3928,7 +4718,9 @@ def render_cv_analysis(job_provider: str, user: dict[str, Any]) -> None:
             "puis compare votre CV aux résultats filtrés."
         )
         st.caption(
-            f"Filtres actifs : contrat **{user_profile.get('contract_type')}** · "
+            f"Filtres actifs : publication **{job_max_age_label(publication_filter)}** "
+            f"*(modifiable dans Mon profil)* · "
+            f"contrat **{user_profile.get('contract_type')}** · "
             f"pays **{user_profile.get('country', 'France')}** · "
             f"niveau **{EXPERIENCE_LABELS.get(active_level, active_level)}** · "
             f"secteurs **{', '.join(active_sectors) if active_sectors else 'CV'}** · "
@@ -4137,6 +4929,20 @@ def render_app() -> None:
             else:
                 st.error(ai_status)
 
+            parallel_keys = collect_parallel_llm_slots(PARALLEL_MATCH_KEYS_PER_PROVIDER)
+            counts = count_parallel_keys_by_provider()
+            if counts["total"] > 1:
+                st.success(
+                    f"Matching parallèle : **{counts['groq']} Groq** + "
+                    f"**{counts['gemini']} Gemini** "
+                    f"(**{min(PARALLEL_MATCH_MAX_WORKERS, counts['total'])}** offres simultanées max)."
+                )
+            else:
+                st.caption(
+                    "Matching parallèle : configurez **3 clés Groq** + **3 clés Gemini** "
+                    "via `GROQ_API_KEY` + `GROQ_API_KEYS` et `GEMINI_API_KEY` + `GEMINI_API_KEYS`."
+                )
+
             if groq_configured:
                 fmt_ok, fmt_msg = validate_groq_api_key()
                 if fmt_ok:
@@ -4307,8 +5113,8 @@ def render_app() -> None:
     if page == "Mon profil":
         render_page_hero(
             "Mon profil",
-            "Définissez le poste visé, votre zone géographique, votre contrat, "
-            "votre niveau d'expérience et vos secteurs ciblés.",
+            "Définissez le poste visé, la date de publication des offres (24 h, 3, 7 ou 30 jours), "
+            "votre zone géographique, votre contrat et vos secteurs ciblés.",
             badge="Compte",
         )
         render_profile_page(user)
@@ -4316,9 +5122,8 @@ def render_app() -> None:
 
     render_page_hero(
         "Analyse CV",
-        f"Bienvenue {user_name} — vous avez défini un poste visé. "
-        "Déposez votre CV : l'IA recherche les offres correspondantes, "
-        "puis compare votre profil aux annonces filtrées.",
+        f"Bienvenue {user_name} — déposez votre CV : l'IA recherche les offres "
+        f"(filtre publication défini dans Mon profil) puis analyse votre profil en mode ATS.",
         badge="Matching IA",
     )
     render_cv_analysis(job_provider, user)
