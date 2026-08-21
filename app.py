@@ -119,6 +119,7 @@ ANALYSIS_DEPTH_LABELS = {
 }
 ANALYSIS_DEPTH_POOL = {"rapide": 18, "standard": 30, "complet": 45}
 ANALYSIS_DEPTH_TOP = {"rapide": 15, "standard": 30, "complet": 30}
+NAV_PAGES = ("Analyse CV", "Tableau de bord", "Historique", "Mon profil")
 
 # Theme — aligned with the login page (split-screen purple)
 THEME_BG_GRADIENT = "linear-gradient(160deg, #ddd6fe 0%, #c4b5fd 45%, #a78bfa 100%)"
@@ -130,7 +131,7 @@ THEME_SURFACE_SOFT = "#f5f3ff"
 THEME_MUTED = "#64748b"
 THEME_ACCENT = "#6366f1"
 
-APP_VERSION = "3.8.4-pdf-unicode-fix"
+APP_VERSION = "3.9.0-dashboard-history-alerts"
 
 ADZUNA_COUNTRY_CODES = {
     "France": "fr",
@@ -198,6 +199,30 @@ from auth import (
     update_user_profile,
 )
 from database import DatabaseConfigError, configure_database, database_connection_hint, database_status
+from document_generation import generate_adapted_cv, generate_cover_letter
+from email_service import email_configured, maybe_send_analysis_alert
+from persistence import (
+    APPLICATION_STATUSES,
+    APPLICATION_STATUS_LABELS,
+    AUTO_SEARCH_WEEKDAY_LABELS,
+    AUTO_SEARCH_WEEKDAYS,
+    analysis_to_session_dict,
+    dashboard_status_counts,
+    get_active_cv_document,
+    get_analysis,
+    get_notification_settings,
+    is_auto_search_due,
+    list_analyses,
+    list_dashboard_results,
+    log_scheduled_run,
+    mark_alert_sent,
+    mark_auto_search_completed,
+    save_analysis,
+    save_generated_documents,
+    save_notification_settings,
+    update_application_status,
+    upsert_active_cv_document,
+)
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -3451,7 +3476,21 @@ def _render_skill_tags(label: str, items: list[str]) -> None:
     st.write(", ".join(f"`{item}`" for item in items[:15]))
 
 
-def render_job_card(job: dict[str, Any], match: dict[str, Any], rank: int) -> None:
+def render_job_card(
+    job: dict[str, Any],
+    match: dict[str, Any],
+    rank: int,
+    *,
+    result_id: int | None = None,
+    application_status: str = "new",
+    notes: str = "",
+    cover_letter_text: str | None = None,
+    adapted_cv_text: str | None = None,
+    user_id: int | None = None,
+    cv_text: str = "",
+    user_profile: dict[str, Any] | None = None,
+    enable_tracking: bool = False,
+) -> None:
     """Render a single job match card with ATS deep analysis."""
     score = int(match.get("score_correspondance", 0))
     score_color = _score_color(score)
@@ -3460,6 +3499,10 @@ def render_job_card(job: dict[str, Any], match: dict[str, Any], rank: int) -> No
 
     st.markdown('<div class="job-match-card">', unsafe_allow_html=True)
     st.markdown(f"### #{rank} — {job['title']}")
+    if enable_tracking and result_id:
+        st.caption(
+            f"Suivi : **{APPLICATION_STATUS_LABELS.get(application_status, application_status)}**"
+        )
 
     if match.get("synthese_ats"):
         st.caption(match["synthese_ats"])
@@ -3556,10 +3599,401 @@ def render_job_card(job: dict[str, Any], match: dict[str, Any], rank: int) -> No
         st.markdown("**Mots-clés ATS manquants dans le CV :**")
         st.write(", ".join(f"`{kw}`" for kw in missing))
 
-    if job.get("url"):
-        st.link_button("Postuler →", job["url"], use_container_width=False)
+    action_col1, action_col2 = st.columns([1, 1])
+    with action_col1:
+        if job.get("url"):
+            st.link_button("Postuler →", job["url"], use_container_width=True)
+    with action_col2:
+        if enable_tracking and result_id and user_id and cv_text and user_profile:
+            gen_col1, gen_col2 = st.columns(2)
+            with gen_col1:
+                if st.button("Lettre IA", key=f"gen_cover_{result_id}", use_container_width=True):
+                    with st.spinner("Rédaction de la lettre…"):
+                        letter = generate_cover_letter(
+                            cv_text,
+                            job,
+                            match,
+                            user_profile,
+                            llm_call=call_llm,
+                        )
+                        save_generated_documents(
+                            user_id,
+                            result_id,
+                            cover_letter_text=letter,
+                        )
+                        st.session_state[f"cover_{result_id}"] = letter
+                        st.success("Lettre générée.")
+            with gen_col2:
+                if st.button("CV adapté IA", key=f"gen_cv_{result_id}", use_container_width=True):
+                    with st.spinner("Adaptation du CV…"):
+                        adapted = generate_adapted_cv(
+                            cv_text,
+                            job,
+                            match,
+                            user_profile,
+                            llm_call=call_llm,
+                        )
+                        save_generated_documents(
+                            user_id,
+                            result_id,
+                            adapted_cv_text=adapted,
+                        )
+                        st.session_state[f"adapted_{result_id}"] = adapted
+                        st.success("CV adapté généré.")
+
+    letter_text = st.session_state.get(f"cover_{result_id}") or cover_letter_text
+    adapted_text = st.session_state.get(f"adapted_{result_id}") or adapted_cv_text
+    if letter_text:
+        with st.expander("Lettre de motivation générée", expanded=False):
+            st.text_area("Lettre", letter_text, height=220, key=f"view_cover_{result_id}")
+            st.download_button(
+                "Télécharger la lettre (.txt)",
+                letter_text,
+                file_name="lettre_motivation.txt",
+                key=f"dl_cover_{result_id}",
+            )
+    if adapted_text:
+        with st.expander("CV adapté généré", expanded=False):
+            st.text_area("CV adapté", adapted_text, height=280, key=f"view_cv_{result_id}")
+            st.download_button(
+                "Télécharger le CV adapté (.txt)",
+                adapted_text,
+                file_name="cv_adapte.txt",
+                key=f"dl_cv_{result_id}",
+            )
+
+    if enable_tracking and result_id and user_id:
+        st.markdown("---")
+        track_col1, track_col2 = st.columns([1, 2])
+        with track_col1:
+            status_options = list(APPLICATION_STATUSES)
+            current_idx = (
+                status_options.index(application_status)
+                if application_status in status_options
+                else 0
+            )
+            new_status = st.selectbox(
+                "Statut candidature",
+                status_options,
+                index=current_idx,
+                format_func=lambda value: APPLICATION_STATUS_LABELS[value],
+                key=f"track_status_{result_id}",
+            )
+        with track_col2:
+            note_text = st.text_input(
+                "Notes",
+                value=notes,
+                key=f"track_notes_{result_id}",
+            )
+        if st.button("Enregistrer le suivi", key=f"save_track_{result_id}"):
+            if update_application_status(user_id, result_id, new_status, notes=note_text):
+                st.success("Suivi enregistré.")
+                st.rerun()
 
     st.markdown("</div>", unsafe_allow_html=True)
+
+
+def persist_completed_analysis(
+    user: dict[str, Any],
+    analysis: dict[str, Any],
+    cv_fingerprint: str,
+    analysis_depth: str,
+) -> dict[str, Any] | None:
+    """Save analysis to DB, store active CV, optionally send email alert."""
+    try:
+        analysis_id = save_analysis(
+            int(user["id"]),
+            analysis,
+            cv_fingerprint=cv_fingerprint,
+            analysis_depth=analysis_depth,
+        )
+        upsert_active_cv_document(
+            int(user["id"]),
+            cv_fingerprint,
+            analysis.get("cv_text", ""),
+            analysis.get("criteria"),
+        )
+        settings = get_notification_settings(int(user["id"]))
+        if settings.get("email_alerts_enabled"):
+            offers = [
+                {
+                    "score": int(entry["match"].get("score_correspondance", 0)),
+                    "job": entry["job"],
+                }
+                for entry in analysis.get("results", [])
+            ]
+            sent, msg = maybe_send_analysis_alert(
+                user.get("email", ""),
+                user.get("full_name", ""),
+                analysis.get("target_job_title", ""),
+                offers,
+                settings,
+            )
+            if sent:
+                mark_alert_sent(int(user["id"]))
+                st.session_state.analysis_notices.append(
+                    {"level": "success", "text": f"Alerte e-mail envoyée — {msg}"}
+                )
+            elif settings.get("alert_frequency") == "after_search" and not email_configured():
+                st.session_state.analysis_notices.append(
+                    {
+                        "level": "info",
+                        "text": "Alertes e-mail activées — configurez RESEND_API_KEY ou SMTP dans secrets.",
+                    }
+                )
+        stored = get_analysis(int(user["id"]), analysis_id)
+        if stored:
+            session_analysis = analysis_to_session_dict(stored)
+            session_analysis["report_pdf"] = analysis.get("report_pdf")
+            return session_analysis
+    except Exception as exc:  # noqa: BLE001
+        st.session_state.analysis_notices.append(
+            {
+                "level": "warning",
+                "text": f"Sauvegarde historique impossible : {exc}",
+            }
+        )
+    return None
+
+
+def render_history_page(user: dict[str, Any]) -> None:
+    """List past analyses and reload one into the session."""
+    _flush_analysis_notices()
+    rows = list_analyses(int(user["id"]))
+    if not rows:
+        st.info("Aucune analyse enregistrée. Lancez une analyse CV pour commencer.")
+        return
+
+    st.markdown(
+        '<p class="section-title">Historique des analyses</p>',
+        unsafe_allow_html=True,
+    )
+    for row in rows:
+        created = row.get("created_at", "")[:16].replace("T", " ")
+        label = (
+            f"{created} — **{row.get('target_job_title', '—')}** · "
+            f"{row.get('jobs_found', 0)} offre(s) · {row.get('analysis_depth', 'standard')}"
+        )
+        with st.container(border=True):
+            st.markdown(label)
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("Consulter", key=f"load_analysis_{row['id']}"):
+                    stored = get_analysis(int(user["id"]), int(row["id"]))
+                    if stored:
+                        st.session_state.analysis = analysis_to_session_dict(stored)
+                        st.session_state.pdf_fingerprint = row.get("cv_fingerprint")
+                        st.session_state.analysis_notices = [
+                            {
+                                "level": "success",
+                                "text": f"Analyse #{row['id']} chargée.",
+                            }
+                        ]
+                        st.rerun()
+            with c2:
+                st.caption(f"Moteur : {row.get('job_provider', '—')}")
+
+
+def render_dashboard_page(user: dict[str, Any]) -> None:
+    """Dashboard with filters, sort and application tracking."""
+    _flush_analysis_notices()
+    user_id = int(user["id"])
+    counts = dashboard_status_counts(user_id)
+
+    st.markdown(
+        '<p class="section-title">Tableau de bord candidatures</p>',
+        unsafe_allow_html=True,
+    )
+    metric_cols = st.columns(4)
+    metric_cols[0].metric("Total offres", counts.get("all", 0))
+    metric_cols[1].metric("À postuler", counts.get("saved", 0))
+    metric_cols[2].metric("Postulé", counts.get("applied", 0))
+    metric_cols[3].metric("Entretien", counts.get("interview", 0))
+
+    with st.container(border=True):
+        f1, f2, f3, f4 = st.columns(4)
+        with f1:
+            status_filter = st.selectbox(
+                "Statut",
+                ["all", *APPLICATION_STATUSES],
+                format_func=lambda value: "Tous" if value == "all" else APPLICATION_STATUS_LABELS[value],
+                key="dash_status_filter",
+            )
+        with f2:
+            sort_by = st.selectbox(
+                "Tri",
+                ["score_desc", "score_asc", "date_desc", "date_asc"],
+                format_func=lambda value: {
+                    "score_desc": "Score ↓",
+                    "score_asc": "Score ↑",
+                    "date_desc": "Date ↓",
+                    "date_asc": "Date ↑",
+                }[value],
+                key="dash_sort",
+            )
+        with f3:
+            min_score = st.slider("Score min.", 0, 100, 0, key="dash_min_score")
+        with f4:
+            company_query = st.text_input("Entreprise", key="dash_company")
+
+    entries = list_dashboard_results(
+        user_id,
+        status_filter=None if status_filter == "all" else status_filter,
+        min_score=min_score,
+        company_query=company_query,
+        sort_by=sort_by,
+    )
+    if not entries:
+        st.info("Aucune offre ne correspond aux filtres.")
+        return
+
+    st.caption(f"{len(entries)} offre(s) affichée(s).")
+    user_profile = get_user_by_id(user_id) or user
+    cv_cache: dict[int, str] = {}
+    for idx, entry in enumerate(entries, start=1):
+        analysis_id = int(entry["analysis_id"])
+        if analysis_id not in cv_cache:
+            stored = get_analysis(user_id, analysis_id)
+            cv_cache[analysis_id] = stored.get("cv_text", "") if stored else ""
+        render_job_card(
+            entry["job"],
+            entry["match"],
+            idx,
+            result_id=entry["result_id"],
+            application_status=entry.get("application_status", "new"),
+            notes=entry.get("notes", ""),
+            cover_letter_text=entry.get("cover_letter_text"),
+            adapted_cv_text=entry.get("adapted_cv_text"),
+            user_id=user_id,
+            cv_text=cv_cache[analysis_id],
+            user_profile=user_profile,
+            enable_tracking=True,
+        )
+
+
+def render_notification_settings(user: dict[str, Any], job_provider: str) -> None:
+    """Alert email and scheduled search preferences."""
+    settings = get_notification_settings(int(user["id"]))
+    with st.container(border=True):
+        st.markdown(
+            '<p class="section-title">Alertes e-mail & recherche automatique</p>',
+            unsafe_allow_html=True,
+        )
+        if not email_configured():
+            st.caption(
+                "Configurez `RESEND_API_KEY` + `EMAIL_FROM`, ou `SMTP_HOST` / `SMTP_USER` "
+                "dans secrets pour activer les alertes."
+            )
+        with st.form(f"notification_settings_{user['id']}"):
+            email_alerts = st.checkbox(
+                "Recevoir un e-mail quand de nouvelles offres correspondent",
+                value=bool(settings.get("email_alerts_enabled")),
+            )
+            alert_min_score = st.slider(
+                "Score minimum pour l'alerte",
+                50,
+                95,
+                int(settings.get("alert_min_score", 70)),
+            )
+            auto_search = st.checkbox(
+                "Recherche automatique planifiée (nécessite un CV enregistré)",
+                value=bool(settings.get("auto_search_enabled")),
+            )
+            weekday = st.selectbox(
+                "Jour",
+                AUTO_SEARCH_WEEKDAYS,
+                index=AUTO_SEARCH_WEEKDAYS.index(settings.get("auto_search_weekday", "daily"))
+                if settings.get("auto_search_weekday") in AUTO_SEARCH_WEEKDAYS
+                else 0,
+                format_func=lambda value: AUTO_SEARCH_WEEKDAY_LABELS[value],
+            )
+            hour = st.selectbox(
+                "Heure (UTC)",
+                list(range(24)),
+                index=int(settings.get("auto_search_hour", 8)),
+            )
+            auto_depth = st.selectbox(
+                "Profondeur recherche auto",
+                ANALYSIS_DEPTH_OPTIONS,
+                index=ANALYSIS_DEPTH_OPTIONS.index(settings.get("auto_search_depth", "standard"))
+                if settings.get("auto_search_depth") in ANALYSIS_DEPTH_OPTIONS
+                else 1,
+                format_func=lambda key: ANALYSIS_DEPTH_LABELS[key],
+            )
+            if st.form_submit_button("Enregistrer alertes & planning", use_container_width=True):
+                save_notification_settings(
+                    int(user["id"]),
+                    {
+                        "email_alerts_enabled": email_alerts,
+                        "alert_min_score": alert_min_score,
+                        "alert_frequency": "after_search",
+                        "auto_search_enabled": auto_search,
+                        "auto_search_weekday": weekday,
+                        "auto_search_hour": hour,
+                        "auto_search_provider": job_provider,
+                        "auto_search_depth": auto_depth,
+                    },
+                )
+                st.success("Préférences enregistrées.")
+                st.rerun()
+
+
+def run_auto_search_for_user(user: dict[str, Any], job_provider: str) -> None:
+    """Execute scheduled search using the last active CV."""
+    user_id = int(user["id"])
+    settings = get_notification_settings(user_id)
+    cv_doc = get_active_cv_document(user_id)
+    if not cv_doc:
+        st.error("Aucun CV enregistré — lancez d'abord une analyse manuelle.")
+        return
+
+    user_profile = get_user_by_id(user_id) or user
+    depth_key = settings.get("auto_search_depth", "standard")
+    if depth_key not in ANALYSIS_DEPTH_POOL:
+        depth_key = "standard"
+    provider = settings.get("auto_search_provider") or job_provider
+
+    log_scheduled_run(user_id, "running", trigger_source="app")
+    with st.spinner("Recherche automatique en cours…"):
+        analysis, notices = run_cv_analysis_pipeline(
+            None,
+            provider,
+            user_profile,
+            matching_pool=ANALYSIS_DEPTH_POOL[depth_key],
+            matching_top=ANALYSIS_DEPTH_TOP[depth_key],
+            cv_text_override=cv_doc["extracted_text"],
+            extraction_method_override="native",
+        )
+    st.session_state.analysis_notices = notices
+    if not analysis:
+        log_scheduled_run(user_id, "failed", error_message="Pipeline vide", trigger_source="app")
+        return
+
+    fingerprint = cv_doc["fingerprint"]
+    saved = persist_completed_analysis(user, analysis, fingerprint, depth_key)
+    if saved:
+        st.session_state.analysis = saved
+        st.session_state.pdf_fingerprint = fingerprint
+    else:
+        st.session_state.analysis = analysis
+        st.session_state.pdf_fingerprint = fingerprint
+
+    mark_auto_search_completed(
+        user_id,
+        settings.get("auto_search_weekday", "daily"),
+        int(settings.get("auto_search_hour", 8)),
+    )
+    log_scheduled_run(
+        user_id,
+        "success",
+        analysis_id=analysis.get("analysis_id"),
+        trigger_source="app",
+    )
+    st.session_state.analysis_notices.append(
+        {"level": "success", "text": "Recherche automatique terminée."}
+    )
+    st.rerun()
+
 
 
 def render_cv_profile_summary(criteria: dict[str, Any], user_profile: dict[str, Any]) -> None:
@@ -3657,6 +4091,13 @@ def render_analysis_results(analysis: dict[str, Any]) -> None:
 
     method_label = "Texte natif PDF" if extraction_method == "native" else "OCR Gemini Vision"
     st.caption(f"Extraction CV : **{method_label}**")
+    if analysis.get("analysis_id"):
+        saved_label = analysis.get("saved_at", "")[:16].replace("T", " ")
+        st.caption(
+            f"Analyse enregistrée (#{analysis['analysis_id']}"
+            f"{f' — {saved_label}' if saved_label else ''}). "
+            "Consultable dans **Historique** et **Tableau de bord**."
+        )
 
     with st.expander("Texte extrait du CV", expanded=False):
         cv_preview = analysis["cv_text"]
@@ -3717,8 +4158,66 @@ def render_analysis_results(analysis: dict[str, Any]) -> None:
         f'<p class="section-title">Top {result_count} — Analyse ATS & optimisations CV</p>',
         unsafe_allow_html=True,
     )
-    for idx, entry in enumerate(analysis["results"], start=1):
-        render_job_card(entry["job"], entry["match"], idx)
+    sort_col, filter_col = st.columns(2)
+    with sort_col:
+        results_sort = st.selectbox(
+            "Trier par",
+            ["score_desc", "score_asc", "published_desc"],
+            format_func=lambda value: {
+                "score_desc": "Score ↓",
+                "score_asc": "Score ↑",
+                "published_desc": "Publication récente",
+            }[value],
+            key="analysis_results_sort",
+        )
+    with filter_col:
+        min_result_score = st.slider(
+            "Score minimum affiché",
+            0,
+            100,
+            0,
+            key="analysis_results_min_score",
+        )
+
+    displayed_results = []
+    for entry in analysis.get("results", []):
+        score = int(entry.get("match", {}).get("score_correspondance", 0))
+        if score >= min_result_score:
+            displayed_results.append(entry)
+
+    if results_sort == "score_asc":
+        displayed_results.sort(
+            key=lambda item: int(item.get("match", {}).get("score_correspondance", 0))
+        )
+    elif results_sort == "published_desc":
+        displayed_results.sort(
+            key=lambda item: str(item.get("job", {}).get("published_at") or ""),
+            reverse=True,
+        )
+    else:
+        displayed_results.sort(
+            key=lambda item: int(item.get("match", {}).get("score_correspondance", 0)),
+            reverse=True,
+        )
+
+    session_user = st.session_state.get("user") or {}
+    user_id = session_user.get("id")
+    cv_text = analysis.get("cv_text", "")
+    for idx, entry in enumerate(displayed_results, start=1):
+        render_job_card(
+            entry["job"],
+            entry["match"],
+            idx,
+            result_id=entry.get("result_id"),
+            application_status=entry.get("application_status", "new"),
+            notes=entry.get("notes", ""),
+            cover_letter_text=entry.get("cover_letter_text"),
+            adapted_cv_text=entry.get("adapted_cv_text"),
+            user_id=int(user_id) if user_id else None,
+            cv_text=cv_text,
+            user_profile=user_profile,
+            enable_tracking=bool(entry.get("result_id") and user_id),
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -3769,12 +4268,14 @@ def _flush_analysis_notices() -> None:
 
 
 def run_cv_analysis_pipeline(
-    pdf_bytes: bytes,
+    pdf_bytes: bytes | None,
     job_provider: str,
     user_profile: dict[str, Any],
     *,
     matching_pool: int | None = None,
     matching_top: int | None = None,
+    cv_text_override: str | None = None,
+    extraction_method_override: str = "native",
 ) -> tuple[dict[str, Any] | None, list[dict[str, str]]]:
     """Run the CV analysis pipeline without mutating the Streamlit DOM."""
     notices: list[dict[str, str]] = []
@@ -3791,11 +4292,24 @@ def run_cv_analysis_pipeline(
         )
         return None, notices
 
+    if not cv_text_override and not pdf_bytes:
+        notices.append(
+            {
+                "level": "warning",
+                "text": "CV manquant — déposez un PDF ou enregistrez un CV actif pour la recherche automatique.",
+            }
+        )
+        return None, notices
+
     with ThreadPoolExecutor(max_workers=2) as executor:
         plan_future = executor.submit(cached_build_job_search_plan, target_title)
-        cv_future = executor.submit(extract_cv_text, pdf_bytes)
-        search_plan = plan_future.result()
-        cv_text, method = cv_future.result()
+        if cv_text_override:
+            search_plan = plan_future.result()
+            cv_text, method = cv_text_override, extraction_method_override
+        else:
+            cv_future = executor.submit(extract_cv_text, pdf_bytes or b"")
+            search_plan = plan_future.result()
+            cv_text, method = cv_future.result()
 
     query = search_plan.get("query_recherche") or target_title
     metier = search_plan.get("metier") or target_title
@@ -4805,6 +5319,13 @@ def render_cv_analysis(
     depth_pool = ANALYSIS_DEPTH_POOL[depth_key]
     depth_top = ANALYSIS_DEPTH_TOP[depth_key]
 
+    notify_settings = get_notification_settings(int(user["id"]))
+    if is_auto_search_due(notify_settings) and notify_settings.get("auto_search_enabled"):
+        st.info("Une recherche automatique est due pour votre profil.")
+        if st.button("Lancer la recherche automatique maintenant", key="run_auto_search_now"):
+            run_auto_search_for_user(user, job_provider)
+            return
+
     with st.container(border=True):
         st.markdown(
             '<p class="section-title">Déposer votre CV</p>',
@@ -4878,7 +5399,13 @@ def render_cv_analysis(
                         )
                     st.session_state.analysis_notices = notices
                     if analysis:
-                        st.session_state.analysis = analysis
+                        saved = persist_completed_analysis(
+                            user,
+                            analysis,
+                            current_fp or "",
+                            depth_key,
+                        )
+                        st.session_state.analysis = saved or analysis
                         st.session_state.pdf_fingerprint = current_fp
                     else:
                         st.session_state.analysis = None
@@ -4965,7 +5492,7 @@ def render_app() -> None:
 
         page = st.radio(
             "Navigation",
-            ["Analyse CV", "Mon profil"],
+            list(NAV_PAGES),
             label_visibility="collapsed",
             key="main_navigation",
         )
@@ -5237,6 +5764,25 @@ def render_app() -> None:
             badge="Compte",
         )
         render_profile_page(user)
+        render_notification_settings(user, job_provider)
+        return
+
+    if page == "Historique":
+        render_page_hero(
+            "Historique",
+            "Consultez vos analyses passées et rechargez un rapport complet.",
+            badge="Archives",
+        )
+        render_history_page(user)
+        return
+
+    if page == "Tableau de bord":
+        render_page_hero(
+            "Tableau de bord",
+            "Suivez vos candidatures, filtrez par statut et générez lettres / CV adaptés.",
+            badge="Suivi",
+        )
+        render_dashboard_page(user)
         return
 
     render_page_hero(

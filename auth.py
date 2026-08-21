@@ -229,6 +229,9 @@ def init_db() -> None:
     with _connect() as conn:
         _create_users_table(conn)
         _migrate_users(conn)
+    from persistence import init_persistence_tables
+
+    init_persistence_tables()
     _db_initialized_for = _DB_SCHEMA_KEY
 
 
