@@ -131,7 +131,7 @@ THEME_SURFACE_SOFT = "#f5f3ff"
 THEME_MUTED = "#64748b"
 THEME_ACCENT = "#6366f1"
 
-APP_VERSION = "3.9.0-dashboard-history-alerts"
+APP_VERSION = "3.9.1-adapted-cv-modifications"
 
 ADZUNA_COUNTRY_CODES = {
     "France": "fr",
@@ -1800,7 +1800,7 @@ def _append_llm_switch_notice(from_provider: str, to_provider: str, reason: str)
     )
 
 
-def call_llm(system_prompt: str, user_prompt: str) -> str:
+def call_llm(system_prompt: str, user_prompt: str, *, max_tokens: int = 1200) -> str:
     """Auto-select Groq, Gemini or OpenAI — no manual preference required."""
     chain = get_llm_provider_chain()
     if not chain:
@@ -1811,7 +1811,12 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
     errors: list[str] = []
     for idx, provider in enumerate(chain):
         try:
-            result = _call_llm_backend(provider, system_prompt, user_prompt)
+            result = _call_llm_backend(
+                provider,
+                system_prompt,
+                user_prompt,
+                max_tokens=max_tokens,
+            )
             st.session_state.llm_backend_active = provider
             return result
         except GroqRateLimitError as exc:
@@ -3624,7 +3629,12 @@ def render_job_card(
                         st.session_state[f"cover_{result_id}"] = letter
                         st.success("Lettre générée.")
             with gen_col2:
-                if st.button("CV adapté IA", key=f"gen_cv_{result_id}", use_container_width=True):
+                if st.button(
+                    "CV adapté IA",
+                    key=f"gen_cv_{result_id}",
+                    use_container_width=True,
+                    help="Réécrit un CV complet en appliquant les modifications ATS de cette offre.",
+                ):
                     with st.spinner("Adaptation du CV…"):
                         adapted = generate_adapted_cv(
                             cv_text,
@@ -3653,7 +3663,7 @@ def render_job_card(
                 key=f"dl_cover_{result_id}",
             )
     if adapted_text:
-        with st.expander("CV adapté généré", expanded=False):
+        with st.expander("CV adapté généré (réécriture selon modifications ATS)", expanded=False):
             st.text_area("CV adapté", adapted_text, height=280, key=f"view_cv_{result_id}")
             st.download_button(
                 "Télécharger le CV adapté (.txt)",

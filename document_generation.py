@@ -19,15 +19,47 @@ Retourne UNIQUEMENT le texte de la lettre (pas de JSON, pas de markdown).
 """
 
 ADAPTED_CV_SYSTEM_PROMPT = """
-Tu es un expert ATS et recrutement. Adapte le CV du candidat pour maximiser la correspondance
-avec l'offre d'emploi ciblée, en français.
+Tu es un expert ATS et rédacteur de CV francophone.
 
-Règles :
-- Conserve les faits réels du CV (ne pas inventer)
-- Réorganise et reformule pour mettre en avant les compétences et expériences pertinentes pour l'offre
-- Intègre naturellement les mots-clés manquants identifiés quand le candidat les possède réellement
-- Format texte structuré : Titre CV, Profil (3 lignes), Compétences clés, Expériences (poste — entreprise — missions), Formation
-- Longueur : équivalent 1 à 2 pages A4
+Ta mission : produire un NOUVEAU CV complet, réécrit de zéro pour l'offre ciblée,
+en t'appuyant sur le CV original du candidat et en appliquant OBLIGATOIREMENT
+chaque point de la liste « Modifications ATS à appliquer ».
+
+Règles strictes :
+1. Chaque modification ATS listée doit être visible dans le CV final (reformulation, section, mot-clé, ordre).
+2. Utilise exactement le « Titre CV recommandé » fourni en en-tête du document.
+3. Priorise les expériences et compétences marquées « présentes » ou « partielles » dans l'analyse ATS.
+4. Intègre les « mots-clés manquants » UNIQUEMENT si le candidat les possède réellement dans son parcours
+   (sinon ne pas inventer — reformule plutôt ce qui existe déjà).
+5. Reformule les missions des expériences pertinentes avec le vocabulaire de l'offre (sans mentir).
+6. Ne invente JAMAIS de diplôme, entreprise, date, certification ou compétence absente du CV original.
+7. C'est une réécriture complète (nouvelle structure, nouvelles formulations), pas un copier-coller du CV actuel.
+
+Structure obligatoire :
+---
+[TITRE CV RECOMMANDÉ]
+[Nom · coordonnées si présentes dans le CV original]
+
+PROFIL PROFESSIONNEL
+(3-5 lignes percutantes alignées sur l'offre)
+
+COMPÉTENCES CLÉS
+• compétences techniques et transversales (mots-clés ATS de l'offre quand le candidat les a)
+
+EXPÉRIENCES PROFESSIONNELLES
+POSTE — ENTREPRISE | période
+• missions reformulées pour l'offre (expériences les plus pertinentes en premier)
+
+FORMATION & CERTIFICATIONS
+
+LANGUES & OUTILS (si pertinent)
+---
+
+En fin de document, ajoute :
+---
+MODIFICATIONS APPLIQUÉES
+(pour CHAQUE modification ATS demandée, une ligne numérotée expliquant comment tu l'as intégrée)
+---
 
 Retourne UNIQUEMENT le texte du CV adapté (pas de JSON, pas de markdown).
 """
@@ -35,12 +67,72 @@ Retourne UNIQUEMENT le texte du CV adapté (pas de JSON, pas de markdown).
 
 def _job_block(job: dict[str, Any]) -> str:
     return (
-        f"Titre : {job.get('title', '')}\n"
+        f"Titre offre : {job.get('title', '')}\n"
         f"Entreprise : {job.get('company', '')}\n"
         f"Lieu : {job.get('location', '')}\n"
         f"Contrat : {job.get('contract_type', '')}\n"
-        f"Description :\n{str(job.get('description', ''))[:4000]}"
+        f"Description :\n{str(job.get('description', ''))[:4500]}"
     )
+
+
+def _skills_list(items: Any) -> str:
+    if not isinstance(items, list):
+        return "—"
+    cleaned = [str(item).strip() for item in items if str(item).strip()]
+    return ", ".join(cleaned) if cleaned else "—"
+
+
+def _match_analysis_block(match: dict[str, Any]) -> str:
+    """Format ATS analysis for adapted CV generation."""
+    skills = match.get("analyse_competences") or {}
+    exp = match.get("analyse_experiences") or {}
+    modifications = match.get("modifications_cv") or match.get("conseils") or []
+
+    lines = [
+        f"Titre CV recommandé : {match.get('titre_cv_recommande', '—')}",
+        f"Score ATS global : {match.get('score_correspondance', '—')}%",
+        f"Synthèse : {match.get('synthese_ats', '—')}",
+        "",
+        "Compétences présentes dans le CV : " + _skills_list(skills.get("presentes")),
+        "Compétences partielles : " + _skills_list(skills.get("partielles")),
+        "Compétences manquantes : " + _skills_list(skills.get("manquantes")),
+        "Technos / outils offre : " + _skills_list(skills.get("offre_technos")),
+        "Mots-clés ATS manquants dans le CV : " + _skills_list(match.get("mots_cles_manquants")),
+        "",
+        f"Niveau offre : {exp.get('niveau_offre', '—')} · Niveau CV : {exp.get('niveau_cv', '—')} · "
+        f"Alignement : {exp.get('alignement_niveau', '—')}",
+    ]
+
+    exp_lines: list[str] = []
+    for item in exp.get("experiences_pertinentes") or []:
+        if not isinstance(item, dict):
+            continue
+        header = " — ".join(
+            part for part in (item.get("poste"), item.get("duree"), item.get("secteur")) if part
+        )
+        if header:
+            exp_lines.append(f"  • {header}")
+            if item.get("missions_liees"):
+                exp_lines.append(f"    Missions liées : {item['missions_liees']}")
+    if exp_lines:
+        lines.append("")
+        lines.append("Expériences pertinentes pour cette offre :")
+        lines.extend(exp_lines)
+
+    ecarts = exp.get("ecarts") or []
+    if ecarts:
+        lines.append("")
+        lines.append("Écarts identifiés : " + "; ".join(str(e) for e in ecarts[:5]))
+
+    lines.append("")
+    lines.append("Modifications ATS à appliquer (OBLIGATOIRE — une par une dans le CV réécrit) :")
+    for idx, mod in enumerate(modifications[:10], start=1):
+        lines.append(f"  {idx}. {mod}")
+
+    if not modifications:
+        lines.append("  (Aucune — adapte quand même titre, profil et mots-clés de l'offre.)")
+
+    return "\n".join(lines)
 
 
 def _candidate_block(
@@ -50,14 +142,13 @@ def _candidate_block(
 ) -> str:
     name = user_profile.get("full_name", "")
     target = user_profile.get("target_job_title", "")
-    missing = ", ".join(match.get("mots_cles_manquants") or [])
-    synthesis = match.get("synthese_ats", "")
     return (
         f"Nom candidat : {name}\n"
-        f"Poste visé : {target}\n"
-        f"Synthèse ATS : {synthesis}\n"
-        f"Mots-clés à valoriser si présents : {missing}\n\n"
-        f"CV original :\n{cv_text[:10000]}"
+        f"Poste visé (profil) : {target}\n\n"
+        f"=== ANALYSE ATS POUR CETTE OFFRE ===\n"
+        f"{_match_analysis_block(match)}\n\n"
+        f"=== CV ORIGINAL (source de vérité — ne pas inventer au-delà) ===\n"
+        f"{cv_text[:12000]}"
     )
 
 
@@ -67,12 +158,12 @@ def generate_cover_letter(
     match: dict[str, Any],
     user_profile: dict[str, Any],
     *,
-    llm_call: Callable[[str, str], str],
+    llm_call: Callable[..., str],
 ) -> str:
     """Generate a tailored cover letter."""
     user_prompt = (
         f"{_candidate_block(cv_text, match, user_profile)}\n\n"
-        f"Offre ciblée :\n{_job_block(job)}\n\n"
+        f"=== OFFRE CIBLÉE ===\n{_job_block(job)}\n\n"
         "Rédige la lettre de motivation."
     )
     return llm_call(COVER_LETTER_SYSTEM_PROMPT, user_prompt).strip()
@@ -84,15 +175,18 @@ def generate_adapted_cv(
     match: dict[str, Any],
     user_profile: dict[str, Any],
     *,
-    llm_call: Callable[[str, str], str],
+    llm_call: Callable[..., str],
 ) -> str:
-    """Generate an ATS-optimized CV variant for one offer."""
-    modifications = match.get("modifications_cv") or match.get("conseils") or []
-    mods_text = "\n".join(f"- {m}" for m in modifications[:8])
+    """Rewrite the CV for one offer, applying every ATS modification from the match analysis."""
     user_prompt = (
         f"{_candidate_block(cv_text, match, user_profile)}\n\n"
-        f"Offre ciblée :\n{_job_block(job)}\n\n"
-        f"Modifications ATS recommandées :\n{mods_text}\n\n"
-        "Produis le CV adapté complet."
+        f"=== OFFRE CIBLÉE ===\n{_job_block(job)}\n\n"
+        "Réécris un CV complet et nouveau pour cette offre. "
+        "Applique TOUTES les modifications ATS listées ci-dessus. "
+        "Termine par la section MODIFICATIONS APPLIQUÉES."
     )
-    return llm_call(ADAPTED_CV_SYSTEM_PROMPT, user_prompt).strip()
+    return llm_call(
+        ADAPTED_CV_SYSTEM_PROMPT,
+        user_prompt,
+        max_tokens=4800,
+    ).strip()
