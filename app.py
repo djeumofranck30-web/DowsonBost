@@ -17,7 +17,7 @@ import time
 import unicodedata
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
-from typing import Any
+from typing import Any, Callable
 
 import fitz  # pymupdf
 import pdfplumber
@@ -131,7 +131,7 @@ THEME_SURFACE_SOFT = "#f5f3ff"
 THEME_MUTED = "#64748b"
 THEME_ACCENT = "#6366f1"
 
-APP_VERSION = "3.9.3-profile-ui-redesign"
+APP_VERSION = "3.9.5-dashboard-by-analysis"
 
 ADZUNA_COUNTRY_CODES = {
     "France": "fr",
@@ -2979,6 +2979,14 @@ def rank_jobs_for_cv(
     return sorted(jobs, key=quick_score, reverse=True)[:top_n]
 
 
+ProgressReporter = Callable[[int, str], None]
+
+
+def _report_progress(progress: ProgressReporter | None, percent: int, label: str) -> None:
+    if progress:
+        progress(max(0, min(100, percent)), label)
+
+
 def build_matching_results(
     jobs: list[dict[str, Any]],
     cv_text: str,
@@ -2988,6 +2996,7 @@ def build_matching_results(
     pool_size: int | None = None,
     cv_profile: dict[str, Any] | None = None,
     target_job_title: str = "",
+    progress: ProgressReporter | None = None,
 ) -> tuple[list[dict[str, Any]], int]:
     """AI-match job candidates and return the best offers by correspondence score."""
     candidate_limit = min(len(jobs), pool_size or MATCHING_CANDIDATE_POOL)
@@ -3004,8 +3013,28 @@ def build_matching_results(
     worker_count = min(PARALLEL_MATCH_MAX_WORKERS, max(1, len(key_slots)))
     use_parallel = worker_count > 1 and len(candidates) > 1
 
+    _report_progress(
+        progress,
+        60,
+        f"Matching ATS — analyse de {len(candidates)} offre(s)…",
+    )
+
     results: list[dict[str, Any]] = []
     partial_matches = 0
+    match_start = 60
+    match_end = 95
+    total_candidates = len(candidates)
+
+    def _report_match_progress(done: int) -> None:
+        if total_candidates <= 0:
+            return
+        span = match_end - match_start
+        pct = match_start + int(span * done / total_candidates)
+        _report_progress(
+            progress,
+            pct,
+            f"Matching IA — {done}/{total_candidates} offre(s) analysée(s)",
+        )
 
     def _match_one(index: int, job: dict[str, Any]) -> tuple[int, dict[str, Any], dict[str, Any]]:
         provider, api_key = key_slots[index % len(key_slots)]
@@ -3024,6 +3053,7 @@ def build_matching_results(
 
     if use_parallel:
         ordered: list[tuple[int, dict[str, Any], dict[str, Any]] | None] = [None] * len(candidates)
+        completed = 0
         with ThreadPoolExecutor(max_workers=worker_count) as executor:
             futures = [
                 executor.submit(_match_one, index, job)
@@ -3032,6 +3062,8 @@ def build_matching_results(
             for future in as_completed(futures):
                 index, job, match = future.result()
                 ordered[index] = (index, job, match)
+                completed += 1
+                _report_match_progress(completed)
         for item in ordered:
             if item is None:
                 continue
@@ -3065,7 +3097,9 @@ def build_matching_results(
             if match.get("_fallback"):
                 partial_matches += 1
             results.append({"job": job, "match": match})
+            _report_match_progress(index + 1)
 
+    _report_progress(progress, match_end, "Classement des meilleures offres…")
     results.sort(
         key=lambda entry: int(entry["match"].get("score_correspondance", 0)),
         reverse=True,
@@ -3906,6 +3940,7 @@ def render_history_page(user: dict[str, Any]) -> None:
                     if stored:
                         st.session_state.analysis = analysis_to_session_dict(stored)
                         st.session_state.pdf_fingerprint = row.get("cv_fingerprint")
+                        st.session_state.dashboard_analysis_select = int(row["id"])
                         st.session_state.analysis_notices = [
                             {
                                 "level": "success",
@@ -3917,16 +3952,58 @@ def render_history_page(user: dict[str, Any]) -> None:
                 st.caption(f"Moteur : {row.get('job_provider', '—')}")
 
 
+def _analysis_dashboard_label(row: dict[str, Any]) -> str:
+    created = str(row.get("created_at", ""))[:16].replace("T", " ")
+    return (
+        f"{created} — {row.get('target_job_title', '—')} · "
+        f"{row.get('jobs_found', 0)} offre(s) · {row.get('analysis_depth', 'standard')}"
+    )
+
+
 def render_dashboard_page(user: dict[str, Any]) -> None:
-    """Dashboard with filters, sort and application tracking."""
+    """Dashboard scoped to a selected analysis with filters and tracking."""
     _flush_analysis_notices()
     user_id = int(user["id"])
-    counts = dashboard_status_counts(user_id)
+    analyses = list_analyses(user_id)
+    if not analyses:
+        st.info("Aucune analyse enregistrée. Lancez une analyse CV pour commencer.")
+        return
+
+    analysis_by_id = {int(row["id"]): row for row in analyses}
+    analysis_ids = list(analysis_by_id.keys())
+
+    if "dashboard_analysis_select" not in st.session_state:
+        session_analysis = st.session_state.get("analysis") or {}
+        session_id = session_analysis.get("analysis_id")
+        if session_id in analysis_by_id:
+            st.session_state.dashboard_analysis_select = int(session_id)
+        else:
+            st.session_state.dashboard_analysis_select = analysis_ids[0]
+    elif st.session_state.dashboard_analysis_select not in analysis_by_id:
+        st.session_state.dashboard_analysis_select = analysis_ids[0]
 
     st.markdown(
         '<p class="section-title">Tableau de bord candidatures</p>',
         unsafe_allow_html=True,
     )
+
+    with st.container(border=True):
+        selected_id = st.selectbox(
+            "Analyse",
+            options=analysis_ids,
+            format_func=lambda aid: _analysis_dashboard_label(analysis_by_id[aid]),
+            key="dashboard_analysis_select",
+        )
+        selected_meta = analysis_by_id[selected_id]
+        created = str(selected_meta.get("created_at", ""))[:16].replace("T", " ")
+        st.caption(
+            f"Analyse **#{selected_id}** · {created} · "
+            f"Moteur **{selected_meta.get('job_provider', '—')}** · "
+            f"{selected_meta.get('jobs_raw', 0)} offre(s) brutes → "
+            f"**{selected_meta.get('jobs_found', 0)}** retenue(s)"
+        )
+
+    counts = dashboard_status_counts(user_id, analysis_id=selected_id)
     metric_cols = st.columns(4)
     metric_cols[0].metric("Total offres", counts.get("all", 0))
     metric_cols[1].metric("À postuler", counts.get("saved", 0))
@@ -3961,23 +4038,24 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
 
     entries = list_dashboard_results(
         user_id,
+        analysis_id=selected_id,
         status_filter=None if status_filter == "all" else status_filter,
         min_score=min_score,
         company_query=company_query,
         sort_by=sort_by,
     )
     if not entries:
-        st.info("Aucune offre ne correspond aux filtres.")
+        st.info("Aucune offre ne correspond aux filtres pour cette analyse.")
         return
 
-    st.caption(f"{len(entries)} offre(s) affichée(s).")
+    st.caption(f"{len(entries)} offre(s) affichée(s) pour l'analyse #{selected_id}.")
     user_profile = get_user_by_id(user_id) or user
-    cv_cache: dict[int, str] = {}
+    stored_analysis = get_analysis(user_id, selected_id)
+    cv_text = stored_analysis.get("cv_text", "") if stored_analysis else ""
+    profile_snapshot = (
+        stored_analysis.get("user_profile") if stored_analysis else None
+    ) or user_profile
     for idx, entry in enumerate(entries, start=1):
-        analysis_id = int(entry["analysis_id"])
-        if analysis_id not in cv_cache:
-            stored = get_analysis(user_id, analysis_id)
-            cv_cache[analysis_id] = stored.get("cv_text", "") if stored else ""
         render_job_card(
             entry["job"],
             entry["match"],
@@ -3988,8 +4066,8 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
             cover_letter_text=entry.get("cover_letter_text"),
             adapted_cv_text=entry.get("adapted_cv_text"),
             user_id=user_id,
-            cv_text=cv_cache[analysis_id],
-            user_profile=user_profile,
+            cv_text=cv_text,
+            user_profile=profile_snapshot,
             enable_tracking=True,
         )
 
@@ -4087,16 +4165,26 @@ def run_auto_search_for_user(user: dict[str, Any], job_provider: str) -> None:
     provider = settings.get("auto_search_provider") or job_provider
 
     log_scheduled_run(user_id, "running", trigger_source="app")
-    with st.spinner("Recherche automatique en cours…"):
-        analysis, notices = run_cv_analysis_pipeline(
-            None,
-            provider,
-            user_profile,
-            matching_pool=ANALYSIS_DEPTH_POOL[depth_key],
-            matching_top=ANALYSIS_DEPTH_TOP[depth_key],
-            cv_text_override=cv_doc["extracted_text"],
-            extraction_method_override="native",
-        )
+    progress_slot = st.empty()
+
+    def _update_auto_progress(percent: int, label: str) -> None:
+        progress_slot.progress(percent / 100.0, text=f"{percent}% — {label}")
+
+    _update_auto_progress(0, "Démarrage…")
+    analysis, notices = run_cv_analysis_pipeline(
+        None,
+        provider,
+        user_profile,
+        matching_pool=ANALYSIS_DEPTH_POOL[depth_key],
+        matching_top=ANALYSIS_DEPTH_TOP[depth_key],
+        cv_text_override=cv_doc["extracted_text"],
+        extraction_method_override="native",
+        progress=_update_auto_progress,
+    )
+    if analysis:
+        _update_auto_progress(100, "Recherche automatique terminée")
+    else:
+        progress_slot.empty()
     st.session_state.analysis_notices = notices
     if not analysis:
         log_scheduled_run(user_id, "failed", error_message="Pipeline vide", trigger_source="app")
@@ -4409,11 +4497,14 @@ def run_cv_analysis_pipeline(
     matching_top: int | None = None,
     cv_text_override: str | None = None,
     extraction_method_override: str = "native",
+    progress: ProgressReporter | None = None,
 ) -> tuple[dict[str, Any] | None, list[dict[str, str]]]:
     """Run the CV analysis pipeline without mutating the Streamlit DOM."""
     notices: list[dict[str, str]] = []
     pool_size = matching_pool or MATCHING_CANDIDATE_POOL
     top_n = matching_top or TOP_MATCHING_JOBS
+
+    _report_progress(progress, 2, "Initialisation de l'analyse…")
 
     target_title = str(user_profile.get("target_job_title", "")).strip()
     if not target_title:
@@ -4434,6 +4525,8 @@ def run_cv_analysis_pipeline(
         )
         return None, notices
 
+    _report_progress(progress, 8, "Extraction du CV et plan de recherche IA…")
+
     with ThreadPoolExecutor(max_workers=2) as executor:
         plan_future = executor.submit(cached_build_job_search_plan, target_title)
         if cv_text_override:
@@ -4443,6 +4536,8 @@ def run_cv_analysis_pipeline(
             cv_future = executor.submit(extract_cv_text, pdf_bytes or b"")
             search_plan = plan_future.result()
             cv_text, method = cv_future.result()
+
+    _report_progress(progress, 22, "CV extrait — recherche d'offres et profil candidat…")
 
     query = search_plan.get("query_recherche") or target_title
     metier = search_plan.get("metier") or target_title
@@ -4484,6 +4579,8 @@ def run_cv_analysis_pipeline(
         search_result = search_future.result()
         criteria = criteria_future.result()
 
+    _report_progress(progress, 48, "Filtrage strict des offres…")
+
     raw_jobs = search_result["jobs"]
     if method == "ocr":
         notices.append(
@@ -4504,6 +4601,11 @@ def run_cv_analysis_pipeline(
     keywords = criteria.get("mots_cles") or criteria.get("competences_techniques") or []
     jobs, filter_stats = apply_strict_job_filters(
         raw_jobs, user_profile, cv_profile=criteria
+    )
+    _report_progress(
+        progress,
+        58,
+        f"Filtrage terminé — {len(jobs)} offre(s) retenue(s) sur {len(raw_jobs)}",
     )
 
     providers_used = search_result.get("providers_used") or [job_provider]
@@ -4601,7 +4703,10 @@ def run_cv_analysis_pipeline(
         pool_size=pool_size,
         cv_profile=criteria,
         target_job_title=target_title,
+        progress=progress,
     )
+
+    _report_progress(progress, 98, "Finalisation du rapport…")
 
     if partial_matches:
         notices.append(
@@ -4640,6 +4745,7 @@ def run_cv_analysis_pipeline(
         "results": results,
         "job_provider": job_provider,
     }
+    _report_progress(progress, 100, "Analyse terminée")
     return analysis, notices
 
 
@@ -5608,16 +5714,27 @@ def render_cv_analysis(
                 st.session_state.groq_quota_exhausted = False
                 st.session_state.llm_backend_active = None
                 try:
-                    with st.spinner(
-                        "Analyse en cours — recherche d'offres, extraction CV, filtrage et matching IA…"
-                    ):
-                        analysis, notices = run_cv_analysis_pipeline(
-                            pdf_bytes,
-                            job_provider,
-                            user_profile,
-                            matching_pool=depth_pool,
-                            matching_top=depth_top,
+                    progress_slot = st.empty()
+
+                    def _update_analysis_progress(percent: int, label: str) -> None:
+                        progress_slot.progress(
+                            percent / 100.0,
+                            text=f"{percent}% — {label}",
                         )
+
+                    _update_analysis_progress(0, "Démarrage…")
+                    analysis, notices = run_cv_analysis_pipeline(
+                        pdf_bytes,
+                        job_provider,
+                        user_profile,
+                        matching_pool=depth_pool,
+                        matching_top=depth_top,
+                        progress=_update_analysis_progress,
+                    )
+                    if analysis:
+                        _update_analysis_progress(100, "Analyse terminée")
+                    else:
+                        progress_slot.empty()
                     st.session_state.analysis_notices = notices
                     if analysis:
                         saved = persist_completed_analysis(

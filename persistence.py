@@ -603,6 +603,7 @@ def analysis_to_session_dict(stored: dict[str, Any]) -> dict[str, Any]:
 def list_dashboard_results(
     user_id: int,
     *,
+    analysis_id: int | None = None,
     status_filter: str | None = None,
     min_score: int = 0,
     max_score: int = 100,
@@ -613,6 +614,9 @@ def list_dashboard_results(
     init_persistence_tables()
     clauses = ["ar.user_id = ?", "ar.score >= ?", "ar.score <= ?"]
     params: list[Any] = [user_id, min_score, max_score]
+    if analysis_id is not None:
+        clauses.append("ar.analysis_id = ?")
+        params.append(analysis_id)
     if status_filter and status_filter != "all":
         clauses.append("ar.application_status = ?")
         params.append(status_filter)
@@ -986,20 +990,26 @@ def mark_alert_sent(user_id: int) -> None:
         )
 
 
-def dashboard_status_counts(user_id: int) -> dict[str, int]:
+def dashboard_status_counts(user_id: int, *, analysis_id: int | None = None) -> dict[str, int]:
     init_persistence_tables()
     counts = {status: 0 for status in APPLICATION_STATUSES}
+    clauses = ["user_id = ?"]
+    params: list[Any] = [user_id]
+    if analysis_id is not None:
+        clauses.append("analysis_id = ?")
+        params.append(analysis_id)
+    where_sql = " AND ".join(clauses)
     with connect() as conn:
         rows = conn.execute(
             adapt_sql(
-                """
+                f"""
                 SELECT application_status, COUNT(*) AS total
                 FROM analysis_results
-                WHERE user_id = ?
+                WHERE {where_sql}
                 GROUP BY application_status
                 """
             ),
-            (user_id,),
+            tuple(params),
         ).fetchall()
     for row in rows:
         counts[row["application_status"]] = int(row["total"])
