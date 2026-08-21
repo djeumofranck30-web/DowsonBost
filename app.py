@@ -46,6 +46,7 @@ from job_filters import (
     GEO_FILTER_MODES,
     SECTOR_OPTIONS,
     apply_strict_job_filters,
+    build_profile_search_locations,
     enrich_query_for_contract,
     format_filter_rejection_hint,
     profile_ready_for_matching,
@@ -109,7 +110,7 @@ THEME_SURFACE_SOFT = "#f5f3ff"
 THEME_MUTED = "#64748b"
 THEME_ACCENT = "#6366f1"
 
-APP_VERSION = "3.3.0-persistent-db"
+APP_VERSION = "3.4.0-profile-geo-search"
 
 ADZUNA_COUNTRY_CODES = {
     "France": "fr",
@@ -1809,19 +1810,20 @@ def cached_extract_criteria(cv_text: str) -> dict[str, Any]:
 def cached_search_jobs(
     provider: str,
     query: str,
-    location: str,
     country: str,
+    profile_json: str,
     metier: str = "",
     contract_type: str = "",
     alternate_queries: tuple[str, ...] = (),
 ) -> dict[str, Any]:
+    profile = json.loads(profile_json)
     boosted_query = enrich_query_for_contract(query, contract_type)
     boosted_metier = enrich_query_for_contract(metier, contract_type)
-    return search_jobs_with_fallback(
+    return search_jobs_for_profile(
         provider,
         boosted_query,
-        location,
         country,
+        profile,
         boosted_metier,
         contract_type,
         list(alternate_queries),
@@ -1940,7 +1942,7 @@ def search_jobs_with_fallback(
     contract_type: str = "",
     alternate_queries: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Search jobs nationally by métier; optional location is a last-resort hint only."""
+    """Search jobs by métier — location-first when a zone is provided."""
     if provider == JOB_PROVIDER_ALL:
         return _search_all_providers_with_fallback(
             query, location, country, metier, contract_type, alternate_queries
@@ -1951,22 +1953,29 @@ def search_jobs_with_fallback(
     loc = location.strip()
     m = metier.strip()
 
+    if loc:
+        if q:
+            attempts.append((q, loc, f"Poste visé · {loc}"))
+        if m and m.lower() != q.lower():
+            attempts.append((m, loc, f"Métier · {loc}"))
+        for alt in alternate_queries or []:
+            alt_text = alt.strip()
+            if not alt_text:
+                continue
+            if alt_text.lower() in {q.lower(), m.lower()}:
+                continue
+            attempts.append((alt_text, loc, f"Poste similaire · {loc}"))
+        short = " ".join((q or m).split()[:2])
+        if short and short.lower() != (q or m).lower():
+            attempts.append((short, loc, f"Requête élargie · {loc}"))
+
     if q:
-        attempts.append((q, "", "Recherche nationale (poste visé)"))
+        attempts.append((q, "", "Recherche nationale (secours)"))
     if m and m.lower() != q.lower():
-        attempts.append((m, "", "Intitulé métier seul"))
-    for alt in alternate_queries or []:
-        alt_text = alt.strip()
-        if not alt_text:
-            continue
-        if alt_text.lower() in {q.lower(), m.lower()}:
-            continue
-        attempts.append((alt_text, "", f"Poste similaire : {alt_text[:40]}"))
+        attempts.append((m, "", "Métier seul (secours)"))
     short = " ".join((q or m).split()[:2])
     if short and short.lower() != (q or m).lower():
-        attempts.append((short, "", "Requête élargie"))
-    if q and loc:
-        attempts.append((q, loc, "Recherche avec zone indicative"))
+        attempts.append((short, "", "Requête élargie (secours)"))
 
     seen: set[tuple[str, str]] = set()
     for q_try, loc_try, label in attempts:
@@ -1992,6 +2001,73 @@ def search_jobs_with_fallback(
         "attempts": len(seen),
         "providers_used": [provider],
     }
+
+
+def search_jobs_for_profile(
+    provider: str,
+    query: str,
+    country: str,
+    profile: dict[str, Any],
+    metier: str = "",
+    contract_type: str = "",
+    alternate_queries: list[str] | None = None,
+) -> dict[str, Any]:
+    """Search across all profile zones (cities, departments, regions) and merge results."""
+    profile_locations = build_profile_search_locations(profile)
+    merged: list[dict[str, Any]] = []
+    providers_used: list[str] = []
+    strategies: list[str] = []
+    query_used = query
+
+    for loc in profile_locations:
+        if provider == JOB_PROVIDER_ALL:
+            result = _search_all_providers_with_fallback(
+                query,
+                loc,
+                country,
+                metier,
+                contract_type,
+                alternate_queries,
+            )
+        else:
+            result = search_jobs_with_fallback(
+                provider,
+                query,
+                loc,
+                country,
+                metier,
+                contract_type,
+                alternate_queries,
+            )
+        if result.get("jobs"):
+            merged = merge_job_lists([merged, result["jobs"]])
+            query_used = result.get("query_used") or query_used
+            providers_used.extend(result.get("providers_used") or [])
+            if result.get("strategy"):
+                strategies.append(str(result["strategy"]))
+
+    if merged:
+        location_label = ", ".join(profile_locations[:4])
+        if len(profile_locations) > 4:
+            location_label += "…"
+        return {
+            "jobs": merged,
+            "strategy": strategies[0] if len(strategies) == 1 else "Zones sélectionnées (profil)",
+            "query_used": query_used,
+            "location_used": location_label,
+            "providers_used": list(dict.fromkeys(providers_used)),
+            "profile_locations": profile_locations,
+        }
+
+    return search_jobs_with_fallback(
+        provider,
+        query,
+        "",
+        country,
+        metier,
+        contract_type,
+        alternate_queries,
+    )
 
 
 def _search_all_providers_with_fallback(
@@ -2026,9 +2102,10 @@ def _search_all_providers_with_fallback(
     for q_try in queries:
         merged: list[dict[str, Any]] = []
         used: list[str] = []
+        loc = location.strip()
         for provider in providers:
             try:
-                batch = search_jobs(provider, q_try, "", country, contract_type)
+                batch = search_jobs(provider, q_try, loc, country, contract_type)
             except (RuntimeError, requests.HTTPError):
                 continue
             if batch:
@@ -2039,7 +2116,7 @@ def _search_all_providers_with_fallback(
                 "jobs": merged,
                 "strategy": "Fusion multi-moteurs",
                 "query_used": q_try,
-                "location_used": f"(tout {country or 'France'})",
+                "location_used": loc or f"(tout {country or 'France'})",
                 "providers_used": used,
             }
 
@@ -2386,7 +2463,11 @@ def run_full_analysis(
     metier = criteria.get("metier", "")
 
     search_result = cached_search_jobs(
-        job_provider, query, location, country, metier
+        job_provider,
+        query,
+        country,
+        json.dumps({"country": country}, ensure_ascii=False, sort_keys=True),
+        metier,
     )
     jobs = search_result["jobs"]
     results, _partial = build_matching_results(jobs, cv_text, keywords)
@@ -2713,7 +2794,8 @@ def render_cv_profile_summary(criteria: dict[str, Any], user_profile: dict[str, 
             else f"CV: {cv_level}",
         )
         c3.metric("Contrat recherché", user_profile.get("contract_type", "—"))
-        c4.metric("Zone", user_profile.get("home_city", "—"))
+        region_text, dept_text, city_text = format_profile_geo_summary(user_profile)
+        c4.metric("Zone de recherche", city_text if city_text != "—" else dept_text)
 
         profile_sectors = user_profile.get("target_sectors") or []
         cv_sectors = criteria.get("secteurs") or []
@@ -2722,11 +2804,10 @@ def render_cv_profile_summary(criteria: dict[str, Any], user_profile: dict[str, 
             st.caption("**Secteurs ciblés :** " + ", ".join(active_sectors))
 
         geo_labels = {
-            "ville": "Même ville",
-            "departement": "Même département",
-            "rayon": f"Rayon {user_profile.get('search_radius_km', 20)} km",
+            "ville": "Villes sélectionnées",
+            "departement": "Pays, régions, départements et villes sélectionnés",
+            "rayon": f"Zones sélectionnées + rayon {user_profile.get('search_radius_km', 20)} km",
         }
-        region_text, dept_text, city_text = format_profile_geo_summary(user_profile)
         st.caption(
             f"Filtrage géographique : **{geo_labels.get(user_profile.get('geo_filter_mode', 'departement'), '—')}** · "
             f"{user_profile.get('country', 'France')} · "
@@ -2924,8 +3005,8 @@ def run_cv_analysis_pipeline(
     search_result = cached_search_jobs(
         job_provider,
         query,
-        "",
         country,
+        json.dumps(user_profile, ensure_ascii=False, sort_keys=True),
         metier,
         contract_type=contract_type,
         alternate_queries=alternate_queries,
@@ -2962,12 +3043,18 @@ def run_cv_analysis_pipeline(
     else:
         source_text = f"moteur : {JOB_PROVIDER_LABELS.get(providers_used[0], providers_used[0])}"
 
+    profile_locations = search_result.get("profile_locations") or build_profile_search_locations(
+        user_profile
+    )
+    zone_preview = ", ".join(profile_locations[:3])
+    if len(profile_locations) > 3:
+        zone_preview += "…"
+
     notices.append(
         {
             "level": "info",
             "text": (
-                f"Recherche **nationale** ({country}) via {source_text} — "
-                f"filtrage ensuite selon votre profil (pays, régions, départements, villes)."
+                f"Recherche ciblée **{country}** — zones : **{zone_preview}** via {source_text}."
             ),
         }
     )
@@ -3554,26 +3641,18 @@ def _render_auth_register_form() -> None:
         )
         reg_password2 = st.text_input("Confirmer le mot de passe", type="password")
         st.markdown("**Préférences de recherche d'emploi**")
-        r1, r2 = st.columns(2)
-        with r1:
-            reg_home_city = st.text_input(
-                "Ville de domicile (centre du rayon)",
-                placeholder="Lyon",
-            )
-            reg_postal = st.text_input("Code postal", placeholder="69001")
-        with r2:
-            reg_country = st.selectbox("Pays", COUNTRY_OPTIONS, index=0)
-            reg_contract = st.selectbox(
-                "Type de contrat recherché", CONTRACT_TYPES, index=0
-            )
+        reg_country = st.selectbox("Pays", COUNTRY_OPTIONS, index=0)
+        reg_contract = st.selectbox(
+            "Type de contrat recherché", CONTRACT_TYPES, index=0
+        )
         reg_geo = st.selectbox(
-            "Contrainte de distance supplémentaire",
+            "Périmètre géographique",
             GEO_FILTER_MODES,
             index=1,
             format_func=lambda x: {
                 "ville": "Villes sélectionnées uniquement",
                 "departement": "Pays, régions, départements et villes sélectionnés",
-                "rayon": "Critères ci-dessus + rayon autour du domicile",
+                "rayon": "Zones sélectionnées + rayon autour de la première ville",
             }[x],
         )
         reg_radius = st.slider("Rayon (km)", 5, 100, 20, disabled=(reg_geo != "rayon"))
@@ -3594,14 +3673,10 @@ def _render_auth_register_form() -> None:
                 st.error("Les mots de passe ne correspondent pas.")
             else:
                 cities = reg_cities
-                if not reg_all_cities and not cities and reg_home_city.strip():
-                    cities = [reg_home_city.strip()]
                 ok, message = register_user(
                     reg_name,
                     reg_email,
                     reg_password,
-                    home_city=reg_home_city,
-                    postal_code=reg_postal,
                     admin_regions=reg_admin_regions,
                     selected_departments=reg_departments,
                     selected_cities=cities,
@@ -3702,33 +3777,22 @@ def render_profile_page(user: dict[str, Any]) -> None:
                     "Nom complet",
                     value=profile.get("full_name", ""),
                 )
-                p1, p2 = st.columns(2)
-                with p1:
-                    home_city = st.text_input(
-                        "Ville de domicile (centre du rayon)",
-                        value=profile.get("home_city", ""),
-                    )
-                    postal_code = st.text_input(
-                        "Code postal",
-                        value=profile.get("postal_code", ""),
-                    )
-                with p2:
-                    profile_country_value = st.selectbox(
-                        "Pays",
-                        COUNTRY_OPTIONS,
-                        index=COUNTRY_OPTIONS.index(profile.get("country", "France"))
-                        if profile.get("country") in COUNTRY_OPTIONS
-                        else 0,
-                    )
-                    contract_type = st.selectbox(
-                        "Type de contrat recherché",
-                        CONTRACT_TYPES,
-                        index=CONTRACT_TYPES.index(profile.get("contract_type", "CDI"))
-                        if profile.get("contract_type") in CONTRACT_TYPES
-                        else 0,
-                    )
+                profile_country_value = st.selectbox(
+                    "Pays",
+                    COUNTRY_OPTIONS,
+                    index=COUNTRY_OPTIONS.index(profile.get("country", "France"))
+                    if profile.get("country") in COUNTRY_OPTIONS
+                    else 0,
+                )
+                contract_type = st.selectbox(
+                    "Type de contrat recherché",
+                    CONTRACT_TYPES,
+                    index=CONTRACT_TYPES.index(profile.get("contract_type", "CDI"))
+                    if profile.get("contract_type") in CONTRACT_TYPES
+                    else 0,
+                )
                 geo_mode = st.selectbox(
-                    "Contrainte de distance supplémentaire",
+                    "Périmètre géographique",
                     GEO_FILTER_MODES,
                     index=GEO_FILTER_MODES.index(profile.get("geo_filter_mode", "departement"))
                     if profile.get("geo_filter_mode") in GEO_FILTER_MODES
@@ -3736,7 +3800,7 @@ def render_profile_page(user: dict[str, Any]) -> None:
                     format_func=lambda x: {
                         "ville": "Villes sélectionnées uniquement",
                         "departement": "Pays, régions, départements et villes sélectionnés",
-                        "rayon": "Critères ci-dessus + rayon autour du domicile",
+                        "rayon": "Zones sélectionnées + rayon autour de la première ville",
                     }[x],
                 )
                 search_radius = st.slider(
@@ -3776,13 +3840,11 @@ def render_profile_page(user: dict[str, Any]) -> None:
                 )
                 if st.form_submit_button("Enregistrer le profil", use_container_width=True):
                     cities = profile_cities
-                    if not profile_all_cities and not cities and home_city.strip():
-                        cities = [home_city.strip()]
                     ok, message, updated = update_user_profile(
                         user["id"],
                         new_name,
-                        home_city,
-                        postal_code,
+                        profile.get("home_city", ""),
+                        profile.get("postal_code", ""),
                         admin_regions,
                         selected_departments,
                         cities,
@@ -3845,8 +3907,8 @@ def render_cv_analysis(job_provider: str, user: dict[str, Any]) -> None:
     if not profile_ok:
         st.warning(profile_msg)
         st.info(
-            "Complétez le **poste visé**, votre **ville**, **code postal** et **type de contrat** "
-            "dans **Mon profil** avant de lancer une analyse."
+            "Complétez le **poste visé**, vos **régions / départements / villes** "
+            "et votre **type de contrat** dans **Mon profil** avant de lancer une analyse."
         )
         return
 
@@ -3862,8 +3924,8 @@ def render_cv_analysis(job_provider: str, user: dict[str, Any]) -> None:
         )
         st.markdown(f"**Poste visé :** {target_title}")
         st.caption(
-            "L'IA recherche d'abord des offres pour ce poste (ou des postes similaires), "
-            "puis compare votre CV aux résultats filtrés selon votre profil."
+            "L'IA recherche des offres dans vos **villes / départements / régions** sélectionnés, "
+            "puis compare votre CV aux résultats filtrés."
         )
         st.caption(
             f"Filtres actifs : contrat **{user_profile.get('contract_type')}** · "

@@ -291,7 +291,7 @@ DEPARTMENT_LOCATION_ALIASES: dict[str, tuple[str, ...]] = {
 
 
 def build_domicile_location(profile: dict[str, Any]) -> str:
-    """Home address for radius-search center (not Adzuna API scope)."""
+    """Legacy home address string (optional — not used for job search)."""
     parts: list[str] = []
     city = str(profile.get("home_city", "")).strip()
     postal = str(profile.get("postal_code", "")).strip()
@@ -304,9 +304,77 @@ def build_domicile_location(profile: dict[str, Any]) -> str:
     return ", ".join(parts)
 
 
-def build_profile_search_location(profile: dict[str, Any]) -> str:
-    """Backward-compatible alias — domicile only (API search is country-wide)."""
+def build_radius_center_location(profile: dict[str, Any]) -> str:
+    """Center point for optional radius filter — first selected city or department."""
+    country = profile_country(profile)
+    cities = resolve_selected_cities(profile)
+    if cities:
+        return f"{cities[0]}, {country}"
+
+    _, departments = resolve_multi_geo_from_profile(profile)
+    if departments:
+        name = (departments[0].get("name") or departments[0].get("code") or "").strip()
+        if name:
+            return f"{name}, {country}"
+
+    regions, _ = resolve_multi_geo_from_profile(profile)
+    if regions:
+        return f"{regions[0]}, {country}"
+
     return build_domicile_location(profile)
+
+
+def build_profile_search_locations(
+    profile: dict[str, Any],
+    *,
+    max_locations: int = 8,
+) -> list[str]:
+    """Build job-board location hints from selected country, cities, departments and regions."""
+    country = profile_country(profile)
+    locations: list[str] = []
+    seen: set[str] = set()
+
+    def add(label: str) -> None:
+        loc = label.strip()
+        if not loc or len(locations) >= max_locations:
+            return
+        key = normalize_text(loc)
+        if key in seen:
+            return
+        seen.add(key)
+        locations.append(loc)
+
+    if profile_all_cities(profile):
+        _, departments = resolve_multi_geo_from_profile(profile)
+        for dept in departments:
+            name = (dept.get("name") or "").strip()
+            code = (dept.get("code") or "").strip()
+            if name:
+                add(f"{name}, {country}")
+            elif code:
+                add(f"{code}, {country}")
+    else:
+        for city in resolve_selected_cities(profile):
+            add(f"{city}, {country}")
+
+    regions, departments = resolve_multi_geo_from_profile(profile)
+    for dept in departments:
+        name = (dept.get("name") or "").strip()
+        if name:
+            add(f"{name}, {country}")
+    for region in regions:
+        add(f"{region}, {country}")
+
+    if not locations:
+        add(country)
+
+    return locations
+
+
+def build_profile_search_location(profile: dict[str, Any]) -> str:
+    """Primary location hint for a single-query search."""
+    locations = build_profile_search_locations(profile, max_locations=1)
+    return locations[0] if locations else profile_country(profile)
 
 
 def profile_country(profile: dict[str, Any]) -> str:
@@ -703,16 +771,7 @@ def job_matches_city(job: dict[str, Any], profile: dict[str, Any]) -> bool:
     cities = resolve_selected_cities(profile)
     if not cities:
         return False
-    postal_code = str(profile.get("postal_code", "")).strip()
-    home_city = normalize_text(str(profile.get("home_city", "")).strip())
-    return any(
-        _job_matches_single_city(
-            job,
-            city,
-            postal_code if normalize_text(city) == home_city else "",
-        )
-        for city in cities
-    )
+    return any(_job_matches_single_city(job, city, "") for city in cities)
 
 
 def job_matches_geography(
@@ -769,7 +828,7 @@ def apply_strict_job_filters(
     user_coords: tuple[float, float] | None = None
     job_coords_cache: dict[str, tuple[float, float] | None] = {}
     if mode == "rayon":
-        user_coords = _coords_from_nominatim(build_domicile_location(profile))
+        user_coords = _coords_from_nominatim(build_radius_center_location(profile))
 
     filtered: list[dict[str, Any]] = []
     stats = {
@@ -815,10 +874,6 @@ def profile_ready_for_matching(profile: dict[str, Any]) -> tuple[bool, str]:
     """Check whether user profile has mandatory matching fields."""
     if not str(profile.get("target_job_title", "")).strip():
         return False, "Indiquez le poste visé dans Mon profil."
-    if not str(profile.get("home_city", "")).strip():
-        return False, "Renseignez votre ville dans Mon profil."
-    if not str(profile.get("postal_code", "")).strip():
-        return False, "Renseignez votre code postal dans Mon profil."
     if not str(profile.get("contract_type", "")).strip():
         return False, "Sélectionnez votre type de contrat dans Mon profil."
     regions, departments = resolve_multi_geo_from_profile(profile)

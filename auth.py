@@ -257,10 +257,10 @@ def _validate_profile_fields(
     title = " ".join(target_job_title.strip().split())
     if len(title) < 2:
         return False, "Indiquez l'intitulé du poste visé (au moins 2 caractères)."
-    if len(home_city.strip()) < 2:
+    if home_city.strip() and len(home_city.strip()) < 2:
         return False, "La ville de domicile doit contenir au moins 2 caractères."
     postal = postal_code.strip()
-    if not POSTAL_CODE_PATTERN.match(postal):
+    if postal and not POSTAL_CODE_PATTERN.match(postal):
         return False, "Code postal invalide (4 ou 5 chiffres)."
 
     regions = admin_regions or []
