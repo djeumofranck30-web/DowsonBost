@@ -1,14 +1,15 @@
-"""User authentication for DowsonBost (SQLite + bcrypt)."""
+"""User authentication for DowsonBost — SQLite (local) or PostgreSQL (production)."""
 
 from __future__ import annotations
 
 import re
-import sqlite3
+from contextlib import contextmanager
 from datetime import datetime, timezone
-from pathlib import Path
+from typing import Any, Iterator
 
 import bcrypt
 
+from database import adapt_sql, connect, database_backend, existing_columns, is_unique_violation
 from france_geo import (
     parse_admin_regions,
     parse_selected_cities,
@@ -31,54 +32,125 @@ from job_filters import (
     serialize_target_sectors,
 )
 
-DB_PATH = Path(__file__).parent / "data" / "users.db"
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 POSTAL_CODE_PATTERN = re.compile(r"^\d{4,5}$")
 MIN_PASSWORD_LENGTH = 8
 
+_USER_COLUMNS = [
+    ("home_city", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
+    ("postal_code", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
+    ("region", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
+    ("contract_type", "TEXT NOT NULL DEFAULT 'CDI'", "TEXT NOT NULL DEFAULT 'CDI'"),
+    ("search_radius_km", "INTEGER NOT NULL DEFAULT 20", "INTEGER NOT NULL DEFAULT 20"),
+    ("geo_filter_mode", "TEXT NOT NULL DEFAULT 'departement'", "TEXT NOT NULL DEFAULT 'departement'"),
+    ("experience_level", "TEXT NOT NULL DEFAULT 'confirme'", "TEXT NOT NULL DEFAULT 'confirme'"),
+    ("target_sectors", "TEXT NOT NULL DEFAULT '[]'", "TEXT NOT NULL DEFAULT '[]'"),
+    ("admin_region", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
+    ("department_code", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
+    ("department_name", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
+    ("country", "TEXT NOT NULL DEFAULT 'France'", "TEXT NOT NULL DEFAULT 'France'"),
+    ("admin_regions", "TEXT NOT NULL DEFAULT '[]'", "TEXT NOT NULL DEFAULT '[]'"),
+    ("selected_departments", "TEXT NOT NULL DEFAULT '[]'", "TEXT NOT NULL DEFAULT '[]'"),
+    ("selected_cities", "TEXT NOT NULL DEFAULT '[]'", "TEXT NOT NULL DEFAULT '[]'"),
+    ("all_cities", "INTEGER NOT NULL DEFAULT 0", "INTEGER NOT NULL DEFAULT 0"),
+    ("target_job_title", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
+]
 
-def _connect() -> sqlite3.Connection:
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    return conn
+
+@contextmanager
+def _connect() -> Iterator[Any]:
+    with connect() as conn:
+        yield conn
 
 
-def _migrate_users(conn: sqlite3.Connection) -> None:
+def _create_users_table(conn: Any) -> None:
+    if database_backend() == "postgres":
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                full_name TEXT NOT NULL,
+                email TEXT NOT NULL UNIQUE,
+                password_hash TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                home_city TEXT NOT NULL DEFAULT '',
+                postal_code TEXT NOT NULL DEFAULT '',
+                region TEXT NOT NULL DEFAULT '',
+                contract_type TEXT NOT NULL DEFAULT 'CDI',
+                search_radius_km INTEGER NOT NULL DEFAULT 20,
+                geo_filter_mode TEXT NOT NULL DEFAULT 'departement',
+                experience_level TEXT NOT NULL DEFAULT 'confirme',
+                target_sectors TEXT NOT NULL DEFAULT '[]',
+                admin_region TEXT NOT NULL DEFAULT '',
+                department_code TEXT NOT NULL DEFAULT '',
+                department_name TEXT NOT NULL DEFAULT '',
+                country TEXT NOT NULL DEFAULT 'France',
+                admin_regions TEXT NOT NULL DEFAULT '[]',
+                selected_departments TEXT NOT NULL DEFAULT '[]',
+                selected_cities TEXT NOT NULL DEFAULT '[]',
+                all_cities INTEGER NOT NULL DEFAULT 0,
+                target_job_title TEXT NOT NULL DEFAULT ''
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS users_email_lower_idx
+            ON users (LOWER(email))
+            """
+        )
+        return
+
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            full_name TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+            password_hash TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            home_city TEXT NOT NULL DEFAULT '',
+            postal_code TEXT NOT NULL DEFAULT '',
+            region TEXT NOT NULL DEFAULT '',
+            contract_type TEXT NOT NULL DEFAULT 'CDI',
+            search_radius_km INTEGER NOT NULL DEFAULT 20,
+            geo_filter_mode TEXT NOT NULL DEFAULT 'departement',
+            experience_level TEXT NOT NULL DEFAULT 'confirme',
+            target_sectors TEXT NOT NULL DEFAULT '[]',
+            admin_region TEXT NOT NULL DEFAULT '',
+            department_code TEXT NOT NULL DEFAULT '',
+            department_name TEXT NOT NULL DEFAULT '',
+            country TEXT NOT NULL DEFAULT 'France',
+            admin_regions TEXT NOT NULL DEFAULT '[]',
+            selected_departments TEXT NOT NULL DEFAULT '[]',
+            selected_cities TEXT NOT NULL DEFAULT '[]',
+            all_cities INTEGER NOT NULL DEFAULT 0,
+            target_job_title TEXT NOT NULL DEFAULT ''
+        )
+        """
+    )
+
+
+def _migrate_users(conn: Any) -> None:
     """Add profile columns for job matching preferences."""
-    existing = {
-        row[1] for row in conn.execute("PRAGMA table_info(users)").fetchall()
-    }
-    additions = [
-        ("home_city", "TEXT NOT NULL DEFAULT ''"),
-        ("postal_code", "TEXT NOT NULL DEFAULT ''"),
-        ("region", "TEXT NOT NULL DEFAULT ''"),
-        ("contract_type", "TEXT NOT NULL DEFAULT 'CDI'"),
-        ("search_radius_km", "INTEGER NOT NULL DEFAULT 20"),
-        ("geo_filter_mode", "TEXT NOT NULL DEFAULT 'departement'"),
-        ("experience_level", "TEXT NOT NULL DEFAULT 'confirme'"),
-        ("target_sectors", "TEXT NOT NULL DEFAULT '[]'"),
-        ("admin_region", "TEXT NOT NULL DEFAULT ''"),
-        ("department_code", "TEXT NOT NULL DEFAULT ''"),
-        ("department_name", "TEXT NOT NULL DEFAULT ''"),
-        ("country", "TEXT NOT NULL DEFAULT 'France'"),
-        ("admin_regions", "TEXT NOT NULL DEFAULT '[]'"),
-        ("selected_departments", "TEXT NOT NULL DEFAULT '[]'"),
-        ("selected_cities", "TEXT NOT NULL DEFAULT '[]'"),
-        ("all_cities", "INTEGER NOT NULL DEFAULT 0"),
-    ]
-    for column, typedef in additions:
-        if column not in existing:
+    cols = existing_columns(conn)
+    for column, sqlite_type, postgres_type in _USER_COLUMNS:
+        if column in cols:
+            continue
+        typedef = postgres_type if database_backend() == "postgres" else sqlite_type
+        if database_backend() == "postgres":
+            conn.execute(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {column} {typedef}")
+        else:
             conn.execute(f"ALTER TABLE users ADD COLUMN {column} {typedef}")
 
     _migrate_legacy_geo_to_multi(conn)
     _migrate_legacy_cities(conn)
 
 
-def _migrate_legacy_cities(conn: sqlite3.Connection) -> None:
+def _migrate_legacy_cities(conn: Any) -> None:
     """Copy home_city into selected_cities when the list is empty."""
     rows = conn.execute(
-        "SELECT id, home_city, selected_cities FROM users"
+        adapt_sql("SELECT id, home_city, selected_cities FROM users")
     ).fetchall()
     for row in rows:
         cities = parse_selected_cities(row["selected_cities"])
@@ -87,19 +159,21 @@ def _migrate_legacy_cities(conn: sqlite3.Connection) -> None:
         home = (row["home_city"] or "").strip()
         if home:
             conn.execute(
-                "UPDATE users SET selected_cities = ? WHERE id = ?",
+                adapt_sql("UPDATE users SET selected_cities = ? WHERE id = ?"),
                 (serialize_selected_cities([home]), row["id"]),
             )
 
 
-def _migrate_legacy_geo_to_multi(conn: sqlite3.Connection) -> None:
+def _migrate_legacy_geo_to_multi(conn: Any) -> None:
     """Copy single region/department into JSON lists when lists are empty."""
     rows = conn.execute(
-        """
-        SELECT id, admin_region, region, department_code, department_name,
-               admin_regions, selected_departments
-        FROM users
-        """
+        adapt_sql(
+            """
+            SELECT id, admin_region, region, department_code, department_name,
+                   admin_regions, selected_departments
+            FROM users
+            """
+        )
     ).fetchall()
     for row in rows:
         regions = parse_admin_regions(row["admin_regions"])
@@ -124,11 +198,13 @@ def _migrate_legacy_geo_to_multi(conn: sqlite3.Connection) -> None:
 
         if regions or departments:
             conn.execute(
-                """
-                UPDATE users
-                SET admin_regions = ?, selected_departments = ?
-                WHERE id = ?
-                """,
+                adapt_sql(
+                    """
+                    UPDATE users
+                    SET admin_regions = ?, selected_departments = ?
+                    WHERE id = ?
+                    """
+                ),
                 (
                     serialize_admin_regions(regions),
                     serialize_selected_departments(departments),
@@ -140,35 +216,8 @@ def _migrate_legacy_geo_to_multi(conn: sqlite3.Connection) -> None:
 def init_db() -> None:
     """Create users table if it does not exist."""
     with _connect() as conn:
-        conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                full_name TEXT NOT NULL,
-                email TEXT NOT NULL UNIQUE COLLATE NOCASE,
-                password_hash TEXT NOT NULL,
-                created_at TEXT NOT NULL,
-                home_city TEXT NOT NULL DEFAULT '',
-                postal_code TEXT NOT NULL DEFAULT '',
-                region TEXT NOT NULL DEFAULT '',
-                contract_type TEXT NOT NULL DEFAULT 'CDI',
-                search_radius_km INTEGER NOT NULL DEFAULT 20,
-                geo_filter_mode TEXT NOT NULL DEFAULT 'departement',
-                experience_level TEXT NOT NULL DEFAULT 'confirme',
-                target_sectors TEXT NOT NULL DEFAULT '[]',
-                admin_region TEXT NOT NULL DEFAULT '',
-                department_code TEXT NOT NULL DEFAULT '',
-                department_name TEXT NOT NULL DEFAULT '',
-                country TEXT NOT NULL DEFAULT 'France',
-                admin_regions TEXT NOT NULL DEFAULT '[]',
-                selected_departments TEXT NOT NULL DEFAULT '[]',
-                selected_cities TEXT NOT NULL DEFAULT '[]',
-                all_cities INTEGER NOT NULL DEFAULT 0
-            )
-            """
-        )
+        _create_users_table(conn)
         _migrate_users(conn)
-        conn.commit()
 
 
 def _hash_password(password: str) -> str:
@@ -203,7 +252,11 @@ def _validate_profile_fields(
     all_cities: bool = False,
     admin_region: str = "",
     department_code: str = "",
+    target_job_title: str = "",
 ) -> tuple[bool, str]:
+    title = " ".join(target_job_title.strip().split())
+    if len(title) < 2:
+        return False, "Indiquez l'intitulé du poste visé (au moins 2 caractères)."
     if len(home_city.strip()) < 2:
         return False, "La ville de domicile doit contenir au moins 2 caractères."
     postal = postal_code.strip()
@@ -250,7 +303,8 @@ _USER_SELECT_SQL = """
     admin_region, department_code, department_name,
     contract_type, search_radius_km, geo_filter_mode,
     experience_level, target_sectors, country,
-    admin_regions, selected_departments, selected_cities, all_cities
+    admin_regions, selected_departments, selected_cities, all_cities,
+    target_job_title
 """
 
 
@@ -268,7 +322,7 @@ def _legacy_geo_from_lists(
     return admin_region, "", ""
 
 
-def _row_to_user(row: sqlite3.Row, include_created: bool = False) -> dict:
+def _row_to_user(row: Any, include_created: bool = False) -> dict:
     admin_regions = parse_admin_regions(row["admin_regions"])
     selected_departments = parse_selected_departments(row["selected_departments"])
     legacy_region = row["admin_region"] or row["region"]
@@ -310,6 +364,7 @@ def _row_to_user(row: sqlite3.Row, include_created: bool = False) -> dict:
         "geo_filter_mode": row["geo_filter_mode"],
         "experience_level": row["experience_level"],
         "target_sectors": parse_target_sectors(row["target_sectors"]),
+        "target_job_title": (row["target_job_title"] or "").strip(),
     }
     if include_created:
         user["created_at"] = row["created_at"]
@@ -321,10 +376,12 @@ def get_user_by_id(user_id: int) -> dict | None:
     init_db()
     with _connect() as conn:
         row = conn.execute(
-            f"""
-            SELECT {_USER_SELECT_SQL}
-            FROM users WHERE id = ?
-            """,
+            adapt_sql(
+                f"""
+                SELECT {_USER_SELECT_SQL}
+                FROM users WHERE id = ?
+                """
+            ),
             (user_id,),
         ).fetchone()
     if not row:
@@ -351,6 +408,7 @@ def register_user(
     search_radius_km: int = 20,
     experience_level: str = "confirme",
     target_sectors: list[str] | None = None,
+    target_job_title: str = "",
 ) -> tuple[bool, str]:
     """Register a new user. Returns (success, message)."""
     full_name = " ".join(full_name.strip().split())
@@ -382,6 +440,7 @@ def register_user(
     geo_filter_mode = geo_filter_mode.strip().lower()
     experience_level = normalize_experience_level(experience_level)
     sectors = target_sectors or []
+    job_title = " ".join(target_job_title.strip().split())
 
     if len(full_name) < 2:
         return False, "Le nom doit contenir au moins 2 caractères."
@@ -404,6 +463,7 @@ def register_user(
         selected_departments=departments,
         selected_cities=cities,
         all_cities=all_cities,
+        target_job_title=job_title,
     )
     if not valid_profile:
         return False, profile_msg
@@ -412,16 +472,19 @@ def register_user(
     try:
         with _connect() as conn:
             conn.execute(
-                """
-                INSERT INTO users (
-                    full_name, email, password_hash, created_at,
-                    home_city, postal_code, region, admin_region,
-                    department_code, department_name, contract_type,
-                    search_radius_km, geo_filter_mode, experience_level, target_sectors,
-                    country, admin_regions, selected_departments, selected_cities, all_cities
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
+                adapt_sql(
+                    """
+                    INSERT INTO users (
+                        full_name, email, password_hash, created_at,
+                        home_city, postal_code, region, admin_region,
+                        department_code, department_name, contract_type,
+                        search_radius_km, geo_filter_mode, experience_level, target_sectors,
+                        country, admin_regions, selected_departments, selected_cities, all_cities,
+                        target_job_title
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """
+                ),
                 (
                     full_name,
                     email,
@@ -443,11 +506,13 @@ def register_user(
                     serialize_selected_departments(departments),
                     serialize_selected_cities(cities),
                     1 if all_cities else 0,
+                    job_title,
                 ),
             )
-            conn.commit()
-    except sqlite3.IntegrityError:
-        return False, "Un compte existe déjà avec cet e-mail."
+    except Exception as exc:  # noqa: BLE001
+        if is_unique_violation(exc):
+            return False, "Un compte existe déjà avec cet e-mail."
+        raise
 
     return True, "Compte créé avec succès. Vous pouvez vous connecter."
 
@@ -463,10 +528,12 @@ def authenticate_user(email: str, password: str) -> tuple[bool, str, dict | None
     init_db()
     with _connect() as conn:
         row = conn.execute(
-            f"""
-            SELECT password_hash, {_USER_SELECT_SQL}
-            FROM users WHERE email = ?
-            """,
+            adapt_sql(
+                f"""
+                SELECT password_hash, {_USER_SELECT_SQL}
+                FROM users WHERE email = ?
+                """
+            ),
             (email,),
         ).fetchone()
 
@@ -493,6 +560,7 @@ def update_user_profile(
     search_radius_km: int,
     experience_level: str = "confirme",
     target_sectors: list[str] | None = None,
+    target_job_title: str = "",
 ) -> tuple[bool, str, dict | None]:
     """Update user profile and job-matching preferences."""
     full_name = " ".join(full_name.strip().split())
@@ -512,6 +580,7 @@ def update_user_profile(
     geo_filter_mode = geo_filter_mode.strip().lower()
     experience_level = normalize_experience_level(experience_level)
     sectors = target_sectors or []
+    job_title = " ".join(target_job_title.strip().split())
 
     if len(full_name) < 2:
         return False, "Le nom doit contenir au moins 2 caractères.", None
@@ -528,6 +597,7 @@ def update_user_profile(
         selected_departments=departments,
         selected_cities=cities,
         all_cities=all_cities,
+        target_job_title=job_title,
     )
     if not valid_profile:
         return False, profile_msg, None
@@ -535,16 +605,18 @@ def update_user_profile(
     init_db()
     with _connect() as conn:
         cursor = conn.execute(
-            """
-            UPDATE users
-            SET full_name = ?, home_city = ?, postal_code = ?, region = ?,
-                admin_region = ?, department_code = ?, department_name = ?,
-                contract_type = ?, search_radius_km = ?, geo_filter_mode = ?,
-                experience_level = ?, target_sectors = ?, country = ?,
-                admin_regions = ?, selected_departments = ?, selected_cities = ?,
-                all_cities = ?
-            WHERE id = ?
-            """,
+            adapt_sql(
+                """
+                UPDATE users
+                SET full_name = ?, home_city = ?, postal_code = ?, region = ?,
+                    admin_region = ?, department_code = ?, department_name = ?,
+                    contract_type = ?, search_radius_km = ?, geo_filter_mode = ?,
+                    experience_level = ?, target_sectors = ?, country = ?,
+                    admin_regions = ?, selected_departments = ?, selected_cities = ?,
+                    all_cities = ?, target_job_title = ?
+                WHERE id = ?
+                """
+            ),
             (
                 full_name,
                 home_city,
@@ -563,18 +635,20 @@ def update_user_profile(
                 serialize_selected_departments(departments),
                 serialize_selected_cities(cities),
                 1 if all_cities else 0,
+                job_title,
                 user_id,
             ),
         )
-        conn.commit()
         if cursor.rowcount == 0:
             return False, "Utilisateur introuvable.", None
 
         row = conn.execute(
-            f"""
-            SELECT {_USER_SELECT_SQL}
-            FROM users WHERE id = ?
-            """,
+            adapt_sql(
+                f"""
+                SELECT {_USER_SELECT_SQL}
+                FROM users WHERE id = ?
+                """
+            ),
             (user_id,),
         ).fetchone()
 
@@ -599,7 +673,7 @@ def change_password(
     init_db()
     with _connect() as conn:
         row = conn.execute(
-            "SELECT password_hash FROM users WHERE id = ?",
+            adapt_sql("SELECT password_hash FROM users WHERE id = ?"),
             (user_id,),
         ).fetchone()
 
@@ -610,10 +684,9 @@ def change_password(
 
     with _connect() as conn:
         conn.execute(
-            "UPDATE users SET password_hash = ? WHERE id = ?",
+            adapt_sql("UPDATE users SET password_hash = ? WHERE id = ?"),
             (_hash_password(new_password), user_id),
         )
-        conn.commit()
 
     return True, "Mot de passe modifié avec succès."
 
@@ -635,7 +708,7 @@ def reset_password(email: str, full_name: str, new_password: str) -> tuple[bool,
     init_db()
     with _connect() as conn:
         row = conn.execute(
-            "SELECT id, full_name FROM users WHERE email = ?",
+            adapt_sql("SELECT id, full_name FROM users WHERE email = ?"),
             (email,),
         ).fetchone()
 
@@ -646,10 +719,9 @@ def reset_password(email: str, full_name: str, new_password: str) -> tuple[bool,
 
     with _connect() as conn:
         conn.execute(
-            "UPDATE users SET password_hash = ? WHERE id = ?",
+            adapt_sql("UPDATE users SET password_hash = ? WHERE id = ?"),
             (_hash_password(new_password), row["id"]),
         )
-        conn.commit()
 
     return True, "Mot de passe réinitialisé. Vous pouvez vous connecter."
 

@@ -813,6 +813,8 @@ def apply_strict_job_filters(
 
 def profile_ready_for_matching(profile: dict[str, Any]) -> tuple[bool, str]:
     """Check whether user profile has mandatory matching fields."""
+    if not str(profile.get("target_job_title", "")).strip():
+        return False, "Indiquez le poste visé dans Mon profil."
     if not str(profile.get("home_city", "")).strip():
         return False, "Renseignez votre ville dans Mon profil."
     if not str(profile.get("postal_code", "")).strip():

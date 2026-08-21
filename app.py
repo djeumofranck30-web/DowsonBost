@@ -109,7 +109,7 @@ THEME_SURFACE_SOFT = "#f5f3ff"
 THEME_MUTED = "#64748b"
 THEME_ACCENT = "#6366f1"
 
-APP_VERSION = "3.1.0-ui-refresh"
+APP_VERSION = "3.3.0-persistent-db"
 
 ADZUNA_COUNTRY_CODES = {
     "France": "fr",
@@ -126,15 +126,18 @@ ADZUNA_COUNTRY_CODES = {
 
 
 GEMINI_MODEL = "gemini-2.5-flash"
-GEMINI_FALLBACK_MODELS = (
+GEMINI_PREFERRED_MODELS = (
     "gemini-2.5-flash",
-    "gemini-2.0-flash",
+    "gemini-2.5-flash-lite",
     "gemini-2.0-flash-lite",
-    "gemini-1.5-flash",
+    "gemini-3-flash-preview",
 )
+GEMINI_FALLBACK_MODELS = GEMINI_PREFERRED_MODELS
+# Interactions API — modèles 3.x uniquement (2.x renvoie souvent 404)
 GEMINI_INTERACTION_MODELS = (
-    "gemini-2.5-flash",
-    "gemini-2.0-flash",
+    "gemini-3-flash-preview",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
 )
 GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta"
 OPENAI_MODEL = "gpt-4o-mini"
@@ -173,6 +176,7 @@ from auth import (
     reset_password,
     update_user_profile,
 )
+from database import configure_database, database_status
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -796,6 +800,77 @@ def call_openai_vision(ocr_prompt: str, image_b64: str) -> str:
     return (content or "").strip()
 
 
+def _fetch_gemini_models_from_api() -> tuple[list[str], bool]:
+    """List models supporting generateContent for this API key."""
+    api_key = get_secret("GEMINI_API_KEY")
+    if not api_key:
+        return list(GEMINI_PREFERRED_MODELS), False
+
+    try:
+        response = requests.get(
+            f"{GEMINI_API_BASE}/models",
+            headers={"x-goog-api-key": api_key},
+            timeout=30,
+        )
+        if not response.ok:
+            return list(GEMINI_PREFERRED_MODELS), False
+
+        model_ids = [
+            item["name"].replace("models/", "")
+            for item in response.json().get("models", [])
+            if "generateContent" in item.get("supportedGenerationMethods", [])
+        ]
+        if model_ids:
+            return model_ids, True
+        return list(GEMINI_PREFERRED_MODELS), False
+    except Exception:  # noqa: BLE001
+        return list(GEMINI_PREFERRED_MODELS), False
+
+
+def _gemini_model_rank(model_id: str) -> tuple[int, str]:
+    try:
+        return GEMINI_PREFERRED_MODELS.index(model_id), model_id
+    except ValueError:
+        pass
+    lower = model_id.lower()
+    if "2.5-flash-lite" in lower:
+        return 5, model_id
+    if "2.5-flash" in lower:
+        return 3, model_id
+    if "3" in lower and "flash" in lower:
+        return 8, model_id
+    if "flash" in lower:
+        return 15, model_id
+    return 50, model_id
+
+
+def build_gemini_model_priority(live_models: list[str], *, live_from_api: bool) -> list[str]:
+    """Order Gemini models: preferred that exist on account, then other live models."""
+    if not live_from_api:
+        return list(GEMINI_PREFERRED_MODELS)
+
+    live_set = set(live_models)
+    ordered: list[str] = []
+    for model in GEMINI_PREFERRED_MODELS:
+        if model in live_set:
+            ordered.append(model)
+    rest = sorted(
+        [m for m in live_models if m not in ordered and "embed" not in m.lower()],
+        key=_gemini_model_rank,
+    )
+    ordered.extend(rest)
+    for model in GEMINI_PREFERRED_MODELS:
+        if model not in ordered:
+            ordered.append(model)
+    seen: set[str] = set()
+    return [m for m in ordered if m and not (m in seen or seen.add(m))]
+
+
+def _gemini_supports_interactions(model: str) -> bool:
+    lower = model.lower()
+    return any(token in lower for token in ("gemini-3", "gemini-3.")) or model in GEMINI_INTERACTION_MODELS
+
+
 @contextlib.contextmanager
 def _gemini_isolated_credentials():
     """Avoid mixing Application Default Credentials with API-key auth (AQ. keys)."""
@@ -878,7 +953,7 @@ def _gemini_via_interactions(
     system_prompt: str | None,
     model: str,
 ) -> tuple[str | None, str | None]:
-    """Try Gemini Interactions API (recommended for AQ. authorization keys)."""
+    """Try Gemini Interactions API (Gemini 3.x models only)."""
     try:
         with _gemini_isolated_credentials():
             client = _gemini_client()
@@ -975,21 +1050,11 @@ def _gemini_generate_content(
         raise RuntimeError("GEMINI_API_KEY manquante.")
 
     key_label = "AQ." if is_aq_gemini_key(api_key) else "AIza"
-    models_to_try = list(GEMINI_INTERACTION_MODELS if is_aq_gemini_key(api_key) else GEMINI_FALLBACK_MODELS)
-    for model in GEMINI_FALLBACK_MODELS:
-        if model not in models_to_try:
-            models_to_try.append(model)
+    live_models, live_from_api = _fetch_gemini_models_from_api()
+    models_to_try = build_gemini_model_priority(live_models, live_from_api=live_from_api)
 
     errors: list[str] = []
     for model in models_to_try:
-        if is_aq_gemini_key(api_key):
-            text, err = _gemini_via_interactions(parts, system_prompt, model)
-            if text:
-                st.session_state.active_llm_provider = f"Gemini ({model}, Interactions, {key_label})"
-                return text
-            if err:
-                errors.append(err)
-
         text, err = _gemini_via_sdk(parts, system_prompt, model)
         if text:
             st.session_state.active_llm_provider = f"Gemini ({model}, SDK, {key_label})"
@@ -1004,11 +1069,23 @@ def _gemini_generate_content(
         if err:
             errors.append(err)
 
+        if _gemini_supports_interactions(model):
+            text, err = _gemini_via_interactions(parts, system_prompt, model)
+            if text:
+                st.session_state.active_llm_provider = (
+                    f"Gemini ({model}, Interactions, {key_label})"
+                )
+                return text
+            if err:
+                errors.append(err)
+
+    available = ", ".join(models_to_try[:6]) if models_to_try else "aucun"
     raise RuntimeError(
         f"Connexion Gemini impossible (clé {key_label}).\n"
         + "\n".join(errors[:6])
-        + "\n\nVérifiez que l'API Generative Language est activée sur votre projet Google Cloud "
-        "et que la clé est active sur aistudio.google.com/apikey."
+        + f"\n\nModèles testés : {available}.\n"
+        "Vérifiez aistudio.google.com/apikey — activez Generative Language API "
+        "sur votre projet Google Cloud."
     )
 
 
@@ -1308,7 +1385,7 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
     raise RuntimeError(
         "Aucun moteur IA disponible pour cette requête.\n"
         + "\n".join(errors[:4])
-        + "\n\nAjoutez plusieurs clés (Groq + Gemini AIza…) pour la bascule auto, "
+        + "\n\nAjoutez plusieurs clés (Groq + Gemini AQ./AIza…) pour la bascule auto, "
         "ou attendez 1–2 minutes si seul Groq est configuré."
     )
 
@@ -1350,6 +1427,60 @@ CRITERIA_RETRY_PROMPT = CRITERIA_SYSTEM_PROMPT + """
 RAPPEL CRITIQUE : ta réponse précédente a recopié le modèle au lieu du CV.
 Relis le CV ligne par ligne. Remplis metier, ville et mots_cles avec des termes EXACTS du document.
 Réponds UNIQUEMENT en JSON, sans markdown."""
+
+JOB_SEARCH_PLAN_PROMPT = """Tu es un expert recrutement.
+Le candidat vise le poste : « {title} ».
+
+Retourne UNIQUEMENT un objet JSON valide avec :
+- metier : intitulé normalisé du poste visé
+- query_recherche : requête courte pour moteur d'emploi (2 à 6 mots, sans ville)
+- variantes : tableau de 2 à 4 intitulés proches ou synonymes (même famille de métier)
+
+Exemple pour « Développeur Python » :
+{{"metier":"Développeur Python","query_recherche":"Développeur Python backend","variantes":["Ingénieur logiciel Python","Développeur backend","Software engineer Python"]}}"""
+
+
+def normalize_job_search_plan(raw: dict[str, Any], fallback_title: str) -> dict[str, Any]:
+    """Normalize LLM job search plan with safe fallbacks."""
+    title = " ".join(fallback_title.strip().split())
+    metier = str(raw.get("metier") or title).strip() or title
+    query = str(raw.get("query_recherche") or metier).strip() or title
+    variants_raw = raw.get("variantes") or []
+    variants: list[str] = []
+    if isinstance(variants_raw, list):
+        for item in variants_raw:
+            text = str(item).strip()
+            if text and text.lower() not in {metier.lower(), query.lower(), title.lower()}:
+                variants.append(text)
+    return {
+        "metier": metier,
+        "query_recherche": query,
+        "variantes": variants[:4],
+        "source_title": title,
+    }
+
+
+def build_job_search_plan(target_job_title: str) -> dict[str, Any]:
+    """Use IA to derive search queries and similar titles from the user's target role."""
+    title = " ".join(target_job_title.strip().split())
+    if not title:
+        return normalize_job_search_plan({}, "")
+
+    system_prompt = "Tu réponds uniquement en JSON valide, sans markdown."
+    user_prompt = JOB_SEARCH_PLAN_PROMPT.format(title=title)
+    try:
+        raw = call_llm(system_prompt, user_prompt)
+        parsed = _parse_json_response(raw)
+        if isinstance(parsed, dict):
+            return normalize_job_search_plan(parsed, title)
+    except Exception:  # noqa: BLE001
+        pass
+    return normalize_job_search_plan({"metier": title, "query_recherche": title}, title)
+
+
+@st.cache_data(ttl=CACHE_TTL_SECONDS, show_spinner=False)
+def cached_build_job_search_plan(target_job_title: str) -> dict[str, Any]:
+    return build_job_search_plan(target_job_title)
 
 
 def criteria_looks_like_placeholder(criteria: dict[str, Any]) -> bool:
@@ -1682,6 +1813,7 @@ def cached_search_jobs(
     country: str,
     metier: str = "",
     contract_type: str = "",
+    alternate_queries: tuple[str, ...] = (),
 ) -> dict[str, Any]:
     boosted_query = enrich_query_for_contract(query, contract_type)
     boosted_metier = enrich_query_for_contract(metier, contract_type)
@@ -1692,6 +1824,7 @@ def cached_search_jobs(
         country,
         boosted_metier,
         contract_type,
+        list(alternate_queries),
     )
 
 
@@ -1805,11 +1938,12 @@ def search_jobs_with_fallback(
     country: str,
     metier: str = "",
     contract_type: str = "",
+    alternate_queries: list[str] | None = None,
 ) -> dict[str, Any]:
     """Search jobs nationally by métier; optional location is a last-resort hint only."""
     if provider == JOB_PROVIDER_ALL:
         return _search_all_providers_with_fallback(
-            query, location, country, metier, contract_type
+            query, location, country, metier, contract_type, alternate_queries
         )
 
     attempts: list[tuple[str, str, str]] = []
@@ -1818,9 +1952,16 @@ def search_jobs_with_fallback(
     m = metier.strip()
 
     if q:
-        attempts.append((q, "", "Recherche nationale (métier)"))
+        attempts.append((q, "", "Recherche nationale (poste visé)"))
     if m and m.lower() != q.lower():
         attempts.append((m, "", "Intitulé métier seul"))
+    for alt in alternate_queries or []:
+        alt_text = alt.strip()
+        if not alt_text:
+            continue
+        if alt_text.lower() in {q.lower(), m.lower()}:
+            continue
+        attempts.append((alt_text, "", f"Poste similaire : {alt_text[:40]}"))
     short = " ".join((q or m).split()[:2])
     if short and short.lower() != (q or m).lower():
         attempts.append((short, "", "Requête élargie"))
@@ -1859,6 +2000,7 @@ def _search_all_providers_with_fallback(
     country: str,
     metier: str = "",
     contract_type: str = "",
+    alternate_queries: list[str] | None = None,
 ) -> dict[str, Any]:
     """Query every configured provider and merge unique results."""
     secrets = provider_secrets_from_getter(get_secret)
@@ -1873,9 +2015,11 @@ def _search_all_providers_with_fallback(
         }
 
     q = query.strip() or metier.strip()
-    queries = [q] if q else []
-    if metier.strip() and metier.strip().lower() != q.lower():
-        queries.append(metier.strip())
+    queries: list[str] = []
+    for candidate in [q, metier.strip(), *(alternate_queries or [])]:
+        text = candidate.strip()
+        if text and text.lower() not in {x.lower() for x in queries}:
+            queries.append(text)
     if not queries:
         queries = [""]
 
@@ -2556,7 +2700,10 @@ def render_cv_profile_summary(criteria: dict[str, Any], user_profile: dict[str, 
 
     with st.container(border=True):
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Métier visé", criteria.get("metier", "—"))
+        c1.metric("Poste visé", user_profile.get("target_job_title") or criteria.get("metier", "—"))
+        cv_metier = criteria.get("metier", "")
+        if cv_metier and cv_metier != user_profile.get("target_job_title"):
+            c1.caption(f"Détecté dans le CV : {cv_metier}")
         cv_level = criteria.get("niveau_experience", "—")
         profile_level = user_profile.get("experience_level", "confirme")
         c2.metric(
@@ -2747,6 +2894,44 @@ def run_cv_analysis_pipeline(
     """Run the CV analysis pipeline without mutating the Streamlit DOM."""
     notices: list[dict[str, str]] = []
 
+    target_title = str(user_profile.get("target_job_title", "")).strip()
+    if not target_title:
+        notices.append(
+            {
+                "level": "warning",
+                "text": "Poste visé manquant — renseignez-le dans **Mon profil** avant l'analyse.",
+            }
+        )
+        return None, notices
+
+    search_plan = cached_build_job_search_plan(target_title)
+    query = search_plan.get("query_recherche") or target_title
+    metier = search_plan.get("metier") or target_title
+    alternate_queries = tuple(search_plan.get("variantes") or ())
+    country = user_profile.get("country", "France")
+    contract_type = user_profile.get("contract_type", "CDI")
+
+    notices.append(
+        {
+            "level": "info",
+            "text": (
+                f"Poste visé : **{target_title}** — l'IA recherche des offres "
+                f"correspondantes ou proches (`{query}`)."
+            ),
+        }
+    )
+
+    search_result = cached_search_jobs(
+        job_provider,
+        query,
+        "",
+        country,
+        metier,
+        contract_type=contract_type,
+        alternate_queries=alternate_queries,
+    )
+    raw_jobs = search_result["jobs"]
+
     cv_text, method = extract_cv_text(pdf_bytes)
     if method == "ocr":
         notices.append(
@@ -2765,22 +2950,7 @@ def run_cv_analysis_pipeline(
             }
         )
 
-    query = criteria.get("query_recherche") or criteria.get("metier", "")
-    country = user_profile.get("country", "France")
-    contract_type = user_profile.get("contract_type", "CDI")
     keywords = criteria.get("mots_cles") or criteria.get("competences_techniques") or []
-    metier = criteria.get("metier", "")
-
-    # National API search (métier + contrat) — geographic profile applied after fetch.
-    search_result = cached_search_jobs(
-        job_provider,
-        query,
-        "",
-        country,
-        metier,
-        contract_type=contract_type,
-    )
-    raw_jobs = search_result["jobs"]
     jobs, filter_stats = apply_strict_job_filters(
         raw_jobs, user_profile, cv_profile=criteria
     )
@@ -2807,8 +2977,8 @@ def run_cv_analysis_pipeline(
             {
                 "level": "warning",
                 "text": (
-                    "Aucune offre trouvée par les moteurs pour cette requête. "
-                    "Essayez « Tous les moteurs » ou élargissez le métier."
+                    "Aucune offre trouvée par les moteurs pour ce poste. "
+                    "Essayez « Tous les moteurs » ou modifiez l'intitulé dans Mon profil."
                 ),
             }
         )
@@ -2883,6 +3053,8 @@ def run_cv_analysis_pipeline(
         "extraction_method": method,
         "criteria": criteria,
         "user_profile": user_profile,
+        "target_job_title": target_title,
+        "search_plan": search_plan,
         "filter_stats": filter_stats,
         "jobs_found": len(jobs),
         "jobs_raw": len(raw_jobs),
@@ -3350,7 +3522,17 @@ def _render_auth_register_form() -> None:
         unsafe_allow_html=True,
     )
     st.markdown(
-        '<p class="auth-form-title">Configurez votre profil de recherche d\'emploi</p>',
+        '<p class="auth-form-title">Étape 1 — Quel poste visez-vous ?</p>',
+        unsafe_allow_html=True,
+    )
+    reg_target_job = st.text_input(
+        "Intitulé du poste visé",
+        placeholder="Ex. Développeur Python, Technicien réseau, Chargé de recrutement…",
+        help="L'IA utilisera ce titre pour rechercher des offres correspondantes avant d'analyser votre CV.",
+        key="register_target_job_title",
+    )
+    st.markdown(
+        '<p class="auth-form-title">Étape 2 — Votre profil de recherche</p>',
         unsafe_allow_html=True,
     )
     st.markdown("**Localisation**")
@@ -3430,6 +3612,7 @@ def _render_auth_register_form() -> None:
                     search_radius_km=reg_radius,
                     experience_level=reg_experience,
                     target_sectors=reg_sectors,
+                    target_job_title=reg_target_job,
                 )
                 if ok:
                     st.success(message)
@@ -3510,6 +3693,11 @@ def render_profile_page(user: dict[str, Any]) -> None:
                 country=profile.get("country", "France"),
             )
             with st.form("profile_form"):
+                target_job_title = st.text_input(
+                    "Intitulé du poste visé",
+                    value=profile.get("target_job_title", ""),
+                    help="Utilisé en priorité pour la recherche d'offres avant l'analyse de votre CV.",
+                )
                 new_name = st.text_input(
                     "Nom complet",
                     value=profile.get("full_name", ""),
@@ -3605,6 +3793,7 @@ def render_profile_page(user: dict[str, Any]) -> None:
                         search_radius,
                         experience_level,
                         target_sectors,
+                        target_job_title,
                     )
                     if ok and updated:
                         st.session_state.user = updated
@@ -3656,19 +3845,25 @@ def render_cv_analysis(job_provider: str, user: dict[str, Any]) -> None:
     if not profile_ok:
         st.warning(profile_msg)
         st.info(
-            "Complétez votre **ville**, **code postal** et **type de contrat** "
+            "Complétez le **poste visé**, votre **ville**, **code postal** et **type de contrat** "
             "dans **Mon profil** avant de lancer une analyse."
         )
         return
 
+    target_title = user_profile.get("target_job_title", "—")
     active_level = resolve_experience_level(user_profile, {})
     active_sectors = resolve_target_sectors(user_profile, {})
     region_text, dept_text, city_text = format_profile_geo_summary(user_profile)
 
     with st.container(border=True):
         st.markdown(
-            '<p class="section-title">Déposer votre CV</p>',
+            '<p class="section-title">Étape 2 — Déposer votre CV</p>',
             unsafe_allow_html=True,
+        )
+        st.markdown(f"**Poste visé :** {target_title}")
+        st.caption(
+            "L'IA recherche d'abord des offres pour ce poste (ou des postes similaires), "
+            "puis compare votre CV aux résultats filtrés selon votre profil."
         )
         st.caption(
             f"Filtres actifs : contrat **{user_profile.get('contract_type')}** · "
@@ -3702,7 +3897,10 @@ def render_cv_analysis(job_provider: str, user: dict[str, Any]) -> None:
             if st.session_state.analysis:
                 pass
             else:
-                st.info("Uploadez votre CV pour démarrer l'analyse automatique.")
+                st.info(
+                    "Uploadez votre CV (PDF) — l'IA recherche les offres pour votre poste visé, "
+                    "puis analyse la correspondance avec votre profil."
+                )
         else:
             if fp_matches:
                 st.info("Résultats en cache pour ce CV — relancez pour forcer une nouvelle analyse.")
@@ -3716,7 +3914,7 @@ def render_cv_analysis(job_provider: str, user: dict[str, Any]) -> None:
                 st.session_state.llm_backend_active = None
                 try:
                     with st.spinner(
-                        "Analyse en cours — extraction CV, recherche, filtrage et matching IA…"
+                        "Analyse en cours — recherche d'offres, extraction CV, filtrage et matching IA…"
                     ):
                         analysis, notices = run_cv_analysis_pipeline(
                             pdf_bytes,
@@ -3839,6 +4037,12 @@ def render_app() -> None:
 
         with st.expander("Configuration & tests", expanded=False):
             st.caption(f"Version : `{APP_VERSION}`")
+
+            db_backend, db_message = database_status()
+            if db_backend == "postgres":
+                st.success(db_message)
+            else:
+                st.warning(db_message)
 
             adzuna_id = get_secret("ADZUNA_APP_ID")
             adzuna_key = get_secret("ADZUNA_APP_KEY")
@@ -4041,8 +4245,8 @@ def render_app() -> None:
     if page == "Mon profil":
         render_page_hero(
             "Mon profil",
-            "Gérez vos préférences de recherche : zone géographique, contrat, "
-            "niveau d'expérience et secteurs ciblés.",
+            "Définissez le poste visé, votre zone géographique, votre contrat, "
+            "votre niveau d'expérience et vos secteurs ciblés.",
             badge="Compte",
         )
         render_profile_page(user)
@@ -4050,9 +4254,9 @@ def render_app() -> None:
 
     render_page_hero(
         "Analyse CV",
-        f"Bienvenue {user_name} — déposez votre CV. L'IA analyse votre profil, "
-        "recherche les offres et ne retient que celles correspondant à votre contrat "
-        "et à votre zone géographique.",
+        f"Bienvenue {user_name} — vous avez défini un poste visé. "
+        "Déposez votre CV : l'IA recherche les offres correspondantes, "
+        "puis compare votre profil aux annonces filtrées.",
         badge="Matching IA",
     )
     render_cv_analysis(job_provider, user)
@@ -4060,6 +4264,7 @@ def render_app() -> None:
 
 def main() -> None:
     """Application entry point — auth gate then main tool."""
+    configure_database(get_secret("DATABASE_URL"))
     init_db()
     init_session_state()
 
