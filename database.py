@@ -7,7 +7,7 @@ import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Iterator
-from urllib.parse import parse_qs, quote, urlencode, urlparse, urlunparse
+from urllib.parse import parse_qs, quote, unquote, urlencode, urlparse, urlunparse
 
 SQLITE_PATH = Path(__file__).parent / "data" / "users.db"
 
@@ -83,10 +83,8 @@ def normalize_database_url(url: str, password_override: str = "") -> str:
     if "supabase" in host or "neon" in host:
         if "sslmode" not in query:
             query["sslmode"] = ["require"]
-        if "pooler.supabase.com" in host and parsed.port == 6543 and "pgbouncer" not in query:
-            query["pgbouncer"] = ["true"]
 
-    new_query = urlencode([(k, v[0]) for k, v in query.items()])
+    new_query = urlencode([(k, v[0]) for k, v in query.items() if k in {"sslmode"}])
     return urlunparse(parsed._replace(query=new_query))
 
 
@@ -158,7 +156,53 @@ def database_connection_hint(exc: BaseException) -> str:
         )
     if "placeholder" in message or "your-password" in message:
         hints.append("Remplacez [YOUR-PASSWORD] par le vrai mot de passe Supabase.")
+    if "ipv4" in message or "ipv6" in message:
+        hints.append(
+            "URL mal formée : mettez DATABASE_URL entre guillemets et utilisez DATABASE_PASSWORD "
+            "si le mot de passe contient @ ou d'autres caractères spéciaux."
+        )
+        hints.append(
+            "Exemple : DATABASE_URL sans mot de passe dans l'URL + DATABASE_PASSWORD séparé."
+        )
     return "\n".join(f"- {hint}" for hint in hints)
+
+
+def postgres_connect_kwargs(url: str) -> dict[str, Any]:
+    """Build psycopg keyword args — avoids URI parsing bugs in libpq."""
+    parsed = urlparse(url)
+    query = parse_qs(parsed.query)
+    host = parsed.hostname
+    if not host:
+        raise DatabaseConfigError("Hôte PostgreSQL manquant dans DATABASE_URL.")
+
+    password = unquote(parsed.password or "")
+    if not password:
+        raise DatabaseConfigError(
+            "Mot de passe PostgreSQL manquant. Ajoutez-le dans DATABASE_URL ou DATABASE_PASSWORD."
+        )
+
+    sslmode = (query.get("sslmode") or ["require"])[0]
+    return {
+        "host": host,
+        "port": parsed.port or 5432,
+        "user": unquote(parsed.username or "postgres"),
+        "password": password,
+        "dbname": (parsed.path or "/postgres").lstrip("/") or "postgres",
+        "sslmode": sslmode,
+        "connect_timeout": 20,
+    }
+
+
+def postgres_connection_summary(url: str) -> str:
+    """Safe one-line summary for error messages (no password)."""
+    try:
+        params = postgres_connect_kwargs(url)
+        return (
+            f"hôte={params['host']} port={params['port']} "
+            f"user={params['user']} db={params['dbname']}"
+        )
+    except Exception as exc:  # noqa: BLE001
+        return f"URL illisible ({exc})"
 
 
 def adapt_sql(sql: str) -> str:
@@ -203,17 +247,16 @@ def connect() -> Iterator[Any]:
         from psycopg.rows import dict_row
 
         try:
-            with psycopg.connect(
-                _database_url,
-                row_factory=dict_row,
-                connect_timeout=20,
-            ) as conn:
+            params = postgres_connect_kwargs(_database_url)
+            with psycopg.connect(**params, row_factory=dict_row) as conn:
                 yield conn
         except DatabaseConfigError:
             raise
         except Exception as exc:  # noqa: BLE001
+            summary = postgres_connection_summary(_database_url)
             raise RuntimeError(
-                "Connexion PostgreSQL impossible.\n" + database_connection_hint(exc)
+                f"Connexion PostgreSQL impossible ({summary}).\n"
+                + database_connection_hint(exc)
             ) from exc
     else:
         SQLITE_PATH.parent.mkdir(parents=True, exist_ok=True)

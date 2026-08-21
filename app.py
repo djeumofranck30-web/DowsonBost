@@ -4276,13 +4276,13 @@ def main() -> None:
         if get_secret("DATABASE_URL"):
             st.info(database_connection_hint(exc))
             st.markdown(
-                "**Format attendu dans Streamlit Secrets :**\n\n"
+                "**Format recommandé (Streamlit Secrets) :**\n\n"
                 "```toml\n"
-                'DATABASE_URL = "postgresql://postgres.xxxxx:[MOT_DE_PASSE]@aws-0-eu-west-2.pooler.supabase.com:6543/postgres"\n'
-                "# OU si le mot de passe contient des caractères spéciaux :\n"
-                'DATABASE_URL = "postgresql://postgres.xxxxx@aws-0-eu-west-2.pooler.supabase.com:6543/postgres"\n'
-                'DATABASE_PASSWORD = "votre_mot_de_passe"\n'
-                "```"
+                'DATABASE_URL = "postgresql://postgres.ongzgribavyjprbrawzd@aws-0-eu-west-2.pooler.supabase.com:6543/postgres"\n'
+                'DATABASE_PASSWORD = "votre_mot_de_passe_supabase"\n'
+                "```\n\n"
+                "Copiez l'URL depuis Supabase → **Connect** → **Transaction pooler** (port 6543), "
+                "sans le mot de passe dans l'URL."
             )
         else:
             st.warning(
