@@ -466,6 +466,63 @@ def search_jobs_jooble(
     return jobs
 
 
+def _fetch_public_ip() -> str:
+    """Best-effort public IP (server egress) for Careerjet when client IP unavailable."""
+    try:
+        response = requests.get("https://api.ipify.org?format=json", timeout=5)
+        if response.ok:
+            ip = str(response.json().get("ip", "")).strip()
+            if ip:
+                return ip
+    except (requests.RequestException, ValueError, TypeError):
+        pass
+    return ""
+
+
+def resolve_careerjet_user_ip(configured_ip: str = "", client_ip: str = "") -> str:
+    """Pick a Careerjet-compatible user_ip (visitor IP preferred)."""
+    for candidate in (client_ip, configured_ip):
+        cleaned = str(candidate or "").strip()
+        if cleaned and cleaned != "127.0.0.1":
+            return cleaned
+    public_ip = _fetch_public_ip()
+    if public_ip:
+        return public_ip
+    return configured_ip.strip() or "127.0.0.1"
+
+
+def _careerjet_request(
+    api_key: str,
+    params: dict[str, Any],
+    referer: str,
+) -> tuple[dict[str, Any] | None, str | None]:
+    """Call Careerjet v4 and return (payload, error_message)."""
+    try:
+        response = requests.get(
+            "https://search.api.careerjet.net/v4/query",
+            params=params,
+            auth=(api_key.strip(), ""),
+            headers={"Content-Type": "application/json", "Referer": referer.strip()},
+            timeout=30,
+        )
+    except requests.RequestException as exc:
+        return None, f"Réseau Careerjet : {exc}"
+
+    body_preview = (response.text or "")[:240].strip()
+    if not response.ok:
+        return None, f"HTTP {response.status_code} — {body_preview or 'réponse vide'}"
+
+    try:
+        payload = response.json()
+    except ValueError:
+        return None, f"Réponse JSON invalide — {body_preview}"
+
+    if isinstance(payload, dict) and str(payload.get("type", "")).upper() == "ERROR":
+        return None, str(payload.get("error") or payload.get("message") or body_preview)
+
+    return payload, None
+
+
 def search_jobs_optioncarriere(
     query: str,
     location: str,
@@ -485,6 +542,8 @@ def search_jobs_optioncarriere(
     jobs: list[dict[str, Any]] = []
     locale_code = _locale_for_country(country)
     careerjet_contract = CAREERJET_CONTRACT_MAP.get(contract_type.strip(), "")
+    effective_ip = resolve_careerjet_user_ip(user_ip)
+    effective_referer = referer.strip() or "https://localhost/"
 
     for page in range(1, max_pages + 1):
         params: dict[str, Any] = {
@@ -493,46 +552,87 @@ def search_jobs_optioncarriere(
             "location": location.strip(),
             "page": page,
             "page_size": page_size,
-            "user_ip": user_ip.strip() or "127.0.0.1",
+            "user_ip": effective_ip,
             "user_agent": DEFAULT_USER_AGENT,
         }
         if careerjet_contract:
             params["contract_type"] = careerjet_contract
-        try:
-            response = requests.get(
-                "https://search.api.careerjet.net/v4/query",
-                params=params,
-                auth=(api_key.strip(), ""),
-                headers={"Content-Type": "application/json", "Referer": referer},
-                timeout=30,
-            )
-            if not response.ok:
-                break
-            payload = response.json()
-            batch = payload.get("jobs") or []
-            if not batch:
-                break
-            for item in batch:
-                salary = str(item.get("salary", "")).strip()
-                description = str(item.get("description", "")).strip()
-                if salary and salary not in description:
-                    description = f"{description}\n\nSalaire : {salary}".strip()
-                jobs.append(
-                    _standard_job(
-                        str(item.get("title", "")),
-                        str(item.get("company", "")),
-                        str(item.get("locations", "")),
-                        description,
-                        str(item.get("url", "")),
-                        source="OptionCarriere",
-                        published_at=item.get("date", ""),
-                    )
+
+        payload, _error = _careerjet_request(api_key, params, effective_referer)
+        if payload is None:
+            break
+        batch = payload.get("jobs") or []
+        if not batch:
+            break
+        for item in batch:
+            salary = str(item.get("salary", "")).strip()
+            description = str(item.get("description", "")).strip()
+            if salary and salary not in description:
+                description = f"{description}\n\nSalaire : {salary}".strip()
+            jobs.append(
+                _standard_job(
+                    str(item.get("title", "")),
+                    str(item.get("company", "")),
+                    str(item.get("locations", "")),
+                    description,
+                    str(item.get("url", "")),
+                    source="OptionCarriere",
+                    published_at=item.get("date", ""),
                 )
-            if page >= int(payload.get("pages") or 1):
-                break
-        except (requests.RequestException, ValueError, TypeError):
+            )
+        if page >= int(payload.get("pages") or 1):
             break
     return jobs
+
+
+def probe_optioncarriere_connection(
+    api_key: str,
+    *,
+    user_ip: str = "",
+    referer: str = "https://localhost/",
+    client_ip: str = "",
+    query: str = "alternance",
+) -> tuple[bool, str]:
+    """Test Careerjet with explicit diagnostics (IP, referer, HTTP body)."""
+    if not api_key.strip():
+        return (
+            False,
+            "CAREERJET_API_KEY manquante — inscrivez-vous sur optioncarriere.com/partners/api",
+        )
+
+    effective_ip = resolve_careerjet_user_ip(user_ip, client_ip=client_ip)
+    effective_referer = referer.strip() or "https://localhost/"
+    params = {
+        "locale_code": "fr_FR",
+        "keywords": query.strip() or "alternance",
+        "location": "",
+        "page": 1,
+        "page_size": 3,
+        "user_ip": effective_ip,
+        "user_agent": DEFAULT_USER_AGENT,
+    }
+    payload, error = _careerjet_request(api_key, params, effective_referer)
+    if error:
+        hint = (
+            f"IP utilisée : `{effective_ip}` · Referer : `{effective_referer}`. "
+            "Le referer doit correspondre exactement à l'URL enregistrée sur "
+            "optioncarriere.com/partners/api. "
+            "Dans secrets.toml : CAREERJET_REFERER = \"https://votre-url/\" "
+            "et optionnellement CAREERJET_USER_IP (IP publique autorisée)."
+        )
+        return False, f"Careerjet : {error}\n\n{hint}"
+
+    batch = (payload or {}).get("jobs") or []
+    if batch:
+        return True, (
+            f"OptionCarriere OK — {len(batch)} offre(s) test pour « {query} » "
+            f"(IP `{effective_ip}`)."
+        )
+    return (
+        False,
+        "Careerjet a répondu sans offres pour « alternance ». "
+        f"Vérifiez la clé et le referer `{effective_referer}`."
+    )
 
 
 def _parse_serpapi_google_jobs(data: dict[str, Any], source_label: str) -> list[dict[str, Any]]:
@@ -962,16 +1062,18 @@ def test_jooble_connection(api_key: str, query: str = "alternance") -> tuple[boo
 def test_optioncarriere_connection(
     api_key: str,
     query: str = "alternance",
+    *,
+    user_ip: str = "",
+    referer: str = "https://localhost/",
+    client_ip: str = "",
 ) -> tuple[bool, str]:
-    if not api_key.strip():
-        return (
-            False,
-            "CAREERJET_API_KEY manquante — inscrivez-vous sur optioncarriere.com/partners/api",
-        )
-    jobs = search_jobs_optioncarriere(query, "", "France", api_key, max_pages=1, page_size=3)
-    if jobs:
-        return True, f"OptionCarriere OK — {len(jobs)} offre(s) test pour « {query} »."
-    return False, "Aucun résultat Careerjet (clé, IP whitelist ou referer à vérifier)."
+    return probe_optioncarriere_connection(
+        api_key,
+        user_ip=user_ip,
+        referer=referer,
+        client_ip=client_ip,
+        query=query,
+    )
 
 
 def test_serpapi_platform_connection(

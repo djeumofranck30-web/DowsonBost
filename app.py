@@ -86,6 +86,7 @@ from job_providers import (
     default_job_provider,
     merge_job_lists,
     provider_secrets_from_getter,
+    resolve_careerjet_user_ip,
     search_jobs_glassdoor_serpapi,
     search_jobs_hellowork,
     search_jobs_indeed_serpapi,
@@ -140,7 +141,7 @@ THEME_SURFACE_SOFT = "#f5f3ff"
 THEME_MUTED = "#64748b"
 THEME_ACCENT = "#6366f1"
 
-APP_VERSION = "3.10.0-job-providers-expansion"
+APP_VERSION = "3.10.1-careerjet-diagnostics"
 
 ADZUNA_COUNTRY_CODES = {
     "France": "fr",
@@ -280,6 +281,49 @@ def get_secret(key: str, default: str = "") -> str:
     if isinstance(raw, list):
         return normalize_secret(str(raw[0])) if raw else default
     return normalize_secret(raw)
+
+
+def resolve_streamlit_client_ip() -> str:
+    """Best-effort visitor IP from Streamlit / reverse-proxy headers."""
+    try:
+        headers = getattr(getattr(st, "context", None), "headers", None) or {}
+        forwarded = headers.get("X-Forwarded-For") or headers.get("x-forwarded-for") or ""
+        if forwarded:
+            ip = forwarded.split(",")[0].strip()
+            if ip:
+                return ip
+        for header_name in (
+            "X-Real-Ip",
+            "x-real-ip",
+            "Cf-Connecting-Ip",
+            "cf-connecting-ip",
+        ):
+            value = headers.get(header_name)
+            if value:
+                return str(value).strip()
+    except Exception:  # noqa: BLE001 — optional Streamlit context
+        pass
+    return ""
+
+
+def resolve_careerjet_referer(configured: str) -> str:
+    """Referer header required by Careerjet — auto-detect deployed app URL when possible."""
+    cleaned = configured.strip()
+    if cleaned and cleaned not in ("https://localhost/", "http://localhost/"):
+        return cleaned
+    try:
+        headers = getattr(getattr(st, "context", None), "headers", None) or {}
+        host = headers.get("Host") or headers.get("host")
+        if host:
+            proto = (
+                headers.get("X-Forwarded-Proto")
+                or headers.get("x-forwarded-proto")
+                or "https"
+            )
+            return f"{proto}://{host}/"
+    except Exception:  # noqa: BLE001
+        pass
+    return cleaned or "https://localhost/"
 
 
 def get_secret_raw(key: str, default: Any = "") -> Any:
@@ -2902,8 +2946,11 @@ def search_jobs(
             location,
             country,
             secrets["careerjet_api_key"],
-            user_ip=secrets["careerjet_user_ip"],
-            referer=secrets["careerjet_referer"],
+            user_ip=resolve_careerjet_user_ip(
+                secrets["careerjet_user_ip"],
+                client_ip=resolve_streamlit_client_ip(),
+            ),
+            referer=resolve_careerjet_referer(secrets["careerjet_referer"]),
             contract_type=contract_type,
         )
 
@@ -6011,6 +6058,17 @@ def render_app() -> None:
 
             if careerjet_configured:
                 st.success("OptionCarriere / Careerjet : clé présente")
+                referer_preview = resolve_careerjet_referer(
+                    provider_secrets["careerjet_referer"]
+                )
+                ip_preview = resolve_careerjet_user_ip(
+                    provider_secrets["careerjet_user_ip"],
+                    client_ip=resolve_streamlit_client_ip(),
+                )
+                st.caption(
+                    f"Careerjet — referer `{referer_preview}` · IP `{ip_preview}`. "
+                    "Le referer doit être l'URL exacte enregistrée sur le portail partenaire."
+                )
             else:
                 st.caption(
                     "OptionCarriere : [clé gratuite](https://www.optioncarriere.com/partners/api)"
@@ -6059,7 +6117,10 @@ def render_app() -> None:
                 key="test_optioncarriere",
             ):
                 ok, message = test_optioncarriere_connection(
-                    provider_secrets["careerjet_api_key"]
+                    provider_secrets["careerjet_api_key"],
+                    user_ip=provider_secrets["careerjet_user_ip"],
+                    referer=resolve_careerjet_referer(provider_secrets["careerjet_referer"]),
+                    client_ip=resolve_streamlit_client_ip(),
                 )
                 if ok:
                     st.success(message)
