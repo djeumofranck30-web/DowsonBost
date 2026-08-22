@@ -46,6 +46,7 @@ from job_filters import (
     EXPERIENCE_LEVELS,
     GEO_FILTER_MODES,
     SECTOR_OPTIONS,
+    build_country_search_locations,
     apply_strict_job_filters,
     build_profile_search_locations,
     enrich_query_for_contract,
@@ -58,6 +59,15 @@ from job_filters import (
     profile_ready_for_matching,
     resolve_experience_level,
     resolve_target_sectors,
+)
+from world_geo import (
+    country_geo_schema,
+    country_has_subdivisions,
+    format_countries_summary,
+    get_country_geo,
+    merge_profile_geo,
+    profile_countries,
+    profile_primary_country,
 )
 
 APP_NAME = "DowsonBost"
@@ -143,7 +153,7 @@ THEME_SURFACE_SOFT = "#f5f3ff"
 THEME_MUTED = "#64748b"
 THEME_ACCENT = "#6366f1"
 
-APP_VERSION = "3.10.2-careerjet-ip-whitelist"
+APP_VERSION = "3.11.0-multi-country-profile"
 
 ADZUNA_COUNTRY_CODES = {
     "France": "fr",
@@ -2669,27 +2679,22 @@ def _search_jobs_at_profile_location(
     )
 
 
-def search_jobs_for_profile(
+def _search_jobs_at_country_locations(
     provider: str,
     query: str,
     country: str,
-    profile: dict[str, Any],
-    metier: str = "",
-    contract_type: str = "",
-    alternate_queries: list[str] | None = None,
+    profile_locations: list[str],
+    metier: str,
+    contract_type: str,
+    alternate_queries: list[str] | None,
+    max_age_days: int,
 ) -> dict[str, Any]:
-    """Search across all profile zones (cities, departments, regions) and merge results."""
-    max_age_days = normalize_job_max_age_days(profile.get("job_max_age_days"))
-    profile_locations = build_profile_search_locations(profile)
+    """Run provider search for one country across its profile location hints."""
     merged: list[dict[str, Any]] = []
     providers_used: list[str] = []
     strategies: list[str] = []
     query_used = query
-
-    if len(profile_locations) <= 1:
-        location_iter = profile_locations or [""]
-    else:
-        location_iter = profile_locations
+    location_iter = profile_locations or [""]
 
     worker_count = min(SEARCH_LOCATION_MAX_WORKERS, len(location_iter))
     if worker_count > 1:
@@ -2735,24 +2740,82 @@ def search_jobs_for_profile(
                 if result.get("strategy"):
                     strategies.append(str(result["strategy"]))
 
+    return {
+        "jobs": merged,
+        "strategy": strategies[0] if len(strategies) == 1 else "",
+        "query_used": query_used,
+        "providers_used": providers_used,
+    }
+
+
+def search_jobs_for_profile(
+    provider: str,
+    query: str,
+    country: str,
+    profile: dict[str, Any],
+    metier: str = "",
+    contract_type: str = "",
+    alternate_queries: list[str] | None = None,
+) -> dict[str, Any]:
+    """Search across all selected countries and profile zones, then merge results."""
+    max_age_days = normalize_job_max_age_days(profile.get("job_max_age_days"))
+    countries = profile_countries(profile) or [country or "France"]
+    geo_map = merge_profile_geo(profile)
+    per_country_max = max(3, 24 // max(1, len(countries)))
+
+    merged: list[dict[str, Any]] = []
+    providers_used: list[str] = []
+    strategies: list[str] = []
+    query_used = query
+    all_locations: list[str] = []
+
+    for search_country in countries:
+        country_locations = build_country_search_locations(
+            search_country,
+            geo_map.get(search_country, {}),
+            max_locations=per_country_max,
+        )
+        all_locations.extend(country_locations)
+        result = _search_jobs_at_country_locations(
+            provider,
+            query,
+            search_country,
+            country_locations,
+            metier,
+            contract_type,
+            alternate_queries,
+            max_age_days,
+        )
+        if result.get("jobs"):
+            merged = merge_job_lists([merged, result["jobs"]])
+            query_used = result.get("query_used") or query_used
+            providers_used.extend(result.get("providers_used") or [])
+            if result.get("strategy"):
+                strategies.append(str(result["strategy"]))
+
     if merged:
-        location_label = ", ".join(profile_locations[:4])
-        if len(profile_locations) > 4:
+        location_label = ", ".join(all_locations[:4])
+        if len(all_locations) > 4:
             location_label += "…"
+        countries_label = format_countries_summary(profile)
+        strategy = strategies[0] if len(strategies) == 1 else "Zones sélectionnées (profil)"
+        if len(countries) > 1:
+            strategy = f"{countries_label} — {strategy}"
         return {
             "jobs": merged,
-            "strategy": strategies[0] if len(strategies) == 1 else "Zones sélectionnées (profil)",
+            "strategy": strategy,
             "query_used": query_used,
             "location_used": location_label,
             "providers_used": list(dict.fromkeys(providers_used)),
-            "profile_locations": profile_locations,
+            "profile_locations": all_locations,
         }
 
+    fallback_country = profile_primary_country(profile) or country or "France"
     return search_jobs_with_fallback(
         provider,
         query,
         "",
-        country,
+        fallback_country,
         metier,
         contract_type,
         alternate_queries,
@@ -4341,7 +4404,12 @@ def render_cv_profile_summary(criteria: dict[str, Any], user_profile: dict[str, 
         )
         c3.metric("Contrat recherché", user_profile.get("contract_type", "—"))
         region_text, dept_text, city_text = format_profile_geo_summary(user_profile)
-        c4.metric("Zone de recherche", city_text if city_text != "—" else dept_text)
+        zone_label = region_text
+        if city_text != "—":
+            zone_label = city_text if len(profile_countries(user_profile)) > 1 else (
+                city_text if city_text != "—" else dept_text
+            )
+        c4.metric("Zone de recherche", zone_label if zone_label != "—" else dept_text)
 
         profile_sectors = user_profile.get("target_sectors") or []
         cv_sectors = criteria.get("secteurs") or []
@@ -4354,11 +4422,12 @@ def render_cv_profile_summary(criteria: dict[str, Any], user_profile: dict[str, 
             "departement": "Pays, régions, départements et villes sélectionnés",
             "rayon": f"Zones sélectionnées + rayon {user_profile.get('search_radius_km', 20)} km",
         }
+        countries_label = format_countries_summary(user_profile)
         st.caption(
             f"Filtrage géographique : **{geo_labels.get(user_profile.get('geo_filter_mode', 'departement'), '—')}** · "
-            f"{user_profile.get('country', 'France')} · "
-            f"Régions : **{region_text}** · "
-            f"Départements : **{dept_text}** · "
+            f"Pays : **{countries_label}** · "
+            f"Zones : **{region_text}** · "
+            f"Subdivisions : **{dept_text}** · "
             f"Villes : **{city_text}**"
         )
 
@@ -4851,25 +4920,152 @@ def run_cv_analysis_pipeline(
 
 
 def format_profile_geo_summary(profile: dict[str, Any]) -> tuple[str, str, str]:
-    """Return human-readable (regions, departments, cities) labels for display."""
-    regions, departments = resolve_multi_geo_from_profile(profile)
-    cities = resolve_selected_cities(profile)
-    region_text = ", ".join(regions) if regions else "—"
-    if departments:
-        dept_text = ", ".join(
-            format_department_label(d.get("code", ""), d.get("name", ""))
-            if d.get("name")
-            else str(d.get("code", ""))
-            for d in departments
+    """Return human-readable (regions/countries, subdivisions, cities) labels."""
+    countries = profile_countries(profile)
+    if len(countries) == 1 and countries[0] == "France":
+        regions, departments = resolve_multi_geo_from_profile(profile)
+        cities = resolve_selected_cities(profile)
+        region_text = ", ".join(regions) if regions else "—"
+        if departments:
+            dept_text = ", ".join(
+                format_department_label(d.get("code", ""), d.get("name", ""))
+                if d.get("name")
+                else str(d.get("code", ""))
+                for d in departments
+            )
+        else:
+            dept_text = "—"
+        city_text = (
+            "Toutes les villes (départements sélectionnés)"
+            if profile_all_cities(profile)
+            else (", ".join(cities) if cities else "—")
         )
-    else:
-        dept_text = "—"
-    city_text = (
-        "Toutes les villes (départements sélectionnés)"
-        if profile_all_cities(profile)
-        else (", ".join(cities) if cities else "—")
-    )
+        return region_text, dept_text, city_text
+
+    region_text = format_countries_summary(profile)
+    subdivision_parts: list[str] = []
+    city_parts: list[str] = []
+    for country in countries:
+        geo = get_country_geo(profile, country)
+        if country == "France":
+            fr_regions, fr_departments = resolve_multi_geo_from_profile(profile)
+            if fr_regions:
+                subdivision_parts.append(
+                    f"France: {', '.join(fr_regions[:3])}"
+                    + ("…" if len(fr_regions) > 3 else "")
+                )
+            if fr_departments:
+                dept_labels = [
+                    format_department_label(d.get("code", ""), d.get("name", ""))
+                    for d in fr_departments[:3]
+                ]
+                subdivision_parts.append(f"France (dép.): {', '.join(dept_labels)}")
+            fr_cities = resolve_selected_cities(profile)
+            if profile_all_cities(profile):
+                city_parts.append("France: toutes les villes")
+            elif fr_cities:
+                city_parts.append(f"France: {', '.join(fr_cities[:4])}")
+            continue
+
+        level1 = geo.get("level1") or []
+        level2 = geo.get("level2") or []
+        cities = geo.get("cities") or []
+        schema = country_geo_schema(country)
+        if level1:
+            label = (schema or {}).get("level1_label", "Zone")
+            subdivision_parts.append(
+                f"{country} ({label.lower()}): {', '.join(level1[:3])}"
+                + ("…" if len(level1) > 3 else "")
+            )
+        if level2:
+            subdivision_parts.append(f"{country} (niv. 2): {', '.join(level2[:3])}")
+        if cities:
+            city_parts.append(f"{country}: {', '.join(cities[:4])}")
+
+    dept_text = " · ".join(subdivision_parts) if subdivision_parts else "—"
+    city_text = " · ".join(city_parts) if city_parts else "—"
     return region_text, dept_text, city_text
+
+
+def render_countries_multiselect(
+    profile: dict[str, Any],
+    key_prefix: str,
+) -> list[str]:
+    """ISO 3166-1 multi-select for job search countries."""
+    initial = profile_countries(profile)
+    countries_key = f"{key_prefix}_selected_countries"
+    if countries_key not in st.session_state:
+        st.session_state[countries_key] = initial
+
+    selected = st.multiselect(
+        "Pays de recherche",
+        list(COUNTRY_OPTIONS),
+        key=countries_key,
+        help=(
+            "Sélectionnez un ou plusieurs pays (liste ISO 3166-1). "
+            "Seules les offres situées dans ces pays seront proposées."
+        ),
+    )
+    return selected if selected else ["France"]
+
+
+def render_international_geo_selectors(
+    country: str,
+    profile: dict[str, Any],
+    key_prefix: str,
+) -> dict[str, Any]:
+    """Adaptive region/state/city selectors for non-France countries."""
+    geo = get_country_geo(profile, country)
+    schema = country_geo_schema(country)
+    result: dict[str, Any] = {
+        "level1": [],
+        "level2": [],
+        "cities": [],
+        "all_cities": False,
+    }
+
+    if not schema:
+        cities_raw = st.text_input(
+            "Villes ciblées",
+            value=", ".join(geo.get("cities") or []),
+            key=f"{key_prefix}_cities_{country}",
+            help="Saisissez une ou plusieurs villes, séparées par des virgules.",
+        )
+        result["cities"] = [item.strip() for item in cities_raw.split(",") if item.strip()]
+        return result
+
+    level1_options = schema.get("level1_options") or []
+    if level1_options:
+        level1_key = f"{key_prefix}_l1_{country}"
+        if level1_key not in st.session_state:
+            st.session_state[level1_key] = [
+                item for item in (geo.get("level1") or []) if item in level1_options
+            ]
+        result["level1"] = st.multiselect(
+            schema.get("level1_label", "Région"),
+            level1_options,
+            key=level1_key,
+            help=f"Sélectionnez une ou plusieurs {schema.get('level1_label', 'zones').lower()}.",
+        )
+
+    if schema.get("level2_label"):
+        level2_label = schema["level2_label"]
+        level2_raw = st.text_input(
+            level2_label,
+            value=", ".join(geo.get("level2") or []),
+            key=f"{key_prefix}_l2_{country}",
+            help=f"Saisie libre — {level2_label.lower()}, séparés par des virgules.",
+        )
+        result["level2"] = [item.strip() for item in level2_raw.split(",") if item.strip()]
+
+    cities_raw = st.text_input(
+        schema.get("city_label", "Villes"),
+        value=", ".join(geo.get("cities") or []),
+        key=f"{key_prefix}_cities_{country}",
+        help="Une ou plusieurs villes, séparées par des virgules.",
+    )
+    result["cities"] = [item.strip() for item in cities_raw.split(",") if item.strip()]
+    return result
 
 
 def render_region_department_selectors(
@@ -5320,16 +5516,39 @@ def _render_auth_register_form() -> None:
         unsafe_allow_html=True,
     )
     st.markdown("**Localisation**")
-    reg_admin_regions, reg_departments = render_region_department_selectors(
-        {},
-        key_prefix="register",
-    )
-    reg_cities, reg_all_cities = render_city_selector(
-        {},
-        key_prefix="register",
-        selected_departments=reg_departments,
-        country="France",
-    )
+    reg_selected_countries = render_countries_multiselect({}, key_prefix="register")
+    reg_admin_regions: list[str] = []
+    reg_departments: list[dict[str, str]] = []
+    reg_cities: list[str] = []
+    reg_all_cities = False
+    reg_geo_by_country: dict[str, dict[str, Any]] = {}
+
+    if "France" in reg_selected_countries:
+        with st.expander("France — régions, départements & villes", expanded=True):
+            reg_admin_regions, reg_departments = render_region_department_selectors(
+                {},
+                key_prefix="register",
+            )
+            reg_cities, reg_all_cities = render_city_selector(
+                {},
+                key_prefix="register",
+                selected_departments=reg_departments,
+                country="France",
+            )
+
+    for country in reg_selected_countries:
+        if country == "France":
+            continue
+        with st.expander(
+            f"{country} — {country_geo_schema(country).get('level1_label', 'zones') if country_has_subdivisions(country) else 'villes'}",
+            expanded=len(reg_selected_countries) <= 2,
+        ):
+            reg_geo_by_country[country] = render_international_geo_selectors(
+                country,
+                {},
+                key_prefix="register",
+            )
+
     with st.form("register_form", clear_on_submit=False):
         reg_name = st.text_input("Nom complet", placeholder="Jean Dupont")
         reg_email = st.text_input("E-mail", placeholder="vous@exemple.com")
@@ -5338,7 +5557,6 @@ def _render_auth_register_form() -> None:
         )
         reg_password2 = st.text_input("Confirmer le mot de passe", type="password")
         st.markdown("**Préférences de recherche d'emploi**")
-        reg_country = st.selectbox("Pays", COUNTRY_OPTIONS, index=0)
         reg_contract = st.selectbox(
             "Type de contrat recherché", CONTRACT_TYPES, index=0
         )
@@ -5376,16 +5594,15 @@ def _render_auth_register_form() -> None:
             if reg_password != reg_password2:
                 st.error("Les mots de passe ne correspondent pas.")
             else:
-                cities = reg_cities
                 ok, message = register_user(
                     reg_name,
                     reg_email,
                     reg_password,
                     admin_regions=reg_admin_regions,
                     selected_departments=reg_departments,
-                    selected_cities=cities,
+                    selected_cities=reg_cities,
                     all_cities=reg_all_cities,
-                    country=reg_country,
+                    country=reg_selected_countries[0],
                     contract_type=reg_contract,
                     geo_filter_mode=reg_geo,
                     search_radius_km=reg_radius,
@@ -5393,6 +5610,8 @@ def _render_auth_register_form() -> None:
                     target_sectors=reg_sectors,
                     target_job_title=reg_target_job,
                     job_max_age_days=reg_publication_age,
+                    selected_countries=reg_selected_countries,
+                    geo_by_country=reg_geo_by_country,
                 )
                 if ok:
                     st.success(message)
@@ -5540,16 +5759,42 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
             unsafe_allow_html=True,
         )
 
-        admin_regions, selected_departments = render_region_department_selectors(
-            profile,
-            key_prefix=f"profile_{user['id']}",
-        )
-        profile_cities, profile_all_cities = render_city_selector(
-            profile,
-            key_prefix=f"profile_{user['id']}",
-            selected_departments=selected_departments,
-            country=profile.get("country", "France"),
-        )
+        profile_key_prefix = f"profile_{user['id']}"
+        selected_countries = render_countries_multiselect(profile, key_prefix=profile_key_prefix)
+
+        st.markdown("**Périmètre géographique par pays**")
+        admin_regions: list[str] = []
+        selected_departments: list[dict[str, str]] = []
+        profile_cities: list[str] = []
+        profile_all_cities = False
+        geo_by_country: dict[str, dict[str, Any]] = {}
+
+        if "France" in selected_countries:
+            france_expanded = len(selected_countries) == 1
+            with st.expander("France — régions, départements & villes", expanded=france_expanded):
+                admin_regions, selected_departments = render_region_department_selectors(
+                    profile,
+                    key_prefix=profile_key_prefix,
+                )
+                profile_cities, profile_all_cities = render_city_selector(
+                    profile,
+                    key_prefix=profile_key_prefix,
+                    selected_departments=selected_departments,
+                    country="France",
+                )
+
+        for country in selected_countries:
+            if country == "France":
+                continue
+            with st.expander(
+                f"{country} — {country_geo_schema(country).get('level1_label', 'zones') if country_has_subdivisions(country) else 'villes'}",
+                expanded=len(selected_countries) <= 2,
+            ):
+                geo_by_country[country] = render_international_geo_selectors(
+                    country,
+                    profile,
+                    key_prefix=profile_key_prefix,
+                )
 
         with st.form("profile_form"):
             id_col1, id_col2 = st.columns(2)
@@ -5564,13 +5809,6 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                     help="Utilisé en priorité pour la recherche d'offres.",
                 )
             with id_col2:
-                profile_country_value = st.selectbox(
-                    "Pays",
-                    COUNTRY_OPTIONS,
-                    index=COUNTRY_OPTIONS.index(profile.get("country", "France"))
-                    if profile.get("country") in COUNTRY_OPTIONS
-                    else 0,
-                )
                 contract_type = st.selectbox(
                     "Type de contrat",
                     CONTRACT_TYPES,
@@ -5654,7 +5892,7 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                     selected_departments,
                     profile_cities,
                     profile_all_cities,
-                    profile_country_value,
+                    selected_countries[0],
                     contract_type,
                     geo_mode,
                     search_radius,
@@ -5662,6 +5900,8 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                     target_sectors,
                     target_job_title,
                     job_max_age_days,
+                    selected_countries=selected_countries,
+                    geo_by_country=geo_by_country,
                 )
                 if ok and updated:
                     st.session_state.user = updated
@@ -5733,7 +5973,7 @@ def render_cv_analysis(
     if not profile_ok:
         st.warning(profile_msg)
         st.info(
-            "Complétez le **poste visé**, vos **régions / départements / villes** "
+            "Complétez le **poste visé**, vos **pays et zones géographiques** "
             "et votre **type de contrat** dans **Mon profil** avant de lancer une analyse."
         )
         return
@@ -5761,17 +6001,18 @@ def render_cv_analysis(
         )
         st.markdown(f"**Poste visé :** {target_title}")
         st.caption(
-            "L'IA recherche des offres dans vos **villes / départements / régions** sélectionnés, "
+            "L'IA recherche des offres dans vos **pays et zones géographiques** sélectionnés, "
             "puis compare votre CV aux résultats filtrés."
         )
+        countries_label = format_countries_summary(user_profile)
         st.caption(
             f"Filtres actifs : publication **{job_max_age_label(publication_filter)}** "
             f"*(modifiable dans Mon profil)* · "
             f"contrat **{user_profile.get('contract_type')}** · "
-            f"pays **{user_profile.get('country', 'France')}** · "
+            f"pays **{countries_label}** · "
             f"niveau **{EXPERIENCE_LABELS.get(active_level, active_level)}** · "
             f"secteurs **{', '.join(active_sectors) if active_sectors else 'CV'}** · "
-            f"régions **{region_text}** · départements **{dept_text}** · "
+            f"zones **{region_text}** · subdivisions **{dept_text}** · "
             f"villes **{city_text}** · "
             f"mode **{ANALYSIS_DEPTH_LABELS[depth_key]}**"
         )

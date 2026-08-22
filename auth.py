@@ -22,7 +22,6 @@ from france_geo import (
 )
 from job_filters import (
     CONTRACT_TYPES,
-    COUNTRY_OPTIONS,
     EXPERIENCE_LEVELS,
     GEO_FILTER_MODES,
     SECTOR_OPTIONS,
@@ -31,6 +30,19 @@ from job_filters import (
     normalize_job_max_age_days,
     parse_target_sectors,
     serialize_target_sectors,
+)
+from world_geo import (
+    COUNTRY_OPTIONS,
+    merge_profile_geo,
+    normalize_country_name,
+    parse_geo_by_country,
+    parse_selected_countries,
+    profile_countries,
+    profile_primary_country,
+    serialize_geo_by_country,
+    serialize_selected_countries,
+    sync_france_legacy_fields,
+    validate_profile_countries_geo,
 )
 
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -54,6 +66,8 @@ _USER_COLUMNS = [
     ("selected_departments", "TEXT NOT NULL DEFAULT '[]'", "TEXT NOT NULL DEFAULT '[]'"),
     ("selected_cities", "TEXT NOT NULL DEFAULT '[]'", "TEXT NOT NULL DEFAULT '[]'"),
     ("all_cities", "INTEGER NOT NULL DEFAULT 0", "INTEGER NOT NULL DEFAULT 0"),
+    ("selected_countries", "TEXT NOT NULL DEFAULT '[\"France\"]'", "TEXT NOT NULL DEFAULT '[\"France\"]'"),
+    ("geo_by_country", "TEXT NOT NULL DEFAULT '{}'", "TEXT NOT NULL DEFAULT '{}'"),
     ("target_job_title", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
     ("job_max_age_days", "INTEGER NOT NULL DEFAULT 7", "INTEGER NOT NULL DEFAULT 7"),
 ]
@@ -268,6 +282,8 @@ def _validate_profile_fields(
     admin_region: str = "",
     department_code: str = "",
     target_job_title: str = "",
+    selected_countries: list[str] | None = None,
+    geo_by_country: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[bool, str]:
     title = " ".join(target_job_title.strip().split())
     if len(title) < 2:
@@ -278,24 +294,35 @@ def _validate_profile_fields(
     if postal and not POSTAL_CODE_PATTERN.match(postal):
         return False, "Code postal invalide (4 ou 5 chiffres)."
 
-    regions = admin_regions or []
-    if not regions and admin_region.strip():
-        regions = [admin_region.strip()]
-    if not regions:
-        return False, "Sélectionnez au moins une région."
+    countries = [
+        normalize_country_name(c)
+        for c in (selected_countries or ["France"])
+        if str(c).strip()
+    ]
+    geo_map = geo_by_country or {}
+    if geo_map and countries:
+        ok, msg = validate_profile_countries_geo(countries, geo_map)
+        if not ok:
+            return False, msg
+    elif "France" in countries or not countries:
+        regions = admin_regions or []
+        if not regions and admin_region.strip():
+            regions = [admin_region.strip()]
+        if not regions:
+            return False, "Sélectionnez au moins une région (France)."
 
-    departments = selected_departments or []
-    if not departments and department_code.strip():
-        departments = [{"code": department_code.strip().upper(), "name": "", "region": regions[0]}]
-    if not departments:
-        return False, "Sélectionnez au moins un département."
+        departments = selected_departments or []
+        if not departments and department_code.strip():
+            departments = [{"code": department_code.strip().upper(), "name": "", "region": regions[0]}]
+        if not departments:
+            return False, "Sélectionnez au moins un département (France)."
 
-    cities = selected_cities or []
-    if not all_cities:
-        if not cities:
-            cities = resolve_selected_cities({"home_city": home_city, "selected_cities": []})
-        if not cities:
-            return False, "Sélectionnez au moins une ville ou cochez « Toutes les villes »."
+        cities = selected_cities or []
+        if not all_cities:
+            if not cities:
+                cities = resolve_selected_cities({"home_city": home_city, "selected_cities": []})
+            if not cities:
+                return False, "Sélectionnez au moins une ville ou cochez « Toutes les villes »."
     normalized_contract = normalize_contract_type(contract_type)
     if normalized_contract not in CONTRACT_TYPES:
         return False, "Type de contrat invalide."
@@ -319,6 +346,7 @@ _USER_SELECT_SQL = """
     contract_type, search_radius_km, geo_filter_mode,
     experience_level, target_sectors, country,
     admin_regions, selected_departments, selected_cities, all_cities,
+    selected_countries, geo_by_country,
     target_job_title, job_max_age_days
 """
 
@@ -383,6 +411,25 @@ def _row_to_user(row: Any, include_created: bool = False) -> dict:
         "job_max_age_days": normalize_job_max_age_days(
             row["job_max_age_days"] if "job_max_age_days" in row.keys() else 7
         ),
+        "selected_countries": parse_selected_countries(
+            row["selected_countries"] if "selected_countries" in row.keys() else None,
+            fallback_country=row["country"] or "France",
+        ),
+        "geo_by_country": merge_profile_geo(
+            {
+                "country": row["country"] or "France",
+                "selected_countries": row["selected_countries"]
+                if "selected_countries" in row.keys()
+                else None,
+                "geo_by_country": row["geo_by_country"]
+                if "geo_by_country" in row.keys()
+                else {},
+                "admin_regions": admin_regions,
+                "selected_departments": selected_departments,
+                "selected_cities": selected_cities,
+                "all_cities": all_cities,
+            }
+        ),
     }
     if include_created:
         user["created_at"] = row["created_at"]
@@ -428,6 +475,8 @@ def register_user(
     target_sectors: list[str] | None = None,
     target_job_title: str = "",
     job_max_age_days: int = 7,
+    selected_countries: list[str] | None = None,
+    geo_by_country: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[bool, str]:
     """Register a new user. Returns (success, message)."""
     full_name = " ".join(full_name.strip().split())
@@ -454,7 +503,24 @@ def register_user(
         cities = [home_city]
     if all_cities:
         cities = []
-    country = country.strip() or "France"
+    countries = [
+        normalize_country_name(c)
+        for c in (selected_countries or [country.strip() or "France"])
+        if str(c).strip()
+    ]
+    geo_map = dict(geo_by_country or {})
+    if "France" in countries:
+        from world_geo import france_geo_from_profile
+
+        geo_map["France"] = france_geo_from_profile(
+            {
+                "admin_regions": regions,
+                "selected_departments": departments,
+                "selected_cities": cities,
+                "all_cities": all_cities,
+            }
+        )
+    country = countries[0] if countries else "France"
     contract_type = normalize_contract_type(contract_type)
     geo_filter_mode = geo_filter_mode.strip().lower()
     experience_level = normalize_experience_level(experience_level)
@@ -484,6 +550,8 @@ def register_user(
         selected_cities=cities,
         all_cities=all_cities,
         target_job_title=job_title,
+        selected_countries=countries,
+        geo_by_country=geo_map,
     )
     if not valid_profile:
         return False, profile_msg
@@ -500,9 +568,10 @@ def register_user(
                         department_code, department_name, contract_type,
                         search_radius_km, geo_filter_mode, experience_level, target_sectors,
                         country, admin_regions, selected_departments, selected_cities, all_cities,
+                        selected_countries, geo_by_country,
                         target_job_title, job_max_age_days
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """
                 ),
                 (
@@ -526,6 +595,8 @@ def register_user(
                     serialize_selected_departments(departments),
                     serialize_selected_cities(cities),
                     1 if all_cities else 0,
+                    serialize_selected_countries(countries),
+                    serialize_geo_by_country(geo_map),
                     job_title,
                     publication_days,
                 ),
@@ -583,6 +654,8 @@ def update_user_profile(
     target_sectors: list[str] | None = None,
     target_job_title: str = "",
     job_max_age_days: int = 7,
+    selected_countries: list[str] | None = None,
+    geo_by_country: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[bool, str, dict | None]:
     """Update user profile and job-matching preferences."""
     full_name = " ".join(full_name.strip().split())
@@ -597,7 +670,24 @@ def update_user_profile(
         cities = [home_city]
     if all_cities:
         cities = []
-    country = country.strip() or "France"
+    countries = [
+        normalize_country_name(c)
+        for c in (selected_countries or [country.strip() or "France"])
+        if str(c).strip()
+    ]
+    geo_map = dict(geo_by_country or {})
+    if "France" in countries:
+        from world_geo import france_geo_from_profile
+
+        geo_map["France"] = france_geo_from_profile(
+            {
+                "admin_regions": regions,
+                "selected_departments": departments,
+                "selected_cities": cities,
+                "all_cities": all_cities,
+            }
+        )
+    country = countries[0] if countries else "France"
     contract_type = normalize_contract_type(contract_type)
     geo_filter_mode = geo_filter_mode.strip().lower()
     experience_level = normalize_experience_level(experience_level)
@@ -621,6 +711,8 @@ def update_user_profile(
         selected_cities=cities,
         all_cities=all_cities,
         target_job_title=job_title,
+        selected_countries=countries,
+        geo_by_country=geo_map,
     )
     if not valid_profile:
         return False, profile_msg, None
@@ -636,7 +728,8 @@ def update_user_profile(
                     contract_type = ?, search_radius_km = ?, geo_filter_mode = ?,
                     experience_level = ?, target_sectors = ?, country = ?,
                     admin_regions = ?, selected_departments = ?, selected_cities = ?,
-                    all_cities = ?, target_job_title = ?, job_max_age_days = ?
+                    all_cities = ?, selected_countries = ?, geo_by_country = ?,
+                    target_job_title = ?, job_max_age_days = ?
                 WHERE id = ?
                 """
             ),
@@ -653,11 +746,13 @@ def update_user_profile(
                 geo_filter_mode,
                 experience_level,
                 serialize_target_sectors(sectors),
-                country.strip() or "France",
+                country,
                 serialize_admin_regions(regions),
                 serialize_selected_departments(departments),
                 serialize_selected_cities(cities),
                 1 if all_cities else 0,
+                serialize_selected_countries(countries),
+                serialize_geo_by_country(geo_map),
                 job_title,
                 publication_days,
                 user_id,

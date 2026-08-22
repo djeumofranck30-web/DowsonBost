@@ -28,7 +28,16 @@ CONTRACT_TYPES = (
     "Intérim",
 )
 
-COUNTRY_OPTIONS = ("France",)
+from world_geo import (
+    COUNTRY_OPTIONS,
+    get_country_geo,
+    merge_profile_geo,
+    normalize_country_name,
+    profile_countries,
+    profile_primary_country,
+    sync_france_legacy_fields,
+    validate_profile_countries_geo,
+)
 
 GEO_FILTER_MODES = (
     "ville",
@@ -334,13 +343,12 @@ def build_radius_center_location(profile: dict[str, Any]) -> str:
     return build_domicile_location(profile)
 
 
-def build_profile_search_locations(
+def _build_france_search_locations(
     profile: dict[str, Any],
     *,
     max_locations: int = 8,
 ) -> list[str]:
-    """Build job-board location hints from selected country, cities, departments and regions."""
-    country = profile_country(profile)
+    country = "France"
     locations: list[str] = []
     seen: set[str] = set()
 
@@ -377,7 +385,77 @@ def build_profile_search_locations(
 
     if not locations:
         add(country)
+    return locations
 
+
+def _build_country_search_locations(
+    country: str,
+    geo: dict[str, Any],
+    *,
+    max_locations: int = 8,
+) -> list[str]:
+    country = normalize_country_name(country)
+    locations: list[str] = []
+    seen: set[str] = set()
+
+    def add(label: str) -> None:
+        loc = label.strip()
+        if not loc or len(locations) >= max_locations:
+            return
+        key = normalize_text(loc)
+        if key in seen:
+            return
+        seen.add(key)
+        locations.append(loc)
+
+    if country == "France":
+        fake_profile = sync_france_legacy_fields(
+            {"country": country, "geo_filter_mode": "departement"},
+            geo,
+        )
+        return _build_france_search_locations(fake_profile, max_locations=max_locations)
+
+    for city in geo.get("cities") or []:
+        add(f"{city}, {country}")
+    for subdiv2 in geo.get("level2") or []:
+        add(f"{subdiv2}, {country}")
+    for subdiv1 in geo.get("level1") or []:
+        add(f"{subdiv1}, {country}")
+    if not locations:
+        add(country)
+    return locations
+
+
+def build_country_search_locations(
+    country: str,
+    geo: dict[str, Any],
+    *,
+    max_locations: int = 8,
+) -> list[str]:
+    """Build job-board location hints for one country."""
+    return _build_country_search_locations(country, geo, max_locations=max_locations)
+
+
+def build_profile_search_locations(
+    profile: dict[str, Any],
+    *,
+    max_locations: int = 8,
+) -> list[str]:
+    """Build job-board location hints for all selected countries."""
+    geo_map = merge_profile_geo(profile)
+    locations: list[str] = []
+    seen: set[str] = set()
+    per_country = max(3, max_locations // max(1, len(profile_countries(profile))))
+    for country in profile_countries(profile):
+        for loc in _build_country_search_locations(
+            country,
+            geo_map.get(country, {}),
+            max_locations=per_country,
+        ):
+            key = normalize_text(loc)
+            if key not in seen and len(locations) < max_locations:
+                seen.add(key)
+                locations.append(loc)
     return locations
 
 
@@ -388,7 +466,31 @@ def build_profile_search_location(profile: dict[str, Any]) -> str:
 
 
 def profile_country(profile: dict[str, Any]) -> str:
-    return str(profile.get("country", "France")).strip() or "France"
+    return profile_primary_country(profile)
+
+
+def job_matches_any_selected_country(job: dict[str, Any], profile: dict[str, Any]) -> bool:
+    return any(
+        job_matches_country(job, country) for country in profile_countries(profile)
+    )
+
+
+def _job_matches_international_geo(
+    job: dict[str, Any],
+    country: str,
+    geo: dict[str, Any],
+) -> bool:
+    blob = normalize_text(
+        f"{job.get('title', '')} {job.get('location', '')} {job.get('description', '')}"
+    )
+    tokens: list[str] = []
+    for city in geo.get("cities") or []:
+        tokens.append(normalize_text(city))
+    for item in (geo.get("level1") or []) + (geo.get("level2") or []):
+        tokens.append(normalize_text(item))
+    if not tokens:
+        return True
+    return any(token and token in blob for token in tokens)
 
 
 def normalize_text(value: str) -> str:
@@ -902,38 +1004,48 @@ def job_matches_geography(
     user_coords: tuple[float, float] | None = None,
     job_coords_cache: dict[str, tuple[float, float] | None] | None = None,
 ) -> bool:
-    """Strict filter: country + regions + departments + cities (+ optional radius)."""
+    """Strict filter: selected countries + subdivisions (+ optional radius for France)."""
     mode = str(profile.get("geo_filter_mode", "departement")).strip().lower()
     radius_km = int(profile.get("search_radius_km") or 20)
-    country = profile_country(profile)
-    regions, departments = resolve_multi_geo_from_profile(profile)
+    geo_map = merge_profile_geo(profile)
 
-    if not job_matches_country(job, country):
+    if not job_matches_any_selected_country(job, profile):
         return False
-    if regions and not job_matches_region(job, profile):
-        return False
-    if departments and not job_matches_department(job, profile):
-        return False
-    if not profile_all_cities(profile):
-        cities = resolve_selected_cities(profile)
-        if cities and not job_matches_city(job, profile):
-            return False
 
-    if mode == "rayon":
-        if not user_coords:
+    for country in profile_countries(profile):
+        if not job_matches_country(job, country):
+            continue
+        geo = geo_map.get(country, {})
+        if country == "France":
+            fr_profile = sync_france_legacy_fields(
+                {**profile, "country": country, "geo_filter_mode": mode},
+                geo,
+            )
+            regions, departments = resolve_multi_geo_from_profile(fr_profile)
+            if regions and not job_matches_region(job, fr_profile):
+                continue
+            if departments and not job_matches_department(job, fr_profile):
+                continue
+            if not profile_all_cities(fr_profile):
+                cities = resolve_selected_cities(fr_profile)
+                if cities and not job_matches_city(job, fr_profile):
+                    continue
+            if mode == "rayon":
+                if not user_coords:
+                    return True
+                cache = job_coords_cache if job_coords_cache is not None else {}
+                location_raw = str(job.get("location", ""))
+                if location_raw not in cache:
+                    cache[location_raw] = _coords_from_nominatim(location_raw)
+                job_coords = cache.get(location_raw)
+                if job_coords and haversine_km(user_coords, job_coords) <= radius_km:
+                    return True
+                continue
+            return True
+        if _job_matches_international_geo(job, country, geo):
             return True
 
-        cache = job_coords_cache if job_coords_cache is not None else {}
-        location_raw = str(job.get("location", ""))
-        if location_raw not in cache:
-            cache[location_raw] = _coords_from_nominatim(location_raw)
-
-        job_coords = cache.get(location_raw)
-        if job_coords:
-            return haversine_km(user_coords, job_coords) <= radius_km
-        return False
-
-    return True
+    return False
 
 
 def apply_strict_job_filters(
@@ -1004,11 +1116,8 @@ def profile_ready_for_matching(profile: dict[str, Any]) -> tuple[bool, str]:
         return False, "Indiquez le poste visé dans Mon profil."
     if not str(profile.get("contract_type", "")).strip():
         return False, "Sélectionnez votre type de contrat dans Mon profil."
-    regions, departments = resolve_multi_geo_from_profile(profile)
-    if not departments:
-        return False, "Sélectionnez au moins un département dans Mon profil."
-    if not regions:
-        return False, "Sélectionnez au moins une région dans Mon profil."
-    if not profile_all_cities(profile) and not resolve_selected_cities(profile):
-        return False, "Sélectionnez au moins une ville ou activez « Toutes les villes »."
-    return True, ""
+    countries = profile_countries(profile)
+    if not countries:
+        return False, "Sélectionnez au moins un pays dans Mon profil."
+    geo_map = merge_profile_geo(profile)
+    return validate_profile_countries_geo(countries, geo_map)
