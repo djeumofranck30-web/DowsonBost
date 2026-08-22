@@ -15,19 +15,25 @@ JOB_PROVIDER_INDEED = "indeed"
 JOB_PROVIDER_LINKEDIN = "linkedin"
 JOB_PROVIDER_GLASSDOOR = "glassdoor"
 JOB_PROVIDER_JOBTEASER = "jobteaser"
+JOB_PROVIDER_HELLOWORK = "hellowork"
+JOB_PROVIDER_MONSTER = "monster"
+JOB_PROVIDER_TALENT = "talent"
 JOB_PROVIDER_ALL = "all"
 
 JOB_PROVIDER_LABELS: dict[str, str] = {
     JOB_PROVIDER_ALL: "Tous les moteurs (fusion)",
     JOB_PROVIDER_ADZUNA: "Adzuna (gratuit, recommandé)",
     JOB_PROVIDER_WTTJ: "Welcome to the Jungle (gratuit)",
-    JOB_PROVIDER_JOBTEASER: "JobTeaser (Apify)",
+    JOB_PROVIDER_JOBTEASER: "JobTeaser — étudiants / alternance (Apify)",
+    JOB_PROVIDER_HELLOWORK: "HelloWork — pages entreprises + offres (Apify / SerpApi)",
     JOB_PROVIDER_JOOBLE: "Jooble",
     JOB_PROVIDER_OPTIONCARRIERE: "OptionCarriere / Careerjet",
-    JOB_PROVIDER_INDEED: "Indeed (SerpApi)",
-    JOB_PROVIDER_LINKEDIN: "LinkedIn Jobs (SerpApi)",
-    JOB_PROVIDER_GLASSDOOR: "Glassdoor (SerpApi)",
-    JOB_PROVIDER_SERPAPI: "Google Jobs / SerpApi",
+    JOB_PROVIDER_INDEED: "Indeed — offres & pages entreprises (SerpApi)",
+    JOB_PROVIDER_LINKEDIN: "LinkedIn Jobs — offres & entreprises (SerpApi)",
+    JOB_PROVIDER_GLASSDOOR: "Glassdoor — entreprises, avis & offres (SerpApi)",
+    JOB_PROVIDER_MONSTER: "Monster — entreprises & offres (Apify / SerpApi)",
+    JOB_PROVIDER_TALENT: "Talent.com — entreprises & offres (Apify / SerpApi)",
+    JOB_PROVIDER_SERPAPI: "Google Jobs / SerpApi (agrégateur)",
 }
 
 JOB_PROVIDER_SIDEBAR_ORDER = (
@@ -35,11 +41,14 @@ JOB_PROVIDER_SIDEBAR_ORDER = (
     JOB_PROVIDER_ADZUNA,
     JOB_PROVIDER_WTTJ,
     JOB_PROVIDER_JOBTEASER,
+    JOB_PROVIDER_HELLOWORK,
     JOB_PROVIDER_JOOBLE,
     JOB_PROVIDER_OPTIONCARRIERE,
     JOB_PROVIDER_INDEED,
     JOB_PROVIDER_LINKEDIN,
     JOB_PROVIDER_GLASSDOOR,
+    JOB_PROVIDER_MONSTER,
+    JOB_PROVIDER_TALENT,
     JOB_PROVIDER_SERPAPI,
 )
 
@@ -84,6 +93,50 @@ JOBTEASER_CONTRACT_MAP: dict[str, list[str]] = {
 }
 
 APIFY_JOBTEASER_ACTOR = "shahidirfan~jobteaser-job-scraper"
+APIFY_HELLOWORK_ACTOR = "crawlerbros~hellowork-jobs-scraper"
+APIFY_MONSTER_ACTOR = "orgupdate~monster-jobs-scraper"
+APIFY_TALENT_ACTOR = "crawlerbros~talent-com-jobs-scraper"
+APIFY_SYNC_TIMEOUT_SEC = 130
+
+HELLOWORK_CONTRACT_MAP: dict[str, list[str]] = {
+    "Alternance": ["Alternance"],
+    "Stage": ["Stage"],
+    "CDI": ["CDI"],
+    "CDD": ["CDD"],
+    "Freelance": ["Intérim"],
+}
+
+MONSTER_JOB_TYPE_MAP: dict[str, str] = {
+    "CDI": "FULLTIME",
+    "CDD": "CONTRACTOR",
+    "Stage": "INTERN",
+    "Alternance": "INTERN",
+    "Freelance": "CONTRACTOR",
+}
+
+MONSTER_COUNTRY_MAP: dict[str, str] = {
+    "france": "france",
+    "royaume-uni": "uk",
+    "allemagne": "germany",
+    "espagne": "spain",
+    "italie": "italy",
+    "belgique": "belgium",
+    "suisse": "switzerland",
+    "canada": "canada",
+    "etats-unis": "usa",
+}
+
+TALENT_COUNTRY_CODES: dict[str, str] = {
+    "france": "fr",
+    "royaume-uni": "uk",
+    "allemagne": "de",
+    "espagne": "es",
+    "italie": "it",
+    "belgique": "be",
+    "suisse": "ch",
+    "canada": "ca",
+    "etats-unis": "www",
+}
 
 # Public Algolia credentials embedded in WTTJ front-end (read-only search).
 WTTJ_ALGOLIA_APP_ID = "CSEKHVMS53"
@@ -629,6 +682,236 @@ def search_jobs_glassdoor_serpapi(
     return jobs
 
 
+def _run_apify_actor_sync(
+    actor_id: str,
+    payload: dict[str, Any],
+    apify_token: str,
+    *,
+    timeout: int = APIFY_SYNC_TIMEOUT_SEC,
+) -> list[dict[str, Any]]:
+    """Run an Apify actor synchronously and return dataset items."""
+    if not apify_token.strip():
+        return []
+    try:
+        response = requests.post(
+            f"https://api.apify.com/v2/acts/{actor_id}/run-sync-get-dataset-items",
+            params={"token": apify_token.strip(), "timeout": max(30, timeout - 10)},
+            json=payload,
+            timeout=timeout,
+        )
+        if not response.ok:
+            return []
+        data = response.json()
+        if isinstance(data, list):
+            return [item for item in data if isinstance(item, dict)]
+    except (requests.RequestException, ValueError, TypeError):
+        return []
+    return []
+
+
+def _first_str(item: dict[str, Any], *keys: str) -> str:
+    for key in keys:
+        value = item.get(key)
+        if value not in (None, ""):
+            return str(value).strip()
+    return ""
+
+
+def search_jobs_serpapi_filtered(
+    query: str,
+    location: str,
+    country: str,
+    api_key: str,
+    *,
+    source_filter: str,
+    source_label: str,
+) -> list[dict[str, Any]]:
+    """Search Google Jobs via SerpApi and keep only listings from one platform."""
+    jobs = search_jobs_serpapi_google_jobs(
+        query,
+        location,
+        country,
+        api_key,
+        source_filter=source_filter,
+    )
+    for job in jobs:
+        job["source"] = source_label
+    return jobs
+
+
+def search_jobs_hellowork_serpapi(
+    query: str,
+    location: str,
+    country: str,
+    api_key: str,
+) -> list[dict[str, Any]]:
+    return search_jobs_serpapi_filtered(
+        query, location, country, api_key,
+        source_filter="hellowork",
+        source_label="HelloWork",
+    )
+
+
+def search_jobs_monster_serpapi(
+    query: str,
+    location: str,
+    country: str,
+    api_key: str,
+) -> list[dict[str, Any]]:
+    return search_jobs_serpapi_filtered(
+        query, location, country, api_key,
+        source_filter="monster",
+        source_label="Monster",
+    )
+
+
+def search_jobs_talent_serpapi(
+    query: str,
+    location: str,
+    country: str,
+    api_key: str,
+) -> list[dict[str, Any]]:
+    return search_jobs_serpapi_filtered(
+        query, location, country, api_key,
+        source_filter="talent.com",
+        source_label="Talent.com",
+    )
+
+
+def search_jobs_hellowork(
+    query: str,
+    location: str,
+    contract_type: str,
+    apify_token: str,
+    *,
+    serpapi_key: str = "",
+    max_results: int = 30,
+) -> list[dict[str, Any]]:
+    """HelloWork via Apify (prioritaire) ou SerpApi."""
+    if apify_token.strip() and query.strip():
+        payload: dict[str, Any] = {
+            "mode": "search",
+            "searchQuery": query.strip(),
+            "sortBy": "date",
+            "maxItems": max(1, min(max_results, 50)),
+        }
+        city = location.strip()
+        if city:
+            payload["city"] = city
+        contract_types = HELLOWORK_CONTRACT_MAP.get(contract_type.strip(), [])
+        if contract_types:
+            payload["contractTypes"] = contract_types
+        items = _run_apify_actor_sync(APIFY_HELLOWORK_ACTOR, payload, apify_token)
+        jobs = [
+            _standard_job(
+                _first_str(item, "title"),
+                _first_str(item, "company"),
+                _first_str(item, "location"),
+                _first_str(item, "salary"),
+                _first_str(item, "url"),
+                contract_type=_first_str(item, "contractType"),
+                source="HelloWork",
+                published_at=item.get("postedDate") or item.get("postedDateRelative") or "",
+            )
+            for item in items
+            if _first_str(item, "title") or _first_str(item, "url")
+        ]
+        if jobs:
+            return jobs
+
+    if serpapi_key.strip():
+        return search_jobs_hellowork_serpapi(query, location, "France", serpapi_key)
+    return []
+
+
+def search_jobs_monster(
+    query: str,
+    location: str,
+    country: str,
+    apify_token: str,
+    *,
+    serpapi_key: str = "",
+    contract_type: str = "",
+    max_pages: int = 2,
+) -> list[dict[str, Any]]:
+    """Monster via Apify (prioritaire) ou SerpApi."""
+    if apify_token.strip() and query.strip():
+        payload: dict[str, Any] = {
+            "includeKeyword": query.strip(),
+            "locationName": location.strip() or country.strip(),
+            "countryName": MONSTER_COUNTRY_MAP.get(_normalize_country_key(country), "france"),
+            "pagesToFetch": max(1, min(max_pages, 3)),
+            "datePosted": "month",
+        }
+        job_type = MONSTER_JOB_TYPE_MAP.get(contract_type.strip())
+        if job_type:
+            payload["jobType"] = job_type
+        items = _run_apify_actor_sync(APIFY_MONSTER_ACTOR, payload, apify_token)
+        jobs = [
+            _standard_job(
+                _first_str(item, "job_title", "jobTitle", "title"),
+                _first_str(item, "company_name", "companyName", "company"),
+                _first_str(item, "location"),
+                _first_str(item, "description", "salary"),
+                _first_str(item, "URL", "jobUrl", "url"),
+                contract_type=_first_str(item, "job_type", "jobType"),
+                source="Monster",
+                published_at=item.get("date") or item.get("postedDate") or "",
+            )
+            for item in items
+            if _first_str(item, "job_title", "jobTitle", "title") or _first_str(item, "URL", "jobUrl", "url")
+        ]
+        if jobs:
+            return jobs
+
+    if serpapi_key.strip():
+        return search_jobs_monster_serpapi(query, location, country, serpapi_key)
+    return []
+
+
+def search_jobs_talent(
+    query: str,
+    location: str,
+    country: str,
+    apify_token: str,
+    *,
+    serpapi_key: str = "",
+    max_results: int = 30,
+) -> list[dict[str, Any]]:
+    """Talent.com via Apify (prioritaire) ou SerpApi."""
+    if apify_token.strip() and query.strip():
+        payload: dict[str, Any] = {
+            "mode": "search",
+            "keyword": query.strip(),
+            "location": location.strip() or country.strip(),
+            "country": TALENT_COUNTRY_CODES.get(_normalize_country_key(country), "fr"),
+            "sortBy": "date",
+            "maxItems": max(1, min(max_results, 50)),
+            "maxPages": 3,
+        }
+        items = _run_apify_actor_sync(APIFY_TALENT_ACTOR, payload, apify_token)
+        jobs = [
+            _standard_job(
+                _first_str(item, "title"),
+                _first_str(item, "company"),
+                _first_str(item, "location"),
+                _first_str(item, "descriptionSnippet", "description", "salary"),
+                _first_str(item, "jobUrl", "url"),
+                contract_type=_first_str(item, "employmentType"),
+                source="Talent.com",
+                published_at=item.get("datePosted") or item.get("postedAgo") or "",
+            )
+            for item in items
+            if _first_str(item, "title") or _first_str(item, "jobUrl", "url")
+        ]
+        if jobs:
+            return jobs
+
+    if serpapi_key.strip():
+        return search_jobs_talent_serpapi(query, location, country, serpapi_key)
+    return []
+
+
 def search_jobs_jobteaser(
     query: str,
     location: str,
@@ -650,33 +933,17 @@ def search_jobs_jobteaser(
     if contract_types:
         payload["jobTypes"] = contract_types
 
-    try:
-        response = requests.post(
-            f"https://api.apify.com/v2/acts/{APIFY_JOBTEASER_ACTOR}/run-sync-get-dataset-items",
-            params={"token": apify_token.strip(), "timeout": 120},
-            json=payload,
-            timeout=130,
-        )
-        if not response.ok:
-            return []
-        items = response.json()
-        if not isinstance(items, list):
-            return []
-    except (requests.RequestException, ValueError, TypeError):
-        return []
-
+    items = _run_apify_actor_sync(APIFY_JOBTEASER_ACTOR, payload, apify_token)
     jobs: list[dict[str, Any]] = []
     for item in items:
-        if not isinstance(item, dict):
-            continue
         jobs.append(
             _standard_job(
-                str(item.get("title", "") or item.get("job_title", "")),
-                str(item.get("company", "") or item.get("company_name", "")),
-                str(item.get("location", "") or item.get("job_location", "")),
-                str(item.get("description", "") or item.get("job_description", "")),
-                str(item.get("url", "") or item.get("apply_url", "") or item.get("job_url", "")),
-                contract_type=str(item.get("contract_type", "") or item.get("contractType", "")),
+                _first_str(item, "title", "job_title"),
+                _first_str(item, "company", "company_name"),
+                _first_str(item, "location", "job_location"),
+                _first_str(item, "description", "job_description"),
+                _first_str(item, "url", "apply_url", "job_url"),
+                contract_type=_first_str(item, "contract_type", "contractType"),
                 source="JobTeaser",
             )
         )
@@ -718,6 +985,9 @@ def test_serpapi_platform_connection(
         "indeed": search_jobs_indeed_serpapi,
         "linkedin": search_jobs_linkedin_serpapi,
         "glassdoor": search_jobs_glassdoor_serpapi,
+        "hellowork": search_jobs_hellowork_serpapi,
+        "monster": search_jobs_monster_serpapi,
+        "talent": search_jobs_talent_serpapi,
     }
     fn = searchers.get(platform)
     if not fn:
@@ -729,6 +999,57 @@ def test_serpapi_platform_connection(
     if jobs:
         return True, f"{platform.title()} OK — {len(jobs)} offre(s) test."
     return False, f"Aucun résultat {platform} via SerpApi pour « {query} »."
+
+
+def test_hellowork_connection(
+    apify_token: str,
+    *,
+    serpapi_key: str = "",
+    query: str = "alternance",
+) -> tuple[bool, str]:
+    jobs = search_jobs_hellowork(
+        query, "Paris", "Alternance", apify_token, serpapi_key=serpapi_key, max_results=3
+    )
+    if jobs:
+        return True, f"HelloWork OK — {len(jobs)} offre(s) test pour « {query} »."
+    if not apify_token.strip() and not serpapi_key.strip():
+        return (
+            False,
+            "APIFY_API_TOKEN ou SERPAPI_API_KEY requis pour HelloWork.",
+        )
+    return False, "Aucun résultat HelloWork (token Apify/SerpApi ou acteur indisponible)."
+
+
+def test_monster_connection(
+    apify_token: str,
+    *,
+    serpapi_key: str = "",
+    query: str = "alternance",
+) -> tuple[bool, str]:
+    jobs = search_jobs_monster(
+        query, "Paris", "France", apify_token, serpapi_key=serpapi_key, max_pages=1
+    )
+    if jobs:
+        return True, f"Monster OK — {len(jobs)} offre(s) test pour « {query} »."
+    if not apify_token.strip() and not serpapi_key.strip():
+        return False, "APIFY_API_TOKEN ou SERPAPI_API_KEY requis pour Monster."
+    return False, "Aucun résultat Monster (token Apify/SerpApi ou acteur indisponible)."
+
+
+def test_talent_connection(
+    apify_token: str,
+    *,
+    serpapi_key: str = "",
+    query: str = "alternance",
+) -> tuple[bool, str]:
+    jobs = search_jobs_talent(
+        query, "Paris", "France", apify_token, serpapi_key=serpapi_key, max_results=3
+    )
+    if jobs:
+        return True, f"Talent.com OK — {len(jobs)} offre(s) test pour « {query} »."
+    if not apify_token.strip() and not serpapi_key.strip():
+        return False, "APIFY_API_TOKEN ou SERPAPI_API_KEY requis pour Talent.com."
+    return False, "Aucun résultat Talent.com (token Apify/SerpApi ou acteur indisponible)."
 
 
 def test_jobteaser_connection(
@@ -801,6 +1122,14 @@ def configured_providers(
                 JOB_PROVIDER_SERPAPI,
             ]
         )
+    if has_apify or has_serpapi:
+        for provider_id in (
+            JOB_PROVIDER_HELLOWORK,
+            JOB_PROVIDER_MONSTER,
+            JOB_PROVIDER_TALENT,
+        ):
+            if provider_id not in available:
+                available.append(provider_id)
     return available
 
 

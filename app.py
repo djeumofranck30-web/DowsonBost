@@ -70,31 +70,40 @@ from job_providers import (
     JOB_PROVIDER_ADZUNA,
     JOB_PROVIDER_ALL,
     JOB_PROVIDER_GLASSDOOR,
+    JOB_PROVIDER_HELLOWORK,
     JOB_PROVIDER_INDEED,
     JOB_PROVIDER_JOBTEASER,
     JOB_PROVIDER_JOOBLE,
     JOB_PROVIDER_LABELS,
     JOB_PROVIDER_LINKEDIN,
+    JOB_PROVIDER_MONSTER,
     JOB_PROVIDER_OPTIONCARRIERE,
     JOB_PROVIDER_SERPAPI,
     JOB_PROVIDER_SIDEBAR_ORDER,
+    JOB_PROVIDER_TALENT,
     JOB_PROVIDER_WTTJ,
     configured_providers,
     default_job_provider,
     merge_job_lists,
     provider_secrets_from_getter,
     search_jobs_glassdoor_serpapi,
+    search_jobs_hellowork,
     search_jobs_indeed_serpapi,
     search_jobs_jobteaser,
     search_jobs_jooble,
     search_jobs_linkedin_serpapi,
+    search_jobs_monster,
     search_jobs_optioncarriere,
     search_jobs_serpapi_google_jobs,
+    search_jobs_talent,
     search_jobs_wttj,
+    test_hellowork_connection,
     test_jobteaser_connection,
     test_jooble_connection,
+    test_monster_connection,
     test_optioncarriere_connection,
     test_serpapi_platform_connection,
+    test_talent_connection,
     test_wttj_connection,
 )
 MIN_CV_TEXT_LENGTH = 50
@@ -131,7 +140,7 @@ THEME_SURFACE_SOFT = "#f5f3ff"
 THEME_MUTED = "#64748b"
 THEME_ACCENT = "#6366f1"
 
-APP_VERSION = "3.9.5-dashboard-by-analysis"
+APP_VERSION = "3.10.0-job-providers-expansion"
 
 ADZUNA_COUNTRY_CODES = {
     "France": "fr",
@@ -2908,6 +2917,48 @@ def search_jobs(
         )
 
     serp_key = secrets["serpapi_api_key"]
+    apify_token = secrets["apify_api_token"]
+
+    if provider == JOB_PROVIDER_HELLOWORK:
+        if not apify_token and not serp_key:
+            raise RuntimeError(
+                "HelloWork requiert APIFY_API_TOKEN et/ou SERPAPI_API_KEY."
+            )
+        return search_jobs_hellowork(
+            query,
+            location,
+            contract_type,
+            apify_token,
+            serpapi_key=serp_key,
+        )
+
+    if provider == JOB_PROVIDER_MONSTER:
+        if not apify_token and not serp_key:
+            raise RuntimeError(
+                "Monster requiert APIFY_API_TOKEN et/ou SERPAPI_API_KEY."
+            )
+        return search_jobs_monster(
+            query,
+            location,
+            country,
+            apify_token,
+            serpapi_key=serp_key,
+            contract_type=contract_type,
+        )
+
+    if provider == JOB_PROVIDER_TALENT:
+        if not apify_token and not serp_key:
+            raise RuntimeError(
+                "Talent.com requiert APIFY_API_TOKEN et/ou SERPAPI_API_KEY."
+            )
+        return search_jobs_talent(
+            query,
+            location,
+            country,
+            apify_token,
+            serpapi_key=serp_key,
+        )
+
     if provider == JOB_PROVIDER_INDEED:
         if not serp_key:
             raise RuntimeError("SERPAPI_API_KEY requise pour Indeed.")
@@ -5966,12 +6017,21 @@ def render_app() -> None:
                 )
 
             if apify_configured:
-                st.success("JobTeaser (Apify) : token présent")
+                st.success(
+                    "Apify : token présent "
+                    "*(JobTeaser, HelloWork, Monster, Talent.com)*"
+                )
             else:
-                st.caption("JobTeaser : token Apify requis — [apify.com](https://apify.com/)")
+                st.caption(
+                    "Apify : token requis pour JobTeaser, HelloWork, Monster, Talent.com "
+                    "— [apify.com](https://apify.com/)"
+                )
 
             if serp_configured:
-                st.success("SerpApi : clé présente *(Indeed, LinkedIn, Glassdoor, Google Jobs)*")
+                st.success(
+                    "SerpApi : clé présente "
+                    "*(Indeed, LinkedIn, Glassdoor, HelloWork, Monster, Talent.com, Google Jobs)*"
+                )
             else:
                 st.caption("SerpApi : non configuré — [serpapi.com](https://serpapi.com/)")
 
@@ -6008,6 +6068,36 @@ def render_app() -> None:
 
             if st.button("Tester JobTeaser", use_container_width=True, key="test_jobteaser"):
                 ok, message = test_jobteaser_connection(provider_secrets["apify_api_token"])
+                if ok:
+                    st.success(message)
+                else:
+                    st.warning(message)
+
+            if st.button("Tester HelloWork", use_container_width=True, key="test_hellowork"):
+                ok, message = test_hellowork_connection(
+                    provider_secrets["apify_api_token"],
+                    serpapi_key=provider_secrets["serpapi_api_key"],
+                )
+                if ok:
+                    st.success(message)
+                else:
+                    st.warning(message)
+
+            if st.button("Tester Monster", use_container_width=True, key="test_monster"):
+                ok, message = test_monster_connection(
+                    provider_secrets["apify_api_token"],
+                    serpapi_key=provider_secrets["serpapi_api_key"],
+                )
+                if ok:
+                    st.success(message)
+                else:
+                    st.warning(message)
+
+            if st.button("Tester Talent.com", use_container_width=True, key="test_talent"):
+                ok, message = test_talent_connection(
+                    provider_secrets["apify_api_token"],
+                    serpapi_key=provider_secrets["serpapi_api_key"],
+                )
                 if ok:
                     st.success(message)
                 else:
