@@ -6,5 +6,5 @@ __pycache__/
 venv/
 .idea/
 .vscode/
-data/
+data/*
 !data/iso3166_countries.json
