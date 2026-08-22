@@ -10,6 +10,7 @@ from typing import Any, Iterator
 import bcrypt
 
 from database import adapt_sql, connect, database_backend, existing_columns, is_unique_violation
+from i18n import normalize_locale, t
 from france_geo import (
     parse_admin_regions,
     parse_selected_cities,
@@ -70,6 +71,7 @@ _USER_COLUMNS = [
     ("geo_by_country", "TEXT NOT NULL DEFAULT '{}'", "TEXT NOT NULL DEFAULT '{}'"),
     ("target_job_title", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
     ("job_max_age_days", "INTEGER NOT NULL DEFAULT 7", "INTEGER NOT NULL DEFAULT 7"),
+    ("preferred_language", "TEXT NOT NULL DEFAULT 'fr'", "TEXT NOT NULL DEFAULT 'fr'"),
 ]
 
 
@@ -259,7 +261,7 @@ def _verify_password(password: str, password_hash: str) -> bool:
 
 def _validate_password(password: str) -> tuple[bool, str]:
     if len(password.strip()) < MIN_PASSWORD_LENGTH:
-        return False, f"Le mot de passe doit contenir au moins {MIN_PASSWORD_LENGTH} caractères."
+        return False, t("auth.password.min", min=MIN_PASSWORD_LENGTH)
     return True, ""
 
 
@@ -287,12 +289,12 @@ def _validate_profile_fields(
 ) -> tuple[bool, str]:
     title = " ".join(target_job_title.strip().split())
     if len(title) < 2:
-        return False, "Indiquez l'intitulé du poste visé (au moins 2 caractères)."
+        return False, t("auth.validation.job_title")
     if home_city.strip() and len(home_city.strip()) < 2:
-        return False, "La ville de domicile doit contenir au moins 2 caractères."
+        return False, t("auth.validation.home_city")
     postal = postal_code.strip()
     if postal and not POSTAL_CODE_PATTERN.match(postal):
-        return False, "Code postal invalide (4 ou 5 chiffres)."
+        return False, t("auth.validation.postal")
 
     countries = [
         normalize_country_name(c)
@@ -309,34 +311,34 @@ def _validate_profile_fields(
         if not regions and admin_region.strip():
             regions = [admin_region.strip()]
         if not regions:
-            return False, "Sélectionnez au moins une région (France)."
+            return False, t("auth.validation.region_fr")
 
         departments = selected_departments or []
         if not departments and department_code.strip():
             departments = [{"code": department_code.strip().upper(), "name": "", "region": regions[0]}]
         if not departments:
-            return False, "Sélectionnez au moins un département (France)."
+            return False, t("auth.validation.dept_fr")
 
         cities = selected_cities or []
         if not all_cities:
             if not cities:
                 cities = resolve_selected_cities({"home_city": home_city, "selected_cities": []})
             if not cities:
-                return False, "Sélectionnez au moins une ville ou cochez « Toutes les villes »."
+                return False, t("auth.validation.city_fr")
     normalized_contract = normalize_contract_type(contract_type)
     if normalized_contract not in CONTRACT_TYPES:
-        return False, "Type de contrat invalide."
+        return False, t("auth.validation.contract")
     if geo_filter_mode not in GEO_FILTER_MODES:
-        return False, "Mode géographique invalide."
+        return False, t("auth.validation.geo_mode")
     if search_radius_km < 5 or search_radius_km > 200:
-        return False, "Le rayon doit être entre 5 et 200 km."
+        return False, t("auth.validation.radius")
     level = normalize_experience_level(experience_level)
     if level not in EXPERIENCE_LEVELS:
-        return False, "Niveau d'expérience invalide."
+        return False, t("auth.validation.experience")
     if target_sectors:
         invalid = [s for s in target_sectors if s not in SECTOR_OPTIONS]
         if invalid:
-            return False, f"Secteur(s) invalide(s) : {', '.join(invalid)}."
+            return False, t("auth.validation.sectors", sectors=", ".join(invalid))
     return True, ""
 
 
@@ -347,7 +349,7 @@ _USER_SELECT_SQL = """
     experience_level, target_sectors, country,
     admin_regions, selected_departments, selected_cities, all_cities,
     selected_countries, geo_by_country,
-    target_job_title, job_max_age_days
+    target_job_title, job_max_age_days, preferred_language
 """
 
 
@@ -430,6 +432,9 @@ def _row_to_user(row: Any, include_created: bool = False) -> dict:
                 "all_cities": all_cities,
             }
         ),
+        "preferred_language": normalize_locale(
+            row["preferred_language"] if "preferred_language" in row.keys() else "fr"
+        ),
     }
     if include_created:
         user["created_at"] = row["created_at"]
@@ -477,6 +482,7 @@ def register_user(
     job_max_age_days: int = 7,
     selected_countries: list[str] | None = None,
     geo_by_country: dict[str, dict[str, Any]] | None = None,
+    preferred_language: str = "fr",
 ) -> tuple[bool, str]:
     """Register a new user. Returns (success, message)."""
     full_name = " ".join(full_name.strip().split())
@@ -527,11 +533,12 @@ def register_user(
     sectors = target_sectors or []
     job_title = " ".join(target_job_title.strip().split())
     publication_days = normalize_job_max_age_days(job_max_age_days)
+    language = normalize_locale(preferred_language)
 
     if len(full_name) < 2:
-        return False, "Le nom doit contenir au moins 2 caractères."
+        return False, t("auth.name.min")
     if not EMAIL_PATTERN.match(email):
-        return False, "Adresse e-mail invalide."
+        return False, t("auth.email.invalid")
 
     valid_pw, pw_msg = _validate_password(password)
     if not valid_pw:
@@ -569,9 +576,9 @@ def register_user(
                         search_radius_km, geo_filter_mode, experience_level, target_sectors,
                         country, admin_regions, selected_departments, selected_cities, all_cities,
                         selected_countries, geo_by_country,
-                        target_job_title, job_max_age_days
+                        target_job_title, job_max_age_days, preferred_language
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """
                 ),
                 (
@@ -599,14 +606,15 @@ def register_user(
                     serialize_geo_by_country(geo_map),
                     job_title,
                     publication_days,
+                    language,
                 ),
             )
     except Exception as exc:  # noqa: BLE001
         if is_unique_violation(exc):
-            return False, "Un compte existe déjà avec cet e-mail."
+            return False, t("auth.register.email_exists")
         raise
 
-    return True, "Compte créé avec succès. Vous pouvez vous connecter."
+    return True, t("auth.register.success")
 
 
 def authenticate_user(email: str, password: str) -> tuple[bool, str, dict | None]:
@@ -615,7 +623,7 @@ def authenticate_user(email: str, password: str) -> tuple[bool, str, dict | None
     password = password.strip()
 
     if not email or not password:
-        return False, "E-mail et mot de passe requis.", None
+        return False, t("auth.login.required"), None
 
     init_db()
     with _connect() as conn:
@@ -630,11 +638,11 @@ def authenticate_user(email: str, password: str) -> tuple[bool, str, dict | None
         ).fetchone()
 
     if not row:
-        return False, "E-mail ou mot de passe incorrect.", None
+        return False, t("auth.login.invalid"), None
     if not _verify_password(password, row["password_hash"]):
-        return False, "E-mail ou mot de passe incorrect.", None
+        return False, t("auth.login.invalid"), None
 
-    return True, "Connexion réussie.", _row_to_user(row)
+    return True, t("auth.login.success"), _row_to_user(row)
 
 
 def update_user_profile(
@@ -696,7 +704,7 @@ def update_user_profile(
     publication_days = normalize_job_max_age_days(job_max_age_days)
 
     if len(full_name) < 2:
-        return False, "Le nom doit contenir au moins 2 caractères.", None
+        return False, t("auth.name.min"), None
 
     valid_profile, profile_msg = _validate_profile_fields(
         home_city,
@@ -759,7 +767,7 @@ def update_user_profile(
             ),
         )
         if cursor.rowcount == 0:
-            return False, "Utilisateur introuvable.", None
+            return False, t("auth.profile.not_found"), None
 
         row = conn.execute(
             adapt_sql(
@@ -771,7 +779,7 @@ def update_user_profile(
             (user_id,),
         ).fetchone()
 
-    return True, "Profil mis à jour.", _row_to_user(row, include_created=True)
+    return True, t("auth.profile.updated"), _row_to_user(row, include_created=True)
 
 
 def change_password(
@@ -787,7 +795,7 @@ def change_password(
     if not valid_pw:
         return False, pw_msg
     if current_password == new_password:
-        return False, "Le nouveau mot de passe doit être différent de l'actuel."
+        return False, t("auth.password.same")
 
     init_db()
     with _connect() as conn:
@@ -797,9 +805,9 @@ def change_password(
         ).fetchone()
 
     if not row:
-        return False, "Utilisateur introuvable."
+        return False, t("auth.profile.not_found")
     if not _verify_password(current_password, row["password_hash"]):
-        return False, "Mot de passe actuel incorrect."
+        return False, t("auth.password.current_wrong")
 
     with _connect() as conn:
         conn.execute(
@@ -807,7 +815,7 @@ def change_password(
             (_hash_password(new_password), user_id),
         )
 
-    return True, "Mot de passe modifié avec succès."
+    return True, t("auth.password.changed")
 
 
 def reset_password(email: str, full_name: str, new_password: str) -> tuple[bool, str]:
@@ -822,7 +830,7 @@ def reset_password(email: str, full_name: str, new_password: str) -> tuple[bool,
     if not valid_pw:
         return False, pw_msg
     if not EMAIL_PATTERN.match(email):
-        return False, "Adresse e-mail invalide."
+        return False, t("auth.email.invalid")
 
     init_db()
     with _connect() as conn:
@@ -832,9 +840,9 @@ def reset_password(email: str, full_name: str, new_password: str) -> tuple[bool,
         ).fetchone()
 
     if not row:
-        return False, "Aucun compte trouvé avec cet e-mail."
+        return False, t("auth.reset.not_found")
     if _normalize_name(row["full_name"]) != full_name_norm:
-        return False, "Le nom complet ne correspond pas à ce compte."
+        return False, t("auth.reset.name_mismatch")
 
     with _connect() as conn:
         conn.execute(
@@ -842,7 +850,7 @@ def reset_password(email: str, full_name: str, new_password: str) -> tuple[bool,
             (_hash_password(new_password), row["id"]),
         )
 
-    return True, "Mot de passe réinitialisé. Vous pouvez vous connecter."
+    return True, t("auth.reset.success")
 
 
 def delete_user_account(user_id: int) -> tuple[bool, str]:
@@ -857,7 +865,7 @@ def delete_user_account(user_id: int) -> tuple[bool, str]:
             (user_id,),
         ).fetchone()
         if not row:
-            return False, "Utilisateur introuvable."
+            return False, t("auth.profile.not_found")
 
         conn.execute(
             adapt_sql("DELETE FROM analysis_results WHERE user_id = ?"),
@@ -884,7 +892,30 @@ def delete_user_account(user_id: int) -> tuple[bool, str]:
             (user_id,),
         )
 
-    return True, "Votre compte a été supprimé définitivement."
+    return True, t("auth.account.deleted")
+
+
+def update_user_preferred_language(user_id: int, locale: str) -> tuple[bool, str, dict | None]:
+    """Update the user's UI language preference."""
+    language = normalize_locale(locale)
+    init_db()
+    with _connect() as conn:
+        conn.execute(
+            adapt_sql("UPDATE users SET preferred_language = ? WHERE id = ?"),
+            (language, user_id),
+        )
+        row = conn.execute(
+            adapt_sql(
+                f"""
+                SELECT {_USER_SELECT_SQL}
+                FROM users WHERE id = ?
+                """
+            ),
+            (user_id,),
+        ).fetchone()
+    if not row:
+        return False, t("auth.profile.not_found"), None
+    return True, t("auth.profile.updated"), _row_to_user(row, include_created=True)
 
 
 def format_member_since(iso_date: str) -> str:

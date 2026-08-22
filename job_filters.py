@@ -415,6 +415,15 @@ def _build_country_search_locations(
         )
         return _build_france_search_locations(fake_profile, max_locations=max_locations)
 
+    if geo.get("all_cities"):
+        for subdiv1 in geo.get("level1") or []:
+            add(f"{subdiv1}, {country}")
+        for subdiv2 in geo.get("level2") or []:
+            add(f"{subdiv2}, {country}")
+        if not locations:
+            add(country)
+        return locations
+
     for city in geo.get("cities") or []:
         add(f"{city}, {country}")
     for subdiv2 in geo.get("level2") or []:
@@ -483,6 +492,15 @@ def _job_matches_international_geo(
     blob = normalize_text(
         f"{job.get('title', '')} {job.get('location', '')} {job.get('description', '')}"
     )
+    if geo.get("all_cities"):
+        tokens = [
+            normalize_text(item)
+            for item in (geo.get("level1") or []) + (geo.get("level2") or [])
+        ]
+        if not tokens:
+            return True
+        return any(token and token in blob for token in tokens)
+
     tokens: list[str] = []
     for city in geo.get("cities") or []:
         tokens.append(normalize_text(city))
@@ -1112,12 +1130,14 @@ def apply_strict_job_filters(
 
 def profile_ready_for_matching(profile: dict[str, Any]) -> tuple[bool, str]:
     """Check whether user profile has mandatory matching fields."""
+    from i18n import t
+
     if not str(profile.get("target_job_title", "")).strip():
-        return False, "Indiquez le poste visé dans Mon profil."
+        return False, t("matching.missing_job_title")
     if not str(profile.get("contract_type", "")).strip():
-        return False, "Sélectionnez votre type de contrat dans Mon profil."
+        return False, t("matching.missing_contract")
     countries = profile_countries(profile)
     if not countries:
-        return False, "Sélectionnez au moins un pays dans Mon profil."
+        return False, t("matching.missing_countries")
     geo_map = merge_profile_geo(profile)
     return validate_profile_countries_geo(countries, geo_map)

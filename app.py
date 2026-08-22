@@ -60,6 +60,26 @@ from job_filters import (
     resolve_experience_level,
     resolve_target_sectors,
 )
+from i18n import (
+    LOCALE_LABELS,
+    SUPPORTED_LOCALES,
+    analysis_depth_label,
+    experience_label,
+    geo_mode_label,
+    get_locale,
+    init_locale,
+    job_age_label,
+    nav_label,
+    set_locale,
+    t,
+)
+from world_cities import (
+    city_options_for_country_zone,
+    country_geo_all_cities,
+    country_geo_cities,
+    labels_for_selected_intl_cities,
+    parse_intl_city_option,
+)
 from world_geo import (
     country_geo_schema,
     country_has_subdivisions,
@@ -141,7 +161,7 @@ ANALYSIS_DEPTH_LABELS = {
 }
 ANALYSIS_DEPTH_POOL = {"rapide": 18, "standard": 30, "complet": 45}
 ANALYSIS_DEPTH_TOP = {"rapide": 15, "standard": 30, "complet": 30}
-NAV_PAGES = ("Analyse CV", "Tableau de bord", "Historique", "Mon profil")
+NAV_PAGE_KEYS = ("analysis", "dashboard", "history", "profile")
 
 # Theme — aligned with the login page (split-screen purple)
 THEME_BG_GRADIENT = "linear-gradient(160deg, #ddd6fe 0%, #c4b5fd 45%, #a78bfa 100%)"
@@ -153,7 +173,7 @@ THEME_SURFACE_SOFT = "#f5f3ff"
 THEME_MUTED = "#64748b"
 THEME_ACCENT = "#6366f1"
 
-APP_VERSION = "3.11.0-multi-country-profile"
+APP_VERSION = "3.12.0-i18n-language-selector"
 
 ADZUNA_COUNTRY_CODES = {
     "France": "fr",
@@ -219,6 +239,7 @@ from auth import (
     init_db,
     register_user,
     reset_password,
+    update_user_preferred_language,
     update_user_profile,
 )
 from database import DatabaseConfigError, configure_database, database_connection_hint, database_status
@@ -4638,6 +4659,33 @@ def init_session_state() -> None:
         st.session_state.groq_quota_exhausted = False
     if "llm_backend_active" not in st.session_state:
         st.session_state.llm_backend_active = None
+    init_locale()
+    if st.session_state.get("main_navigation") not in NAV_PAGE_KEYS:
+        st.session_state.main_navigation = NAV_PAGE_KEYS[0]
+
+
+def render_language_selector(*, key_prefix: str = "locale", persist_user: bool = False) -> None:
+    """Language picker — visible on login page and in the sidebar."""
+    current = get_locale()
+    try:
+        current_index = SUPPORTED_LOCALES.index(current)
+    except ValueError:
+        current_index = 0
+    selected = st.selectbox(
+        t("language.label"),
+        SUPPORTED_LOCALES,
+        index=current_index,
+        format_func=lambda code: LOCALE_LABELS.get(code, code),
+        key=f"{key_prefix}_select",
+    )
+    if selected != st.session_state.get("locale"):
+        set_locale(selected)
+        if persist_user and st.session_state.get("authenticated") and st.session_state.get("user"):
+            user = st.session_state.user
+            ok, _, updated = update_user_preferred_language(int(user["id"]), selected)
+            if ok and updated:
+                st.session_state.user = updated
+        st.rerun()
 
 
 def _flush_analysis_notices() -> None:
@@ -4960,11 +5008,20 @@ def format_profile_geo_summary(profile: dict[str, Any]) -> tuple[str, str, str]:
                     for d in fr_departments[:3]
                 ]
                 subdivision_parts.append(f"France (dép.): {', '.join(dept_labels)}")
-            fr_cities = resolve_selected_cities(profile)
             if profile_all_cities(profile):
                 city_parts.append("France: toutes les villes")
-            elif fr_cities:
-                city_parts.append(f"France: {', '.join(fr_cities[:4])}")
+            else:
+                fr_cities = resolve_selected_cities(profile)
+                if fr_cities:
+                    city_parts.append(f"France: {', '.join(fr_cities[:4])}")
+            continue
+
+        if country_geo_all_cities(geo):
+            zones = (geo.get("level1") or []) + (geo.get("level2") or [])
+            if zones:
+                city_parts.append(f"{country}: toutes les villes ({', '.join(zones[:3])})")
+            else:
+                city_parts.append(f"{country}: toutes les villes")
             continue
 
         level1 = geo.get("level1") or []
@@ -4998,15 +5055,108 @@ def render_countries_multiselect(
         st.session_state[countries_key] = initial
 
     selected = st.multiselect(
-        "Pays de recherche",
+        t("profile.countries"),
         list(COUNTRY_OPTIONS),
         key=countries_key,
-        help=(
-            "Sélectionnez un ou plusieurs pays (liste ISO 3166-1). "
-            "Seules les offres situées dans ces pays seront proposées."
-        ),
+        help=t("profile.countries_help"),
     )
     return selected if selected else ["France"]
+
+
+def render_international_city_selector(
+    country: str,
+    profile: dict[str, Any],
+    key_prefix: str,
+    level1: list[str],
+    level2: list[str],
+    geo: dict[str, Any],
+) -> tuple[list[str], bool]:
+    """Multiselect of cities for international countries (same UX as France)."""
+    cities_key = f"{key_prefix}_intl_cities_{country}"
+    all_cities_key = f"{key_prefix}_intl_all_cities_{country}"
+    zones_key = f"{key_prefix}_intl_zones_sig_{country}"
+    schema = country_geo_schema(country)
+
+    if all_cities_key not in st.session_state:
+        st.session_state[all_cities_key] = country_geo_all_cities(geo)
+
+    requires_zone = bool(schema)
+    has_zone = bool(level1 or level2)
+
+    if requires_zone and not has_zone:
+        st.checkbox(
+            "Toutes les villes des zones sélectionnées",
+            value=False,
+            disabled=True,
+            key=all_cities_key,
+        )
+        st.multiselect(
+            "Villes ciblées pour les offres",
+            [],
+            disabled=True,
+            help=(
+                f"Sélectionnez d'abord au moins un(e) "
+                f"{(schema or {}).get('level1_label', 'zone').lower()}."
+            ),
+        )
+        return [], False
+
+    zone_sig = (tuple(sorted(level1)), tuple(sorted(level2)))
+    initial_cities = country_geo_cities(geo)
+
+    with st.spinner("Chargement des villes…"):
+        available = city_options_for_country_zone(country, level1, level2)
+
+    if cities_key not in st.session_state:
+        st.session_state[cities_key] = labels_for_selected_intl_cities(
+            initial_cities, level1, level2, available
+        )
+
+    if st.session_state.get(zones_key) != zone_sig:
+        previous = st.session_state.get(cities_key, [])
+        st.session_state[cities_key] = [label for label in previous if label in available]
+        st.session_state[zones_key] = zone_sig
+
+    zone_label = (schema or {}).get("level2_label") or (schema or {}).get("level1_label") or "zones"
+    all_cities = st.checkbox(
+        f"Toutes les villes des {zone_label.lower()} sélectionnées"
+        if requires_zone and has_zone
+        else "Toutes les villes du pays",
+        key=all_cities_key,
+        help=(
+            "Accepte toute offre située dans vos zones sélectionnées, "
+            "sans filtrer par nom de ville."
+        ),
+    )
+
+    if not available:
+        st.warning(
+            "Impossible de charger les villes pour cette zone. "
+            "Réessayez dans un instant ou élargissez la sélection."
+        )
+        return initial_cities, all_cities
+
+    if all_cities:
+        st.caption(f"**{len(available)}** ville(s) couverte(s) dans la zone sélectionnée.")
+        st.multiselect(
+            "Villes ciblées pour les offres",
+            available,
+            default=[],
+            disabled=True,
+            help="Décochez « Toutes les villes » pour choisir des villes précises.",
+        )
+        return [], True
+
+    selected_labels = st.multiselect(
+        "Villes ciblées pour les offres",
+        available,
+        key=cities_key,
+        help=(
+            f"{len(available)} ville(s) disponible(s). "
+            "Choisissez une ou plusieurs villes, ou cochez « Toutes les villes »."
+        ),
+    )
+    return [parse_intl_city_option(label) for label in selected_labels], False
 
 
 def render_international_geo_selectors(
@@ -5025,13 +5175,16 @@ def render_international_geo_selectors(
     }
 
     if not schema:
-        cities_raw = st.text_input(
-            "Villes ciblées",
-            value=", ".join(geo.get("cities") or []),
-            key=f"{key_prefix}_cities_{country}",
-            help="Saisissez une ou plusieurs villes, séparées par des virgules.",
+        cities, all_cities = render_international_city_selector(
+            country,
+            profile,
+            key_prefix,
+            [],
+            [],
+            geo,
         )
-        result["cities"] = [item.strip() for item in cities_raw.split(",") if item.strip()]
+        result["cities"] = cities
+        result["all_cities"] = all_cities
         return result
 
     level1_options = schema.get("level1_options") or []
@@ -5050,21 +5203,40 @@ def render_international_geo_selectors(
 
     if schema.get("level2_label"):
         level2_label = schema["level2_label"]
-        level2_raw = st.text_input(
-            level2_label,
-            value=", ".join(geo.get("level2") or []),
-            key=f"{key_prefix}_l2_{country}",
-            help=f"Saisie libre — {level2_label.lower()}, séparés par des virgules.",
-        )
-        result["level2"] = [item.strip() for item in level2_raw.split(",") if item.strip()]
+        level2_key = f"{key_prefix}_l2_{country}"
+        level2_options = schema.get("level2_options") or []
+        if level2_options:
+            if level2_key not in st.session_state:
+                st.session_state[level2_key] = [
+                    item for item in (geo.get("level2") or []) if item in level2_options
+                ]
+            result["level2"] = st.multiselect(
+                level2_label,
+                level2_options,
+                key=level2_key,
+                help=f"Sélectionnez un ou plusieurs {level2_label.lower()}.",
+            )
+        else:
+            level2_raw = st.text_input(
+                level2_label,
+                value=", ".join(geo.get("level2") or []),
+                key=level2_key,
+                help=f"Saisie libre — {level2_label.lower()}, séparés par des virgules.",
+            )
+            result["level2"] = [
+                item.strip() for item in level2_raw.split(",") if item.strip()
+            ]
 
-    cities_raw = st.text_input(
-        schema.get("city_label", "Villes"),
-        value=", ".join(geo.get("cities") or []),
-        key=f"{key_prefix}_cities_{country}",
-        help="Une ou plusieurs villes, séparées par des virgules.",
+    cities, all_cities = render_international_city_selector(
+        country,
+        profile,
+        key_prefix,
+        result["level1"],
+        result["level2"],
+        geo,
     )
-    result["cities"] = [item.strip() for item in cities_raw.split(",") if item.strip()]
+    result["cities"] = cities
+    result["all_cities"] = all_cities
     return result
 
 
@@ -5215,12 +5387,12 @@ def _auth_time_greeting() -> tuple[str, str]:
     """Return headline and sub-greeting for the auth panel."""
     hour = datetime.now().hour
     if 5 <= hour < 12:
-        return "Bonjour !", "Bonne matinée"
+        return t("auth.greeting.morning"), t("auth.greeting.morning_sub")
     if 12 <= hour < 18:
-        return "Bonjour !", "Bon après-midi"
+        return t("auth.greeting.morning"), t("auth.greeting.afternoon_sub")
     if 18 <= hour < 23:
-        return "Bonsoir !", "Bonne soirée"
-    return "Bonsoir !", "Bonne nuit"
+        return t("auth.greeting.evening"), t("auth.greeting.evening_sub")
+    return t("auth.greeting.evening"), t("auth.greeting.night_sub")
 
 
 def _auth_illustration_svg() -> str:
@@ -5250,10 +5422,10 @@ def _auth_left_panel_html() -> str:
 <div class="auth-left-panel">
   {_auth_illustration_svg()}
   <p class="auth-left-title">
-    Connectez-vous pour accéder à<br/>l'expérience complète {html.escape(APP_NAME)}
+    {html.escape(t("auth.left.title", app_name=APP_NAME)).replace(chr(10), "<br/>")}
   </p>
   <p class="auth-left-tip">
-    Astuce : complétez votre profil pour un matching d'offres plus précis.
+    {html.escape(t("auth.left.tip"))}
   </p>
 </div>
 """
@@ -5431,30 +5603,32 @@ def render_auth_styles() -> None:
 
 def _render_auth_login_form() -> None:
     """Login form in the right panel."""
+    render_language_selector(key_prefix="auth_locale")
     headline, sub = _auth_time_greeting()
     st.markdown(f'<p class="auth-greeting-main">{headline}</p>', unsafe_allow_html=True)
     st.markdown(f'<p class="auth-greeting-sub">{sub}</p>', unsafe_allow_html=True)
     st.markdown(
-        '<p class="auth-form-title">Connectez-vous à votre compte</p>',
+        f'<p class="auth-form-title">{html.escape(t("auth.login.title"))}</p>',
         unsafe_allow_html=True,
     )
     with st.form("login_form", clear_on_submit=False):
-        login_email = st.text_input("E-mail", placeholder="vous@exemple.com")
+        login_email = st.text_input(t("common.email"), placeholder=t("placeholder.email"))
         login_password = st.text_input(
-            "Mot de passe", type="password", placeholder="••••••••"
+            t("common.password"), type="password", placeholder=t("placeholder.password")
         )
-        if st.form_submit_button("Se connecter", use_container_width=True):
+        if st.form_submit_button(t("auth.login.submit"), use_container_width=True):
             ok, message, user = authenticate_user(login_email, login_password)
             if ok and user:
                 st.session_state.authenticated = True
                 st.session_state.user = user
+                set_locale(user.get("preferred_language", get_locale()))
                 st.session_state.auth_view = "login"
                 st.success(message)
                 st.rerun()
             else:
                 st.error(message)
     st.markdown('<div class="auth-link-row">', unsafe_allow_html=True)
-    if st.button("Mot de passe oublié ?", key="auth_go_reset"):
+    if st.button(t("auth.login.forgot"), key="auth_go_reset"):
         st.session_state.auth_view = "reset"
         st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
@@ -5462,29 +5636,30 @@ def _render_auth_login_form() -> None:
 
 def _render_auth_reset_form() -> None:
     """Password reset form."""
-    st.markdown('<p class="auth-greeting-main">Réinitialisation</p>', unsafe_allow_html=True)
+    render_language_selector(key_prefix="auth_locale_reset")
+    st.markdown(f'<p class="auth-greeting-main">{html.escape(t("auth.reset.title"))}</p>', unsafe_allow_html=True)
     st.markdown(
-        '<p class="auth-greeting-sub">Nouveau mot de passe</p>',
+        f'<p class="auth-greeting-sub">{html.escape(t("auth.reset.subtitle"))}</p>',
         unsafe_allow_html=True,
     )
     st.markdown(
-        '<p class="auth-form-title">E-mail et nom complet identiques à l\'inscription</p>',
+        f'<p class="auth-form-title">{html.escape(t("auth.reset.form_title"))}</p>',
         unsafe_allow_html=True,
     )
     with st.form("reset_form", clear_on_submit=False):
-        reset_email = st.text_input("E-mail", placeholder="vous@exemple.com")
-        reset_name = st.text_input("Nom complet", placeholder="Jean Dupont")
+        reset_email = st.text_input(t("common.email"), placeholder=t("placeholder.email"))
+        reset_name = st.text_input(t("common.full_name"), placeholder=t("placeholder.name"))
         reset_password_1 = st.text_input(
-            "Nouveau mot de passe", type="password", placeholder="8 caractères minimum"
+            t("auth.reset.new_password"), type="password", placeholder=t("placeholder.password_min")
         )
         reset_password_2 = st.text_input(
-            "Confirmer le nouveau mot de passe", type="password"
+            t("auth.reset.confirm"), type="password"
         )
         if st.form_submit_button(
-            "Réinitialiser le mot de passe", use_container_width=True
+            t("auth.reset.submit"), use_container_width=True
         ):
             if reset_password_1 != reset_password_2:
-                st.error("Les mots de passe ne correspondent pas.")
+                st.error(t("auth.register.password_mismatch"))
             else:
                 ok, message = reset_password(reset_email, reset_name, reset_password_1)
                 if ok:
@@ -5496,26 +5671,27 @@ def _render_auth_reset_form() -> None:
 
 def _render_auth_register_form() -> None:
     """Registration form."""
-    st.markdown('<p class="auth-greeting-main">Bienvenue !</p>', unsafe_allow_html=True)
+    render_language_selector(key_prefix="auth_locale_register")
+    st.markdown(f'<p class="auth-greeting-main">{html.escape(t("auth.register.welcome"))}</p>', unsafe_allow_html=True)
     st.markdown(
-        '<p class="auth-greeting-sub">Créer un compte</p>',
+        f'<p class="auth-greeting-sub">{html.escape(t("auth.register.subtitle"))}</p>',
         unsafe_allow_html=True,
     )
     st.markdown(
-        '<p class="auth-form-title">Étape 1 — Quel poste visez-vous ?</p>',
+        f'<p class="auth-form-title">{html.escape(t("auth.register.step1"))}</p>',
         unsafe_allow_html=True,
     )
     reg_target_job = st.text_input(
-        "Intitulé du poste visé",
-        placeholder="Ex. Développeur Python, Technicien réseau, Chargé de recrutement…",
-        help="L'IA utilisera ce titre pour rechercher des offres correspondantes avant d'analyser votre CV.",
+        t("auth.register.job_title"),
+        placeholder=t("auth.register.job_title_ph"),
+        help=t("auth.register.job_title_help"),
         key="register_target_job_title",
     )
     st.markdown(
-        '<p class="auth-form-title">Étape 2 — Votre profil de recherche</p>',
+        f'<p class="auth-form-title">{html.escape(t("auth.register.step2"))}</p>',
         unsafe_allow_html=True,
     )
-    st.markdown("**Localisation**")
+    st.markdown(f"**{html.escape(t('auth.register.location'))}**")
     reg_selected_countries = render_countries_multiselect({}, key_prefix="register")
     reg_admin_regions: list[str] = []
     reg_departments: list[dict[str, str]] = []
@@ -5550,49 +5726,45 @@ def _render_auth_register_form() -> None:
             )
 
     with st.form("register_form", clear_on_submit=False):
-        reg_name = st.text_input("Nom complet", placeholder="Jean Dupont")
-        reg_email = st.text_input("E-mail", placeholder="vous@exemple.com")
+        reg_name = st.text_input(t("common.full_name"), placeholder=t("placeholder.name"))
+        reg_email = st.text_input(t("common.email"), placeholder=t("placeholder.email"))
         reg_password = st.text_input(
-            "Mot de passe", type="password", placeholder="8 caractères minimum"
+            t("common.password"), type="password", placeholder=t("placeholder.password_min")
         )
-        reg_password2 = st.text_input("Confirmer le mot de passe", type="password")
-        st.markdown("**Préférences de recherche d'emploi**")
+        reg_password2 = st.text_input(t("auth.register.password_confirm"), type="password")
+        st.markdown(f"**{html.escape(t('auth.register.prefs'))}**")
         reg_contract = st.selectbox(
-            "Type de contrat recherché", CONTRACT_TYPES, index=0
+            t("auth.register.contract"), CONTRACT_TYPES, index=0
         )
         reg_geo = st.selectbox(
-            "Périmètre géographique",
+            t("auth.register.geo_mode"),
             GEO_FILTER_MODES,
             index=1,
-            format_func=lambda x: {
-                "ville": "Villes sélectionnées uniquement",
-                "departement": "Pays, régions, départements et villes sélectionnés",
-                "rayon": "Zones sélectionnées + rayon autour de la première ville",
-            }[x],
+            format_func=lambda x: geo_mode_label(x, register=True),
         )
-        reg_radius = st.slider("Rayon (km)", 5, 100, 20, disabled=(reg_geo != "rayon"))
+        reg_radius = st.slider(t("auth.register.radius"), 5, 100, 20, disabled=(reg_geo != "rayon"))
         reg_experience = st.selectbox(
-            "Niveau d'expérience recherché",
+            t("auth.register.experience"),
             EXPERIENCE_LEVELS,
             index=1,
-            format_func=lambda x: EXPERIENCE_LABELS[x],
+            format_func=experience_label,
         )
         reg_sectors = st.multiselect(
-            "Secteurs d'activité ciblés (optionnel — sinon déduits du CV)",
+            t("auth.register.sectors"),
             SECTOR_OPTIONS,
             default=["Informatique"],
             key="register_target_sectors",
         )
         reg_publication_age = st.radio(
-            "Rechercher les offres publiées depuis :",
+            t("auth.register.publication"),
             JOB_MAX_AGE_DAYS_OPTIONS,
             index=JOB_MAX_AGE_DAYS_OPTIONS.index(7),
-            format_func=lambda days: JOB_MAX_AGE_LABELS[days],
-            help="Seules les offres publiées dans cette période seront recherchées.",
+            format_func=job_age_label,
+            help=t("auth.register.publication_help"),
         )
-        if st.form_submit_button("Créer mon compte", use_container_width=True):
+        if st.form_submit_button(t("auth.register.submit"), use_container_width=True):
             if reg_password != reg_password2:
-                st.error("Les mots de passe ne correspondent pas.")
+                st.error(t("auth.register.password_mismatch"))
             else:
                 ok, message = register_user(
                     reg_name,
@@ -5612,6 +5784,7 @@ def _render_auth_register_form() -> None:
                     job_max_age_days=reg_publication_age,
                     selected_countries=reg_selected_countries,
                     geo_by_country=reg_geo_by_country,
+                    preferred_language=get_locale(),
                 )
                 if ok:
                     st.success(message)
@@ -5643,12 +5816,12 @@ def render_auth_page() -> None:
 
             st.markdown('<div class="auth-footer-link">', unsafe_allow_html=True)
             if view == "login":
-                if st.button("Créer un compte", key="auth_go_register", use_container_width=True):
+                if st.button(t("auth.footer.create"), key="auth_go_register", use_container_width=True):
                     st.session_state.auth_view = "register"
                     st.rerun()
             else:
                 st.markdown('<div class="auth-back-link">', unsafe_allow_html=True)
-                if st.button("← Retour à la connexion", key="auth_go_login"):
+                if st.button(t("auth.footer.back_login"), key="auth_go_login"):
                     st.session_state.auth_view = "login"
                     st.rerun()
                 st.markdown("</div>", unsafe_allow_html=True)
@@ -5972,10 +6145,7 @@ def render_cv_analysis(
     profile_ok, profile_msg = profile_ready_for_matching(user_profile)
     if not profile_ok:
         st.warning(profile_msg)
-        st.info(
-            "Complétez le **poste visé**, vos **pays et zones géographiques** "
-            "et votre **type de contrat** dans **Mon profil** avant de lancer une analyse."
-        )
+        st.info(t("matching.profile_incomplete"))
         return
 
     target_title = user_profile.get("target_job_title", "—")
@@ -6160,7 +6330,7 @@ def render_app() -> None:
     """Main application shell with navigation."""
     render_app_styles()
     user = st.session_state.user or {}
-    user_name = user.get("full_name") or "Utilisateur"
+    user_name = user.get("full_name") or t("common.user")
 
     provider_secrets = provider_secrets_from_getter(get_secret)
     default_provider = default_job_provider(secrets=provider_secrets)
@@ -6172,12 +6342,15 @@ def render_app() -> None:
 
         page = st.radio(
             "Navigation",
-            list(NAV_PAGES),
+            list(NAV_PAGE_KEYS),
+            format_func=nav_label,
             label_visibility="collapsed",
             key="main_navigation",
         )
 
-        if st.button("Se déconnecter", use_container_width=True, key="logout_button"):
+        render_language_selector(key_prefix="sidebar_locale", persist_user=True)
+
+        if st.button(t("app.logout"), use_container_width=True, key="logout_button"):
             st.session_state.authenticated = False
             st.session_state.user = None
             st.session_state.analysis = None
@@ -6187,7 +6360,7 @@ def render_app() -> None:
         st.markdown("---")
 
         job_provider = st.selectbox(
-            "Moteur(s) de recherche d'emploi",
+            t("app.job_provider"),
             JOB_PROVIDER_SIDEBAR_ORDER,
             index=default_provider_index,
             format_func=lambda x: JOB_PROVIDER_LABELS.get(x, x),
@@ -6198,15 +6371,15 @@ def render_app() -> None:
         )
 
         analysis_depth = st.session_state.get("analysis_depth", "standard")
-        if page == "Analyse CV":
+        if page == "analysis":
             current_depth = st.session_state.get("analysis_depth", "standard")
             if current_depth not in ANALYSIS_DEPTH_OPTIONS:
                 current_depth = "standard"
             analysis_depth = st.selectbox(
-                "Profondeur d'analyse",
+                t("app.analysis_depth"),
                 ANALYSIS_DEPTH_OPTIONS,
                 index=ANALYSIS_DEPTH_OPTIONS.index(current_depth),
-                format_func=lambda key: ANALYSIS_DEPTH_LABELS[key],
+                format_func=analysis_depth_label,
                 help=(
                     "Le matching IA (1 appel par offre) est l'étape la plus longue. "
                     "Choisissez **Rapide** pour réduire le temps d'attente."
@@ -6215,8 +6388,8 @@ def render_app() -> None:
             )
             st.session_state.analysis_depth = analysis_depth
 
-        with st.expander("Configuration & tests", expanded=False):
-            st.caption(f"Version : `{APP_VERSION}`")
+        with st.expander(t("app.config_tests"), expanded=False):
+            st.caption(f"{t('app.version')} : `{APP_VERSION}`")
 
             db_backend, db_message = database_status()
             if db_backend == "postgres":
@@ -6477,8 +6650,8 @@ def render_app() -> None:
                                 "vérifiez votre clé."
                             )
 
-            if page == "Analyse CV" and st.button(
-                "Vider le cache", use_container_width=True, key="clear_cache"
+            if page == "analysis" and st.button(
+                t("app.clear_cache"), use_container_width=True, key="clear_cache"
             ):
                 st.cache_data.clear()
                 st.session_state.analysis = None
@@ -6486,41 +6659,40 @@ def render_app() -> None:
                 st.session_state.analysis_notices = []
                 st.session_state.groq_quota_exhausted = False
                 st.session_state.llm_backend_active = None
-                st.success("Cache vidé.")
+                st.success(t("app.cache_cleared"))
                 st.rerun()
 
-    if page == "Mon profil":
+    if page == "profile":
         render_page_hero(
-            "Mon profil",
-            "Gérez votre identité, vos critères de recherche, la sécurité du compte et les alertes.",
-            badge="Compte",
+            t("hero.profile.title"),
+            t("hero.profile.subtitle"),
+            badge=t("hero.profile.badge"),
         )
         render_profile_page(user, job_provider)
         return
 
-    if page == "Historique":
+    if page == "history":
         render_page_hero(
-            "Historique",
-            "Consultez vos analyses passées et rechargez un rapport complet.",
-            badge="Archives",
+            t("hero.history.title"),
+            t("hero.history.subtitle"),
+            badge=t("hero.history.badge"),
         )
         render_history_page(user)
         return
 
-    if page == "Tableau de bord":
+    if page == "dashboard":
         render_page_hero(
-            "Tableau de bord",
-            "Suivez vos candidatures, filtrez par statut et générez lettres / CV adaptés.",
-            badge="Suivi",
+            t("hero.dashboard.title"),
+            t("hero.dashboard.subtitle"),
+            badge=t("hero.dashboard.badge"),
         )
         render_dashboard_page(user)
         return
 
     render_page_hero(
-        "Analyse CV",
-        f"Bienvenue {user_name} — déposez votre CV : l'IA recherche les offres "
-        f"(filtre publication défini dans Mon profil) puis analyse votre profil en mode ATS.",
-        badge="Matching IA",
+        t("hero.analysis.title"),
+        t("hero.analysis.subtitle", name=user_name),
+        badge=t("hero.analysis.badge"),
     )
     render_cv_analysis(job_provider, user, analysis_depth=analysis_depth)
 

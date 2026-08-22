@@ -6,9 +6,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from i18n import t
 from france_geo import (
-    communes_supported_for_country as france_communes_supported,
-    parse_admin_regions,
     parse_selected_cities,
     parse_selected_departments,
     profile_all_cities,
@@ -233,7 +232,8 @@ def country_has_subdivisions(country: str) -> bool:
 
 
 def communes_supported_for_country(country: str) -> bool:
-    return france_communes_supported(country)
+    """City multiselect is available for all ISO countries."""
+    return bool(normalize_country_name(country))
 
 
 def _empty_country_geo() -> dict[str, Any]:
@@ -304,23 +304,34 @@ def validate_country_geo(country: str, geo: dict[str, Any]) -> tuple[bool, str]:
         regions = geo.get("admin_regions") or geo.get("level1") or []
         departments = geo.get("selected_departments") or []
         if not regions:
-            return False, f"{country} : sélectionnez au moins une région."
+            return False, t("geo.select_region", country=country)
         if not departments:
-            return False, f"{country} : sélectionnez au moins un département."
+            return False, t("geo.select_department", country=country)
         if not geo.get("all_cities") and not (geo.get("selected_cities") or geo.get("cities")):
-            return False, f"{country} : sélectionnez une ville ou « Toutes les villes »."
+            return False, t("geo.select_city", country=country)
         return True, ""
 
     level1 = geo.get("level1") or []
+    level2 = geo.get("level2") or []
     cities = geo.get("cities") or []
+    if geo.get("all_cities"):
+        if schema:
+            if not level1 and not level2:
+                label = schema.get("level1_label", "Zone")
+                return False, t("geo.select_zone", country=country, zone=label.lower())
+            return True, ""
+        return True, ""
+
     if schema:
         if not level1 and not cities:
             label = schema.get("level1_label", "Zone")
-            return False, f"{country} : sélectionnez au moins un(e) {label.lower()} ou une ville."
+            return False, t("geo.select_zone_or_city", country=country, zone=label.lower())
+        if not level1 and not level2 and not cities:
+            return False, t("geo.select_city_only", country=country)
         return True, ""
 
     if not cities:
-        return False, f"{country} : indiquez au moins une ville (saisie libre)."
+        return False, t("geo.select_city_only", country=country)
     return True, ""
 
 
@@ -329,7 +340,7 @@ def validate_profile_countries_geo(
     geo_by_country: dict[str, dict[str, Any]],
 ) -> tuple[bool, str]:
     if not countries:
-        return False, "Sélectionnez au moins un pays."
+        return False, t("geo.select_countries")
     for country in countries:
         ok, msg = validate_country_geo(country, geo_by_country.get(country, {}))
         if not ok:
