@@ -85,6 +85,7 @@ from job_providers import (
     configured_providers,
     default_job_provider,
     merge_job_lists,
+    normalize_careerjet_referer,
     provider_secrets_from_getter,
     resolve_careerjet_user_ip,
     search_jobs_glassdoor_serpapi,
@@ -106,6 +107,7 @@ from job_providers import (
     test_serpapi_platform_connection,
     test_talent_connection,
     test_wttj_connection,
+    is_public_routable_ip,
 )
 MIN_CV_TEXT_LENGTH = 50
 MAX_OCR_PAGES = 5
@@ -141,7 +143,7 @@ THEME_SURFACE_SOFT = "#f5f3ff"
 THEME_MUTED = "#64748b"
 THEME_ACCENT = "#6366f1"
 
-APP_VERSION = "3.10.1-careerjet-diagnostics"
+APP_VERSION = "3.10.2-careerjet-ip-whitelist"
 
 ADZUNA_COUNTRY_CODES = {
     "France": "fr",
@@ -289,9 +291,10 @@ def resolve_streamlit_client_ip() -> str:
         headers = getattr(getattr(st, "context", None), "headers", None) or {}
         forwarded = headers.get("X-Forwarded-For") or headers.get("x-forwarded-for") or ""
         if forwarded:
-            ip = forwarded.split(",")[0].strip()
-            if ip:
-                return ip
+            for part in forwarded.split(","):
+                ip = part.strip()
+                if is_public_routable_ip(ip):
+                    return ip
         for header_name in (
             "X-Real-Ip",
             "x-real-ip",
@@ -299,7 +302,7 @@ def resolve_streamlit_client_ip() -> str:
             "cf-connecting-ip",
         ):
             value = headers.get(header_name)
-            if value:
+            if value and is_public_routable_ip(str(value).strip()):
                 return str(value).strip()
     except Exception:  # noqa: BLE001 — optional Streamlit context
         pass
@@ -308,8 +311,8 @@ def resolve_streamlit_client_ip() -> str:
 
 def resolve_careerjet_referer(configured: str) -> str:
     """Referer header required by Careerjet — auto-detect deployed app URL when possible."""
-    cleaned = configured.strip()
-    if cleaned and cleaned not in ("https://localhost/", "http://localhost/"):
+    cleaned = normalize_careerjet_referer(configured)
+    if cleaned not in ("https://localhost/", "http://localhost/"):
         return cleaned
     try:
         headers = getattr(getattr(st, "context", None), "headers", None) or {}
@@ -320,10 +323,10 @@ def resolve_careerjet_referer(configured: str) -> str:
                 or headers.get("x-forwarded-proto")
                 or "https"
             )
-            return f"{proto}://{host}/"
+            return normalize_careerjet_referer(f"{proto}://{host}/")
     except Exception:  # noqa: BLE001
         pass
-    return cleaned or "https://localhost/"
+    return cleaned
 
 
 def get_secret_raw(key: str, default: Any = "") -> Any:

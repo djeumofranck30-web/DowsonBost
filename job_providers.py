@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import ipaddress
+import re
 from typing import Any, Callable
 
 import requests
@@ -466,6 +468,24 @@ def search_jobs_jooble(
     return jobs
 
 
+def is_public_routable_ip(ip: str) -> bool:
+    """True when IP is a usable public address for Careerjet user_ip."""
+    try:
+        return ipaddress.ip_address(str(ip).strip()).is_global
+    except ValueError:
+        return False
+
+
+def normalize_careerjet_referer(referer: str) -> str:
+    """Ensure referer ends with / as required by Careerjet examples."""
+    cleaned = str(referer or "").strip()
+    if not cleaned:
+        return "https://localhost/"
+    if not cleaned.endswith("/"):
+        cleaned += "/"
+    return cleaned
+
+
 def _fetch_public_ip() -> str:
     """Best-effort public IP (server egress) for Careerjet when client IP unavailable."""
     try:
@@ -480,15 +500,59 @@ def _fetch_public_ip() -> str:
 
 
 def resolve_careerjet_user_ip(configured_ip: str = "", client_ip: str = "") -> str:
-    """Pick a Careerjet-compatible user_ip (visitor IP preferred)."""
+    """Pick a Careerjet-compatible user_ip (public visitor IP preferred)."""
     for candidate in (client_ip, configured_ip):
         cleaned = str(candidate or "").strip()
-        if cleaned and cleaned != "127.0.0.1":
+        if cleaned and is_public_routable_ip(cleaned):
             return cleaned
     public_ip = _fetch_public_ip()
-    if public_ip:
+    if public_ip and is_public_routable_ip(public_ip):
         return public_ip
-    return configured_ip.strip() or "127.0.0.1"
+    return configured_ip.strip() or public_ip or "127.0.0.1"
+
+
+def _extract_blocked_server_ip(error_message: str) -> str:
+    match = re.search(
+        r"Unauthorized access from IP\s+([0-9a-fA-F:.]+)",
+        error_message or "",
+    )
+    return match.group(1) if match else ""
+
+
+def _careerjet_failure_hint(
+    error: str,
+    *,
+    user_ip: str,
+    referer: str,
+    client_ip_raw: str = "",
+    server_ip: str = "",
+) -> str:
+    blocked_ip = _extract_blocked_server_ip(error) or server_ip
+    lines = [
+        f"Paramètre **user_ip** envoyé : `{user_ip}`",
+        f"Referer : `{referer}`",
+    ]
+    if client_ip_raw and client_ip_raw != user_ip:
+        lines.append(
+            f"IP visiteur brute ignorée (réseau privé Streamlit) : `{client_ip_raw}`"
+        )
+    if blocked_ip:
+        lines.append(
+            f"IP **serveur** refusée par Careerjet : `{blocked_ip}` "
+            "(c'est l'adresse de sortie Streamlit Cloud, pas votre PC)."
+        )
+    lines.extend(
+        [
+            "",
+            "**À faire sur [optioncarriere.com/partners/api](https://www.optioncarriere.com/partners/api) :**",
+            f"1. Autoriser / whitelister l'IP serveur `{blocked_ip or server_ip or '?'}`",
+            f"2. Vérifier que le referer enregistré = `{referer}` (URL Streamlit exacte)",
+            "3. Dans secrets.toml : `CAREERJET_REFERER = \"https://votre-app.streamlit.app/\"`",
+            "",
+            "Note : Streamlit Cloud peut changer d'IP — contactez Careerjet si le blocage persiste.",
+        ]
+    )
+    return "\n".join(lines)
 
 
 def _careerjet_request(
@@ -543,7 +607,7 @@ def search_jobs_optioncarriere(
     locale_code = _locale_for_country(country)
     careerjet_contract = CAREERJET_CONTRACT_MAP.get(contract_type.strip(), "")
     effective_ip = resolve_careerjet_user_ip(user_ip)
-    effective_referer = referer.strip() or "https://localhost/"
+    effective_referer = normalize_careerjet_referer(referer)
 
     for page in range(1, max_pages + 1):
         params: dict[str, Any] = {
@@ -601,7 +665,8 @@ def probe_optioncarriere_connection(
         )
 
     effective_ip = resolve_careerjet_user_ip(user_ip, client_ip=client_ip)
-    effective_referer = referer.strip() or "https://localhost/"
+    effective_referer = normalize_careerjet_referer(referer)
+    server_ip = _fetch_public_ip()
     params = {
         "locale_code": "fr_FR",
         "keywords": query.strip() or "alternance",
@@ -613,12 +678,12 @@ def probe_optioncarriere_connection(
     }
     payload, error = _careerjet_request(api_key, params, effective_referer)
     if error:
-        hint = (
-            f"IP utilisée : `{effective_ip}` · Referer : `{effective_referer}`. "
-            "Le referer doit correspondre exactement à l'URL enregistrée sur "
-            "optioncarriere.com/partners/api. "
-            "Dans secrets.toml : CAREERJET_REFERER = \"https://votre-url/\" "
-            "et optionnellement CAREERJET_USER_IP (IP publique autorisée)."
+        hint = _careerjet_failure_hint(
+            error,
+            user_ip=effective_ip,
+            referer=effective_referer,
+            client_ip_raw=client_ip,
+            server_ip=server_ip,
         )
         return False, f"Careerjet : {error}\n\n{hint}"
 
