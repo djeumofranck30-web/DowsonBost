@@ -42,7 +42,6 @@ from france_geo import (
 from job_filters import (
     CONTRACT_TYPES,
     COUNTRY_OPTIONS,
-    EXPERIENCE_LABELS,
     EXPERIENCE_LEVELS,
     GEO_FILTER_MODES,
     SECTOR_OPTIONS,
@@ -54,7 +53,6 @@ from job_filters import (
     format_job_published_label,
     job_max_age_label,
     JOB_MAX_AGE_DAYS_OPTIONS,
-    JOB_MAX_AGE_LABELS,
     normalize_job_max_age_days,
     profile_ready_for_matching,
     resolve_experience_level,
@@ -64,14 +62,20 @@ from i18n import (
     LOCALE_LABELS,
     SUPPORTED_LOCALES,
     analysis_depth_label,
+    application_status_label,
+    contract_label,
     experience_label,
     geo_mode_label,
     get_locale,
     init_locale,
     job_age_label,
+    job_provider_label,
     nav_label,
+    sector_label,
     set_locale,
+    sort_label,
     t,
+    weekday_label,
 )
 from world_cities import (
     city_options_for_country_zone,
@@ -104,7 +108,6 @@ from job_providers import (
     JOB_PROVIDER_INDEED,
     JOB_PROVIDER_JOBTEASER,
     JOB_PROVIDER_JOOBLE,
-    JOB_PROVIDER_LABELS,
     JOB_PROVIDER_LINKEDIN,
     JOB_PROVIDER_MONSTER,
     JOB_PROVIDER_OPTIONCARRIERE,
@@ -154,11 +157,6 @@ CV_MATCH_TEXT_LIMIT_WITH_PROFILE = 4500
 ATS_MATCH_MAX_TOKENS = 3500
 
 ANALYSIS_DEPTH_OPTIONS = ("rapide", "standard", "complet")
-ANALYSIS_DEPTH_LABELS = {
-    "rapide": "Rapide — 15 offres (~2× plus vite)",
-    "standard": "Standard — 30 offres (recommandé)",
-    "complet": "Complet — 45 offres analysées (plus lent)",
-}
 ANALYSIS_DEPTH_POOL = {"rapide": 18, "standard": 30, "complet": 45}
 ANALYSIS_DEPTH_TOP = {"rapide": 15, "standard": 30, "complet": 30}
 NAV_PAGE_KEYS = ("analysis", "dashboard", "history", "profile")
@@ -247,8 +245,6 @@ from document_generation import generate_adapted_cv, generate_cover_letter
 from email_service import email_configured, maybe_send_analysis_alert
 from persistence import (
     APPLICATION_STATUSES,
-    APPLICATION_STATUS_LABELS,
-    AUTO_SEARCH_WEEKDAY_LABELS,
     AUTO_SEARCH_WEEKDAYS,
     analysis_to_session_dict,
     dashboard_status_counts,
@@ -3838,7 +3834,7 @@ def render_job_card(
     st.markdown(f"### #{rank} — {job['title']}")
     if enable_tracking and result_id:
         st.caption(
-            f"Suivi : **{APPLICATION_STATUS_LABELS.get(application_status, application_status)}**"
+            t("job.tracking", status=application_status_label(application_status))
         )
 
     if match.get("synthese_ats"):
@@ -3847,64 +3843,67 @@ def render_job_card(
     col1, col2, col3 = st.columns([2, 2, 1])
 
     with col1:
-        st.markdown(f"**Entreprise :** {job['company']}")
-        st.markdown(f"**Lieu :** {job['location']}")
+        st.markdown(f"**{t('job.company_label')}** {job['company']}")
+        st.markdown(f"**{t('job.location_label')}** {job['location']}")
         if job.get("contract_type") or job.get("inferred_contract"):
-            contract_label = job.get("inferred_contract") or job.get("contract_type")
-            st.markdown(f"**Contrat :** {contract_label}")
-        st.markdown(f"**Publication :** {format_job_published_label(job)}")
-        st.markdown(f"**Source :** {job.get('source', '')}")
-        st.markdown(f"**Titre CV recommandé :** {match.get('titre_cv_recommande', 'N/A')}")
+            contract_label_value = job.get("inferred_contract") or job.get("contract_type")
+            st.markdown(f"**{t('job.contract_label')}** {contract_label_value}")
+        st.markdown(f"**{t('job.publication_label')}** {format_job_published_label(job)}")
+        st.markdown(f"**{t('job.source_label')}** {job.get('source', '')}")
+        st.markdown(
+            f"**{t('job.recommended_cv_title')}** "
+            f"{match.get('titre_cv_recommande', 'N/A')}"
+        )
 
     with col2:
         sc1, sc2, sc3, sc4 = st.columns(4)
-        sc1.metric("Compétences", f"{match.get('score_competences', score)}%")
-        sc2.metric("Expériences", f"{match.get('score_experiences', score)}%")
-        sc3.metric("Titre", f"{match.get('score_titre', score)}%")
-        sc4.metric("Lieu/Contrat", f"{match.get('score_localisation', score)}%")
-        st.caption("Barème ATS : compétences 40 % · expériences 25 % · titre 20 % · lieu 15 %")
+        sc1.metric(t("job.skills"), f"{match.get('score_competences', score)}%")
+        sc2.metric(t("job.experiences"), f"{match.get('score_experiences', score)}%")
+        sc3.metric(t("job.title_match"), f"{match.get('score_titre', score)}%")
+        sc4.metric(t("job.location_contract_metric"), f"{match.get('score_localisation', score)}%")
+        st.caption(t("job.ats_scale"))
 
     with col3:
         st.markdown(
             f"<div class='job-score-pill' style='background:{score_color}22;"
             f"border:2px solid {score_color}'>"
             f"<span style='font-size:2rem;font-weight:bold;color:{score_color}'>"
-            f"{score}%</span><br><small>Score ATS global</small></div>",
+            f"{score}%</span><br><small>{t('job.ats_global_score')}</small></div>",
             unsafe_allow_html=True,
         )
 
-    with st.expander("Analyse compétences (matching ATS)", expanded=rank <= 3):
+    with st.expander(t("job.skills_expander"), expanded=rank <= 3):
         c_left, c_right = st.columns(2)
         with c_left:
-            st.markdown("**Profil candidat (CV)**")
-            _render_skill_tags("Techniques", skills.get("cv_techniques", []))
-            _render_skill_tags("Transversales", skills.get("cv_transversales", []))
-            _render_skill_tags("Outils", skills.get("cv_outils", []))
-            _render_skill_tags("Langages", skills.get("cv_langages", []))
-            _render_skill_tags("Certifications", skills.get("cv_certifications", []))
+            st.markdown(f"**{t('job.candidate_cv')}**")
+            _render_skill_tags(t("skills.technical"), skills.get("cv_techniques", []))
+            _render_skill_tags(t("skills.soft"), skills.get("cv_transversales", []))
+            _render_skill_tags(t("skills.tools"), skills.get("cv_outils", []))
+            _render_skill_tags(t("skills.languages_prog"), skills.get("cv_langages", []))
+            _render_skill_tags(t("skills.certifications"), skills.get("cv_certifications", []))
         with c_right:
-            st.markdown("**Exigences de l'offre**")
-            _render_skill_tags("Obligatoires", skills.get("offre_obligatoires", []))
-            _render_skill_tags("Souhaitées", skills.get("offre_souhaitees", []))
-            _render_skill_tags("Technos entreprise", skills.get("offre_technos", []))
+            st.markdown(f"**{t('job.offer_requirements')}**")
+            _render_skill_tags(t("skills.required"), skills.get("offre_obligatoires", []))
+            _render_skill_tags(t("skills.desired"), skills.get("offre_souhaitees", []))
+            _render_skill_tags(t("skills.company_tech"), skills.get("offre_technos", []))
         st.markdown("---")
-        st.markdown("**Résultat du matching compétences**")
+        st.markdown(f"**{t('job.skills_result')}**")
         m1, m2, m3 = st.columns(3)
         with m1:
-            _render_skill_tags("Présentes dans le CV", skills.get("presentes", []))
+            _render_skill_tags(t("skills.present"), skills.get("presentes", []))
         with m2:
-            _render_skill_tags("Partielles", skills.get("partielles", []))
+            _render_skill_tags(t("skills.partial"), skills.get("partielles", []))
         with m3:
-            _render_skill_tags("Manquantes", skills.get("manquantes", []))
+            _render_skill_tags(t("skills.missing"), skills.get("manquantes", []))
 
-    with st.expander("Analyse expériences professionnelles", expanded=False):
+    with st.expander(t("job.exp_expander"), expanded=False):
         niveau_offre = exp_analysis.get("niveau_offre") or "—"
         niveau_cv = exp_analysis.get("niveau_cv") or "—"
         align = exp_analysis.get("alignement_niveau") or "—"
         st.markdown(
-            f"**Niveau offre :** {niveau_offre} · "
-            f"**Niveau CV :** {niveau_cv} · "
-            f"**Alignement :** {align}"
+            f"**{t('job.level_offer')} :** {niveau_offre} · "
+            f"**{t('job.level_cv')} :** {niveau_cv} · "
+            f"**{t('job.alignment')} :** {align}"
         )
         for exp in exp_analysis.get("experiences_pertinentes", []):
             if not isinstance(exp, dict):
@@ -3922,30 +3921,30 @@ def render_job_card(
                 st.caption(exp["missions_liees"])
         ecarts = exp_analysis.get("ecarts") or []
         if ecarts:
-            st.markdown("**Écarts identifiés :**")
+            st.markdown(f"**{t('job.gaps')}**")
             for gap in ecarts:
                 st.warning(gap)
 
     modifications = match.get("modifications_cv") or match.get("conseils") or []
-    st.markdown("**Modifications à apporter au CV pour cette offre :**")
+    st.markdown(f"**{t('job.cv_modifications')}**")
     for i, mod in enumerate(modifications[:8], start=1):
         st.info(f"{i}. {mod}")
 
     missing = match.get("mots_cles_manquants", [])
     if missing:
-        st.markdown("**Mots-clés ATS manquants dans le CV :**")
+        st.markdown(f"**{t('job.missing_keywords')}**")
         st.write(", ".join(f"`{kw}`" for kw in missing))
 
     action_col1, action_col2 = st.columns([1, 1])
     with action_col1:
         if job.get("url"):
-            st.link_button("Postuler →", job["url"], use_container_width=True)
+            st.link_button(t("job.apply_link"), job["url"], use_container_width=True)
     with action_col2:
         if enable_tracking and result_id and user_id and cv_text and user_profile:
             gen_col1, gen_col2 = st.columns(2)
             with gen_col1:
-                if st.button("Lettre IA", key=f"gen_cover_{result_id}", use_container_width=True):
-                    with st.spinner("Rédaction de la lettre…"):
+                if st.button(t("job.cover_letter"), key=f"gen_cover_{result_id}", use_container_width=True):
+                    with st.spinner(t("job.writing_letter")):
                         letter = generate_cover_letter(
                             cv_text,
                             job,
@@ -3959,15 +3958,15 @@ def render_job_card(
                             cover_letter_text=letter,
                         )
                         st.session_state[f"cover_{result_id}"] = letter
-                        st.success("Lettre générée.")
+                        st.success(t("job.cover_ready"))
             with gen_col2:
                 if st.button(
-                    "CV adapté IA",
+                    t("job.adapted_cv"),
                     key=f"gen_cv_{result_id}",
                     use_container_width=True,
-                    help="Réécrit un CV complet en appliquant les modifications ATS de cette offre.",
+                    help=t("job.adapted_cv_help"),
                 ):
-                    with st.spinner("Adaptation du CV…"):
+                    with st.spinner(t("job.adapting_cv")):
                         adapted = generate_adapted_cv(
                             cv_text,
                             job,
@@ -3981,24 +3980,24 @@ def render_job_card(
                             adapted_cv_text=adapted,
                         )
                         st.session_state[f"adapted_{result_id}"] = adapted
-                        st.success("CV adapté généré.")
+                        st.success(t("job.cv_ready"))
 
     letter_text = st.session_state.get(f"cover_{result_id}") or cover_letter_text
     adapted_text = st.session_state.get(f"adapted_{result_id}") or adapted_cv_text
     if letter_text:
-        with st.expander("Lettre de motivation générée", expanded=False):
-            st.text_area("Lettre", letter_text, height=220, key=f"view_cover_{result_id}")
+        with st.expander(t("job.cover_expander"), expanded=False):
+            st.text_area(t("job.letter_field"), letter_text, height=220, key=f"view_cover_{result_id}")
             st.download_button(
-                "Télécharger la lettre (.txt)",
+                t("job.download_letter"),
                 letter_text,
                 file_name="lettre_motivation.txt",
                 key=f"dl_cover_{result_id}",
             )
     if adapted_text:
-        with st.expander("CV adapté généré (réécriture selon modifications ATS)", expanded=False):
-            st.text_area("CV adapté", adapted_text, height=280, key=f"view_cv_{result_id}")
+        with st.expander(t("job.adapted_expander"), expanded=False):
+            st.text_area(t("job.adapted_field"), adapted_text, height=280, key=f"view_cv_{result_id}")
             st.download_button(
-                "Télécharger le CV adapté (.txt)",
+                t("job.download_adapted"),
                 adapted_text,
                 file_name="cv_adapte.txt",
                 key=f"dl_cv_{result_id}",
@@ -4015,21 +4014,21 @@ def render_job_card(
                 else 0
             )
             new_status = st.selectbox(
-                "Statut candidature",
+                t("job.tracking_status"),
                 status_options,
                 index=current_idx,
-                format_func=lambda value: APPLICATION_STATUS_LABELS[value],
+                format_func=application_status_label,
                 key=f"track_status_{result_id}",
             )
         with track_col2:
             note_text = st.text_input(
-                "Notes",
+                t("job.tracking_notes"),
                 value=notes,
                 key=f"track_notes_{result_id}",
             )
-        if st.button("Enregistrer le suivi", key=f"save_track_{result_id}"):
+        if st.button(t("job.tracking_save"), key=f"save_track_{result_id}"):
             if update_application_status(user_id, result_id, new_status, notes=note_text):
-                st.success("Suivi enregistré.")
+                st.success(t("job.tracking_saved"))
                 st.rerun()
 
     st.markdown("</div>", unsafe_allow_html=True)
@@ -4080,7 +4079,7 @@ def persist_completed_analysis(
                 st.session_state.analysis_notices.append(
                     {
                         "level": "info",
-                        "text": "Alertes e-mail activées — configurez RESEND_API_KEY ou SMTP dans secrets.",
+                        "text": t("analysis.email_not_configured"),
                     }
                 )
         stored = get_analysis(int(user["id"]), analysis_id)
@@ -4092,7 +4091,7 @@ def persist_completed_analysis(
         st.session_state.analysis_notices.append(
             {
                 "level": "warning",
-                "text": f"Sauvegarde historique impossible : {exc}",
+                "text": t("analysis.save_failed", error=exc),
             }
         )
     return None
@@ -4103,24 +4102,27 @@ def render_history_page(user: dict[str, Any]) -> None:
     _flush_analysis_notices()
     rows = list_analyses(int(user["id"]))
     if not rows:
-        st.info("Aucune analyse enregistrée. Lancez une analyse CV pour commencer.")
+        st.info(t("history.empty_start"))
         return
 
     st.markdown(
-        '<p class="section-title">Historique des analyses</p>',
+        f'<p class="section-title">{t("history.title")}</p>',
         unsafe_allow_html=True,
     )
     for row in rows:
         created = row.get("created_at", "")[:16].replace("T", " ")
-        label = (
-            f"{created} — **{row.get('target_job_title', '—')}** · "
-            f"{row.get('jobs_found', 0)} offre(s) · {row.get('analysis_depth', 'standard')}"
+        label = t(
+            "history.row_label",
+            created=created,
+            title=row.get("target_job_title", "—"),
+            count=row.get("jobs_found", 0),
+            depth=row.get("analysis_depth", "standard"),
         )
         with st.container(border=True):
             st.markdown(label)
             c1, c2 = st.columns(2)
             with c1:
-                if st.button("Consulter", key=f"load_analysis_{row['id']}"):
+                if st.button(t("history.view"), key=f"load_analysis_{row['id']}"):
                     stored = get_analysis(int(user["id"]), int(row["id"]))
                     if stored:
                         st.session_state.analysis = analysis_to_session_dict(stored)
@@ -4129,19 +4131,22 @@ def render_history_page(user: dict[str, Any]) -> None:
                         st.session_state.analysis_notices = [
                             {
                                 "level": "success",
-                                "text": f"Analyse #{row['id']} chargée.",
+                                "text": t("history.loaded", id=row["id"]),
                             }
                         ]
                         st.rerun()
             with c2:
-                st.caption(f"Moteur : {row.get('job_provider', '—')}")
+                st.caption(t("history.engine", engine=row.get("job_provider", "—")))
 
 
 def _analysis_dashboard_label(row: dict[str, Any]) -> str:
     created = str(row.get("created_at", ""))[:16].replace("T", " ")
-    return (
-        f"{created} — {row.get('target_job_title', '—')} · "
-        f"{row.get('jobs_found', 0)} offre(s) · {row.get('analysis_depth', 'standard')}"
+    return t(
+        "dashboard.analysis_label",
+        created=created,
+        title=row.get("target_job_title", "—"),
+        count=row.get("jobs_found", 0),
+        depth=row.get("analysis_depth", "standard"),
     )
 
 
@@ -4151,7 +4156,7 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
     user_id = int(user["id"])
     analyses = list_analyses(user_id)
     if not analyses:
-        st.info("Aucune analyse enregistrée. Lancez une analyse CV pour commencer.")
+        st.info(t("history.empty_start"))
         return
 
     analysis_by_id = {int(row["id"]): row for row in analyses}
@@ -4168,13 +4173,13 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
         st.session_state.dashboard_analysis_select = analysis_ids[0]
 
     st.markdown(
-        '<p class="section-title">Tableau de bord candidatures</p>',
+        f'<p class="section-title">{t("dashboard.title")}</p>',
         unsafe_allow_html=True,
     )
 
     with st.container(border=True):
         selected_id = st.selectbox(
-            "Analyse",
+            t("dashboard.analysis_select"),
             options=analysis_ids,
             format_func=lambda aid: _analysis_dashboard_label(analysis_by_id[aid]),
             key="dashboard_analysis_select",
@@ -4182,44 +4187,45 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
         selected_meta = analysis_by_id[selected_id]
         created = str(selected_meta.get("created_at", ""))[:16].replace("T", " ")
         st.caption(
-            f"Analyse **#{selected_id}** · {created} · "
-            f"Moteur **{selected_meta.get('job_provider', '—')}** · "
-            f"{selected_meta.get('jobs_raw', 0)} offre(s) brutes → "
-            f"**{selected_meta.get('jobs_found', 0)}** retenue(s)"
+            t(
+                "dashboard.meta",
+                id=selected_id,
+                created=created,
+                engine=selected_meta.get("job_provider", "—"),
+                raw=selected_meta.get("jobs_raw", 0),
+                kept=selected_meta.get("jobs_found", 0),
+            )
         )
 
     counts = dashboard_status_counts(user_id, analysis_id=selected_id)
     metric_cols = st.columns(4)
-    metric_cols[0].metric("Total offres", counts.get("all", 0))
-    metric_cols[1].metric("À postuler", counts.get("saved", 0))
-    metric_cols[2].metric("Postulé", counts.get("applied", 0))
-    metric_cols[3].metric("Entretien", counts.get("interview", 0))
+    metric_cols[0].metric(t("dashboard.metric_total"), counts.get("all", 0))
+    metric_cols[1].metric(t("dashboard.metric_saved"), counts.get("saved", 0))
+    metric_cols[2].metric(t("dashboard.metric_applied"), counts.get("applied", 0))
+    metric_cols[3].metric(t("dashboard.metric_interview"), counts.get("interview", 0))
 
     with st.container(border=True):
         f1, f2, f3, f4 = st.columns(4)
         with f1:
             status_filter = st.selectbox(
-                "Statut",
+                t("dashboard.status"),
                 ["all", *APPLICATION_STATUSES],
-                format_func=lambda value: "Tous" if value == "all" else APPLICATION_STATUS_LABELS[value],
+                format_func=lambda value: t("dashboard.all")
+                if value == "all"
+                else application_status_label(value),
                 key="dash_status_filter",
             )
         with f2:
             sort_by = st.selectbox(
-                "Tri",
+                t("common.sort"),
                 ["score_desc", "score_asc", "date_desc", "date_asc"],
-                format_func=lambda value: {
-                    "score_desc": "Score ↓",
-                    "score_asc": "Score ↑",
-                    "date_desc": "Date ↓",
-                    "date_asc": "Date ↑",
-                }[value],
+                format_func=sort_label,
                 key="dash_sort",
             )
         with f3:
-            min_score = st.slider("Score min.", 0, 100, 0, key="dash_min_score")
+            min_score = st.slider(t("dashboard.min_score"), 0, 100, 0, key="dash_min_score")
         with f4:
-            company_query = st.text_input("Entreprise", key="dash_company")
+            company_query = st.text_input(t("common.company"), key="dash_company")
 
     entries = list_dashboard_results(
         user_id,
@@ -4230,10 +4236,10 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
         sort_by=sort_by,
     )
     if not entries:
-        st.info("Aucune offre ne correspond aux filtres pour cette analyse.")
+        st.info(t("dashboard.no_results"))
         return
 
-    st.caption(f"{len(entries)} offre(s) affichée(s) pour l'analyse #{selected_id}.")
+    st.caption(t("dashboard.results_count", count=len(entries), id=selected_id))
     user_profile = get_user_by_id(user_id) or user
     stored_analysis = get_analysis(user_id, selected_id)
     cv_text = stored_analysis.get("cv_text", "") if stored_analysis else ""
@@ -4261,62 +4267,57 @@ def render_notification_settings(user: dict[str, Any], job_provider: str) -> Non
     """Alert email and scheduled search preferences."""
     settings = get_notification_settings(int(user["id"]))
     st.markdown(
-        '<p class="section-title">Alertes & recherche automatique</p>',
+        f'<p class="section-title">{t("notify.title")}</p>',
         unsafe_allow_html=True,
     )
     st.markdown(
-        '<p class="profile-section-hint">'
-        "Recevez un e-mail après chaque analyse ou planifiez une recherche récurrente."
-        "</p>",
+        f'<p class="profile-section-hint">{t("notify.hint")}</p>',
         unsafe_allow_html=True,
     )
     if not email_configured():
-        st.caption(
-            "Configurez `RESEND_API_KEY` + `EMAIL_FROM`, ou `SMTP_HOST` / `SMTP_USER` "
-            "dans secrets pour activer les alertes."
-        )
+        st.caption(t("notify.email_config_hint"))
     with st.form(f"notification_settings_{user['id']}"):
         email_alerts = st.checkbox(
-            "E-mail quand de nouvelles offres correspondent",
+            t("notify.email_checkbox"),
             value=bool(settings.get("email_alerts_enabled")),
         )
         alert_min_score = st.slider(
-            "Score minimum pour l'alerte",
+            t("notify.min_score"),
             50,
             95,
             int(settings.get("alert_min_score", 70)),
         )
         auto_search = st.checkbox(
-            "Recherche automatique planifiée",
+            t("notify.auto_search"),
             value=bool(settings.get("auto_search_enabled")),
-            help="Nécessite au moins une analyse CV enregistrée.",
+            help=t("notify.auto_search_need_cv"),
         )
         sched_col1, sched_col2, sched_col3 = st.columns(3)
         with sched_col1:
             weekday = st.selectbox(
-                "Jour",
+                t("notify.weekday"),
                 AUTO_SEARCH_WEEKDAYS,
                 index=AUTO_SEARCH_WEEKDAYS.index(settings.get("auto_search_weekday", "daily"))
                 if settings.get("auto_search_weekday") in AUTO_SEARCH_WEEKDAYS
                 else 0,
-                format_func=lambda value: AUTO_SEARCH_WEEKDAY_LABELS[value],
+                format_func=weekday_label,
             )
         with sched_col2:
             hour = st.selectbox(
-                "Heure (UTC)",
+                t("notify.time"),
                 list(range(24)),
                 index=int(settings.get("auto_search_hour", 8)),
             )
         with sched_col3:
             auto_depth = st.selectbox(
-                "Profondeur",
+                t("notify.depth"),
                 ANALYSIS_DEPTH_OPTIONS,
                 index=ANALYSIS_DEPTH_OPTIONS.index(settings.get("auto_search_depth", "standard"))
                 if settings.get("auto_search_depth") in ANALYSIS_DEPTH_OPTIONS
                 else 1,
-                format_func=lambda key: ANALYSIS_DEPTH_LABELS[key],
+                format_func=analysis_depth_label,
             )
-        if st.form_submit_button("Enregistrer alertes & planning", use_container_width=True):
+        if st.form_submit_button(t("notify.save"), use_container_width=True):
             save_notification_settings(
                 int(user["id"]),
                 {
@@ -4330,7 +4331,7 @@ def render_notification_settings(user: dict[str, Any], job_provider: str) -> Non
                     "auto_search_depth": auto_depth,
                 },
             )
-            st.success("Préférences enregistrées.")
+            st.success(t("notify.saved"))
             st.rerun()
 
 
@@ -4340,7 +4341,7 @@ def run_auto_search_for_user(user: dict[str, Any], job_provider: str) -> None:
     settings = get_notification_settings(user_id)
     cv_doc = get_active_cv_document(user_id)
     if not cv_doc:
-        st.error("Aucun CV enregistré — lancez d'abord une analyse manuelle.")
+        st.error(t("auto_search.no_cv"))
         return
 
     user_profile = get_user_by_id(user_id) or user
@@ -4355,7 +4356,7 @@ def run_auto_search_for_user(user: dict[str, Any], job_provider: str) -> None:
     def _update_auto_progress(percent: int, label: str) -> None:
         progress_slot.progress(percent / 100.0, text=f"{percent}% — {label}")
 
-    _update_auto_progress(0, "Démarrage…")
+    _update_auto_progress(0, t("auto_search.start"))
     analysis, notices = run_cv_analysis_pipeline(
         None,
         provider,
@@ -4396,7 +4397,7 @@ def run_auto_search_for_user(user: dict[str, Any], job_provider: str) -> None:
         trigger_source="app",
     )
     st.session_state.analysis_notices.append(
-        {"level": "success", "text": "Recherche automatique terminée."}
+        {"level": "success", "text": t("auto_search.done")}
     )
     st.rerun()
 
@@ -4405,80 +4406,87 @@ def run_auto_search_for_user(user: dict[str, Any], job_provider: str) -> None:
 def render_cv_profile_summary(criteria: dict[str, Any], user_profile: dict[str, Any]) -> None:
     """Display enriched CV profile and user matching preferences."""
     st.markdown(
-        '<p class="section-title">Profil candidat & critères de recherche</p>',
+        f'<p class="section-title">{t("cvprofile.title")}</p>',
         unsafe_allow_html=True,
     )
 
     with st.container(border=True):
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Poste visé", user_profile.get("target_job_title") or criteria.get("metier", "—"))
+        c1.metric(t("cvprofile.target_role"), user_profile.get("target_job_title") or criteria.get("metier", "—"))
         cv_metier = criteria.get("metier", "")
         if cv_metier and cv_metier != user_profile.get("target_job_title"):
-            c1.caption(f"Détecté dans le CV : {cv_metier}")
+            c1.caption(t("cvprofile.detected_cv", value=cv_metier))
         cv_level = criteria.get("niveau_experience", "—")
         profile_level = user_profile.get("experience_level", "confirme")
         c2.metric(
-            "Niveau",
-            EXPERIENCE_LABELS.get(profile_level, profile_level)
+            t("cvprofile.level"),
+            experience_label(profile_level)
             if profile_level != "tous"
-            else f"CV: {cv_level}",
+            else t("cvprofile.cv_level", level=cv_level),
         )
-        c3.metric("Contrat recherché", user_profile.get("contract_type", "—"))
+        c3.metric(t("cvprofile.contract"), user_profile.get("contract_type", "—"))
         region_text, dept_text, city_text = format_profile_geo_summary(user_profile)
         zone_label = region_text
         if city_text != "—":
             zone_label = city_text if len(profile_countries(user_profile)) > 1 else (
                 city_text if city_text != "—" else dept_text
             )
-        c4.metric("Zone de recherche", zone_label if zone_label != "—" else dept_text)
+        c4.metric(t("cvprofile.zone"), zone_label if zone_label != "—" else dept_text)
 
         profile_sectors = user_profile.get("target_sectors") or []
         cv_sectors = criteria.get("secteurs") or []
         active_sectors = profile_sectors or cv_sectors
         if active_sectors:
-            st.caption("**Secteurs ciblés :** " + ", ".join(active_sectors))
+            st.caption(f"**{t('cvprofile.sectors')} :** " + ", ".join(active_sectors))
 
+        geo_mode = user_profile.get("geo_filter_mode", "departement")
         geo_labels = {
-            "ville": "Villes sélectionnées",
-            "departement": "Pays, régions, départements et villes sélectionnés",
-            "rayon": f"Zones sélectionnées + rayon {user_profile.get('search_radius_km', 20)} km",
+            "ville": geo_mode_label("ville"),
+            "departement": geo_mode_label("departement", register=True),
+            "rayon": t(
+                "cvprofile.geo_rayon",
+                radius=user_profile.get("search_radius_km", 20),
+            ),
         }
         countries_label = format_countries_summary(user_profile)
         st.caption(
-            f"Filtrage géographique : **{geo_labels.get(user_profile.get('geo_filter_mode', 'departement'), '—')}** · "
-            f"Pays : **{countries_label}** · "
-            f"Zones : **{region_text}** · "
-            f"Subdivisions : **{dept_text}** · "
-            f"Villes : **{city_text}**"
+            t(
+                "cvprofile.geo_filter_line",
+                mode=geo_labels.get(geo_mode, "—"),
+                countries=countries_label,
+                regions=region_text,
+                depts=dept_text,
+                cities=city_text,
+            )
         )
 
         tech = criteria.get("competences_techniques") or criteria.get("mots_cles") or []
         soft = criteria.get("soft_skills") or []
         if tech:
-            st.markdown("**Compétences techniques :** " + " · ".join(f"`{kw}`" for kw in tech))
+            st.markdown(f"**{t('cvprofile.tech_skills')} :** " + " · ".join(f"`{kw}`" for kw in tech))
         if soft:
-            st.markdown("**Soft skills :** " + " · ".join(f"`{kw}`" for kw in soft))
+            st.markdown(f"**{t('cvprofile.soft_skills')} :** " + " · ".join(f"`{kw}`" for kw in soft))
         outils = criteria.get("outils") or []
         langages = criteria.get("langages") or []
         if outils:
-            st.markdown("**Outils :** " + " · ".join(f"`{o}`" for o in outils))
+            st.markdown(f"**{t('cvprofile.tools')} :** " + " · ".join(f"`{o}`" for o in outils))
         if langages:
-            st.markdown("**Langages :** " + " · ".join(f"`{l}`" for l in langages))
+            st.markdown(f"**{t('cvprofile.languages')} :** " + " · ".join(f"`{l}`" for l in langages))
 
         col_a, col_b = st.columns(2)
         with col_a:
             diplomes = criteria.get("diplomes_certifications") or []
             if diplomes:
-                st.markdown("**Diplômes / certifications**")
+                st.markdown(f"**{t('cvprofile.degrees')}**")
                 for item in diplomes:
                     st.write(f"- {item}")
             secteurs = criteria.get("secteurs") or []
             if secteurs:
-                st.markdown("**Secteurs :** " + ", ".join(secteurs))
+                st.markdown(f"**{t('cvprofile.sectors')} :** " + ", ".join(secteurs))
         with col_b:
             experiences = criteria.get("experiences") or []
             if experiences:
-                st.markdown("**Expériences clés**")
+                st.markdown(f"**{t('cvprofile.experiences')}**")
                 for exp in experiences[:4]:
                     if isinstance(exp, dict):
                         line = (
@@ -4489,9 +4497,9 @@ def render_cv_profile_summary(criteria: dict[str, Any], user_profile: dict[str, 
                             line += f" — {exp['missions'][:120]}"
                         st.write(line)
             if criteria.get("mobilite_geographique"):
-                st.markdown(f"**Mobilité (CV) :** {criteria['mobilite_geographique']}")
+                st.markdown(f"**{t('cvprofile.mobility')} :** {criteria['mobilite_geographique']}")
             if criteria.get("disponibilites"):
-                st.markdown(f"**Disponibilités (CV) :** {criteria['disponibilites']}")
+                st.markdown(f"**{t('cvprofile.availability')} :** {criteria['disponibilites']}")
 
 
 def render_analysis_results(analysis: dict[str, Any]) -> None:
@@ -4501,17 +4509,23 @@ def render_analysis_results(analysis: dict[str, Any]) -> None:
     extraction_method = analysis["extraction_method"]
     filter_stats = analysis.get("filter_stats", {})
 
-    method_label = "Texte natif PDF" if extraction_method == "native" else "OCR Gemini Vision"
-    st.caption(f"Extraction CV : **{method_label}**")
+    method_label = (
+        t("results.extraction_native")
+        if extraction_method == "native"
+        else t("results.extraction_ocr")
+    )
+    st.caption(t("results.extraction_label", method=method_label))
     if analysis.get("analysis_id"):
         saved_label = analysis.get("saved_at", "")[:16].replace("T", " ")
         st.caption(
-            f"Analyse enregistrée (#{analysis['analysis_id']}"
-            f"{f' — {saved_label}' if saved_label else ''}). "
-            "Consultable dans **Historique** et **Tableau de bord**."
+            t(
+                "results.saved_detail",
+                id=analysis["analysis_id"],
+                saved=f" — {saved_label}" if saved_label else "",
+            )
         )
 
-    with st.expander("Texte extrait du CV", expanded=False):
+    with st.expander(t("results.cv_text_expander"), expanded=False):
         cv_preview = analysis["cv_text"]
         st.text(cv_preview[:3000] + ("…" if len(cv_preview) > 3000 else ""))
 
@@ -4519,22 +4533,28 @@ def render_analysis_results(analysis: dict[str, Any]) -> None:
 
     if filter_stats:
         st.info(
-            f"**Filtrage strict** : {filter_stats.get('kept', 0)} offre(s) retenue(s) sur "
-            f"{filter_stats.get('total', 0)} — "
-            f"{filter_stats.get('rejected_contract', 0)} contrat · "
-            f"{filter_stats.get('rejected_geo', 0)} zone · "
-            f"{filter_stats.get('rejected_experience', 0)} niveau · "
-            f"{filter_stats.get('rejected_sector', 0)} secteur · "
-            f"{filter_stats.get('rejected_publication_age', 0)} publication."
+            t(
+                "results.filter_stats",
+                kept=filter_stats.get("kept", 0),
+                total=filter_stats.get("total", 0),
+                contract=filter_stats.get("rejected_contract", 0),
+                geo=filter_stats.get("rejected_geo", 0),
+                experience=filter_stats.get("rejected_experience", 0),
+                sector=filter_stats.get("rejected_sector", 0),
+                age=filter_stats.get("rejected_publication_age", 0),
+            )
         )
 
     st.success(
-        f"{analysis['jobs_found']} offre(s) éligible(s) après filtrage. "
-        f"Top **{len(analysis['results'])}** analysé(s) et classé(s) par score ATS (compétences, expériences, titre, lieu)."
+        t(
+            "results.success_summary",
+            jobs=analysis["jobs_found"],
+            top=len(analysis["results"]),
+        )
     )
 
     st.markdown(
-        '<p class="section-title">Résultats & rapport PDF</p>',
+        f'<p class="section-title">{t("results.pdf_section")}</p>',
         unsafe_allow_html=True,
     )
 
@@ -4549,7 +4569,7 @@ def render_analysis_results(analysis: dict[str, Any]) -> None:
                         method_label,
                     )
                 st.download_button(
-                    label="Télécharger le rapport (PDF)",
+                    label=t("results.download_pdf"),
                     data=analysis["report_pdf"],
                     file_name="rapport_matching_dowsonbost.pdf",
                     mime="application/pdf",
@@ -4558,33 +4578,26 @@ def render_analysis_results(analysis: dict[str, Any]) -> None:
                     key="download_matching_report",
                 )
             except Exception as exc:  # noqa: BLE001
-                st.error(f"Export PDF indisponible : {exc}")
+                st.error(t("results.pdf_error", error=exc))
         with col_info:
-            st.caption(
-                f"Le rapport PDF inclut les {TOP_MATCHING_JOBS} offres, scores ATS détaillés, "
-                "matching compétences, analyse expériences et modifications CV."
-            )
+            st.caption(t("results.pdf_hint", top=TOP_MATCHING_JOBS))
 
     result_count = len(analysis.get("results", []))
     st.markdown(
-        f'<p class="section-title">Top {result_count} — Analyse ATS & optimisations CV</p>',
+        f'<p class="section-title">{t("results.top_title", count=result_count)}</p>',
         unsafe_allow_html=True,
     )
     sort_col, filter_col = st.columns(2)
     with sort_col:
         results_sort = st.selectbox(
-            "Trier par",
+            t("results.sort"),
             ["score_desc", "score_asc", "published_desc"],
-            format_func=lambda value: {
-                "score_desc": "Score ↓",
-                "score_asc": "Score ↑",
-                "published_desc": "Publication récente",
-            }[value],
+            format_func=lambda value: sort_label(value.replace("published_desc", "recent")),
             key="analysis_results_sort",
         )
     with filter_col:
         min_result_score = st.slider(
-            "Score minimum affiché",
+            t("results.filter_score"),
             0,
             100,
             0,
@@ -4722,7 +4735,7 @@ def run_cv_analysis_pipeline(
     pool_size = matching_pool or MATCHING_CANDIDATE_POOL
     top_n = matching_top or TOP_MATCHING_JOBS
 
-    _report_progress(progress, 2, "Initialisation de l'analyse…")
+    _report_progress(progress, 2, t("analysis.progress.init"))
 
     target_title = str(user_profile.get("target_job_title", "")).strip()
     if not target_title:
@@ -4743,7 +4756,7 @@ def run_cv_analysis_pipeline(
         )
         return None, notices
 
-    _report_progress(progress, 8, "Extraction du CV et plan de recherche IA…")
+    _report_progress(progress, 8, t("analysis.progress.extract"))
 
     with ThreadPoolExecutor(max_workers=2) as executor:
         plan_future = executor.submit(cached_build_job_search_plan, target_title)
@@ -4755,7 +4768,7 @@ def run_cv_analysis_pipeline(
             search_plan = plan_future.result()
             cv_text, method = cv_future.result()
 
-    _report_progress(progress, 22, "CV extrait — recherche d'offres et profil candidat…")
+    _report_progress(progress, 22, t("analysis.progress.search"))
 
     query = search_plan.get("query_recherche") or target_title
     metier = search_plan.get("metier") or target_title
@@ -4797,24 +4810,14 @@ def run_cv_analysis_pipeline(
         search_result = search_future.result()
         criteria = criteria_future.result()
 
-    _report_progress(progress, 48, "Filtrage strict des offres…")
+    _report_progress(progress, 48, t("analysis.progress.filter"))
 
     raw_jobs = search_result["jobs"]
     if method == "ocr":
-        notices.append(
-            {
-                "level": "warning",
-                "text": "PDF scanné détecté — extraction via OCR Gemini Vision.",
-            }
-        )
+        notices.append({"level": "warning", "text": t("pipeline.ocr_detected")})
 
     if criteria.get("_heuristic"):
-        notices.append(
-            {
-                "level": "warning",
-                "text": "Extraction IA partielle — profil déduit automatiquement du texte du CV.",
-            }
-        )
+        notices.append({"level": "warning", "text": t("pipeline.heuristic")})
 
     keywords = criteria.get("mots_cles") or criteria.get("competences_techniques") or []
     jobs, filter_stats = apply_strict_job_filters(
@@ -4823,15 +4826,18 @@ def run_cv_analysis_pipeline(
     _report_progress(
         progress,
         58,
-        f"Filtrage terminé — {len(jobs)} offre(s) retenue(s) sur {len(raw_jobs)}",
+        t("pipeline.filter_done", kept=len(jobs), total=len(raw_jobs)),
     )
 
     providers_used = search_result.get("providers_used") or [job_provider]
     if len(providers_used) > 1:
-        sources = ", ".join(JOB_PROVIDER_LABELS.get(p, p) for p in providers_used)
-        source_text = f"moteurs : {sources}"
+        sources = ", ".join(job_provider_label(p) for p in providers_used)
+        source_text = t("pipeline.engines_multi", names=sources)
     else:
-        source_text = f"moteur : {JOB_PROVIDER_LABELS.get(providers_used[0], providers_used[0])}"
+        source_text = t(
+            "pipeline.engine_single",
+            name=job_provider_label(providers_used[0]),
+        )
 
     profile_locations = search_result.get("profile_locations") or build_profile_search_locations(
         user_profile
@@ -4843,59 +4849,57 @@ def run_cv_analysis_pipeline(
     notices.append(
         {
             "level": "info",
-            "text": (
-                f"Recherche ciblée **{country}** — zones : **{zone_preview}** via {source_text}."
+            "text": t(
+                "pipeline.search_targeted",
+                country=country,
+                zones=zone_preview,
+                source=source_text,
             ),
         }
     )
 
     if not raw_jobs:
-        notices.append(
-            {
-                "level": "warning",
-                "text": (
-                    "Aucune offre trouvée par les moteurs pour ce poste. "
-                    "Essayez « Tous les moteurs » ou modifiez l'intitulé dans Mon profil."
-                ),
-            }
-        )
+        notices.append({"level": "warning", "text": t("pipeline.no_raw_jobs")})
         notices.append(
             {
                 "level": "info",
-                "text": (
-                    f"Requête testée : `{search_result.get('query_used', query)}` · "
-                    f"Périmètre : `{search_result.get('location_used', f'tout {country}')}`"
+                "text": t(
+                    "pipeline.query_tested",
+                    query=search_result.get("query_used", query),
+                    location=search_result.get("location_used", f"tout {country}"),
                 ),
             }
         )
         return None, notices
 
     if not jobs:
-        level_label = EXPERIENCE_LABELS.get(
-            resolve_experience_level(user_profile, criteria), "—"
+        level_label = experience_label(
+            resolve_experience_level(user_profile, criteria)
         )
         hint = format_filter_rejection_hint(filter_stats, user_profile)
         notices.append(
             {
                 "level": "warning",
-                "text": (
-                    f"Aucune offre ne correspond à vos filtres stricts "
-                    f"({user_profile.get('contract_type')} · {level_label} · "
-                    f"{user_profile.get('geo_filter_mode')})."
+                "text": t(
+                    "pipeline.no_filtered",
+                    contract=user_profile.get("contract_type"),
+                    level=level_label,
+                    mode=user_profile.get("geo_filter_mode"),
                 ),
             }
         )
-        notices.append({"level": "info", "text": f"Principal blocage : {hint}."})
+        notices.append({"level": "info", "text": t("pipeline.main_block", hint=hint)})
         notices.append(
             {
                 "level": "info",
-                "text": (
-                    f"{filter_stats.get('total', 0)} offre(s) brutes · "
-                    f"{filter_stats.get('rejected_contract', 0)} rejetées contrat · "
-                    f"{filter_stats.get('rejected_geo', 0)} rejetées zone · "
-                    f"{filter_stats.get('rejected_experience', 0)} rejetées niveau · "
-                    f"{filter_stats.get('rejected_sector', 0)} rejetées secteur · "
-                    f"{filter_stats.get('rejected_publication_age', 0)} rejetées publication."
+                "text": t(
+                    "pipeline.rejection_stats",
+                    total=filter_stats.get("total", 0),
+                    contract=filter_stats.get("rejected_contract", 0),
+                    geo=filter_stats.get("rejected_geo", 0),
+                    experience=filter_stats.get("rejected_experience", 0),
+                    sector=filter_stats.get("rejected_sector", 0),
+                    age=filter_stats.get("rejected_publication_age", 0),
                 ),
             }
         )
@@ -4905,10 +4909,12 @@ def run_cv_analysis_pipeline(
         notices.append(
             {
                 "level": "info",
-                "text": (
-                    f"Recherche élargie ({search_result['strategy']}) — "
-                    f"`{search_result.get('query_used')}` · "
-                    f"{len(raw_jobs)} offre(s) brutes, {len(jobs)} après filtrage."
+                "text": t(
+                    "pipeline.expanded_search",
+                    strategy=search_result["strategy"],
+                    query=search_result.get("query_used"),
+                    raw=len(raw_jobs),
+                    filtered=len(jobs),
                 ),
             }
         )
@@ -4924,26 +4930,24 @@ def run_cv_analysis_pipeline(
         progress=progress,
     )
 
-    _report_progress(progress, 98, "Finalisation du rapport…")
+    _report_progress(progress, 98, t("analysis.progress.match"))
 
     if partial_matches:
         notices.append(
             {
                 "level": "warning",
-                "text": (
-                    f"{partial_matches} offre(s) analysée(s) en mode dégradé "
-                    "(réponse IA partielle). Relancez après **Vider le cache** pour réessayer."
-                ),
+                "text": t("pipeline.degraded", count=partial_matches),
             }
         )
 
     notices.append(
         {
             "level": "info",
-            "text": (
-                f"Matching ATS en parallèle ({parallel_match_summary()}) sur "
-                f"**{min(len(jobs), pool_size)}** candidats — "
-                f"**{len(results)}** meilleures offres avec score, compétences et modifications CV."
+            "text": t(
+                "pipeline.parallel_match",
+                keys=parallel_match_summary(),
+                pool=min(len(jobs), pool_size),
+                results=len(results),
             ),
         }
     )
@@ -4963,7 +4967,7 @@ def run_cv_analysis_pipeline(
         "results": results,
         "job_provider": job_provider,
     }
-    _report_progress(progress, 100, "Analyse terminée")
+    _report_progress(progress, 100, t("analysis.progress.done"))
     return analysis, notices
 
 
@@ -5973,21 +5977,22 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
             id_col1, id_col2 = st.columns(2)
             with id_col1:
                 new_name = st.text_input(
-                    "Nom complet",
+                    t("common.full_name"),
                     value=profile.get("full_name", ""),
                 )
                 target_job_title = st.text_input(
-                    "Poste visé",
+                    t("profile.target_job"),
                     value=profile.get("target_job_title", ""),
-                    help="Utilisé en priorité pour la recherche d'offres.",
+                    help=t("profile.target_job_help"),
                 )
             with id_col2:
                 contract_type = st.selectbox(
-                    "Type de contrat",
+                    t("profile.contract"),
                     CONTRACT_TYPES,
                     index=CONTRACT_TYPES.index(profile.get("contract_type", "CDI"))
                     if profile.get("contract_type") in CONTRACT_TYPES
                     else 0,
+                    format_func=contract_label,
                 )
 
             pref_col1, pref_col2 = st.columns(2)
@@ -5998,22 +6003,18 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                     else 1
                 )
                 experience_level = st.selectbox(
-                    "Niveau d'expérience",
+                    t("profile.experience"),
                     EXPERIENCE_LEVELS,
                     index=exp_index,
-                    format_func=lambda x: EXPERIENCE_LABELS[x],
+                    format_func=experience_label,
                 )
                 geo_mode = st.selectbox(
-                    "Périmètre géographique",
+                    t("profile.geo_mode"),
                     GEO_FILTER_MODES,
                     index=GEO_FILTER_MODES.index(profile.get("geo_filter_mode", "departement"))
                     if profile.get("geo_filter_mode") in GEO_FILTER_MODES
                     else 1,
-                    format_func=lambda x: {
-                        "ville": "Villes sélectionnées",
-                        "departement": "Régions, départements & villes",
-                        "rayon": "Zones + rayon autour d'une ville",
-                    }[x],
+                    format_func=lambda mode: geo_mode_label(mode),
                 )
             with pref_col2:
                 current_sectors = profile.get("target_sectors") or []
@@ -6023,36 +6024,37 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                         s for s in current_sectors if s in SECTOR_OPTIONS
                     ]
                 target_sectors = st.multiselect(
-                    "Secteurs ciblés",
+                    t("profile.sectors"),
                     SECTOR_OPTIONS,
-                    help="Laisser vide pour utiliser les secteurs détectés dans le CV.",
+                    help=t("profile.sectors_help"),
+                    format_func=sector_label,
                     key=sectors_key,
                 )
                 search_radius = st.slider(
-                    "Rayon (km)",
+                    t("profile.radius"),
                     5,
                     100,
                     int(profile.get("search_radius_km") or 20),
                     disabled=(geo_mode != "rayon"),
                 )
 
-            st.markdown("**Offres publiées depuis**")
+            st.markdown(f"**{t('profile.published_since')}**")
             profile_age_index = (
                 JOB_MAX_AGE_DAYS_OPTIONS.index(current_age)
                 if current_age in JOB_MAX_AGE_DAYS_OPTIONS
                 else JOB_MAX_AGE_DAYS_OPTIONS.index(7)
             )
             job_max_age_days = st.radio(
-                "Période de publication",
+                t("profile.publication"),
                 JOB_MAX_AGE_DAYS_OPTIONS,
                 index=profile_age_index,
-                format_func=lambda days: JOB_MAX_AGE_LABELS[days],
+                format_func=job_age_label,
                 horizontal=True,
                 label_visibility="collapsed",
             )
 
             if st.form_submit_button(
-                "Enregistrer le profil",
+                t("profile.save"),
                 use_container_width=True,
                 type="primary",
             ):
@@ -6159,38 +6161,39 @@ def render_cv_analysis(
 
     notify_settings = get_notification_settings(int(user["id"]))
     if is_auto_search_due(notify_settings) and notify_settings.get("auto_search_enabled"):
-        st.info("Une recherche automatique est due pour votre profil.")
-        if st.button("Lancer la recherche automatique maintenant", key="run_auto_search_now"):
+        st.info(t("analysis.auto_search_due"))
+        if st.button(t("analysis.auto_search_run"), key="run_auto_search_now"):
             run_auto_search_for_user(user, job_provider)
             return
 
     with st.container(border=True):
         st.markdown(
-            '<p class="section-title">Déposer votre CV</p>',
+            f'<p class="section-title">{t("analysis.upload_title")}</p>',
             unsafe_allow_html=True,
         )
-        st.markdown(f"**Poste visé :** {target_title}")
-        st.caption(
-            "L'IA recherche des offres dans vos **pays et zones géographiques** sélectionnés, "
-            "puis compare votre CV aux résultats filtrés."
-        )
+        st.markdown(f"**{t('analysis.target_job', title=target_title)}**")
+        st.caption(t("analysis.upload_hint"))
         countries_label = format_countries_summary(user_profile)
         st.caption(
-            f"Filtres actifs : publication **{job_max_age_label(publication_filter)}** "
-            f"*(modifiable dans Mon profil)* · "
-            f"contrat **{user_profile.get('contract_type')}** · "
-            f"pays **{countries_label}** · "
-            f"niveau **{EXPERIENCE_LABELS.get(active_level, active_level)}** · "
-            f"secteurs **{', '.join(active_sectors) if active_sectors else 'CV'}** · "
-            f"zones **{region_text}** · subdivisions **{dept_text}** · "
-            f"villes **{city_text}** · "
-            f"mode **{ANALYSIS_DEPTH_LABELS[depth_key]}**"
+            t(
+                "analysis.filters_active",
+                age=job_max_age_label(publication_filter),
+                contract=user_profile.get("contract_type"),
+                countries=countries_label,
+                level=experience_label(active_level),
+                sectors=", ".join(active_sectors) if active_sectors else t("analysis.sectors_cv"),
+                regions=region_text,
+                depts=dept_text,
+                cities=city_text,
+                depth=analysis_depth_label(depth_key),
+            )
+            + f" {t('analysis.filters_editable')}"
         )
 
         uploaded_file = st.file_uploader(
-            "Déposez votre CV (PDF)",
+            t("analysis.file_upload"),
             type=["pdf"],
-            help="PDF natif ou scanné — l'OCR Gemini s'active automatiquement si besoin.",
+            help=t("analysis.upload_help"),
             key="cv_pdf_uploader",
         )
 
@@ -6363,11 +6366,8 @@ def render_app() -> None:
             t("app.job_provider"),
             JOB_PROVIDER_SIDEBAR_ORDER,
             index=default_provider_index,
-            format_func=lambda x: JOB_PROVIDER_LABELS.get(x, x),
-            help=(
-                "WTTJ est gratuit. Jooble et OptionCarriere nécessitent une clé API gratuite. "
-                "Indeed, LinkedIn et Glassdoor passent par SerpApi. JobTeaser utilise Apify."
-            ),
+            format_func=job_provider_label,
+            help=t("app.job_provider_help"),
         )
 
         analysis_depth = st.session_state.get("analysis_depth", "standard")
@@ -6380,10 +6380,7 @@ def render_app() -> None:
                 ANALYSIS_DEPTH_OPTIONS,
                 index=ANALYSIS_DEPTH_OPTIONS.index(current_depth),
                 format_func=analysis_depth_label,
-                help=(
-                    "Le matching IA (1 appel par offre) est l'étape la plus longue. "
-                    "Choisissez **Rapide** pour réduire le temps d'attente."
-                ),
+                help=t("app.analysis_depth_help"),
                 key="analysis_depth_select",
             )
             st.session_state.analysis_depth = analysis_depth

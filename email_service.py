@@ -10,6 +10,8 @@ from typing import Any
 
 import requests
 
+from i18n import get_locale, t
+
 
 def _get_secret(name: str) -> str:
     value = os.environ.get(name, "").strip()
@@ -35,25 +37,32 @@ def build_alert_html(
     user_name: str,
     target_title: str,
     offers: list[dict[str, Any]],
+    *,
+    locale: str | None = None,
 ) -> str:
+    lang = locale or get_locale()
     rows = []
     for entry in offers[:10]:
         job = entry.get("job") or {}
         score = entry.get("score", 0)
-        title = job.get("title", "Offre")
+        title = job.get("title", t("email.default_job", locale=lang))
         company = job.get("company", "")
         url = job.get("url", "")
-        link = f'<a href="{url}">Voir l\'offre</a>' if url else ""
+        link = (
+            f'<a href="{url}">{t("email.view_offer", locale=lang)}</a>'
+            if url
+            else ""
+        )
         rows.append(
             f"<li><strong>{title}</strong> — {company} — score {score}% {link}</li>"
         )
-    items = "\n".join(rows) if rows else "<li>Aucune offre</li>"
+    items = "\n".join(rows) if rows else f"<li>{t('email.no_offers', locale=lang)}</li>"
     return f"""
     <html><body>
-    <p>Bonjour {user_name},</p>
-    <p>De nouvelles offres correspondent à votre profil (<strong>{target_title}</strong>) :</p>
+    <p>{t('email.greeting', locale=lang, name=user_name)}</p>
+    <p>{t('email.intro', locale=lang, title=f'<strong>{target_title}</strong>')}</p>
     <ul>{items}</ul>
-    <p>Connectez-vous à DowsonBost pour consulter l'analyse détaillée et le suivi candidatures.</p>
+    <p>{t('email.footer', locale=lang)}</p>
     </body></html>
     """
 
@@ -64,8 +73,10 @@ def send_alert_email(
     html_body: str,
     *,
     text_body: str = "",
+    locale: str | None = None,
 ) -> tuple[bool, str]:
     """Send alert email via Resend or SMTP."""
+    lang = locale or get_locale()
     resend_key = _get_secret("RESEND_API_KEY")
     from_resend = _get_secret("EMAIL_FROM") or "DowsonBost <onboarding@resend.dev>"
 
@@ -82,13 +93,13 @@ def send_alert_email(
                     "to": [to_email],
                     "subject": subject,
                     "html": html_body,
-                    "text": text_body or "Consultez DowsonBost pour vos offres.",
+                    "text": text_body or t("email.text_fallback", locale=lang),
                 },
                 timeout=30,
             )
             if response.status_code >= 400:
                 return False, f"Resend {response.status_code}: {response.text[:200]}"
-            return True, "E-mail envoyé via Resend."
+            return True, t("email.sent_resend", locale=lang)
         except requests.RequestException as exc:
             return False, str(exc)
 
@@ -99,13 +110,15 @@ def send_alert_email(
     smtp_from = _get_secret("SMTP_FROM") or smtp_user
 
     if not smtp_host or not smtp_user:
-        return False, "E-mail non configuré (RESEND_API_KEY ou SMTP_HOST/SMTP_USER)."
+        return False, t("email.not_configured", locale=lang)
 
     message = MIMEMultipart("alternative")
     message["Subject"] = subject
     message["From"] = smtp_from
     message["To"] = to_email
-    message.attach(MIMEText(text_body or "Consultez DowsonBost.", "plain", "utf-8"))
+    message.attach(
+        MIMEText(text_body or t("email.text_fallback", locale=lang), "plain", "utf-8")
+    )
     message.attach(MIMEText(html_body, "html", "utf-8"))
 
     try:
@@ -114,7 +127,7 @@ def send_alert_email(
             if smtp_password:
                 server.login(smtp_user, smtp_password)
             server.sendmail(smtp_from, [to_email], message.as_string())
-        return True, "E-mail envoyé via SMTP."
+        return True, t("email.sent_smtp", locale=lang)
     except smtplib.SMTPException as exc:
         return False, str(exc)
 
@@ -125,16 +138,24 @@ def maybe_send_analysis_alert(
     target_title: str,
     offers: list[dict[str, Any]],
     settings: dict[str, Any],
+    *,
+    locale: str | None = None,
 ) -> tuple[bool, str]:
     """Send alert if enabled and offers meet minimum score."""
+    lang = locale or get_locale()
     if not settings.get("email_alerts_enabled"):
-        return False, "Alertes désactivées."
+        return False, t("email.alerts_disabled", locale=lang)
     if not email_configured():
-        return False, "Service e-mail non configuré."
+        return False, t("email.service_not_configured", locale=lang)
     min_score = int(settings.get("alert_min_score", 70))
     filtered = [o for o in offers if int(o.get("score", 0)) >= min_score]
     if not filtered:
-        return False, "Aucune offre au-dessus du seuil d'alerte."
-    subject = f"[DowsonBost] {len(filtered)} nouvelle(s) offre(s) — {target_title}"
-    html = build_alert_html(user_name, target_title, filtered)
-    return send_alert_email(user_email, subject, html)
+        return False, t("email.below_threshold", locale=lang)
+    subject = t(
+        "email.subject",
+        locale=lang,
+        count=len(filtered),
+        title=target_title,
+    )
+    html = build_alert_html(user_name, target_title, filtered, locale=lang)
+    return send_alert_email(user_email, subject, html, locale=lang)

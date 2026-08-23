@@ -19,16 +19,6 @@ APPLICATION_STATUSES = (
     "archived",
 )
 
-APPLICATION_STATUS_LABELS = {
-    "new": "Nouvelle",
-    "saved": "À postuler",
-    "applied": "Postulé",
-    "interview": "Entretien",
-    "offer": "Offre reçue",
-    "rejected": "Refus",
-    "archived": "Archivé",
-}
-
 AUTO_SEARCH_WEEKDAYS = (
     "monday",
     "tuesday",
@@ -39,17 +29,6 @@ AUTO_SEARCH_WEEKDAYS = (
     "sunday",
     "daily",
 )
-
-AUTO_SEARCH_WEEKDAY_LABELS = {
-    "daily": "Tous les jours",
-    "monday": "Lundi",
-    "tuesday": "Mardi",
-    "wednesday": "Mercredi",
-    "thursday": "Jeudi",
-    "friday": "Vendredi",
-    "saturday": "Samedi",
-    "sunday": "Dimanche",
-}
 
 _ALERT_FREQUENCIES = ("after_search", "daily", "weekly")
 

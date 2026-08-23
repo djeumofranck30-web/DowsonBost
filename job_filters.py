@@ -18,6 +18,7 @@ from france_geo import (
     resolve_selected_cities,
 )
 from job_providers import WTTJ_CONTRACT_MAP
+from i18n import experience_label, job_age_label, published_label, sector_label, t
 
 CONTRACT_TYPES = (
     "CDI",
@@ -47,12 +48,6 @@ GEO_FILTER_MODES = (
 
 JOB_MAX_AGE_DAYS_OPTIONS = (1, 3, 7, 30)
 DEFAULT_JOB_MAX_AGE_DAYS = 7
-JOB_MAX_AGE_LABELS: dict[int, str] = {
-    1: "24 dernières heures",
-    3: "3 derniers jours",
-    7: "7 derniers jours",
-    30: "30 derniers jours",
-}
 
 EXPERIENCE_LEVELS = (
     "junior",
@@ -60,13 +55,6 @@ EXPERIENCE_LEVELS = (
     "senior",
     "tous",
 )
-
-EXPERIENCE_LABELS = {
-    "junior": "Junior",
-    "confirme": "Confirmé",
-    "senior": "Senior",
-    "tous": "Tous niveaux",
-}
 
 SECTOR_OPTIONS = (
     "Informatique",
@@ -575,7 +563,7 @@ def normalize_job_max_age_days(value: Any) -> int:
 
 
 def job_max_age_label(days: int) -> str:
-    return JOB_MAX_AGE_LABELS.get(normalize_job_max_age_days(days), JOB_MAX_AGE_LABELS[7])
+    return job_age_label(normalize_job_max_age_days(days))
 
 
 _RELATIVE_AGE_PATTERN = re.compile(
@@ -660,13 +648,9 @@ def format_job_published_label(job: dict[str, Any]) -> str:
     """Human-readable publication age for UI."""
     published = parse_job_published_at(job)
     if not published:
-        return "Date inconnue"
+        return published_label(unknown=True)
     days = (datetime.now(timezone.utc) - published).days
-    if days <= 0:
-        return "Aujourd'hui"
-    if days == 1:
-        return "Hier"
-    return f"Il y a {days} jours"
+    return published_label(days)
 
 
 def enrich_query_for_contract(query: str, contract_type: str) -> str:
