@@ -161,18 +161,6 @@ ANALYSIS_DEPTH_POOL = {"rapide": 18, "standard": 30, "complet": 45}
 ANALYSIS_DEPTH_TOP = {"rapide": 15, "standard": 30, "complet": 30}
 NAV_PAGE_KEYS = ("analysis", "dashboard", "history", "profile")
 
-# Theme — aligned with the login page (split-screen purple)
-THEME_BG_GRADIENT = "linear-gradient(160deg, #ddd6fe 0%, #c4b5fd 45%, #a78bfa 100%)"
-THEME_PRIMARY = "#7c3aed"
-THEME_PRIMARY_DARK = "#6d28d9"
-THEME_PRIMARY_DEEP = "#312e81"
-THEME_SURFACE = "#ffffff"
-THEME_SURFACE_SOFT = "#f5f3ff"
-THEME_MUTED = "#64748b"
-THEME_ACCENT = "#6366f1"
-
-APP_VERSION = "3.12.0-i18n-language-selector"
-
 ADZUNA_COUNTRY_CODES = {
     "France": "fr",
     "Royaume-Uni": "gb",
@@ -263,10 +251,24 @@ from persistence import (
     update_application_status,
     upsert_active_cv_document,
 )
+from ui.theme import (
+    THEME,
+    nav_label_with_icon,
+    render_app_styles,
+    render_auth_styles,
+)
 
-# ---------------------------------------------------------------------------
-# Configuration
-# ---------------------------------------------------------------------------
+# Theme tokens (re-exported from ui.theme for legacy references in app.py)
+THEME_BG_GRADIENT = THEME["bg_gradient"]
+THEME_PRIMARY = THEME["primary"]
+THEME_PRIMARY_DARK = THEME["primary_dark"]
+THEME_PRIMARY_DEEP = THEME["primary_deep"]
+THEME_SURFACE = THEME["surface"]
+THEME_SURFACE_SOFT = THEME["surface_soft"]
+THEME_MUTED = THEME["muted"]
+THEME_ACCENT = THEME["accent"]
+
+APP_VERSION = "3.13.0-modern-ui"
 
 st.set_page_config(
     page_title=APP_NAME,
@@ -3470,314 +3472,6 @@ def run_full_analysis(
 # ---------------------------------------------------------------------------
 
 
-def render_app_styles() -> None:
-    """Global styles for the authenticated app (matches login palette)."""
-    st.markdown(
-        f"""
-        <style>
-        html, body, [data-testid="stAppViewContainer"] {{
-            background: {THEME_BG_GRADIENT} !important;
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-        }}
-
-        [data-testid="stHeader"] {{
-            background: transparent;
-        }}
-
-        /* —— Sidebar —— */
-        [data-testid="stSidebar"] {{
-            background: rgba(255, 255, 255, 0.97) !important;
-            border-right: 1px solid rgba(124, 58, 237, 0.12);
-            box-shadow: 4px 0 24px rgba(76, 29, 149, 0.08);
-        }}
-        [data-testid="stSidebar"] [data-testid="stMarkdown"] h1,
-        [data-testid="stSidebar"] [data-testid="stMarkdown"] h2,
-        [data-testid="stSidebar"] [data-testid="stMarkdown"] h3 {{
-            color: {THEME_PRIMARY_DEEP} !important;
-        }}
-        [data-testid="stSidebar"] .sidebar-brand {{
-            text-align: center;
-            padding: 0.5rem 0 1rem 0;
-            border-bottom: 1px solid rgba(124, 58, 237, 0.1);
-            margin-bottom: 0.75rem;
-        }}
-        [data-testid="stSidebar"] .sidebar-brand-name {{
-            font-size: 1.35rem;
-            font-weight: 800;
-            color: {THEME_PRIMARY_DEEP};
-            margin: 0;
-        }}
-        [data-testid="stSidebar"] .sidebar-brand-name span {{
-            color: {THEME_PRIMARY};
-        }}
-        [data-testid="stSidebar"] .sidebar-user {{
-            font-size: 0.82rem;
-            color: {THEME_MUTED};
-            margin: 0.35rem 0 0 0;
-        }}
-        [data-testid="stSidebar"] div[data-testid="stRadio"] > div {{
-            gap: 0.35rem;
-        }}
-        [data-testid="stSidebar"] div[data-testid="stRadio"] label {{
-            background: {THEME_SURFACE_SOFT};
-            border: 1px solid rgba(124, 58, 237, 0.12);
-            border-radius: 10px !important;
-            padding: 0.55rem 0.85rem !important;
-            font-weight: 600 !important;
-            color: {THEME_PRIMARY_DEEP} !important;
-        }}
-        [data-testid="stSidebar"] div[data-testid="stRadio"] label[data-checked="true"],
-        [data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) {{
-            background: linear-gradient(135deg, {THEME_PRIMARY}, {THEME_PRIMARY_DARK}) !important;
-            color: #fff !important;
-            border-color: transparent !important;
-        }}
-
-        /* —— Main area —— */
-        .main .block-container {{
-            padding-top: 1.25rem;
-            padding-bottom: 2.5rem;
-            max-width: 1080px;
-        }}
-
-        .app-page-hero {{
-            background: {THEME_SURFACE};
-            border-radius: 20px;
-            padding: 1.5rem 1.75rem;
-            margin-bottom: 1.25rem;
-            box-shadow: 0 14px 36px rgba(76, 29, 149, 0.12);
-            border: 1px solid rgba(124, 58, 237, 0.08);
-        }}
-        .app-page-hero h1 {{
-            margin: 0 0 0.35rem 0;
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: {THEME_PRIMARY_DEEP};
-        }}
-        .app-page-hero p {{
-            margin: 0;
-            color: {THEME_MUTED};
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }}
-        .app-badge {{
-            display: inline-block;
-            background: {THEME_SURFACE_SOFT};
-            color: {THEME_PRIMARY};
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            padding: 0.25rem 0.65rem;
-            border-radius: 999px;
-            margin-bottom: 0.65rem;
-        }}
-
-        [data-testid="stVerticalBlockBorderWrapper"] {{
-            background: {THEME_SURFACE} !important;
-            border-radius: 18px !important;
-            border: 1px solid rgba(124, 58, 237, 0.1) !important;
-            box-shadow: 0 12px 32px rgba(76, 29, 149, 0.1) !important;
-            padding: 0.35rem 0.5rem 0.75rem 0.5rem;
-        }}
-
-        .section-title {{
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: {THEME_PRIMARY_DEEP};
-            margin: 0 0 0.75rem 0;
-        }}
-
-        /* —— Buttons —— */
-        .stButton > button[kind="primary"],
-        div[data-testid="stFormSubmitButton"] button,
-        .stDownloadButton > button {{
-            background: linear-gradient(135deg, {THEME_PRIMARY}, {THEME_PRIMARY_DARK}) !important;
-            color: #fff !important;
-            border: none !important;
-            border-radius: 999px !important;
-            font-weight: 600 !important;
-            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.3) !important;
-        }}
-        .stButton > button[kind="primary"]:hover,
-        div[data-testid="stFormSubmitButton"] button:hover {{
-            background: linear-gradient(135deg, {THEME_PRIMARY_DARK}, #5b21b6) !important;
-            color: #fff !important;
-        }}
-        .stButton > button[kind="secondary"] {{
-            border-radius: 999px !important;
-            border-color: rgba(124, 58, 237, 0.35) !important;
-            color: {THEME_PRIMARY} !important;
-        }}
-
-        /* —— Metrics —— */
-        [data-testid="stMetric"] {{
-            background: {THEME_SURFACE_SOFT};
-            border: 1px solid rgba(124, 58, 237, 0.1);
-            border-radius: 14px;
-            padding: 0.65rem 0.85rem;
-        }}
-        [data-testid="stMetricLabel"] {{
-            color: {THEME_MUTED} !important;
-        }}
-        [data-testid="stMetricValue"] {{
-            color: {THEME_PRIMARY_DEEP} !important;
-        }}
-
-        /* —— Job cards —— */
-        .job-match-card {{
-            background: {THEME_SURFACE};
-            border-radius: 18px;
-            padding: 1.25rem 1.5rem 0.5rem 1.5rem;
-            margin-bottom: 1rem;
-            border: 1px solid rgba(124, 58, 237, 0.1);
-            box-shadow: 0 10px 28px rgba(76, 29, 149, 0.08);
-            border-left: 4px solid {THEME_PRIMARY};
-        }}
-        .job-match-card h3 {{
-            color: {THEME_PRIMARY_DEEP};
-            margin-top: 0;
-        }}
-        .job-score-pill {{
-            text-align: center;
-            padding: 1rem;
-            border-radius: 14px;
-        }}
-
-        .delete-account-zone {{
-            margin-top: 0.5rem;
-            padding: 1.25rem 1.5rem;
-            border-radius: 16px;
-            border: 1px dashed rgba(220, 38, 38, 0.35);
-            background: #fffafa;
-        }}
-        .delete-account-zone .delete-account-title {{
-            color: #991b1b;
-            font-weight: 700;
-            font-size: 1.05rem;
-            margin: 0 0 0.35rem 0;
-        }}
-        .delete-account-zone .delete-account-text {{
-            color: #7f1d1d;
-            font-size: 0.92rem;
-            margin: 0 0 1rem 0;
-        }}
-        div[data-testid="stButton"] button.delete-confirm-btn {{
-            background: #991b1b !important;
-            color: #ffffff !important;
-            border: none !important;
-            font-weight: 700 !important;
-            border-radius: 12px !important;
-        }}
-        .delete-account-zone .delete-account-trigger + div[data-testid="stButton"] button {{
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
-            color: #ffffff !important;
-            border: none !important;
-            font-weight: 600 !important;
-            border-radius: 12px !important;
-            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.25) !important;
-        }}
-        .delete-account-zone .delete-account-trigger + div[data-testid="stButton"] button:hover {{
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
-        }}
-        .delete-account-zone .delete-confirm-yes + div[data-testid="stButton"] button {{
-            background: #991b1b !important;
-            color: #ffffff !important;
-            border: none !important;
-            font-weight: 700 !important;
-            border-radius: 12px !important;
-        }}
-        .delete-account-zone .delete-confirm-no + div[data-testid="stButton"] button {{
-            background: #ffffff !important;
-            color: #374151 !important;
-            border: 1px solid #d1d5db !important;
-            font-weight: 600 !important;
-            border-radius: 12px !important;
-        }}
-
-        .profile-header-card {{
-            display: flex;
-            align-items: center;
-            gap: 1.25rem;
-            padding: 1.5rem 1.75rem;
-            margin-bottom: 1.25rem;
-            border-radius: 18px;
-            background: linear-gradient(135deg, {THEME_SURFACE} 0%, {THEME_SURFACE_SOFT} 100%);
-            border: 1px solid rgba(124, 58, 237, 0.12);
-            box-shadow: 0 8px 24px rgba(109, 40, 217, 0.08);
-        }}
-        .profile-avatar {{
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, {THEME_PRIMARY} 0%, {THEME_ACCENT} 100%);
-            color: #fff;
-            font-size: 1.35rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }}
-        .profile-header-text h2 {{
-            margin: 0 0 0.2rem 0 !important;
-            font-size: 1.35rem !important;
-            color: {THEME_PRIMARY_DEEP} !important;
-        }}
-        .profile-header-text p {{
-            margin: 0 0 0.45rem 0;
-            color: {THEME_MUTED};
-            font-size: 0.95rem;
-        }}
-        .profile-badge {{
-            display: inline-block;
-            padding: 0.25rem 0.65rem;
-            border-radius: 999px;
-            background: rgba(124, 58, 237, 0.1);
-            color: {THEME_PRIMARY_DARK};
-            font-size: 0.8rem;
-            font-weight: 600;
-        }}
-        .profile-section-card {{
-            padding: 0.25rem 0.5rem 0.5rem;
-        }}
-        .profile-section-card .section-title {{
-            margin-bottom: 0.35rem;
-        }}
-        .profile-section-hint {{
-            color: {THEME_MUTED};
-            font-size: 0.88rem;
-            margin: 0 0 0.85rem 0;
-        }}
-        .profile-divider {{
-            height: 1px;
-            background: rgba(124, 58, 237, 0.1);
-            margin: 1.5rem 0;
-            border: none;
-        }}
-
-        /* —— File uploader —— */
-        [data-testid="stFileUploader"] section {{
-            background: {THEME_SURFACE_SOFT};
-            border: 2px dashed rgba(124, 58, 237, 0.25);
-            border-radius: 16px;
-            padding: 0.5rem;
-        }}
-
-        /* —— Expanders & alerts on white cards —— */
-        .main [data-testid="stAlert"] {{
-            border-radius: 12px;
-        }}
-
-        h2, h3, h4 {{
-            color: {THEME_PRIMARY_DEEP} !important;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
 def render_page_hero(title: str, subtitle: str, badge: str = "") -> None:
     """Top hero block for each main page."""
     badge_html = f'<span class="app-badge">{html.escape(badge)}</span>' if badge else ""
@@ -3798,6 +3492,7 @@ def render_sidebar_brand(user_email: str) -> None:
     st.markdown(
         f"""
         <div class="sidebar-brand">
+            <div class="sidebar-logo">🎯</div>
             <p class="sidebar-brand-name"><span>Dowson</span>Bost</p>
             <p class="sidebar-user">{html.escape(user_email)}</p>
         </div>
@@ -5450,176 +5145,6 @@ def _auth_left_panel_html() -> str:
 """
 
 
-def render_auth_styles() -> None:
-    """Inject CSS for the split-screen login page."""
-    st.markdown(
-        """
-        <style>
-        [data-testid="stAppViewContainer"] {
-            background: linear-gradient(160deg, #ddd6fe 0%, #c4b5fd 45%, #a78bfa 100%);
-        }
-        [data-testid="stHeader"], [data-testid="stToolbar"], footer {
-            visibility: hidden;
-            height: 0;
-        }
-        .block-container {
-            padding-top: 2.5rem;
-            padding-bottom: 2.5rem;
-            max-width: 920px;
-        }
-        .auth-card-row [data-testid="column"] {
-            padding: 0 !important;
-        }
-        .auth-card-row [data-testid="column"]:first-child > div {
-            background: #7c3aed;
-            border-radius: 28px 0 0 28px;
-            min-height: 560px;
-            box-shadow: 0 24px 48px rgba(76, 29, 149, 0.18);
-        }
-        .auth-card-row [data-testid="column"]:last-child > div {
-            background: #ffffff;
-            border-radius: 0 28px 28px 0;
-            min-height: 560px;
-            box-shadow: 0 24px 48px rgba(76, 29, 149, 0.18);
-            padding: 2.5rem 2.75rem 2rem 2.75rem !important;
-        }
-        .auth-left-panel {
-            color: #fff;
-            text-align: center;
-            padding: 2.5rem 2rem 2rem 2rem;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        .auth-illustration {
-            width: min(100%, 280px);
-            height: auto;
-            margin-bottom: 1.75rem;
-            border-radius: 12px;
-        }
-        .auth-left-title {
-            font-size: 1.05rem;
-            line-height: 1.55;
-            font-weight: 500;
-            margin: 0 0 0.75rem 0;
-            color: rgba(255,255,255,0.96);
-        }
-        .auth-left-tip {
-            font-size: 0.82rem;
-            line-height: 1.45;
-            margin: 0;
-            color: rgba(255,255,255,0.78);
-        }
-        .auth-greeting-main {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #312e81;
-            margin: 0 0 0.15rem 0;
-            line-height: 1.15;
-        }
-        .auth-greeting-sub {
-            font-size: 1.55rem;
-            font-weight: 700;
-            color: #312e81;
-            margin: 0 0 1.35rem 0;
-            line-height: 1.2;
-        }
-        .auth-form-title {
-            font-size: 0.95rem;
-            color: #64748b;
-            margin: 0 0 1.5rem 0;
-        }
-        .auth-card-row div[data-testid="stTextInput"] label {
-            color: #64748b !important;
-            font-size: 0.82rem !important;
-            font-weight: 500 !important;
-        }
-        .auth-card-row div[data-testid="stTextInput"] input {
-            background: transparent !important;
-            border: none !important;
-            border-bottom: 2px solid #e2e8f0 !important;
-            border-radius: 0 !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-            color: #1e293b !important;
-            box-shadow: none !important;
-        }
-        .auth-card-row div[data-testid="stTextInput"] input:focus {
-            border-bottom-color: #7c3aed !important;
-            box-shadow: none !important;
-        }
-        .auth-card-row div[data-testid="stFormSubmitButton"] button {
-            background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
-            color: #fff !important;
-            border: none !important;
-            border-radius: 999px !important;
-            padding: 0.72rem 1.5rem !important;
-            font-weight: 600 !important;
-            letter-spacing: 0.02em;
-            margin-top: 0.5rem;
-            box-shadow: 0 10px 24px rgba(124, 58, 237, 0.35);
-        }
-        .auth-card-row div[data-testid="stFormSubmitButton"] button:hover {
-            background: linear-gradient(135deg, #6d28d9, #5b21b6) !important;
-            color: #fff !important;
-            border: none !important;
-        }
-        .auth-link-row {
-            display: flex;
-            justify-content: flex-end;
-            margin: -0.35rem 0 0.75rem 0;
-        }
-        .auth-link-row button {
-            background: transparent !important;
-            border: none !important;
-            color: #6366f1 !important;
-            font-size: 0.82rem !important;
-            padding: 0 !important;
-            min-height: 0 !important;
-            box-shadow: none !important;
-        }
-        .auth-link-row button:hover {
-            color: #4f46e5 !important;
-            text-decoration: underline;
-        }
-        .auth-footer-link button {
-            background: transparent !important;
-            border: none !important;
-            color: #64748b !important;
-            font-size: 0.9rem !important;
-            font-weight: 500 !important;
-            width: 100%;
-            box-shadow: none !important;
-        }
-        .auth-footer-link button:hover {
-            color: #7c3aed !important;
-        }
-        .auth-back-link button {
-            background: transparent !important;
-            border: none !important;
-            color: #7c3aed !important;
-            font-size: 0.85rem !important;
-            padding-left: 0 !important;
-            box-shadow: none !important;
-        }
-        @media (max-width: 768px) {
-            .auth-card-row [data-testid="column"]:first-child > div {
-                border-radius: 28px 28px 0 0;
-                min-height: 280px;
-            }
-            .auth-card-row [data-testid="column"]:last-child > div {
-                border-radius: 0 0 28px 28px;
-                min-height: auto;
-            }
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
 def _render_auth_login_form() -> None:
     """Login form in the right panel."""
     render_language_selector(key_prefix="auth_locale")
@@ -6366,10 +5891,11 @@ def render_app() -> None:
     with st.sidebar:
         render_sidebar_brand(user.get("email", ""))
 
+        st.markdown('<p class="sidebar-nav-label">Menu</p>', unsafe_allow_html=True)
         page = st.radio(
             "Navigation",
             list(NAV_PAGE_KEYS),
-            format_func=nav_label,
+            format_func=lambda key: nav_label_with_icon(key, nav_label(key)),
             label_visibility="collapsed",
             key="main_navigation",
         )
