@@ -2221,6 +2221,7 @@ def match_cv_to_job(
     *,
     cv_profile: dict[str, Any] | None = None,
     target_job_title: str = "",
+    user_profile: dict[str, Any] | None = None,
     llm_provider: str | None = None,
     llm_api_key: str | None = None,
 ) -> dict[str, Any]:
@@ -2235,7 +2236,12 @@ def match_cv_to_job(
         f"Contrat : {job.get('contract_type', '') or job.get('inferred_contract', '')}\n"
         f"Description :\n{job.get('description', '')[:desc_limit]}"
     )
-    candidate_block = build_cv_match_context(cv_text, cv_profile, target_job_title)
+    candidate_block = build_cv_match_context(
+        cv_text,
+        cv_profile,
+        target_job_title,
+        user_profile=user_profile,
+    )
     user_prompt = f"{candidate_block}\n\nOffre à évaluer :\n{job_summary}"
 
     for attempt in range(2):
@@ -2280,12 +2286,20 @@ def build_cv_match_context(
     cv_text: str,
     cv_profile: dict[str, Any] | None = None,
     target_job_title: str = "",
+    user_profile: dict[str, Any] | None = None,
 ) -> str:
     """Structured candidate summary for matching prompts."""
     sections: list[str] = []
 
     if target_job_title.strip():
         sections.append(f"Poste visé (profil utilisateur) : {target_job_title.strip()}")
+
+    if user_profile:
+        from world_geo import format_profile_geo_summary
+
+        geo_summary = format_profile_geo_summary(user_profile)
+        if geo_summary:
+            sections.append(f"Périmètre géographique cible (profil) : {geo_summary}")
 
     if cv_profile:
         metier = str(cv_profile.get("metier", "")).strip()
@@ -3177,6 +3191,7 @@ def build_matching_results(
     pool_size: int | None = None,
     cv_profile: dict[str, Any] | None = None,
     target_job_title: str = "",
+    user_profile: dict[str, Any] | None = None,
     progress: ProgressReporter | None = None,
 ) -> tuple[list[dict[str, Any]], int]:
     """AI-match job candidates and return the best offers by correspondence score."""
@@ -3225,6 +3240,7 @@ def build_matching_results(
                 job,
                 cv_profile=cv_profile,
                 target_job_title=target_job_title,
+                user_profile=user_profile,
                 llm_provider=provider,
                 llm_api_key=api_key,
             )
@@ -3264,6 +3280,7 @@ def build_matching_results(
                     job,
                     cv_profile=cv_profile,
                     target_job_title=target_job_title,
+                    user_profile=user_profile,
                     llm_provider=provider,
                     llm_api_key=api_key,
                 )
@@ -4927,6 +4944,7 @@ def run_cv_analysis_pipeline(
         pool_size=pool_size,
         cv_profile=criteria,
         target_job_title=target_title,
+        user_profile=user_profile,
         progress=progress,
     )
 

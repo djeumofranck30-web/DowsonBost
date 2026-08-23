@@ -18,6 +18,8 @@ DEST = ROOT / "data" / "world_cities"
 GEONAMES_DIR = ROOT / "data" / "geonames"
 CITIES5000_URL = "https://download.geonames.org/export/dump/cities5000.zip"
 ADMIN1_URL = "https://download.geonames.org/export/dump/admin1CodesASCII.txt"
+COUNTRY_INFO_URL = "https://download.geonames.org/export/dump/countryInfo.txt"
+ALIASES_DEST = ROOT / "data" / "country_location_aliases.json"
 
 sys.path.insert(0, str(ROOT))
 
@@ -146,7 +148,34 @@ def _write_json(path: Path, payload: dict) -> None:
         json.dump(payload, handle, ensure_ascii=False, indent=2)
 
 
+def _write_country_location_aliases() -> None:
+    path = GEONAMES_DIR / "countryInfo.txt"
+    _download(COUNTRY_INFO_URL, path)
+    aliases: dict[str, list[str]] = {}
+    with path.open(encoding="utf-8") as handle:
+        for line in handle:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            parts = line.split("\t")
+            if len(parts) < 5:
+                continue
+            code = parts[0].strip().upper()
+            english = parts[4].strip()
+            french = COUNTRY_CODE_TO_NAME.get(code, "")
+            names: list[str] = []
+            for item in (french, english, parts[1].strip() if len(parts) > 1 else ""):
+                if item and item not in names:
+                    names.append(item)
+            if names:
+                aliases[code] = names
+    ALIASES_DEST.parent.mkdir(parents=True, exist_ok=True)
+    with ALIASES_DEST.open("w", encoding="utf-8") as handle:
+        json.dump(aliases, handle, ensure_ascii=False, indent=2)
+
+
 def main() -> None:
+    _write_country_location_aliases()
     admin1_names = _load_admin1_names()
     by_country, by_admin1_code, by_admin1_name = _load_cities(admin1_names)
 

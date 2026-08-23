@@ -31,6 +31,7 @@ CONTRACT_TYPES = (
 
 from world_geo import (
     COUNTRY_OPTIONS,
+    country_location_match_tokens,
     get_country_geo,
     merge_profile_geo,
     normalize_country_name,
@@ -312,21 +313,34 @@ def build_domicile_location(profile: dict[str, Any]) -> str:
 
 
 def build_radius_center_location(profile: dict[str, Any]) -> str:
-    """Center point for optional radius filter — first selected city or department."""
-    country = profile_country(profile)
-    cities = resolve_selected_cities(profile)
-    if cities:
-        return f"{cities[0]}, {country}"
+    """Center point for optional radius filter — first selected city or zone."""
+    geo_map = merge_profile_geo(profile)
+    for country in profile_countries(profile):
+        geo = geo_map.get(country, {})
+        if country == "France":
+            fr_profile = sync_france_legacy_fields(
+                {**profile, "country": country},
+                geo,
+            )
+            cities = resolve_selected_cities(fr_profile)
+            if cities:
+                return f"{cities[0]}, {country}"
+            _, departments = resolve_multi_geo_from_profile(fr_profile)
+            if departments:
+                name = (departments[0].get("name") or departments[0].get("code") or "").strip()
+                if name:
+                    return f"{name}, {country}"
+            regions, _ = resolve_multi_geo_from_profile(fr_profile)
+            if regions:
+                return f"{regions[0]}, {country}"
+            continue
 
-    _, departments = resolve_multi_geo_from_profile(profile)
-    if departments:
-        name = (departments[0].get("name") or departments[0].get("code") or "").strip()
-        if name:
-            return f"{name}, {country}"
-
-    regions, _ = resolve_multi_geo_from_profile(profile)
-    if regions:
-        return f"{regions[0]}, {country}"
+        cities = geo.get("cities") or []
+        if cities:
+            return f"{cities[0]}, {country}"
+        for level in (geo.get("level1") or []) + (geo.get("level2") or []):
+            if str(level).strip():
+                return f"{level}, {country}"
 
     return build_domicile_location(profile)
 
@@ -467,9 +481,19 @@ def profile_country(profile: dict[str, Any]) -> str:
 
 
 def job_matches_any_selected_country(job: dict[str, Any], profile: dict[str, Any]) -> bool:
-    return any(
-        job_matches_country(job, country) for country in profile_countries(profile)
-    )
+    geo_map = merge_profile_geo(profile)
+    for country in profile_countries(profile):
+        if job_matches_country(job, country):
+            return True
+        if country == "France":
+            continue
+        geo = geo_map.get(country, {})
+        if _job_matches_international_geo(job, country, geo) and not _location_mentions_other_country(
+            str(job.get("location", "")),
+            country,
+        ):
+            return True
+    return False
 
 
 def _job_matches_international_geo(
@@ -862,13 +886,32 @@ def haversine_km(a: tuple[float, float], b: tuple[float, float]) -> float:
     return 2 * r * math.asin(math.sqrt(x))
 
 
+def _location_mentions_other_country(location: str, allowed_country: str) -> bool:
+    """True when location text clearly names a different country."""
+    loc = normalize_text(location)
+    if not loc:
+        return False
+    allowed = normalize_country_name(allowed_country)
+    allowed_tokens = country_location_match_tokens(allowed)
+    for name in COUNTRY_OPTIONS:
+        country = normalize_country_name(name)
+        if country == allowed:
+            continue
+        for token in country_location_match_tokens(country):
+            if len(token) < 4 or token in allowed_tokens:
+                continue
+            if token in loc:
+                return True
+    return False
+
+
 def job_matches_country(job: dict[str, Any], expected_country: str) -> bool:
     """Job location must match the user's selected country."""
     location_raw = str(job.get("location", ""))
     location = normalize_text(location_raw)
-    country_norm = normalize_text(expected_country or "France")
+    country = normalize_country_name(expected_country or "France")
 
-    if country_norm == "france":
+    if country == "France":
         for marker in FOREIGN_LOCATION_MARKERS:
             if marker in location:
                 return False
@@ -880,7 +923,7 @@ def job_matches_country(job: dict[str, Any], expected_country: str) -> bool:
             return True
         return bool(location.strip())
 
-    return country_norm in location or normalize_text(expected_country) in location
+    return any(token in location for token in country_location_match_tokens(country))
 
 
 def _job_matches_single_department(
@@ -1015,10 +1058,10 @@ def job_matches_geography(
         return False
 
     for country in profile_countries(profile):
-        if not job_matches_country(job, country):
-            continue
         geo = geo_map.get(country, {})
         if country == "France":
+            if not job_matches_country(job, country):
+                continue
             fr_profile = sync_france_legacy_fields(
                 {**profile, "country": country, "geo_filter_mode": mode},
                 geo,
@@ -1044,7 +1087,12 @@ def job_matches_geography(
                     return True
                 continue
             return True
-        if _job_matches_international_geo(job, country, geo):
+
+        if not _job_matches_international_geo(job, country, geo):
+            continue
+        if job_matches_country(job, country):
+            return True
+        if not _location_mentions_other_country(str(job.get("location", "")), country):
             return True
 
     return False

@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import re
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -20,7 +22,10 @@ from france_geo import (
 
 _DATA_PATH = Path(__file__).resolve().parent / "data" / "iso3166_countries.json"
 _BUNDLED_GEO_DIR = Path(__file__).resolve().parent / "data" / "world_cities"
+_LOCATION_ALIASES_PATH = Path(__file__).resolve().parent / "data" / "country_location_aliases.json"
 _geo_manifest_cache: dict[str, dict[str, Any] | None] = {}
+_location_alias_cache: dict[str, frozenset[str]] = {}
+_location_aliases_by_code: dict[str, tuple[str, ...]] | None = None
 
 # level keys: level1 (region/state/province), level2 (dept/county), cities
 COUNTRY_GEO_SCHEMA: dict[str, dict[str, Any]] = {
@@ -246,15 +251,118 @@ def _load_bundled_geo_manifest(country_code: str) -> dict[str, Any] | None:
     return None
 
 
+def _load_country_location_aliases_by_code() -> dict[str, tuple[str, ...]]:
+    global _location_aliases_by_code
+    if _location_aliases_by_code is not None:
+        return _location_aliases_by_code
+    mapping: dict[str, tuple[str, ...]] = {}
+    if _LOCATION_ALIASES_PATH.is_file():
+        try:
+            with _LOCATION_ALIASES_PATH.open(encoding="utf-8") as handle:
+                payload = json.load(handle)
+            if isinstance(payload, dict):
+                for code, names in payload.items():
+                    if isinstance(names, list):
+                        cleaned = tuple(
+                            str(name).strip() for name in names if str(name).strip()
+                        )
+                        if cleaned:
+                            mapping[str(code).upper()] = cleaned
+        except (OSError, json.JSONDecodeError, TypeError):
+            pass
+    _location_aliases_by_code = mapping
+    return mapping
+
+
+def country_location_match_tokens(country: str) -> frozenset[str]:
+    """Normalized strings used to detect a job's country in location text."""
+    country = normalize_country_name(country)
+    cached = _location_alias_cache.get(country)
+    if cached is not None:
+        return cached
+
+    tokens: set[str] = set()
+    code = COUNTRY_NAME_TO_CODE.get(country, "")
+
+    def add(value: str) -> None:
+        norm = re.sub(r"\s+", " ", (value or "").strip().casefold())
+        norm = unicodedata.normalize("NFKD", norm)
+        norm = "".join(ch for ch in norm if not unicodedata.combining(ch))
+        if norm:
+            tokens.add(norm)
+
+    add(country)
+    if code:
+        add(code)
+        french = COUNTRY_CODE_TO_NAME.get(code, "")
+        if french:
+            add(french)
+        for name in _load_country_location_aliases_by_code().get(code, ()):
+            add(name)
+    for alias_key, alias_value in COUNTRY_ALIASES.items():
+        if alias_value == country:
+            add(alias_key)
+
+    result = frozenset(tokens)
+    _location_alias_cache[country] = result
+    return result
+
+
+def format_profile_geo_summary(profile: dict[str, Any]) -> str:
+    """Human-readable geo scope for logs and matching prompts."""
+    countries = profile_countries(profile)
+    if not countries:
+        return ""
+    geo_map = merge_profile_geo(profile)
+    parts: list[str] = []
+    for country in countries:
+        geo = geo_map.get(country, {})
+        if country == "France":
+            regions, departments = resolve_multi_geo_from_profile(
+                sync_france_legacy_fields(profile, geo)
+            )
+            if regions:
+                chunk = f"France: {', '.join(regions[:3])}"
+                if len(regions) > 3:
+                    chunk += f" (+{len(regions) - 3})"
+                parts.append(chunk)
+            elif departments:
+                parts.append(f"France: {len(departments)} département(s)")
+            else:
+                parts.append("France")
+            continue
+        level1 = geo.get("level1") or []
+        cities = geo.get("cities") or []
+        if geo.get("all_cities") and level1:
+            chunk = f"{country}: {', '.join(level1[:3])}"
+            if len(level1) > 3:
+                chunk += f" (+{len(level1) - 3} régions)"
+        elif cities:
+            chunk = f"{country}: {', '.join(cities[:3])}"
+            if len(cities) > 3:
+                chunk += f" (+{len(cities) - 3} villes)"
+        elif level1:
+            chunk = f"{country}: {', '.join(level1[:3])}"
+            if len(level1) > 3:
+                chunk += f" (+{len(level1) - 3} régions)"
+        else:
+            chunk = country
+        parts.append(chunk)
+    return " | ".join(parts)
+
+
 def country_geo_schema(country: str) -> dict[str, Any] | None:
     country = normalize_country_name(country)
     hardcoded = COUNTRY_GEO_SCHEMA.get(country)
     if hardcoded:
         return hardcoded
     code = COUNTRY_NAME_TO_CODE.get(country, "")
-    if not code:
-        return None
-    return _load_bundled_geo_manifest(code)
+    if code:
+        for schema in COUNTRY_GEO_SCHEMA.values():
+            if schema.get("code") == code:
+                return schema
+        return _load_bundled_geo_manifest(code)
+    return None
 
 
 def country_has_subdivisions(country: str) -> bool:

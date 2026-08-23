@@ -8,5 +8,6 @@ venv/
 .vscode/
 data/*
 !data/iso3166_countries.json
+!data/country_location_aliases.json
 !data/world_cities/
 !data/world_cities/**
