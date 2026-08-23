@@ -5623,9 +5623,17 @@ def _render_auth_login_form() -> None:
         if st.form_submit_button(t("auth.login.submit"), use_container_width=True):
             ok, message, user = authenticate_user(login_email, login_password)
             if ok and user:
+                login_locale = get_locale()
+                ok_lang, _, updated = update_user_preferred_language(
+                    int(user["id"]), login_locale
+                )
                 st.session_state.authenticated = True
-                st.session_state.user = user
-                set_locale(user.get("preferred_language", get_locale()))
+                st.session_state.user = (
+                    updated
+                    if ok_lang and updated
+                    else {**user, "preferred_language": login_locale}
+                )
+                set_locale(login_locale)
                 st.session_state.auth_view = "login"
                 st.success(message)
                 st.rerun()
