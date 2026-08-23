@@ -1,0 +1,13 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "Riau Islands",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dabo",
+    "Ranai Kota",
+    "Tanjung Balai",
+    "Tanjung Pinang",
+    "Tobong"
+  ]
+}

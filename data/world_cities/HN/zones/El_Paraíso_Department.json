@@ -1,0 +1,18 @@
+{
+  "country": "Honduras",
+  "code": "HN",
+  "zone": "El Paraíso Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alauca",
+    "Danlí",
+    "El Paraíso",
+    "Güinope",
+    "Las Trojes",
+    "Liure",
+    "Morocelí",
+    "Oropolí",
+    "Teupasenti",
+    "Yuscarán"
+  ]
+}

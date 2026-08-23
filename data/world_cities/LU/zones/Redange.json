@@ -1,0 +1,9 @@
+{
+  "country": "Luxembourg",
+  "code": "LU",
+  "zone": "Redange",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Redange-sur-Attert"
+  ]
+}

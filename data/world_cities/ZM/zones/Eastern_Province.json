@@ -1,0 +1,15 @@
+{
+  "country": "Zambie",
+  "code": "ZM",
+  "zone": "Eastern Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chadiza",
+    "Chipata",
+    "Katete",
+    "Lundazi",
+    "Nyimba",
+    "Petauke",
+    "Sinda"
+  ]
+}

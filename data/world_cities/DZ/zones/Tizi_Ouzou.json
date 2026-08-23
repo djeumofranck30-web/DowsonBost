@@ -1,0 +1,28 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Tizi Ouzou",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arhribs",
+    "Azazga",
+    "Beni Douala",
+    "Boghni",
+    "Boudjima",
+    "Draa Ben Khedda",
+    "Draa el Mizan",
+    "Freha",
+    "L’Arbaa Naït Irathen",
+    "Makouda",
+    "Maâtkas",
+    "Mekla",
+    "Tadmaït",
+    "Timizart",
+    "Tirmitine",
+    "Tizi Gheniff",
+    "Tizi Ouzou",
+    "Tizi Rached",
+    "Tizi-n-Tleta",
+    "’Aïn el Hammam"
+  ]
+}

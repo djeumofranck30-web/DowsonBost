@@ -1,0 +1,24 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Buzău County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Berca",
+    "Burueneşti",
+    "Buzău",
+    "Cochirleanca",
+    "Merei",
+    "Mărăcineni",
+    "Nehoiu",
+    "Pogoanele",
+    "Poşta Câlnău",
+    "Pârscov",
+    "Râmnicu Sărat",
+    "Smeeni",
+    "Săgeata",
+    "Vadu Paşii",
+    "Verneşti",
+    "Zărneşti"
+  ]
+}

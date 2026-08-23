@@ -1,0 +1,14 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Chiang Rai",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chiang Khong",
+    "Chiang Rai",
+    "Chiang Saen",
+    "Mae Chan",
+    "Mae Sai",
+    "Pa Daet"
+  ]
+}

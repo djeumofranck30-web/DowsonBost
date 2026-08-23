@@ -1,0 +1,20 @@
+{
+  "country": "Nouvelle-Zelande",
+  "code": "NZ",
+  "zone": "Manawatu-Wanganui",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Awapuni",
+    "Dannevirke",
+    "Hokowhitu",
+    "Kelvin Grove",
+    "Levin",
+    "Marton",
+    "Milson",
+    "Palmerston North",
+    "Takaro",
+    "Terrace End",
+    "West End",
+    "Whanganui"
+  ]
+}

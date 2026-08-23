@@ -1,0 +1,9 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "San Andres y Providencia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "San Andrés"
+  ]
+}

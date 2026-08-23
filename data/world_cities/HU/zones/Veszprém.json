@@ -1,0 +1,19 @@
+{
+  "country": "Hongrie",
+  "code": "HU",
+  "zone": "Veszprém",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ajka",
+    "Balatonalmádi",
+    "Balatonfüred",
+    "Berhida",
+    "Devecser",
+    "Pápa",
+    "Sümeg",
+    "Tapolca",
+    "Veszprém",
+    "Várpalota",
+    "Zirc"
+  ]
+}

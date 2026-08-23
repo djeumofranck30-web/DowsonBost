@@ -1,0 +1,17 @@
+{
+  "country": "Iran",
+  "code": "IR",
+  "zone": "Zanjan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abhar",
+    "Hīdaj",
+    "Khorramdarreh",
+    "Māhneshān",
+    "Qīdar",
+    "Sojās",
+    "Solţānīyeh",
+    "Zanjan",
+    "Ābbar"
+  ]
+}

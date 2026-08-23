@@ -1,0 +1,15 @@
+{
+  "country": "Ouzbekistan",
+  "code": "UZ",
+  "zone": "Xorazm Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Druzhba",
+    "Gurlan",
+    "Hazorasp",
+    "Qo’shko’pir",
+    "Shovot",
+    "Urganch",
+    "Xiva"
+  ]
+}

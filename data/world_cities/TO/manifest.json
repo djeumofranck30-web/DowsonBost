@@ -1,0 +1,14 @@
+{
+  "country": "Tonga",
+  "code": "TO",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Haapai",
+    "Niuas",
+    "Tongatapu",
+    "Vavau",
+    "ʻEua"
+  ],
+  "source": "geonames_admin1"
+}

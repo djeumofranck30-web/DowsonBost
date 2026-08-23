@@ -1,0 +1,10 @@
+{
+  "country": "Panama",
+  "code": "PA",
+  "zone": "Los Santos Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Las Tablas",
+    "Los Santos"
+  ]
+}

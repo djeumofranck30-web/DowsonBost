@@ -1,0 +1,13 @@
+{
+  "country": "Gambie",
+  "code": "GM",
+  "zone": "North Bank",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Barra",
+    "Essau",
+    "Farafenni",
+    "Kerewan",
+    "Lamin"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Ihorombe",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ihosy",
+    "Ivohibe",
+    "Ranohira"
+  ]
+}

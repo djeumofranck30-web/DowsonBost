@@ -1,0 +1,10 @@
+{
+  "country": "Nouvelle-Caledonie",
+  "code": "NC",
+  "zone": "Loyalty Islands",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Tadine",
+    "Wé"
+  ]
+}

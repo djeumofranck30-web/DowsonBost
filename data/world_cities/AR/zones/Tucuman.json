@@ -1,0 +1,20 @@
+{
+  "country": "Argentine",
+  "code": "AR",
+  "zone": "Tucuman",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aguilares",
+    "Alderetes",
+    "Bella Vista",
+    "Famaillá",
+    "Graneros",
+    "La Cocha",
+    "Monteros",
+    "San Miguel de Tucumán",
+    "Simoca",
+    "Tafí Viejo",
+    "Trancas",
+    "Yerba Buena"
+  ]
+}

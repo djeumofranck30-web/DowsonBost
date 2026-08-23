@@ -1,0 +1,16 @@
+{
+  "country": "Congo",
+  "code": "CG",
+  "zone": "Cuvette",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Boundji",
+    "Etoumbi",
+    "Loukoléla",
+    "Makoua",
+    "Mossaka",
+    "Ntokou-Raymondville",
+    "Owando",
+    "Oyo"
+  ]
+}

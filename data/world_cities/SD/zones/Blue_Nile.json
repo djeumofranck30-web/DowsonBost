@@ -1,0 +1,12 @@
+{
+  "country": "Soudan",
+  "code": "SD",
+  "zone": "Blue Nile",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ad-Damazin",
+    "Ash Shallāl",
+    "Er Roseires",
+    "Kurmuk"
+  ]
+}

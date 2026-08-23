@@ -1,0 +1,14 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Hai Phong",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chí Linh",
+    "Cát Bà",
+    "Haiphong",
+    "Hải Dương",
+    "Kiến An",
+    "Đố Sơn"
+  ]
+}

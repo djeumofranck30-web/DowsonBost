@@ -1,0 +1,15 @@
+{
+  "country": "Oman",
+  "code": "OM",
+  "zone": "Ad Dakhiliyah",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Adam",
+    "Bahlā’",
+    "Bidbid",
+    "Izkī",
+    "Nizwá",
+    "Samā’il",
+    "Sufālat Samā’il"
+  ]
+}

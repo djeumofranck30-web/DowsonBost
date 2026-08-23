@@ -1,0 +1,19 @@
+{
+  "country": "Togo",
+  "code": "TG",
+  "zone": "Plateaux",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Adéta",
+    "Amlamé",
+    "Anié",
+    "Atakpamé",
+    "Badou",
+    "Danyi-Apéyémé",
+    "Elavagnon",
+    "Kouniohou",
+    "Kpalimé",
+    "Notsé",
+    "Tohoun"
+  ]
+}

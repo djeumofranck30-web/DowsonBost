@@ -1,0 +1,17 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Shinyanga",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Isaka",
+    "Kahama",
+    "Kishapu",
+    "Mhango",
+    "Mwadui",
+    "Old Shinyanga",
+    "Shinyanga",
+    "Songwa",
+    "Tinde"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "country": "Pakistan",
+  "code": "PK",
+  "zone": "Gilgit-Baltistan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gahkuch",
+    "Gilgit",
+    "Jaglot",
+    "Karimabad",
+    "Skardu",
+    "Yougu"
+  ]
+}

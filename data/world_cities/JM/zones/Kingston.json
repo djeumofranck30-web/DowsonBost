@@ -1,0 +1,9 @@
+{
+  "country": "Jamaique",
+  "code": "JM",
+  "zone": "Kingston",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kingston"
+  ]
+}

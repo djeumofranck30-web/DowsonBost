@@ -1,0 +1,25 @@
+{
+  "country": "Cameroun",
+  "code": "CM",
+  "zone": "North-West",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Babanki",
+    "Bafut",
+    "Bali",
+    "Bamenda",
+    "Batibo",
+    "Belo",
+    "Fundong",
+    "Jakiri",
+    "Kumbo",
+    "Mbengwi",
+    "Mme-Bafumen",
+    "Ndop",
+    "Njinikom",
+    "Nkambe",
+    "Oku",
+    "Oshie",
+    "Wum"
+  ]
+}

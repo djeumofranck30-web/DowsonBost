@@ -1,0 +1,9 @@
+{
+  "country": "Tonga",
+  "code": "TO",
+  "zone": "Tongatapu",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Nuku‘alofa"
+  ]
+}

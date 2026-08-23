@@ -1,0 +1,13 @@
+{
+  "country": "Coree du Nord",
+  "code": "KP",
+  "zone": "Yanggang-do",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Hyesan",
+    "Hyesan-dong",
+    "Kapsan-ŭp",
+    "Samjiyŏn-ŭp",
+    "Sŭngjibaegam"
+  ]
+}

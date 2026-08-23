@@ -1,0 +1,12 @@
+{
+  "country": "Kirghizistan",
+  "code": "KG",
+  "zone": "Naryn Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ak-Dzhar",
+    "At-Bashi",
+    "Baetovo",
+    "Naryn"
+  ]
+}

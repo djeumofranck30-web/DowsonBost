@@ -1,0 +1,26 @@
+{
+  "country": "Estonie",
+  "code": "EE",
+  "zone": "Harjumaa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Haabersti",
+    "Haabneeme",
+    "Keila",
+    "Kesklinn",
+    "Kristiine",
+    "Kuusalu",
+    "Laagri",
+    "Lasnamäe",
+    "Maardu",
+    "Mustamäe",
+    "Männiku",
+    "Nõmme",
+    "Peetri",
+    "Pirita",
+    "Põhja-Tallinn",
+    "Raasiku",
+    "Saue",
+    "Tallinn"
+  ]
+}

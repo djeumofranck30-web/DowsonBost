@@ -1,0 +1,18 @@
+{
+  "country": "Cuba",
+  "code": "CU",
+  "zone": "Camagüey",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Camagüey",
+    "Esmeralda",
+    "Florida",
+    "Guáimaro",
+    "Jimaguayú",
+    "Minas",
+    "Nuevitas",
+    "Santa Cruz del Sur",
+    "Sibanicú",
+    "Vertientes"
+  ]
+}

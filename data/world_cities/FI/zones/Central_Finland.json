@@ -1,0 +1,19 @@
+{
+  "country": "Finlande",
+  "code": "FI",
+  "zone": "Central Finland",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Jyväskylä",
+    "Jämsä",
+    "Jämsänkoski",
+    "Keuruu",
+    "Korpilahti",
+    "Laukaa",
+    "Muurame",
+    "Saarijärvi",
+    "Suolahti",
+    "Viitasaari",
+    "Äänekoski"
+  ]
+}

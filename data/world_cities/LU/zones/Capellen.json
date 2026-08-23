@@ -1,0 +1,9 @@
+{
+  "country": "Luxembourg",
+  "code": "LU",
+  "zone": "Capellen",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Mamer"
+  ]
+}

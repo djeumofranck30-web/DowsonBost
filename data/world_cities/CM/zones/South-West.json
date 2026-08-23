@@ -1,0 +1,22 @@
+{
+  "country": "Cameroun",
+  "code": "CM",
+  "zone": "South-West",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bamusso",
+    "Bekondo",
+    "Buea",
+    "Ekondo Titi",
+    "Fontem",
+    "Kumba",
+    "Limbe",
+    "Mamfe",
+    "Mundemba",
+    "Mutengene",
+    "Muyuka",
+    "Nguti",
+    "Tiko",
+    "Tombel"
+  ]
+}

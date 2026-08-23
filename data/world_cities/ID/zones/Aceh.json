@@ -1,0 +1,20 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "Aceh",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Banda Aceh",
+    "Bireun",
+    "Blangpidie",
+    "Langsa",
+    "Lhokseumawe",
+    "Meulaboh",
+    "Reuleuet",
+    "Sabang",
+    "Sigli",
+    "Sinabang",
+    "Singkil",
+    "Subulussalam"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "country": "Mayotte",
+  "code": "YT",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Acoua",
+    "Bandraboua",
+    "Bandrele",
+    "Bouéni",
+    "Chiconi",
+    "Chirongui",
+    "Dembeni",
+    "Dzaoudzi",
+    "Kani-Kéli",
+    "Koungou",
+    "M'Tsangamouji",
+    "Mamoudzou",
+    "Mtsamboro",
+    "Ouangani",
+    "Pamandzi",
+    "Sada",
+    "Tsingoni"
+  ],
+  "source": "geonames_admin1"
+}

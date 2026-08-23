@@ -1,0 +1,12 @@
+{
+  "country": "Albanie",
+  "code": "AL",
+  "zone": "Korçë County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bilisht",
+    "Ersekë",
+    "Korçë",
+    "Pogradec"
+  ]
+}

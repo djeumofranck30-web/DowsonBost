@@ -1,0 +1,10 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Amazonas",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Puerto Ayacucho",
+    "San Fernando de Atabapo"
+  ]
+}

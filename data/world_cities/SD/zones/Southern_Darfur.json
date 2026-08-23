@@ -1,0 +1,15 @@
+{
+  "country": "Soudan",
+  "code": "SD",
+  "zone": "Southern Darfur",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Burām",
+    "Gereida",
+    "Kas",
+    "Nyala",
+    "Rahad al Bardi",
+    "Tullus",
+    "Umm Dafog"
+  ]
+}

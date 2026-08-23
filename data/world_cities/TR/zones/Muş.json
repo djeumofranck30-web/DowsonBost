@@ -1,0 +1,13 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Muş",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bulanık",
+    "Korkut",
+    "Malazgirt",
+    "Muş",
+    "Varto"
+  ]
+}

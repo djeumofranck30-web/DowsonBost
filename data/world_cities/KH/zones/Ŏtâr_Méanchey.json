@@ -1,0 +1,13 @@
+{
+  "country": "Cambodge",
+  "code": "KH",
+  "zone": "Ŏtâr Méanchey",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anlong Veaeng",
+    "Chŏng Kal",
+    "Ou Smach",
+    "Ou Svay",
+    "Samraong"
+  ]
+}

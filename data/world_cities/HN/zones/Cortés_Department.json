@@ -1,0 +1,23 @@
+{
+  "country": "Honduras",
+  "code": "HN",
+  "zone": "Cortés Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baracoa",
+    "Choloma",
+    "Cofradía",
+    "Cuyamel",
+    "La Lima",
+    "Omoa",
+    "Pimienta Vieja",
+    "Potrerillos",
+    "Puerto Cortez",
+    "San Antonio de Cortés",
+    "San Francisco de Yojoa",
+    "San Manuel",
+    "San Pedro Sula",
+    "Santa Cruz de Yojoa",
+    "Villanueva"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Nouvelle-Zelande",
+  "code": "NZ",
+  "zone": "West Coast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Greymouth",
+    "Waikowhai"
+  ]
+}

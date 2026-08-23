@@ -1,0 +1,29 @@
+{
+  "country": "Bresil",
+  "code": "BR",
+  "zone": "Acre",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Acrelândia",
+    "Assis Brasil",
+    "Brasiléia",
+    "Bujari",
+    "Capixaba",
+    "Cruzeiro do Sul",
+    "Epitaciolândia",
+    "Feijó",
+    "Jordão",
+    "Manoel Urbano",
+    "Marechal Thaumaturgo",
+    "Mâncio Lima",
+    "Plácido de Castro",
+    "Porto Acre",
+    "Porto Walter",
+    "Rio Branco",
+    "Rodrigues Alves",
+    "Sena Madureira",
+    "Senador Guiomard",
+    "Tarauacá",
+    "Xapuri"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "North Maluku",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Daruba",
+    "Galela",
+    "Kawasi",
+    "Labuha",
+    "Maba",
+    "Sanana",
+    "Sofifi",
+    "Ternate",
+    "Tobelo"
+  ]
+}

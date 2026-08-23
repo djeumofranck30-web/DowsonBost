@@ -1,0 +1,15 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Roi Et",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Selaphum",
+    "Chai Wari",
+    "Kaset Wisai",
+    "Moeiwadi",
+    "Roi Et",
+    "Suwannaphum",
+    "Waeng"
+  ]
+}

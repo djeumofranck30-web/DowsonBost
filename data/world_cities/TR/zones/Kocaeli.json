@@ -1,0 +1,22 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Kocaeli",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bahçecik",
+    "Derince",
+    "Diliskelesi",
+    "Gebze",
+    "Gölcük",
+    "İhsaniye",
+    "İzmit",
+    "Kandıra",
+    "Karamürsel",
+    "Kocakaymaz",
+    "Kullar",
+    "Körfez",
+    "Köseköy",
+    "Yuvacık"
+  ]
+}

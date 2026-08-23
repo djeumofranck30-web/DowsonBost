@@ -1,0 +1,24 @@
+{
+  "country": "Autriche",
+  "code": "AT",
+  "zone": "Vorarlberg",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Altach",
+    "Bludenz",
+    "Bregenz",
+    "Dornbirn",
+    "Feldkirch",
+    "Frastanz",
+    "Götzis",
+    "Hard",
+    "Hohenems",
+    "Höchst",
+    "Hörbranz",
+    "Lauterach",
+    "Lochau",
+    "Lustenau",
+    "Rankweil",
+    "Wolfurt"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "country": "Koweit",
+  "code": "KW",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Al Asimah",
+    "Al Aḩmadī",
+    "Al Farwaniyah",
+    "Al Jahra Governorate",
+    "Hawalli",
+    "Mubārak al Kabīr"
+  ],
+  "source": "geonames_admin1"
+}

@@ -1,0 +1,29 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Arkhangelskaya",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arkhangel’sk",
+    "Berëznik",
+    "Isakogorka",
+    "Kargopol’",
+    "Konosha",
+    "Koryazhma",
+    "Kotlas",
+    "Kuloy",
+    "Mirnyy",
+    "Novodvinsk",
+    "Nyandoma",
+    "Oktyabr’skiy",
+    "Onega",
+    "Plesetsk",
+    "Savinskiy",
+    "Severodvinsk",
+    "Shenkursk",
+    "Vel’sk",
+    "Vychegodskiy",
+    "Yagry",
+    "Yemetsk"
+  ]
+}

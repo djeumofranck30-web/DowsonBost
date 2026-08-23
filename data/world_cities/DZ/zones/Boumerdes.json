@@ -1,0 +1,20 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Boumerdes",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arbatache",
+    "Beni Amrane",
+    "Bordj Menaïel",
+    "Boudouaou",
+    "Boumerdas",
+    "Chabet el Ameur",
+    "Dellys",
+    "Khemis el Khechna",
+    "Naciria",
+    "Ouled Haddaj",
+    "Ouled Moussa",
+    "Thenia"
+  ]
+}

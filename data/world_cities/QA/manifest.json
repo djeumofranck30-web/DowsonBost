@@ -1,0 +1,17 @@
+{
+  "country": "Qatar",
+  "code": "QA",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Al Daayen",
+    "Al Khor",
+    "Al Wakrah",
+    "Al-Shahaniya",
+    "Baladiyat ad Dawhah",
+    "Baladiyat ar Rayyan",
+    "Madinat ash Shamal",
+    "Umm Salal"
+  ],
+  "source": "geonames_admin1"
+}

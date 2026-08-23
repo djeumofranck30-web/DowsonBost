@@ -1,0 +1,29 @@
+{
+  "country": "Mexique",
+  "code": "MX",
+  "zone": "Durango",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bermejillo",
+    "Canatlán",
+    "Cuencamé de Ceniceros",
+    "El Salto",
+    "Guadalupe Victoria",
+    "Gómez Palacio",
+    "Lerdo",
+    "Mapimí",
+    "Nazareno",
+    "Nombre de Dios",
+    "Nuevo Ideal",
+    "Peñón Blanco",
+    "Pueblo Nuevo",
+    "Santa María del Oro",
+    "Santiago Papasquiaro",
+    "Tayoltita",
+    "Tlahualilo de Zaragoza",
+    "Vicente Guerrero",
+    "Victoria de Durango",
+    "Villa Juárez",
+    "Villa Unión"
+  ]
+}

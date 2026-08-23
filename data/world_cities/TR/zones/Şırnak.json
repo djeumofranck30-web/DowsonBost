@@ -1,0 +1,18 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Şırnak",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Başverimli",
+    "Beytüşşebap",
+    "Cizre",
+    "İdil",
+    "Kumçatı",
+    "Silopi",
+    "Uludere",
+    "Uzungeçit",
+    "Şenoba",
+    "Şırnak"
+  ]
+}

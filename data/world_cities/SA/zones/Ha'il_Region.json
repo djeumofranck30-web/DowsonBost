@@ -1,0 +1,11 @@
+{
+  "country": "Arabie saoudite",
+  "code": "SA",
+  "zone": "Ha'il Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baq‘ā’",
+    "Ha'il",
+    "Turubah"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Phetchaburi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cha-am",
+    "Khao Yoi",
+    "Phetchaburi",
+    "Tha Yang"
+  ]
+}

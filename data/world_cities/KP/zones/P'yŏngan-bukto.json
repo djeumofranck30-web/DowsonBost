@@ -1,0 +1,20 @@
+{
+  "country": "Coree du Nord",
+  "code": "KP",
+  "zone": "P'yŏngan-bukto",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chŏngju-si",
+    "Kujang-ŭp",
+    "Kusŏng-si",
+    "Kwaksan",
+    "Panghyŏn-dong",
+    "Pukchin-rodongjagu",
+    "Sakchu-ŭp",
+    "Sindo",
+    "Sinŭiju",
+    "Uiju",
+    "Yŏmju",
+    "Yŏngbyŏn"
+  ]
+}

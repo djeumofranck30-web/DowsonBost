@@ -1,0 +1,18 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Taraba State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baissa",
+    "Beli",
+    "Gassol",
+    "Gembu",
+    "Ibi",
+    "Jalingo",
+    "Lau",
+    "Mutum Biyu",
+    "Riti",
+    "Wukari"
+  ]
+}

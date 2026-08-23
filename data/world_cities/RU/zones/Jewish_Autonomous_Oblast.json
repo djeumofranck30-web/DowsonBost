@@ -1,0 +1,14 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Jewish Autonomous Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amurzet",
+    "Birobidzhan",
+    "Leninskoye",
+    "Nikolayevka",
+    "Obluch’ye",
+    "Smidovich"
+  ]
+}

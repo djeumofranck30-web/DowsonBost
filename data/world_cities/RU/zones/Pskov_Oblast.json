@@ -1,0 +1,25 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Pskov Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dedovichi",
+    "Dno",
+    "Gdov",
+    "Idritsa",
+    "Nevel’",
+    "Novosokol’niki",
+    "Opochka",
+    "Ostrov",
+    "Pechory",
+    "Porkhov",
+    "Pskov",
+    "Pushkinskiye Gory",
+    "Pustoshka",
+    "Pytalovo",
+    "Sebezh",
+    "Strugi-Krasnyye",
+    "Velikiye Luki"
+  ]
+}

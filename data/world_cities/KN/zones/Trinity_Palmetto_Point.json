@@ -1,0 +1,9 @@
+{
+  "country": "Saint-Kitts-et-Nevis",
+  "code": "KN",
+  "zone": "Trinity Palmetto Point",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Trinity"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Singida",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Igugunu",
+    "Ikungi",
+    "Ilongero",
+    "Itigi",
+    "Kilimatinde",
+    "Kintinku",
+    "Kiomboi",
+    "Manyoni",
+    "Mgandu",
+    "Mtinko",
+    "Mungaa",
+    "Ndago",
+    "Puma",
+    "Sepuka",
+    "Shelui",
+    "Singida"
+  ]
+}

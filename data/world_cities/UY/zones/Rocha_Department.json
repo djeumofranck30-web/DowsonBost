@@ -1,0 +1,12 @@
+{
+  "country": "Uruguay",
+  "code": "UY",
+  "zone": "Rocha Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Castillos",
+    "Chui",
+    "Lascano",
+    "Rocha"
+  ]
+}

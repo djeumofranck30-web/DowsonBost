@@ -1,0 +1,10 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Pernik",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Pernik",
+    "Radomir"
+  ]
+}

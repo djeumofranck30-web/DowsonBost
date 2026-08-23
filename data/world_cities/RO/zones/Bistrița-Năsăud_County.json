@@ -1,0 +1,22 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Bistrița-Năsăud County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Beclean",
+    "Bistriţa",
+    "Cormaia",
+    "Căianu Mic",
+    "Feldru",
+    "Josenii Bârgăului",
+    "Lechinţa",
+    "Măieru",
+    "Nimigea de Sus",
+    "Năsăud",
+    "Rodna",
+    "Sângeorz-Băi",
+    "Teaca",
+    "Telciu"
+  ]
+}

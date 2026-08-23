@@ -1,0 +1,17 @@
+{
+  "country": "Rwanda",
+  "code": "RW",
+  "zone": "Southern Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Butare",
+    "Gikongoro",
+    "Gitarama",
+    "Kamuhanda / Ruyenzi",
+    "Mugina",
+    "Muhanga",
+    "Nyanza",
+    "Nzega",
+    "Ruhango"
+  ]
+}

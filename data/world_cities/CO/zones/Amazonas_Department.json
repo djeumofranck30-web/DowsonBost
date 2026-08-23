@@ -1,0 +1,9 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Amazonas Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Leticia"
+  ]
+}

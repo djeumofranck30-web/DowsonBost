@@ -1,0 +1,11 @@
+{
+  "country": "Ouzbekistan",
+  "code": "UZ",
+  "zone": "Sirdaryo Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Guliston",
+    "Sirdaryo",
+    "Yangiyer"
+  ]
+}

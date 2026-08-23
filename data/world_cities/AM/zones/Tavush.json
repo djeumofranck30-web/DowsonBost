@@ -1,0 +1,11 @@
+{
+  "country": "Armenie",
+  "code": "AM",
+  "zone": "Tavush",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Berd",
+    "Dilijan",
+    "Ijevan"
+  ]
+}

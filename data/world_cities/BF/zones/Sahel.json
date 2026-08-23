@@ -1,0 +1,13 @@
+{
+  "country": "Burkina Faso",
+  "code": "BF",
+  "zone": "Sahel",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aribinda",
+    "Djibo",
+    "Dori",
+    "Gorom-Gorom",
+    "Sebba"
+  ]
+}

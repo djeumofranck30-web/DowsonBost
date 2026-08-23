@@ -1,0 +1,10 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Dar es Salaam Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dar es Salaam",
+    "Magomeni"
+  ]
+}

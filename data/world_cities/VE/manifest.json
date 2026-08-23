@@ -1,0 +1,33 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Amazonas",
+    "Anzoátegui",
+    "Apure",
+    "Aragua",
+    "Barinas",
+    "Bolívar",
+    "Carabobo",
+    "Cojedes",
+    "Delta Amacuro",
+    "Distrito Federal",
+    "Falcón",
+    "Guárico",
+    "Lara",
+    "Miranda",
+    "Monagas",
+    "Mérida",
+    "Nueva Esparta",
+    "Portuguesa",
+    "Sucre",
+    "Trujillo",
+    "Táchira",
+    "Vargas",
+    "Yaracuy",
+    "Zulia"
+  ],
+  "source": "geonames_admin1"
+}

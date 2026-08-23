@@ -1,0 +1,9 @@
+{
+  "country": "Mauritanie",
+  "code": "MR",
+  "zone": "Nouakchott North",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dar Naim"
+  ]
+}

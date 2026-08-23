@@ -1,0 +1,16 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Gaziantep",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aktoprak",
+    "Araban",
+    "Gaziantep",
+    "Karacaören",
+    "Nizip",
+    "Nurdağı",
+    "Oğuzeli",
+    "Yavuzeli"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Barh el Gazel",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Moussoro",
+    "Salal"
+  ]
+}

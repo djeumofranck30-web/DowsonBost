@@ -1,0 +1,16 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Constantine",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ali Mendjeli",
+    "Aïn Smara",
+    "Constantine",
+    "Didouche Mourad",
+    "El Khroub",
+    "Hamma Bouziane",
+    "Zighout Youcef",
+    "’Aïn Abid"
+  ]
+}

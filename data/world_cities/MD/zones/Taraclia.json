@@ -1,0 +1,10 @@
+{
+  "country": "Moldavie",
+  "code": "MD",
+  "zone": "Taraclia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Taraclia",
+    "Tvardița"
+  ]
+}

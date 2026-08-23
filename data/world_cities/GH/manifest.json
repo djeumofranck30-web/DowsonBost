@@ -1,0 +1,25 @@
+{
+  "country": "Ghana",
+  "code": "GH",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Ahafo",
+    "Ashanti",
+    "Bono",
+    "Bono East",
+    "Central",
+    "Eastern",
+    "Greater Accra",
+    "North East",
+    "Northern",
+    "Oti",
+    "Savannah",
+    "Upper East",
+    "Upper West",
+    "Volta",
+    "Western",
+    "Western North"
+  ],
+  "source": "geonames_admin1"
+}

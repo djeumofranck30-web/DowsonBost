@@ -1,0 +1,20 @@
+{
+  "country": "Lituanie",
+  "code": "LT",
+  "zone": "Kaunas",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aleksotas",
+    "Dainava (Kaunas)",
+    "Domeikava",
+    "Eiguliai",
+    "Garliava",
+    "Jonava",
+    "Kaišiadorys",
+    "Kaunas",
+    "Kėdainiai",
+    "Prienai",
+    "Raseiniai",
+    "Šilainiai"
+  ]
+}

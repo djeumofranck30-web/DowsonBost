@@ -1,0 +1,32 @@
+{
+  "country": "Ukraine",
+  "code": "UA",
+  "zone": "Cherkasy",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bahacheve",
+    "Bilozirya",
+    "Cherkasy",
+    "Chornobay",
+    "Chyhyryn",
+    "Drabiv",
+    "Horodyshche",
+    "Kamyanka",
+    "Kaniv",
+    "Katerynopil",
+    "Khrystynivka",
+    "Korsun-Shevchenkivskyi",
+    "Lysyanka",
+    "Mankivka",
+    "Monastyryshche",
+    "Ruska Poliana",
+    "Shpola",
+    "Sloboda",
+    "Smila",
+    "Talne",
+    "Uman",
+    "Zhashkiv",
+    "Zolotonosha",
+    "Zvenyhorodka"
+  ]
+}

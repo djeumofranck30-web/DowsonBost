@@ -1,0 +1,16 @@
+{
+  "country": "Pakistan",
+  "code": "PK",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Azad Kashmir",
+    "Balochistan",
+    "Gilgit-Baltistan",
+    "Islamabad",
+    "Khyber Pakhtunkhwa",
+    "Punjab",
+    "Sindh"
+  ],
+  "source": "geonames_admin1"
+}

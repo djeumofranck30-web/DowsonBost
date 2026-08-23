@@ -1,0 +1,15 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Quang Ngai",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kon Tum",
+    "Lý Sơn",
+    "Măng Đen",
+    "Mỹ Khê",
+    "Mỹ Lại",
+    "Quảng Ngãi",
+    "Đức Phổ"
+  ]
+}

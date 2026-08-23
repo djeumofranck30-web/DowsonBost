@@ -1,0 +1,17 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Trujillo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Boconó",
+    "El Dividive",
+    "Escuque",
+    "Motatán",
+    "Pampanito",
+    "Pampán",
+    "Sabana de Mendoza",
+    "Trujillo",
+    "Valera"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Fidji",
+  "code": "FJ",
+  "zone": "Northern",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Labasa",
+    "Savusavu"
+  ]
+}

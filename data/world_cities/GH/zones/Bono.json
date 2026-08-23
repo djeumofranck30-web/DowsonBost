@@ -1,0 +1,15 @@
+{
+  "country": "Ghana",
+  "code": "GH",
+  "zone": "Bono",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Atronie",
+    "Berekum",
+    "Domaa-Ahenkro",
+    "Japekrom",
+    "Nsoatre",
+    "Sunyani",
+    "Wankyi"
+  ]
+}

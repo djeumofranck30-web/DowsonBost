@@ -1,0 +1,17 @@
+{
+  "country": "Costa Rica",
+  "code": "CR",
+  "zone": "Heredia Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Heredia",
+    "Llorente",
+    "Mercedes Norte",
+    "San Antonio",
+    "San Francisco",
+    "San Josecito",
+    "San Pablo",
+    "San Rafael",
+    "Santo Domingo"
+  ]
+}

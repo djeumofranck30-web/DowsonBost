@@ -1,0 +1,32 @@
+{
+  "country": "Suriname",
+  "code": "SR",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Albina",
+    "Alkmaar",
+    "Beekhuizen",
+    "Blauwgrond",
+    "Brokopondo",
+    "Flora",
+    "Groningen",
+    "Jarikaba",
+    "Latour",
+    "Lelydorp",
+    "Livorno",
+    "Meerzorg",
+    "Moengo",
+    "Munder Buiten",
+    "Nieuw Amsterdam",
+    "Nieuw Nickerie",
+    "Onverwacht",
+    "Paramaribo",
+    "Pontbuiten",
+    "Rainville",
+    "Tamanredjo",
+    "Tammenga",
+    "Totness",
+    "Weg naar Zee",
+    "Welgelegen"
+  ]
+}

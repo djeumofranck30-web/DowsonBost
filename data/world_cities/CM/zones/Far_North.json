@@ -1,0 +1,20 @@
+{
+  "country": "Cameroun",
+  "code": "CM",
+  "zone": "Far North",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Blangwa",
+    "Bogo",
+    "Guidiguis",
+    "Kaélé",
+    "Kousséri",
+    "Maga",
+    "Makary",
+    "Maroua",
+    "Mindif",
+    "Mokolo",
+    "Mora",
+    "Yagoua"
+  ]
+}

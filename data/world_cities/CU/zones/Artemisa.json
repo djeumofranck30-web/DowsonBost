@@ -1,0 +1,21 @@
+{
+  "country": "Cuba",
+  "code": "CU",
+  "zone": "Artemisa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alquízar",
+    "Artemisa",
+    "Bahía Honda",
+    "Bauta",
+    "Cabañas",
+    "Candelaria",
+    "Guanajay",
+    "Güira de Melena",
+    "Mariel",
+    "Playa Baracoa",
+    "San Antonio de los Baños",
+    "San Cristobal",
+    "Soroa"
+  ]
+}

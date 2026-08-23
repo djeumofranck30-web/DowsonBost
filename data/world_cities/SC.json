@@ -1,0 +1,18 @@
+{
+  "country": "Seychelles",
+  "code": "SC",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anse Boileau",
+    "Anse Royale",
+    "Baie Sainte Anne",
+    "Beau Vallon",
+    "Bel Ombre",
+    "Cascade",
+    "La Passe",
+    "Perseverance",
+    "Port Glaud",
+    "Takamaka",
+    "Victoria"
+  ]
+}

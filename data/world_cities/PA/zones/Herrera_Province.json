@@ -1,0 +1,13 @@
+{
+  "country": "Panama",
+  "code": "PA",
+  "zone": "Herrera Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chitré",
+    "La Arena",
+    "Llano Bonito",
+    "Monagrillo",
+    "San Juan Bautista"
+  ]
+}

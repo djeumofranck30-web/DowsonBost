@@ -1,0 +1,28 @@
+{
+  "country": "Chine",
+  "code": "CN",
+  "zone": "Tibet",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bayi",
+    "Burang",
+    "Chéngguān Qū",
+    "Dagzê",
+    "Damxung",
+    "Doilungdêqên",
+    "Dêqên",
+    "Gar",
+    "Jiangzi",
+    "Lhasa",
+    "Lhoka",
+    "Lhünzhub",
+    "Luobuqiongzi",
+    "Maizhokunggar",
+    "Nagqu",
+    "Nyingchi",
+    "Nyêmo",
+    "Qamdo",
+    "Quxu",
+    "Rikaze"
+  ]
+}

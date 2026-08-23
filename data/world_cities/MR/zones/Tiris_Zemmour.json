@@ -1,0 +1,9 @@
+{
+  "country": "Mauritanie",
+  "code": "MR",
+  "zone": "Tiris Zemmour",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Zouérat"
+  ]
+}

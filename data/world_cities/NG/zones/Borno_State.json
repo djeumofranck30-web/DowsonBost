@@ -1,0 +1,31 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Borno State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bama",
+    "Benisheikh",
+    "Biu",
+    "Bornu Yassu",
+    "Damasak",
+    "Damboa",
+    "Dikwa",
+    "Gamboru",
+    "Gwoza",
+    "Konduga",
+    "Kukawa",
+    "Magumeri",
+    "Maiduguri",
+    "Marte",
+    "Miringa",
+    "Monguno",
+    "Ngala",
+    "Shaffa",
+    "Shani",
+    "Tokombere",
+    "Uba",
+    "Wuyo",
+    "Yajiwa"
+  ]
+}

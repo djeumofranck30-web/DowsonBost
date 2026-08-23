@@ -1,0 +1,17 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Điện Biên Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dien Bien Phu",
+    "Lay Nưa",
+    "Mường Chà",
+    "Mường Lay",
+    "Mường Nhé",
+    "Na Lay",
+    "Nà Tấu",
+    "Si Pa Phìn",
+    "Tuần Giáo"
+  ]
+}

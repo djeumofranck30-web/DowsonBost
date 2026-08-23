@@ -1,0 +1,12 @@
+{
+  "country": "Panama",
+  "code": "PA",
+  "zone": "Bocas del Toro Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Almirante",
+    "Bocas del Toro",
+    "Changuinola",
+    "El Empalme"
+  ]
+}

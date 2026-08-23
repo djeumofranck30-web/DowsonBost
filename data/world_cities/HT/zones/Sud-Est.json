@@ -1,0 +1,10 @@
+{
+  "country": "Haiti",
+  "code": "HT",
+  "zone": "Sud-Est",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Grand Gosier",
+    "Jacmel"
+  ]
+}

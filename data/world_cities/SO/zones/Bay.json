@@ -1,0 +1,11 @@
+{
+  "country": "Somalie",
+  "code": "SO",
+  "zone": "Bay",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baidoa",
+    "Buurhakaba",
+    "Diinsoor"
+  ]
+}

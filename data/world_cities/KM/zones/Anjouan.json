@@ -1,0 +1,21 @@
+{
+  "country": "Comores",
+  "code": "KM",
+  "zone": "Anjouan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Adda-Douéni",
+    "Barakani",
+    "Chandra",
+    "Domoni",
+    "Koni-Djodjo",
+    "Mirontsi",
+    "Moutsamoudou",
+    "Moya",
+    "Mramani",
+    "Mrémani",
+    "Ouani",
+    "Sima",
+    "Tsimbeo"
+  ]
+}

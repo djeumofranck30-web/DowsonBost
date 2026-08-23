@@ -1,0 +1,29 @@
+{
+  "country": "Pologne",
+  "code": "PL",
+  "zone": "Podlasie",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Augustów",
+    "Białystok",
+    "Bielsk Podlaski",
+    "Choroszcz",
+    "Czarna Białostocka",
+    "Dąbrowa Białostocka",
+    "Grajewo",
+    "Grudki",
+    "Hajnówka",
+    "Kolno",
+    "Mońki",
+    "Sejny",
+    "Siemiatycze",
+    "Sokółka",
+    "Suwałki",
+    "Szerszenie",
+    "Wasilków",
+    "Wysokie Mazowieckie",
+    "Zambrów",
+    "Łapy",
+    "Łomża"
+  ]
+}

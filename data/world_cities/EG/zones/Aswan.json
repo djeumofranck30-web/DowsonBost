@@ -1,0 +1,14 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Aswan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Başalīyah Baḩrī",
+    "As Sibā‘īyah",
+    "Aswān",
+    "Darāw",
+    "Edfu",
+    "Kom Ombo"
+  ]
+}

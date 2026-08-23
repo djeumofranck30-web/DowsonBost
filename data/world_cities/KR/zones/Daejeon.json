@@ -1,0 +1,11 @@
+{
+  "country": "Coree du Sud",
+  "code": "KR",
+  "zone": "Daejeon",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Daejeon",
+    "Sintansin",
+    "Songgangdong"
+  ]
+}

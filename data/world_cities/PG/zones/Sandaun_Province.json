@@ -1,0 +1,10 @@
+{
+  "country": "Papouasie-Nouvelle-Guinee",
+  "code": "PG",
+  "zone": "Sandaun Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aitape",
+    "Vanimo"
+  ]
+}

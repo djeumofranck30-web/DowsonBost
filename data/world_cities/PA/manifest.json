@@ -1,0 +1,22 @@
+{
+  "country": "Panama",
+  "code": "PA",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Bocas del Toro Province",
+    "Chiriquí Province",
+    "Coclé",
+    "Colón",
+    "Darién",
+    "Embera",
+    "Guna Yala",
+    "Herrera Province",
+    "Los Santos Province",
+    "Ngöbe-Buglé Comarca",
+    "Panamá",
+    "Panamá Oeste Province",
+    "Veraguas Province"
+  ],
+  "source": "geonames_admin1"
+}

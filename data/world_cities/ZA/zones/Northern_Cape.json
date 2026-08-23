@@ -1,0 +1,29 @@
+{
+  "country": "Afrique du Sud",
+  "code": "ZA",
+  "zone": "Northern Cape",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Barkly West",
+    "Calvinia",
+    "Carnarvon",
+    "Colesberg",
+    "Daniëlskuil",
+    "De Aar",
+    "Kakamas",
+    "Kathu",
+    "Kimberley",
+    "Kuruman",
+    "Nababeep",
+    "Nuwerus NC",
+    "Oakglen",
+    "Pampierstad",
+    "Postmasburg",
+    "Prieska",
+    "Ritchie",
+    "Springbok",
+    "Upington",
+    "Victoria West",
+    "Warrenton"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "country": "Jordanie",
+  "code": "JO",
+  "zone": "Aqaba",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aqaba"
+  ]
+}

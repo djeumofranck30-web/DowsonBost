@@ -1,0 +1,14 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "M'Sila",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ain el Hadjel",
+    "Bou Saâda",
+    "M'Sila",
+    "Melouza",
+    "Sidi Aïssa",
+    "’Aïn el Melh"
+  ]
+}

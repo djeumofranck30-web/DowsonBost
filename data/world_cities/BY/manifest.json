@@ -1,0 +1,16 @@
+{
+  "country": "Bielorussie",
+  "code": "BY",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Brest",
+    "Grodnenskaya",
+    "Homyel’ Voblasc’",
+    "Minsk",
+    "Minsk City",
+    "Mogilev",
+    "Vitebsk"
+  ],
+  "source": "geonames_admin1"
+}

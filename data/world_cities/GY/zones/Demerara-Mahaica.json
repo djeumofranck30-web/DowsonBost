@@ -1,0 +1,9 @@
+{
+  "country": "Guyana",
+  "code": "GY",
+  "zone": "Demerara-Mahaica",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Georgetown"
+  ]
+}

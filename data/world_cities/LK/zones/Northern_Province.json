@@ -1,0 +1,16 @@
+{
+  "country": "Sri Lanka",
+  "code": "LK",
+  "zone": "Northern Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Jaffna",
+    "Keppapularu",
+    "Kilinochchi",
+    "Mannar",
+    "Mullaittivu",
+    "Point Pedro",
+    "Valvedditturai",
+    "Vavuniya"
+  ]
+}

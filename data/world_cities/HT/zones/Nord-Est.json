@@ -1,0 +1,12 @@
+{
+  "country": "Haiti",
+  "code": "HT",
+  "zone": "Nord-Est",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Fort Liberté",
+    "Ouanaminthe",
+    "Terrier Rouge",
+    "Trou du Nord"
+  ]
+}

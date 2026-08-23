@@ -1,0 +1,29 @@
+{
+  "country": "Hongrie",
+  "code": "HU",
+  "zone": "Hajdú-Bihar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Balmazújváros",
+    "Berettyóújfalu",
+    "Debrecen",
+    "Derecske",
+    "Egyek",
+    "Hajdúböszörmény",
+    "Hajdúdorog",
+    "Hajdúhadház",
+    "Hajdúnánás",
+    "Hajdúszoboszló",
+    "Hajdúsámson",
+    "Hosszúpályi",
+    "Kaba",
+    "Komádi",
+    "Létavértes",
+    "Nyíradony",
+    "Nádudvar",
+    "Polgár",
+    "Püspökladány",
+    "Téglás",
+    "Vámospércs"
+  ]
+}

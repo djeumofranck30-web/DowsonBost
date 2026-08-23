@@ -1,0 +1,10 @@
+{
+  "country": "Yemen",
+  "code": "YE",
+  "zone": "Amanat Alasimah",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Jadder Cemetery",
+    "Sanaa"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Carabobo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bejuma",
+    "Guacara",
+    "Güigüe",
+    "Mariara",
+    "Miranda",
+    "Montalbán",
+    "Morón",
+    "Puerto Cabello",
+    "San Joaquín",
+    "Tacarigua",
+    "Valencia"
+  ]
+}

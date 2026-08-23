@@ -1,0 +1,10 @@
+{
+  "country": "Uruguay",
+  "code": "UY",
+  "zone": "Cerro Largo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Melo",
+    "Río Branco"
+  ]
+}

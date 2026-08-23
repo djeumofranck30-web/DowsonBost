@@ -1,0 +1,14 @@
+{
+  "country": "Guinee",
+  "code": "GN",
+  "zone": "Labé Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Donghol-Sigon",
+    "Koubia",
+    "Labé",
+    "Lélouma",
+    "Mali",
+    "Tougué"
+  ]
+}

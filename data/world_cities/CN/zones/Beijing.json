@@ -1,0 +1,17 @@
+{
+  "country": "Chine",
+  "code": "CN",
+  "zone": "Beijing",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Badaling",
+    "Beijing",
+    "Changping",
+    "Daxing",
+    "Fangshan",
+    "Liangxiang",
+    "Mentougou",
+    "Shunyi",
+    "Tongzhou"
+  ]
+}

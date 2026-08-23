@@ -1,0 +1,20 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Lao Cai",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bát Xát",
+    "Lào Cai",
+    "Nghĩa Lộ",
+    "Nông Trường Trần Phú",
+    "Sa Pa",
+    "Si Ma Cai",
+    "Thị Trấn Khánh Yên",
+    "Thị Trấn Mường Khương",
+    "Thị Trấn Phố Lu",
+    "Thị Trấn Phố Ràng",
+    "Thị Trấn Yên Bình",
+    "Yên Bái"
+  ]
+}

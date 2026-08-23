@@ -1,0 +1,10 @@
+{
+  "country": "Equateur",
+  "code": "EC",
+  "zone": "Bolívar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Guaranda",
+    "San Miguel de Bolívar"
+  ]
+}

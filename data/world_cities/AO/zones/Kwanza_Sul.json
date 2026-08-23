@@ -1,0 +1,23 @@
+{
+  "country": "Angola",
+  "code": "AO",
+  "zone": "Kwanza Sul",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Calulo",
+    "Capunda",
+    "Cela",
+    "Conda",
+    "Ebo",
+    "Gabela",
+    "Mussende",
+    "Porto Amboim",
+    "Quibala",
+    "Quilenda",
+    "Quissecula",
+    "Santa Clara",
+    "Sumbe",
+    "Ucu Seles",
+    "Waku Kungo"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "country": "Ethiopie",
+  "code": "ET",
+  "zone": "Addis Ababa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Addis Ababa"
+  ]
+}

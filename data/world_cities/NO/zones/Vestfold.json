@@ -1,0 +1,15 @@
+{
+  "country": "Norvege",
+  "code": "NO",
+  "zone": "Vestfold",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Holmestrand",
+    "Horten",
+    "Larvik",
+    "Sandefjord",
+    "Stavern",
+    "Stokke",
+    "Tønsberg"
+  ]
+}

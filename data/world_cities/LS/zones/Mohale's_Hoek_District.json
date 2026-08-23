@@ -1,0 +1,10 @@
+{
+  "country": "Lesotho",
+  "code": "LS",
+  "zone": "Mohale's Hoek District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Mohale's Hoek",
+    "Phamong"
+  ]
+}

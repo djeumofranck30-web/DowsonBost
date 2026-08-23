@@ -1,0 +1,10 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Nakhon Nayok",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Nakhon Nayok",
+    "Ongkharak"
+  ]
+}

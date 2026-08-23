@@ -1,0 +1,17 @@
+{
+  "country": "Niger",
+  "code": "NE",
+  "zone": "Zinder Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bélbéji",
+    "Dungas",
+    "Gouré",
+    "Magaria",
+    "Matamey",
+    "Mirriah",
+    "Takiéta",
+    "Tanout",
+    "Zinder"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Sakon Nakhon",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban I Toeng",
+    "Sakon Nakhon",
+    "Sawang Daen Din",
+    "Warichaphum"
+  ]
+}

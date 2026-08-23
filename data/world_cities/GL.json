@@ -1,0 +1,12 @@
+{
+  "country": "Groenland",
+  "code": "GL",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aasiaat",
+    "Ilulissat",
+    "Nuuk",
+    "Qaqortoq",
+    "Sisimiut"
+  ]
+}

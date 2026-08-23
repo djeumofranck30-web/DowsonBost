@@ -1,0 +1,14 @@
+{
+  "country": "Chypre",
+  "code": "CY",
+  "zone": "Ammochostos",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Derýneia",
+    "Famagusta",
+    "Paralímni",
+    "Protaras",
+    "Rizokárpaso",
+    "Égkomi"
+  ]
+}

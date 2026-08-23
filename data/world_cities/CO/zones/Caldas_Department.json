@@ -1,0 +1,28 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Caldas Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aguadas",
+    "Aranzazu",
+    "Belalcázar",
+    "Chinchiná",
+    "Filadelfia",
+    "La Dorada",
+    "Manizales",
+    "Manzanares",
+    "Marquetalia",
+    "Neira",
+    "Norcasia",
+    "Palestina",
+    "Pensilvania",
+    "Pácora",
+    "Riosucio",
+    "Risaralda",
+    "Salamina",
+    "Supía",
+    "Villamaría",
+    "Viterbo"
+  ]
+}

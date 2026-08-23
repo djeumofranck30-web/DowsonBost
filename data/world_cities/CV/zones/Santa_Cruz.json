@@ -1,0 +1,10 @@
+{
+  "country": "Cap-Vert",
+  "code": "CV",
+  "zone": "Santa Cruz",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Pedra Badejo",
+    "Santa Cruz"
+  ]
+}

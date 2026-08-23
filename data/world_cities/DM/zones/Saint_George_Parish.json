@@ -1,0 +1,9 @@
+{
+  "country": "Dominique",
+  "code": "DM",
+  "zone": "Saint George Parish",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Roseau"
+  ]
+}

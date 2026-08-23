@@ -1,0 +1,23 @@
+{
+  "country": "Ukraine",
+  "code": "UA",
+  "zone": "Volyn",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Horokhiv",
+    "Kamin-Kashyrskyi",
+    "Kivertsi",
+    "Kovel",
+    "Liubeshiv",
+    "Liuboml",
+    "Lutsk",
+    "Manevychi",
+    "Novovolynsk",
+    "Ratne",
+    "Rozhyshche",
+    "Shatsk",
+    "Stara Vyzhivka",
+    "Turiisk",
+    "Volodymyr-Volynskyi"
+  ]
+}

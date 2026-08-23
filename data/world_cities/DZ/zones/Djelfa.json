@@ -1,0 +1,18 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Djelfa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aïn Oussera",
+    "Birine",
+    "Charef",
+    "Dar Chioukh",
+    "Djelfa",
+    "El Idrissia",
+    "Feidh el Botma",
+    "Hassi Bahbah",
+    "Messaad",
+    "’Aïn el Bell"
+  ]
+}

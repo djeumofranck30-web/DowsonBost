@@ -1,0 +1,13 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Boeny",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ambato Boeny",
+    "Mahajanga",
+    "Marovoay",
+    "Sitampiky",
+    "Soalala"
+  ]
+}

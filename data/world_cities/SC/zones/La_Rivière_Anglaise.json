@@ -1,0 +1,9 @@
+{
+  "country": "Seychelles",
+  "code": "SC",
+  "zone": "La Rivière Anglaise",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Victoria"
+  ]
+}

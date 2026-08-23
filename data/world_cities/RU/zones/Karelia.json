@@ -1,0 +1,25 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Karelia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Belomorsk",
+    "Kalevala",
+    "Kem’",
+    "Kondopoga",
+    "Kostomuksha",
+    "Lakhdenpokh’ya",
+    "Loukhi",
+    "Medvezh’yegorsk",
+    "Nadvoitsy",
+    "Olonets",
+    "Petrozavodsk",
+    "Pindushi",
+    "Pitkyaranta",
+    "Pudozh",
+    "Segezha",
+    "Sortavala",
+    "Suoyarvi"
+  ]
+}

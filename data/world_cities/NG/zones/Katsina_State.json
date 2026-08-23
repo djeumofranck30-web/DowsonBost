@@ -1,0 +1,27 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Katsina State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bakori",
+    "Batsari",
+    "Danja",
+    "Dankama",
+    "Daura",
+    "Dutsin-Ma",
+    "Funtua",
+    "Gora",
+    "Jibia",
+    "Jikamshi",
+    "Kankara",
+    "Katsina",
+    "Malumfashi",
+    "Mashi",
+    "Musawa",
+    "Ruma",
+    "Runka",
+    "Wagini",
+    "Zango"
+  ]
+}

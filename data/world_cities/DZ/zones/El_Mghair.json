@@ -1,0 +1,11 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "El Mghair",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Djamaa",
+    "El Meghaïer",
+    "Sidi Amrane"
+  ]
+}

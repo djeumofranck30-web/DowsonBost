@@ -1,0 +1,23 @@
+{
+  "country": "Saint-Kitts-et-Nevis",
+  "code": "KN",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Christ Church Nichola Town",
+    "Middle Island",
+    "Saint Anne Sandy Point",
+    "Saint George Basseterre",
+    "Saint George Gingerland",
+    "Saint James Windwa",
+    "Saint John Capesterre",
+    "Saint John Figtree",
+    "Saint Mary Cayon",
+    "Saint Paul Capesterre",
+    "Saint Paul Charlestown",
+    "Saint Peter Basseterre",
+    "Saint Thomas Lowland",
+    "Trinity Palmetto Point"
+  ],
+  "source": "geonames_admin1"
+}

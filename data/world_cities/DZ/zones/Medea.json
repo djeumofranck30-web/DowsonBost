@@ -1,0 +1,17 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Medea",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aziz",
+    "Berrouaghia",
+    "Bougzoul",
+    "Chellalat el Adhaouara",
+    "Draâ Esmar",
+    "Ksar el Boukhari",
+    "Médéa",
+    "Ouzera",
+    "’Aïn Boucif"
+  ]
+}

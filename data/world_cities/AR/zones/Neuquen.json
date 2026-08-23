@@ -1,0 +1,20 @@
+{
+  "country": "Argentine",
+  "code": "AR",
+  "zone": "Neuquen",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Añelo",
+    "Centenario",
+    "Chos Malal",
+    "Cutral-Có",
+    "Junín de los Andes",
+    "Neuquén",
+    "Plaza Huincul",
+    "Plottier",
+    "San Martín de los Andes",
+    "Senillosa",
+    "Villa La Angostura",
+    "Zapala"
+  ]
+}

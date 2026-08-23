@@ -1,0 +1,20 @@
+{
+  "country": "Brunei",
+  "code": "BN",
+  "zone": "Brunei-Muara District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bandar Seri Begawan",
+    "Kampong Ayer",
+    "Kampong Lambak A",
+    "Kampung Beribi",
+    "Kampung Lugu",
+    "Kampung Mata-Mata",
+    "Kampung Rimba",
+    "Kampung Tanah Jambu",
+    "Mentiri",
+    "Sengkurong",
+    "Serasa",
+    "Sungai Hanching"
+  ]
+}

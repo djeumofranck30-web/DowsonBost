@@ -1,0 +1,12 @@
+{
+  "country": "Guyana",
+  "code": "GY",
+  "zone": "East Berbice-Corentyne",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Corriverton",
+    "New Amsterdam",
+    "Rose Hall",
+    "Skeldon"
+  ]
+}

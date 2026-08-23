@@ -1,0 +1,28 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Vaslui County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Banca",
+    "Berezeni",
+    "Bârlad",
+    "Deleşti",
+    "Duda",
+    "Fălciu",
+    "Griviţa",
+    "Huşi",
+    "Laza",
+    "Murgeni",
+    "Negreşti",
+    "Perieni",
+    "Puieşti",
+    "Stănileşti",
+    "Tanacu",
+    "Todireşti",
+    "Tutova",
+    "Vaslui",
+    "Văleni",
+    "Zorleni"
+  ]
+}

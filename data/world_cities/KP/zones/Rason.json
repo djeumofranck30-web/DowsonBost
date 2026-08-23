@@ -1,0 +1,12 @@
+{
+  "country": "Coree du Nord",
+  "code": "KP",
+  "zone": "Rason",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Rajin",
+    "Sŏnbong",
+    "Unggi",
+    "Ungsang-nodongjagu"
+  ]
+}

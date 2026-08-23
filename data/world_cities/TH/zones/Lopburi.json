@@ -1,0 +1,10 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Lopburi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chai Badan",
+    "Lop Buri"
+  ]
+}

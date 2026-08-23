@@ -1,0 +1,12 @@
+{
+  "country": "Burkina Faso",
+  "code": "BF",
+  "zone": "Sud-Ouest",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Batié",
+    "Dano",
+    "Diébougou",
+    "Gaoua"
+  ]
+}

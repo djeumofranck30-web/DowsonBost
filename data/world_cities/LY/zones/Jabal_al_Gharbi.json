@@ -1,0 +1,20 @@
+{
+  "country": "Libye",
+  "code": "LY",
+  "zone": "Jabal al Gharbi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abū Zayyān",
+    "Al Aşābi‘ah",
+    "Al Qawāsim",
+    "Ar Rayāyinah",
+    "Ar Rujbān",
+    "Ar-Raḥaībāt",
+    "Gharyan",
+    "Jādū",
+    "Kiklah",
+    "Mizdah",
+    "Yafran",
+    "Zintan"
+  ]
+}

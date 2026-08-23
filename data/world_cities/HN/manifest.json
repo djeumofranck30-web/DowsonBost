@@ -1,0 +1,27 @@
+{
+  "country": "Honduras",
+  "code": "HN",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Atlántida Department",
+    "Bay Islands",
+    "Choluteca Department",
+    "Colón Department",
+    "Comayagua Department",
+    "Copán Department",
+    "Cortés Department",
+    "El Paraíso Department",
+    "Francisco Morazán Department",
+    "Gracias a Dios Department",
+    "Intibucá Department",
+    "La Paz Department",
+    "Lempira Department",
+    "Ocotepeque Department",
+    "Olancho Department",
+    "Santa Bárbara Department",
+    "Valle Department",
+    "Yoro Department"
+  ],
+  "source": "geonames_admin1"
+}

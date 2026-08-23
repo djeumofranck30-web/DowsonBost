@@ -1,0 +1,10 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "Kinshasa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kinshasa",
+    "Masina"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "country": "Bolivie",
+  "code": "BO",
+  "zone": "Pando",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cobija"
+  ]
+}

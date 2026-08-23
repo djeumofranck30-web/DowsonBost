@@ -1,0 +1,11 @@
+{
+  "country": "Myanmar",
+  "code": "MM",
+  "zone": "Chin State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Falam",
+    "Hakha",
+    "Tedim"
+  ]
+}

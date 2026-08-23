@@ -1,0 +1,9 @@
+{
+  "country": "Cuba",
+  "code": "CU",
+  "zone": "Isla de la Juventud",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Nueva Gerona"
+  ]
+}

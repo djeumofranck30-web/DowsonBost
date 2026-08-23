@@ -1,0 +1,11 @@
+{
+  "country": "Mali",
+  "code": "ML",
+  "zone": "Ménaka",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Andéranboukan",
+    "Inékar",
+    "Ménaka"
+  ]
+}

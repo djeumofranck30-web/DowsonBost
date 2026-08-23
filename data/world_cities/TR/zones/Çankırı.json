@@ -1,0 +1,18 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Çankırı",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Atkaracalar",
+    "Eldivan",
+    "Ilgaz",
+    "Korgun",
+    "Kurşunlu",
+    "Orta",
+    "Yapraklı",
+    "Çankırı",
+    "Çerkeş",
+    "Şabanözü"
+  ]
+}

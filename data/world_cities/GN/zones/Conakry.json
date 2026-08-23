@@ -1,0 +1,11 @@
+{
+  "country": "Guinee",
+  "code": "GN",
+  "zone": "Conakry",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Camayenne",
+    "Conakry",
+    "Dixinn"
+  ]
+}

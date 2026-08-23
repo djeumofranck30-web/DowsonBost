@@ -1,0 +1,31 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Santander Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Barbosa",
+    "Barrancabermeja",
+    "Bolívar",
+    "Bucaramanga",
+    "Cimitarra",
+    "Curití",
+    "El Carmen de Chucurí",
+    "El Playón",
+    "Floridablanca",
+    "Girón",
+    "Landázuri",
+    "Lebrija",
+    "Mogotes",
+    "Málaga",
+    "Piedecuesta",
+    "Puente Nacional",
+    "Puerto Wilches",
+    "Sabana de Torres",
+    "San Gil",
+    "San Vicente de Chucurí",
+    "Socorro",
+    "Vélez",
+    "Zapatoca"
+  ]
+}

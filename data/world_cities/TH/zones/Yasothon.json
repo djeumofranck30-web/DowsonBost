@@ -1,0 +1,9 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Yasothon",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Yasothon"
+  ]
+}

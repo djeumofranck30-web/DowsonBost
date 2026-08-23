@@ -1,0 +1,12 @@
+{
+  "country": "Fidji",
+  "code": "FJ",
+  "zone": "Central",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Lami",
+    "Nasinu",
+    "Navua",
+    "Suva"
+  ]
+}

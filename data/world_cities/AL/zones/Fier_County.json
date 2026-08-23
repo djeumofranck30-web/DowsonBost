@@ -1,0 +1,17 @@
+{
+  "country": "Albanie",
+  "code": "AL",
+  "zone": "Fier County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Divjakë",
+    "Fier",
+    "Fier-Çifçi",
+    "Golem",
+    "Lushnjë",
+    "Patos",
+    "Patos Fshat",
+    "Roskovec",
+    "Zharrëz"
+  ]
+}

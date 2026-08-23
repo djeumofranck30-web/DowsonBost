@@ -1,0 +1,10 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Bayburt Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aydıntepe",
+    "Bayburt"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "country": "Ghana",
+  "code": "GH",
+  "zone": "Western",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aboso",
+    "Elubo",
+    "Esim",
+    "Prestea",
+    "Sekondi",
+    "Sekondi-Takoradi",
+    "Shama Junction",
+    "Takoradi",
+    "Tarkwa"
+  ]
+}

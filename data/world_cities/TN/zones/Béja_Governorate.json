@@ -1,0 +1,15 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Béja Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Béja",
+    "Djebel Abiod",
+    "Maagoula",
+    "Medjez el Bab",
+    "Tabursuq",
+    "Testour",
+    "Zaouiet Medien"
+  ]
+}

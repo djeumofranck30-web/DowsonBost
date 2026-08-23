@@ -1,0 +1,10 @@
+{
+  "country": "Cap-Vert",
+  "code": "CV",
+  "zone": "São Domingos",
+  "source": "geonames_cities5000",
+  "cities": [
+    "São Domingos",
+    "Várzea"
+  ]
+}

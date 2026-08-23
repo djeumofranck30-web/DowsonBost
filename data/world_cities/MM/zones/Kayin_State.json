@@ -1,0 +1,13 @@
+{
+  "country": "Myanmar",
+  "code": "MM",
+  "zone": "Kayin State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Hpa-An",
+    "Kawkareik",
+    "Myawaddy",
+    "Payathonzu",
+    "Shwe Kokko"
+  ]
+}

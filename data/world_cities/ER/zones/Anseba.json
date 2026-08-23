@@ -1,0 +1,9 @@
+{
+  "country": "Erythree",
+  "code": "ER",
+  "zone": "Anseba",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Keren"
+  ]
+}

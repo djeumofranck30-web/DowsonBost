@@ -1,0 +1,9 @@
+{
+  "country": "Suede",
+  "code": "SE",
+  "zone": "Gotland",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Visby"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "country": "Ukraine",
+  "code": "UA",
+  "zone": "Mykolaiv",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arbuzynka",
+    "Bashtanka",
+    "Bereznehuvate",
+    "Bratske",
+    "Domanivka",
+    "Kazanka",
+    "Kryve Ozero",
+    "Kulbakyne",
+    "Mishkovo-Pohorilove",
+    "Mykolayiv",
+    "Nova Odesa",
+    "Novyi Buh",
+    "Ochakiv",
+    "Oleksandrivka",
+    "Pervomaysk",
+    "Pivdennoukrainsk",
+    "Snihurivka",
+    "Veselynove",
+    "Voznesensk",
+    "Vradiyivka"
+  ]
+}

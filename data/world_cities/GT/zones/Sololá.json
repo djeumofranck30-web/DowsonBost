@@ -1,0 +1,17 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "Sololá",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Nahualá",
+    "Panajachel",
+    "San Lucas Tolimán",
+    "San Pablo La Laguna",
+    "San Pedro La Laguna",
+    "Santa Catarina Ixtahuacán",
+    "Santa Clara La Laguna",
+    "Santiago Atitlán",
+    "Sololá"
+  ]
+}

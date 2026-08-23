@@ -1,0 +1,14 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Nonthaburi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bang Bua Thong",
+    "Bang Kruai",
+    "Bang O",
+    "Bang Yai",
+    "Mueang Nonthaburi",
+    "Pak Kret"
+  ]
+}

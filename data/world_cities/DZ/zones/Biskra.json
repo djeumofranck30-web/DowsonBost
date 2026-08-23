@@ -1,0 +1,13 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Biskra",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Biskra",
+    "Oumache",
+    "Sidi Okba",
+    "Tolga",
+    "Zeribet el Oued"
+  ]
+}

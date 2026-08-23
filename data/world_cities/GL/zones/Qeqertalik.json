@@ -1,0 +1,9 @@
+{
+  "country": "Groenland",
+  "code": "GL",
+  "zone": "Qeqertalik",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aasiaat"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Sharqia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abu Suweir-el-Mahatta",
+    "Abū Kabīr",
+    "Abū Ḩammād",
+    "Al Ibrāhīmīyah",
+    "Al Qanāyāt",
+    "Al Qaşşāşīn",
+    "Al Qurayn",
+    "Al Ḩusaynīyah",
+    "Al ‘Āshir min Ramaḑān",
+    "At Tall al Kabīr",
+    "Awlād Şaqr",
+    "Aş Şāliḩīyah al Jadīdah",
+    "Bilbeis",
+    "Diyarb Najm",
+    "Fāqūs",
+    "Hihyā",
+    "Kafr Şaqr",
+    "Mashtūl as Sūq",
+    "Minyā al Qamḩ",
+    "Munsha‘at Abū ‘Umar",
+    "Zagazig",
+    "Şān al Ḩajar al Qiblīyah"
+  ]
+}

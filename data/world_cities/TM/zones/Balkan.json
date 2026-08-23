@@ -1,0 +1,21 @@
+{
+  "country": "Turkmenistan",
+  "code": "TM",
+  "zone": "Balkan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akdaş",
+    "Balkanabat",
+    "Bereket",
+    "Esenguly",
+    "Etrek",
+    "Garabogaz",
+    "Garadepe",
+    "Gumdag",
+    "Gyzylarbat",
+    "Hazar",
+    "Jebel",
+    "Magtymguly",
+    "Türkmenbaşy"
+  ]
+}

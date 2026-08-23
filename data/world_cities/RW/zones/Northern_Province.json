@@ -1,0 +1,14 @@
+{
+  "country": "Rwanda",
+  "code": "RW",
+  "zone": "Northern Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Busogo",
+    "Byumba",
+    "Kinigi",
+    "Mukingo",
+    "Musanze",
+    "Shyorongi"
+  ]
+}

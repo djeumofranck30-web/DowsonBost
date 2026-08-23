@@ -1,0 +1,17 @@
+{
+  "country": "Irak",
+  "code": "IQ",
+  "zone": "Nineveh",
+  "source": "geonames_cities5000",
+  "cities": [
+    "'Ākra",
+    "Al Mawşil al Jadīdah",
+    "Al-Hamdaniya",
+    "Barţalah",
+    "Kays Qal‘ah",
+    "Mosul",
+    "Sinjār",
+    "Tallkayf",
+    "‘Aqrah"
+  ]
+}

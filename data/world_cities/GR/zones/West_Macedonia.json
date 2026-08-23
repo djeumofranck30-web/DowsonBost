@@ -1,0 +1,15 @@
+{
+  "country": "Grece",
+  "code": "GR",
+  "zone": "West Macedonia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Argos Orestiko",
+    "Flórina",
+    "Grevená",
+    "Kastoria",
+    "Kozáni",
+    "Ptolemaḯda",
+    "Siátista"
+  ]
+}

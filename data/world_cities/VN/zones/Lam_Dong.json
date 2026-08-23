@@ -1,0 +1,20 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Lam Dong",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bảo Lộc",
+    "Ea Pô",
+    "Ea T’ling",
+    "Gia Nghĩa",
+    "Huyện Lâm Hà",
+    "La Gi",
+    "Mui Ne",
+    "Phan Thiết",
+    "Phú Quý",
+    "Ðà Lạt",
+    "Đinh Văn",
+    "Đưc Trọng"
+  ]
+}

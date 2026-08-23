@@ -1,0 +1,26 @@
+{
+  "country": "Autriche",
+  "code": "AT",
+  "zone": "Carinthia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Annabichl",
+    "Auen",
+    "Ebenthal",
+    "Finkenstein am Faaker See",
+    "Klagenfurt am Wörthersee",
+    "Lind",
+    "Sankt Martin",
+    "Sankt Peter",
+    "Sankt Ruprecht",
+    "Sankt Veit an der Glan",
+    "Spittal an der Drau",
+    "Viktring",
+    "Villach",
+    "Villach-Innere Stadt",
+    "Villacher Vorstadt",
+    "Völkendorf",
+    "Wolfsberg",
+    "Wölfnitz"
+  ]
+}

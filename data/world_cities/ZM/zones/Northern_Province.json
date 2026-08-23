@@ -1,0 +1,16 @@
+{
+  "country": "Zambie",
+  "code": "ZM",
+  "zone": "Northern Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chilubi",
+    "Kaputa",
+    "Kasama",
+    "Luwingu",
+    "Mbala",
+    "Mporokoso",
+    "Mpulungu",
+    "Mungwi"
+  ]
+}

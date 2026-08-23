@@ -1,0 +1,12 @@
+{
+  "country": "Haiti",
+  "code": "HT",
+  "zone": "Nord-Ouest",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Jean-Rabel",
+    "Port-de-Paix",
+    "Saint-Louis du Nord",
+    "Ti Port-de-Paix"
+  ]
+}

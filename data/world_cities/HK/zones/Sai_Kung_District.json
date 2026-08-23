@@ -1,0 +1,14 @@
+{
+  "country": "Hong Kong",
+  "code": "HK",
+  "zone": "Sai Kung District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Hang Hau",
+    "LOHAS Park",
+    "Sai Kung",
+    "Siu Chik Sha",
+    "Tai Mong Tsai",
+    "Tseung Kwan O"
+  ]
+}

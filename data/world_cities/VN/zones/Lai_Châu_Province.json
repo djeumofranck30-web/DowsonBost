@@ -1,0 +1,11 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Lai Châu Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Lai Châu",
+    "Than Uyên",
+    "Thị Trấn Sìn Hồ"
+  ]
+}

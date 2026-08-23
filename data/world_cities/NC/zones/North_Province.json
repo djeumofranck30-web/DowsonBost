@@ -1,0 +1,10 @@
+{
+  "country": "Nouvelle-Caledonie",
+  "code": "NC",
+  "zone": "North Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Koné",
+    "Poindimié"
+  ]
+}

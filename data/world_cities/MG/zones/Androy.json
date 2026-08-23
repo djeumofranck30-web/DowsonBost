@@ -1,0 +1,16 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Androy",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ambovombe",
+    "Bekily",
+    "Beloha",
+    "Beteza",
+    "Jafaro",
+    "Kopoky",
+    "Tranovaho",
+    "Tsiombe"
+  ]
+}

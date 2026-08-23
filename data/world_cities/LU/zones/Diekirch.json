@@ -1,0 +1,10 @@
+{
+  "country": "Luxembourg",
+  "code": "LU",
+  "zone": "Diekirch",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Diekirch",
+    "Ettelbruck"
+  ]
+}

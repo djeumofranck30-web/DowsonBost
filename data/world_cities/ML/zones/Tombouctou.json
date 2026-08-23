@@ -1,0 +1,12 @@
+{
+  "country": "Mali",
+  "code": "ML",
+  "zone": "Tombouctou",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Diré",
+    "Goundam",
+    "Niafunké",
+    "Timbuktu"
+  ]
+}

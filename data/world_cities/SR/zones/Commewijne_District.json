@@ -1,0 +1,12 @@
+{
+  "country": "Suriname",
+  "code": "SR",
+  "zone": "Commewijne District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alkmaar",
+    "Meerzorg",
+    "Nieuw Amsterdam",
+    "Tamanredjo"
+  ]
+}

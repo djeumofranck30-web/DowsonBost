@@ -1,0 +1,26 @@
+{
+  "country": "Hongrie",
+  "code": "HU",
+  "zone": "Szabolcs-Szatmár-Bereg",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Balkány",
+    "Csenger",
+    "Fehérgyarmat",
+    "Ibrány",
+    "Kemecse",
+    "Kisvárda",
+    "Mátészalka",
+    "Nagyecsed",
+    "Nagyhalász",
+    "Nagykálló",
+    "Nyírbátor",
+    "Nyíregyháza",
+    "Nyírtelek",
+    "Rakamaz",
+    "Tiszalök",
+    "Tiszavasvári",
+    "Vásárosnamény",
+    "Újfehértó"
+  ]
+}

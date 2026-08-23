@@ -1,0 +1,18 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Sofia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Analalava",
+    "Antsirabe Afovoany",
+    "Antsohihy",
+    "Bealanana",
+    "Befandriana",
+    "Boriziny",
+    "Mampikony",
+    "Maromandia",
+    "Marovantaza",
+    "Marovatolena"
+  ]
+}

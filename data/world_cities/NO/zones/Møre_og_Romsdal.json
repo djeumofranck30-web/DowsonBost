@@ -1,0 +1,15 @@
+{
+  "country": "Norvege",
+  "code": "NO",
+  "zone": "Møre og Romsdal",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Haram",
+    "Kristiansund",
+    "Molde",
+    "Ulsteinvik",
+    "Volda",
+    "Ålesund",
+    "Ørsta"
+  ]
+}

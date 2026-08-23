@@ -1,0 +1,14 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Mandera County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Banissa",
+    "El Wak",
+    "Lafey",
+    "Mandera",
+    "Ramu",
+    "Takaba"
+  ]
+}

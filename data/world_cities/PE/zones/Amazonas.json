@@ -1,0 +1,13 @@
+{
+  "country": "Perou",
+  "code": "PE",
+  "zone": "Amazonas",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bagua Grande",
+    "Cajaruro",
+    "Chachapoyas",
+    "La Peca",
+    "Pedro Ruiz Gallo"
+  ]
+}

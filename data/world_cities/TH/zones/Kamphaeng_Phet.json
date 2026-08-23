@@ -1,0 +1,11 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Kamphaeng Phet",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kamphaeng Phet",
+    "Khanu Woralaksaburi",
+    "Lan Krabue"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "country": "Samoa",
+  "code": "WS",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "A'ana",
+    "Aiga-i-le-Tai",
+    "Atua",
+    "Fa'asaleleaga",
+    "Gaga'ifomauga",
+    "Palauli",
+    "Satupa'itea",
+    "Tuamasaga",
+    "Va'a-o-Fonoti",
+    "Vaisigano"
+  ],
+  "source": "geonames_admin1"
+}

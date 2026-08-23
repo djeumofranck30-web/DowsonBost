@@ -1,0 +1,9 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "N’Djaména",
+  "source": "geonames_cities5000",
+  "cities": [
+    "N'Djamena"
+  ]
+}

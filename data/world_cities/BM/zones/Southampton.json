@@ -1,0 +1,9 @@
+{
+  "country": "Bermudes",
+  "code": "BM",
+  "zone": "Southampton",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Southampton Parish"
+  ]
+}

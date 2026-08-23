@@ -1,0 +1,17 @@
+{
+  "country": "Polynesie francaise",
+  "code": "PF",
+  "zone": "Îles du Vent",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Afaahiti",
+    "Arue",
+    "Faaa",
+    "Mahina",
+    "Paea",
+    "Papao",
+    "Papeete",
+    "Pirae",
+    "Punaauia"
+  ]
+}

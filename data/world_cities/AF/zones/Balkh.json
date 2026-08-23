@@ -1,0 +1,12 @@
+{
+  "country": "Afghanistan",
+  "code": "AF",
+  "zone": "Balkh",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Balkh",
+    "Khulm",
+    "Mazār-e Sharīf",
+    "Qarchī Gak"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "La Guajira Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Albania",
+    "Barrancas",
+    "Distracción",
+    "El Molino",
+    "Fonseca",
+    "Hatonuevo",
+    "Maicao",
+    "Manaure",
+    "Riohacha",
+    "San Juan del Cesar",
+    "Uribia",
+    "Urumita",
+    "Villanueva"
+  ]
+}

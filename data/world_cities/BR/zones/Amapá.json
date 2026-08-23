@@ -1,0 +1,26 @@
+{
+  "country": "Bresil",
+  "code": "BR",
+  "zone": "Amapá",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amapá",
+    "Araxá",
+    "Calçoene",
+    "Ferreira Gomes",
+    "Itaubal",
+    "Laranjal do Jari",
+    "Macapá",
+    "Mazagão",
+    "Oiapoque",
+    "Pedra Branca do Amapari",
+    "Porto Grande",
+    "Portuário do Igarapé da Fortaleza",
+    "Ressaca Beirol",
+    "Ressaca do Muca",
+    "Ressaca Pacoval",
+    "Santana",
+    "Tartarugalzinho",
+    "Vitória do Jari"
+  ]
+}

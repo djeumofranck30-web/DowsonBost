@@ -1,0 +1,15 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Imo State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Iho",
+    "Nkwerre",
+    "Oguta",
+    "Okigwe",
+    "Orlu",
+    "Orodo",
+    "Owerri"
+  ]
+}

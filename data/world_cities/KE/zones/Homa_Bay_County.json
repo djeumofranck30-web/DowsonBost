@@ -1,0 +1,15 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Homa Bay County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Awendo",
+    "Homa Bay",
+    "Kendu Bay",
+    "Mbita",
+    "Oyugis",
+    "Rodi",
+    "Sindo"
+  ]
+}

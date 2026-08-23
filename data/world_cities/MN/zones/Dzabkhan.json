@@ -1,0 +1,10 @@
+{
+  "country": "Mongolie",
+  "code": "MN",
+  "zone": "Dzabkhan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Tosontsengel",
+    "Uliastay"
+  ]
+}

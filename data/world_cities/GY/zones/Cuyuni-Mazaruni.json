@@ -1,0 +1,9 @@
+{
+  "country": "Guyana",
+  "code": "GY",
+  "zone": "Cuyuni-Mazaruni",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bartica"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Maramureş",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baia Mare",
+    "Baia Sprie",
+    "Borşa",
+    "Bârsana",
+    "Cavnic",
+    "Copalnic Mănăştur",
+    "Mireşu Mare",
+    "Moisei",
+    "Poienile de sub Munte",
+    "Recea",
+    "Rozavlea",
+    "Ruscova",
+    "Satulung",
+    "Seini",
+    "Sighetu Marmaţiei",
+    "Suciu de Sus",
+    "Săliştea de Sus",
+    "Ulmeni",
+    "Vişeu de Jos",
+    "Vişeu de Sus",
+    "Şomcuta Mare"
+  ]
+}

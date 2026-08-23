@@ -1,0 +1,18 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Ondo State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Agbabu",
+    "Akure",
+    "Idanre",
+    "Ifon",
+    "Ikare",
+    "Ilare",
+    "Ode",
+    "Ondo",
+    "Ore",
+    "Owo"
+  ]
+}

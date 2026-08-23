@@ -1,0 +1,23 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Bihor County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aleşd",
+    "Batăr",
+    "Beiuş",
+    "Bratca",
+    "Cefa",
+    "Diosig",
+    "Dobreşti",
+    "Marghita",
+    "Oradea",
+    "Popeşti",
+    "Salonta",
+    "Săcueni",
+    "Tileagd",
+    "Valea lui Mihai",
+    "Ștei"
+  ]
+}

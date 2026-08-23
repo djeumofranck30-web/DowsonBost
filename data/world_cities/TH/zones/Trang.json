@@ -1,0 +1,11 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Trang",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Huai Yot",
+    "Kantang",
+    "Trang"
+  ]
+}

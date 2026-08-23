@@ -1,0 +1,12 @@
+{
+  "country": "Guinee",
+  "code": "GN",
+  "zone": "Mamou Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dalaba",
+    "Mamou",
+    "Pita",
+    "Timbo"
+  ]
+}

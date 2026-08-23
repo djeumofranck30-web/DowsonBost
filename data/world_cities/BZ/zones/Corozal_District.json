@@ -1,0 +1,9 @@
+{
+  "country": "Belize",
+  "code": "BZ",
+  "zone": "Corozal District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Corozal"
+  ]
+}

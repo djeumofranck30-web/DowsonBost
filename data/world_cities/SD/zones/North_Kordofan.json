@@ -1,0 +1,12 @@
+{
+  "country": "Soudan",
+  "code": "SD",
+  "zone": "North Kordofan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ar Rahad",
+    "Bārah",
+    "El Obeid",
+    "Umm Ruwaba"
+  ]
+}

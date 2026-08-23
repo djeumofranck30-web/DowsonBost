@@ -1,0 +1,10 @@
+{
+  "country": "Ghana",
+  "code": "GH",
+  "zone": "Oti",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dambai",
+    "Kete Krachi"
+  ]
+}

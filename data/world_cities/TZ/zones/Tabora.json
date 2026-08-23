@@ -1,0 +1,19 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Tabora",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bukene",
+    "Igunga",
+    "Igurubi",
+    "Kaliua",
+    "Mabama",
+    "Nzega",
+    "Sikonge",
+    "Tabora",
+    "Tumbi",
+    "Urambo",
+    "Usoke"
+  ]
+}

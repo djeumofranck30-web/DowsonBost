@@ -1,0 +1,15 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Aïn Defla",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aïn Defla",
+    "Aïn Lechiakh",
+    "El Abadia",
+    "El Attaf",
+    "Hammam Righa",
+    "Khemis Miliana",
+    "Miliana"
+  ]
+}

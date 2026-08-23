@@ -1,0 +1,11 @@
+{
+  "country": "Jamaique",
+  "code": "JM",
+  "zone": "St. Elizabeth",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Black River",
+    "Bull Savannah",
+    "Santa Cruz"
+  ]
+}

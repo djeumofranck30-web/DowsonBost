@@ -1,0 +1,13 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Edirne",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Edirne",
+    "Havsa",
+    "İpsala",
+    "Keşan",
+    "Uzunköprü"
+  ]
+}

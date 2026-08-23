@@ -1,0 +1,11 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Lamu",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Lamu",
+    "Mpeketoni",
+    "Witu"
+  ]
+}

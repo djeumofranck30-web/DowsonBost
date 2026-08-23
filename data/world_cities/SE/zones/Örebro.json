@@ -1,0 +1,15 @@
+{
+  "country": "Suede",
+  "code": "SE",
+  "zone": "Örebro",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Degerfors",
+    "Hallsberg",
+    "Karlskoga",
+    "Kumla",
+    "Lindesberg",
+    "Nora",
+    "Örebro"
+  ]
+}

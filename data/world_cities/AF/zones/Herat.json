@@ -1,0 +1,18 @@
+{
+  "country": "Afghanistan",
+  "code": "AF",
+  "zone": "Herat",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chahār Burj",
+    "Eslam Qaleh",
+    "Herāt",
+    "Karukh",
+    "Kuhsān",
+    "Kushk",
+    "Qarah Bāgh",
+    "Shīnḏanḏ",
+    "Tīr Pul",
+    "Zindah Jān"
+  ]
+}

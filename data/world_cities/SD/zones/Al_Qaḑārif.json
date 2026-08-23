@@ -1,0 +1,14 @@
+{
+  "country": "Soudan",
+  "code": "SD",
+  "zone": "Al Qaḑārif",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Qadarif",
+    "Al Ḩawātah",
+    "Al-Fashaqah",
+    "Al-Fāw",
+    "Doka",
+    "Khashm al Qirbah"
+  ]
+}

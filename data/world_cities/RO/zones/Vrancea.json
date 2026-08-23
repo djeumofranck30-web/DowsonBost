@@ -1,0 +1,26 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Vrancea",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Adjud",
+    "Focșani",
+    "Gugeşti",
+    "Homocea",
+    "Milcovul",
+    "Măicăneşti",
+    "Mărășești",
+    "Odobeşti",
+    "Panciu",
+    "Păuneşti",
+    "Sihlea",
+    "Slobozia Bradului",
+    "Suraia",
+    "Tulnici",
+    "Urecheşti",
+    "Vidra",
+    "Vânători",
+    "Ţifeşti"
+  ]
+}

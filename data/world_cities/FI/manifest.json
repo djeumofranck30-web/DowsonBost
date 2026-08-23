@@ -1,0 +1,27 @@
+{
+  "country": "Finlande",
+  "code": "FI",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Central Finland",
+    "Central Ostrobothnia",
+    "Kainuu",
+    "Kanta-Häme",
+    "Kymenlaakso",
+    "Lapland",
+    "North Karelia",
+    "North Ostrobothnia",
+    "North Savo",
+    "Ostrobothnia",
+    "Paijat-Hame",
+    "Pirkanmaa",
+    "Satakunta",
+    "South Karelia",
+    "South Ostrobothnia",
+    "South Savo",
+    "Southwest Finland",
+    "Uusimaa"
+  ],
+  "source": "geonames_admin1"
+}

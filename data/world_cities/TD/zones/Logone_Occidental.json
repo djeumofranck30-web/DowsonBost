@@ -1,0 +1,13 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Logone Occidental",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Benoy",
+    "Beïnamar",
+    "Krim Krim",
+    "Moundou",
+    "Ngouri"
+  ]
+}

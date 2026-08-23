@@ -1,0 +1,21 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Quảng Ninh",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cô Tô",
+    "Cẩm Phả",
+    "Cẩm Phả Mines",
+    "Hạ Long",
+    "Móng Cái",
+    "Thành Phố Uông Bí",
+    "Thị Trấn Ba Chẽ",
+    "Thị Trấn Bình Liêu",
+    "Thị Trấn Cái Rồng",
+    "Thị Trấn Mạo Khê",
+    "Thị Trấn Tiên Yên",
+    "Thị Trấn Đông Triều",
+    "Thị Trấn Đầm Hà"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "country": "Fidji",
+  "code": "FJ",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Central",
+    "Eastern",
+    "Northern",
+    "Rotuma",
+    "Western"
+  ],
+  "source": "geonames_admin1"
+}

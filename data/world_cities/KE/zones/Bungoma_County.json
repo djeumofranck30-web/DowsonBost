@@ -1,0 +1,13 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Bungoma County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bungoma",
+    "Chwele",
+    "Kapsokwony",
+    "Kimilili",
+    "Webuye"
+  ]
+}

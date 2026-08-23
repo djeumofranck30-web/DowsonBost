@@ -1,0 +1,9 @@
+{
+  "country": "Saint-Pierre-et-Miquelon",
+  "code": "PM",
+  "zone": "Miquelon-Langlade",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Miquelon"
+  ]
+}

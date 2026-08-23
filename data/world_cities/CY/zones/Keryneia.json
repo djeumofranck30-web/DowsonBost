@@ -1,0 +1,10 @@
+{
+  "country": "Chypre",
+  "code": "CY",
+  "zone": "Keryneia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kyrenia",
+    "Lápithos"
+  ]
+}

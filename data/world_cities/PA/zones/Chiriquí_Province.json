@@ -1,0 +1,16 @@
+{
+  "country": "Panama",
+  "code": "PA",
+  "zone": "Chiriquí Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Boquete",
+    "David",
+    "La Concepción",
+    "Las Lomas",
+    "Pedregal",
+    "Puerto Armuelles",
+    "San Pablo Viejo Abajo",
+    "Volcán"
+  ]
+}

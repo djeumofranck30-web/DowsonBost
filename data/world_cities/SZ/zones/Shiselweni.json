@@ -1,0 +1,10 @@
+{
+  "country": "Eswatini",
+  "code": "SZ",
+  "zone": "Shiselweni",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Hluti",
+    "Nhlangano"
+  ]
+}

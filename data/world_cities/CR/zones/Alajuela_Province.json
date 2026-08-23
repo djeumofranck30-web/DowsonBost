@@ -1,0 +1,18 @@
+{
+  "country": "Costa Rica",
+  "code": "CR",
+  "zone": "Alajuela Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alajuela",
+    "Atenas",
+    "Desamparados",
+    "Naranjo",
+    "Orotina",
+    "Quesada",
+    "Río Segundo",
+    "San José",
+    "San Juan",
+    "San Ramón"
+  ]
+}

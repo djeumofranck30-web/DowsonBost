@@ -1,0 +1,18 @@
+{
+  "country": "Chypre",
+  "code": "CY",
+  "zone": "Nicosia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aglantziá",
+    "Dáli",
+    "Géri",
+    "Káto Lakatámeia",
+    "Léfka",
+    "Mórfou",
+    "Nicosia",
+    "Stróvolos",
+    "Tséri",
+    "Ágios Dométios"
+  ]
+}

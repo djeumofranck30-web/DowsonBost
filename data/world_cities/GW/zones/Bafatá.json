@@ -1,0 +1,11 @@
+{
+  "country": "Guinee-Bissau",
+  "code": "GW",
+  "zone": "Bafatá",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bafatá",
+    "Bambadinca",
+    "Xitole"
+  ]
+}

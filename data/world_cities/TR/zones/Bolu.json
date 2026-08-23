@@ -1,0 +1,13 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Bolu",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bolu",
+    "Gerede",
+    "Göynük",
+    "Mudurnu",
+    "Yeniçağa"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "country": "Honduras",
+  "code": "HN",
+  "zone": "Copán Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Copán Ruinas",
+    "Corquín",
+    "Cucuyagua",
+    "Dolores",
+    "Florida",
+    "La Entrada",
+    "San Juan de Opoa",
+    "San Pedro de Copán",
+    "Santa Rosa de Copán",
+    "Trinidad de Copán"
+  ]
+}

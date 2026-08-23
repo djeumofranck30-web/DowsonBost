@@ -1,0 +1,12 @@
+{
+  "country": "Sao Tome-et-Principe",
+  "code": "ST",
+  "zone": "São Tomé Island",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Folha Fede",
+    "Neves",
+    "São Tomé",
+    "Água Izé"
+  ]
+}

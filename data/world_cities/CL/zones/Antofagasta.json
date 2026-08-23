@@ -1,0 +1,15 @@
+{
+  "country": "Chili",
+  "code": "CL",
+  "zone": "Antofagasta",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Antofagasta",
+    "Calama",
+    "María Elena",
+    "Mejillones",
+    "San Pedro de Atacama",
+    "Taltal",
+    "Tocopilla"
+  ]
+}

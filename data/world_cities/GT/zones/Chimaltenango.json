@@ -1,0 +1,22 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "Chimaltenango",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Acatenango",
+    "Chimaltenango",
+    "Comalapa",
+    "El Tejar",
+    "Parramos",
+    "Patzicía",
+    "Patzún",
+    "San Andrés Itzapa",
+    "San José Poaquil",
+    "San Martín Jilotepeque",
+    "Santa Cruz Balanyá",
+    "Tecpán Guatemala",
+    "Yepocapa",
+    "Zaragoza"
+  ]
+}

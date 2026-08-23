@@ -1,0 +1,16 @@
+{
+  "country": "Cameroun",
+  "code": "CM",
+  "zone": "Adamaoua",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bankim",
+    "Banyo",
+    "Bélel",
+    "Kontcha",
+    "Meïganga",
+    "Ngaoundal",
+    "Ngaoundéré",
+    "Tibati"
+  ]
+}

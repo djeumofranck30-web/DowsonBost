@@ -1,0 +1,10 @@
+{
+  "country": "Bhoutan",
+  "code": "BT",
+  "zone": "Chukha",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Phuntsholing",
+    "Tsimasham"
+  ]
+}

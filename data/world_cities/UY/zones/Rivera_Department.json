@@ -1,0 +1,10 @@
+{
+  "country": "Uruguay",
+  "code": "UY",
+  "zone": "Rivera Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Rivera",
+    "Tranqueras"
+  ]
+}

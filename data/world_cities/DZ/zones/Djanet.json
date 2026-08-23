@@ -1,0 +1,9 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Djanet",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Djanet"
+  ]
+}

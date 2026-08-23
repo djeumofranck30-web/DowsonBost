@@ -1,0 +1,21 @@
+{
+  "country": "Congo",
+  "code": "CG",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Bouenza",
+    "Brazzaville",
+    "Cuvette",
+    "Cuvette-Ouest",
+    "Kouilou",
+    "Likouala",
+    "Lékoumou",
+    "Niari",
+    "Plateaux",
+    "Pointe-Noire",
+    "Pool",
+    "Sangha"
+  ],
+  "source": "geonames_admin1"
+}

@@ -1,0 +1,13 @@
+{
+  "country": "Argentine",
+  "code": "AR",
+  "zone": "La Rioja",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aimogasta",
+    "Arauco",
+    "Chamical",
+    "Chilecito",
+    "La Rioja"
+  ]
+}

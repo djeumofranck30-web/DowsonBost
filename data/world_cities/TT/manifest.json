@@ -1,0 +1,24 @@
+{
+  "country": "Trinite-et-Tobago",
+  "code": "TT",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Borough of Arima",
+    "Chaguanas",
+    "Couva-Tabaquite-Talparo",
+    "Diego Martin Regional Corporation",
+    "Mayaro",
+    "Penal/Debe",
+    "Point Fortin",
+    "Port of Spain",
+    "Princes Town",
+    "San Fernando",
+    "San Juan/Laventille",
+    "Sangre Grande Regional Corporation",
+    "Siparia Regional Corporation",
+    "Tobago",
+    "Tunapuna/Piarco"
+  ],
+  "source": "geonames_admin1"
+}

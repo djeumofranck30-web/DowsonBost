@@ -1,0 +1,31 @@
+{
+  "country": "Perou",
+  "code": "PE",
+  "zone": "Lambayeque",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chiclayo",
+    "Chongoyape",
+    "Eten",
+    "Ferreñafe",
+    "Hacienda Pucala",
+    "Jayanca",
+    "La Pradera",
+    "Lambayeque",
+    "Mochumí",
+    "Monsefú",
+    "Motupe",
+    "Mórrope",
+    "Olmos",
+    "Oyotún",
+    "Picsi",
+    "Pimentel",
+    "Pueblo Nuevo",
+    "Pátapo",
+    "Reque",
+    "San José",
+    "Santa Rosa",
+    "Saña",
+    "Túcume"
+  ]
+}

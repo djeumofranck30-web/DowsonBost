@@ -1,0 +1,26 @@
+{
+  "country": "Philippines",
+  "code": "PH",
+  "zone": "Cordillera",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baculongan",
+    "Baguio",
+    "Bangued",
+    "Barlig",
+    "Bontoc",
+    "Buguias",
+    "Hungduan",
+    "Itogon",
+    "Kibungan",
+    "La Trinidad",
+    "Lagawe",
+    "Liwan",
+    "Loacan",
+    "Mankayan",
+    "Monamon",
+    "Pasil",
+    "Tabuk",
+    "Tuding"
+  ]
+}

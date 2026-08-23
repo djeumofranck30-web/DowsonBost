@@ -1,0 +1,17 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Kastamonu",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Araç",
+    "Bozkurt",
+    "Cide",
+    "Daday",
+    "Devrekani",
+    "İnebolu",
+    "Kastamonu",
+    "Taşköprü",
+    "Tosya"
+  ]
+}

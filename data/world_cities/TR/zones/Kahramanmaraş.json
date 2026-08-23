@@ -1,0 +1,18 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Kahramanmaraş",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Afşin",
+    "Andırın",
+    "Ekinözü",
+    "Elbistan",
+    "Göksun",
+    "Kahramanmaraş",
+    "Narlı",
+    "Nurhak",
+    "Pazarcık",
+    "Çağlayancerit"
+  ]
+}

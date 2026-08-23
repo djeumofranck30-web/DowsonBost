@@ -1,0 +1,14 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Sinop",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ayancık",
+    "Boyabat",
+    "Durağan",
+    "Gerze",
+    "Sinop",
+    "Türkeli"
+  ]
+}

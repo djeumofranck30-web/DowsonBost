@@ -1,0 +1,14 @@
+{
+  "country": "Afghanistan",
+  "code": "AF",
+  "zone": "Helmand",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gereshk",
+    "Khān Neshīn",
+    "Lashkar Gāh",
+    "Markaz-e Ḩukūmat-e Darwēshān",
+    "Sangīn",
+    "‘Alāqahdārī Dīshū"
+  ]
+}

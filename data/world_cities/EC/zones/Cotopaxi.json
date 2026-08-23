@@ -1,0 +1,12 @@
+{
+  "country": "Equateur",
+  "code": "EC",
+  "zone": "Cotopaxi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "La Maná",
+    "Latacunga",
+    "Pujilí",
+    "San Miguel"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "country": "Hong Kong",
+  "code": "HK",
+  "zone": "Sham Shui Po District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Banyan Garden",
+    "Cheung Sha Wan",
+    "Cullinan West",
+    "Fu Cheong Estate",
+    "Hoi Lai Estate",
+    "Hoi Lok Court",
+    "Lai Kok Estate",
+    "Lai Tsui Court",
+    "Lei Cheng Uk Estate",
+    "Liberte",
+    "Mei Foo",
+    "Mei Foo Sun Chuen",
+    "Nam Cheong",
+    "Nam Shan Estate",
+    "Pak Tin Estate",
+    "Parc Oasis",
+    "Sham Shui Po",
+    "Shek Kip Mei",
+    "Shek Kip Mei Estate",
+    "So Uk",
+    "So Uk Estate",
+    "Tai Hang Estate (East & West)",
+    "The Pacifica",
+    "Un Chau Estate",
+    "Yau Yat Chuen"
+  ]
+}

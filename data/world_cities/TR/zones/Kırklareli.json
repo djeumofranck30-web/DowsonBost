@@ -1,0 +1,13 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Kırklareli",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Babaeski",
+    "Kırklareli",
+    "Lüleburgaz",
+    "Pınarhisar",
+    "Vize"
+  ]
+}

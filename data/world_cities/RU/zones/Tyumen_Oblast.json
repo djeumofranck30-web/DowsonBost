@@ -1,0 +1,29 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Tyumen Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abalak",
+    "Abatskoye",
+    "Antipino",
+    "Aromashevo",
+    "Bogandinskiy",
+    "Borovskiy",
+    "Golyshmanovo",
+    "Isetskoye",
+    "Ishim",
+    "Kazanskoye",
+    "Nizhnyaya Tavda",
+    "Omutinskoye",
+    "Tobolsk",
+    "Turtas",
+    "Tyumen",
+    "Uporovo",
+    "Vikulovo",
+    "Vinzili",
+    "Yalutorovsk",
+    "Yarkovo",
+    "Zavodoukovsk"
+  ]
+}

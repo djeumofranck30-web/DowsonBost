@@ -1,0 +1,29 @@
+{
+  "country": "Hongrie",
+  "code": "HU",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Baranya",
+    "Bekes County",
+    "Borsod-Abaúj-Zemplén",
+    "Budapest",
+    "Bács-Kiskun",
+    "Csongrád",
+    "Fejér",
+    "Győr-Moson-Sopron",
+    "Hajdú-Bihar",
+    "Heves County",
+    "Jász-Nagykun-Szolnok",
+    "Komárom-Esztergom",
+    "Nógrád",
+    "Pest County",
+    "Somogy County",
+    "Szabolcs-Szatmár-Bereg",
+    "Tolna County",
+    "Vas County",
+    "Veszprém",
+    "Zala County"
+  ],
+  "source": "geonames_admin1"
+}

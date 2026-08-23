@@ -1,0 +1,9 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Tindouf",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Tindouf"
+  ]
+}

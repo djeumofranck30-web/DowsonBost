@@ -1,0 +1,9 @@
+{
+  "country": "Azerbaidjan",
+  "code": "AZ",
+  "zone": "Salyan District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Salyan"
+  ]
+}

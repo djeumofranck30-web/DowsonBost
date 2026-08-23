@@ -1,0 +1,11 @@
+{
+  "country": "Chili",
+  "code": "CL",
+  "zone": "Aysén",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Coyhaique",
+    "Puerto Aysén",
+    "Puerto Cisnes"
+  ]
+}

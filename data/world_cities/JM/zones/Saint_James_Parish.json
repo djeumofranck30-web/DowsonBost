@@ -1,0 +1,10 @@
+{
+  "country": "Jamaique",
+  "code": "JM",
+  "zone": "Saint James Parish",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Barrett Town",
+    "Montego Bay"
+  ]
+}

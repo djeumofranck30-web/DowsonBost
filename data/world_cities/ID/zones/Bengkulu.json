@@ -1,0 +1,10 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "Bengkulu",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bengkulu",
+    "Curup"
+  ]
+}

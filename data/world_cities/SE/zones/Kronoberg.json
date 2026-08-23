@@ -1,0 +1,12 @@
+{
+  "country": "Suede",
+  "code": "SE",
+  "zone": "Kronoberg",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alvesta",
+    "Ljungby",
+    "Växjö",
+    "Älmhult"
+  ]
+}

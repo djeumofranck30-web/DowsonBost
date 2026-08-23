@@ -1,0 +1,10 @@
+{
+  "country": "Uruguay",
+  "code": "UY",
+  "zone": "Soriano",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dolores",
+    "Mercedes"
+  ]
+}

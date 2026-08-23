@@ -1,0 +1,16 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Tekirdağ",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Hayrabolu",
+    "Malkara",
+    "Marmara Ereğlisi",
+    "Marmaracık",
+    "Tekirdağ",
+    "Velimeşe",
+    "Çerkezköy",
+    "Çorlu"
+  ]
+}

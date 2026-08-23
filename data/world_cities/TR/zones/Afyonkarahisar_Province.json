@@ -1,0 +1,22 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Afyonkarahisar Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Afyonkarahisar",
+    "Başmakçı",
+    "Bolvadin",
+    "Dazkırı",
+    "Dinar",
+    "Emirdağ",
+    "Işıklar",
+    "İhsaniye",
+    "İscehisar",
+    "Sandıklı",
+    "Sinanpaşa",
+    "Sultandağı",
+    "Çay",
+    "Şuhut"
+  ]
+}

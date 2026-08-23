@@ -1,0 +1,10 @@
+{
+  "country": "Mongolie",
+  "code": "MN",
+  "zone": "Hentiy",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bor-Öndör",
+    "Undurkhaan"
+  ]
+}

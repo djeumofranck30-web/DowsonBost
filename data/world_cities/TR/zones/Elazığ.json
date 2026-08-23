@@ -1,0 +1,16 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Elazığ",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arıcak",
+    "Baskil",
+    "Elazığ",
+    "Karakoçan",
+    "Keban",
+    "Kovancılar",
+    "Palu",
+    "Sivrice"
+  ]
+}

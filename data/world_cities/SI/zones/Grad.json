@@ -1,0 +1,9 @@
+{
+  "country": "Slovenie",
+  "code": "SI",
+  "zone": "Grad",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Grad"
+  ]
+}

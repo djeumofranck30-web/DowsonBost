@@ -1,0 +1,9 @@
+{
+  "country": "Guinee equatoriale",
+  "code": "GQ",
+  "zone": "Litoral",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bata"
+  ]
+}

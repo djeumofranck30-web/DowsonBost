@@ -1,0 +1,14 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Iringa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ilula",
+    "Iringa",
+    "Izazi",
+    "Mafinga",
+    "Makungu",
+    "Malangali"
+  ]
+}

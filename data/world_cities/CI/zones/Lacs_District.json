@@ -1,0 +1,32 @@
+{
+  "country": "Cote d Ivoire",
+  "code": "CI",
+  "zone": "Lacs District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abéanou",
+    "Adiékro",
+    "Agba-Mbayassou",
+    "Allangbakro",
+    "Amoriki",
+    "Bocanda",
+    "Boli",
+    "Daoukro",
+    "Didiévi",
+    "Dimbokro",
+    "Djékanou",
+    "Kokoumbo",
+    "Kouassi-Kouassikro",
+    "Kpouébo",
+    "Moronou",
+    "M’Bahiakro",
+    "Ouellé",
+    "Prikro",
+    "Raviart",
+    "Tiébissou",
+    "Tiékou-Carrefour",
+    "Toumodi",
+    "Yamoussoukro",
+    "Zékrézinssou"
+  ]
+}

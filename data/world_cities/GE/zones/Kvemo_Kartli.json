@@ -1,0 +1,18 @@
+{
+  "country": "Georgie",
+  "code": "GE",
+  "zone": "Kvemo Kartli",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bolnisi",
+    "Gardabani",
+    "Kazreti",
+    "Marneuli",
+    "Mart’q’opi",
+    "Rustavi",
+    "Sadakhlo",
+    "Sartich’ala",
+    "Tetritsqaro",
+    "Tsqnet’i"
+  ]
+}

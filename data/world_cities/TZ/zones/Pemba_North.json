@@ -1,0 +1,11 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Pemba North",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Konde",
+    "Micheweni",
+    "Wete"
+  ]
+}

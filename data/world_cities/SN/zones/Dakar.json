@@ -1,0 +1,24 @@
+{
+  "country": "Senegal",
+  "code": "SN",
+  "zone": "Dakar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bargny",
+    "Bargny Guèdj",
+    "Bargny Ngoude",
+    "Dakar",
+    "Diamniadio",
+    "Guédiawaye",
+    "Jaxaay Parcelle Niakoul Rap",
+    "Le Plateau",
+    "Mermoz Boabab",
+    "Niakoul Rab",
+    "N’diareme limamoulaye",
+    "Pikine",
+    "Rufisque",
+    "Rufisque est",
+    "Sangalkam",
+    "Sébikhotane"
+  ]
+}

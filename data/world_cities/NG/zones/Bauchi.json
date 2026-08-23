@@ -1,0 +1,31 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Bauchi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Azare",
+    "Bauchi",
+    "Boi",
+    "Bununu",
+    "Darazo",
+    "Dass",
+    "Dindima",
+    "Disina",
+    "Gabarin",
+    "Gamawa",
+    "Gwaram",
+    "Kari",
+    "Katagum",
+    "Lame",
+    "Lere",
+    "Madara",
+    "Misau",
+    "Sade",
+    "Yamrat",
+    "Yanda Bayo",
+    "Yuli",
+    "Zadawa",
+    "Zalanga"
+  ]
+}

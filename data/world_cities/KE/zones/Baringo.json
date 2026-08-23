@@ -1,0 +1,14 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Baringo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baringo",
+    "Eldama Ravine",
+    "Kabarnet",
+    "Maji Mazuri",
+    "Marigat",
+    "Mogotio"
+  ]
+}

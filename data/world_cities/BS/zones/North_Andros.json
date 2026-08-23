@@ -1,0 +1,9 @@
+{
+  "country": "Bahamas",
+  "code": "BS",
+  "zone": "North Andros",
+  "source": "geonames_cities5000",
+  "cities": [
+    "San Andros"
+  ]
+}

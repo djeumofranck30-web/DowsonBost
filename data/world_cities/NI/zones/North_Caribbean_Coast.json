@@ -1,0 +1,13 @@
+{
+  "country": "Nicaragua",
+  "code": "NI",
+  "zone": "North Caribbean Coast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bonanza",
+    "Puerto Cabezas",
+    "Siuna",
+    "Waslala",
+    "Waspán"
+  ]
+}

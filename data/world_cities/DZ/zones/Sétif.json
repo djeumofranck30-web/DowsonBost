@@ -1,0 +1,16 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Sétif",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aïn Arnat",
+    "Aïn Oulmene",
+    "Babor",
+    "Bougaa",
+    "El Eulma",
+    "Salah Bey",
+    "Sétif",
+    "’Aïn Azel"
+  ]
+}

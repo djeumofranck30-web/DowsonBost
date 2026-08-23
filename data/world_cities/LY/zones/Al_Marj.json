@@ -1,0 +1,13 @@
+{
+  "country": "Libye",
+  "code": "LY",
+  "zone": "Al Marj",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Abyār",
+    "Al Marj",
+    "Jardas al ‘Abīd",
+    "Qaryat al Bayyāḑah",
+    "Tūkrah"
+  ]
+}

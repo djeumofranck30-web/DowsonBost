@@ -1,0 +1,13 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Nairobi County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Imara Daima Estate",
+    "Lang'ata",
+    "Nairobi",
+    "Pumwani",
+    "Thika"
+  ]
+}

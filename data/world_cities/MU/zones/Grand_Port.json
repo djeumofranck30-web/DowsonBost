@@ -1,0 +1,15 @@
+{
+  "country": "Maurice",
+  "code": "MU",
+  "zone": "Grand Port",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Beau Vallon",
+    "L’Escalier",
+    "Mahébourg",
+    "New Grove",
+    "Nouvelle France",
+    "Plaine Magnien",
+    "Rose Belle"
+  ]
+}

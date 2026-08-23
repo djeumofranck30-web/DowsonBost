@@ -1,0 +1,20 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Qena",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abū Ţisht",
+    "Al Waqf",
+    "Armant",
+    "Dishnā",
+    "Esna",
+    "Farshūţ",
+    "Jarājūs",
+    "Nag Hammâdi",
+    "Naqādah",
+    "Qifţ",
+    "Qina",
+    "Qūş"
+  ]
+}

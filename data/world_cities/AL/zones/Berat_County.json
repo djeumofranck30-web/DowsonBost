@@ -1,0 +1,17 @@
+{
+  "country": "Albanie",
+  "code": "AL",
+  "zone": "Berat County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Berat",
+    "Kozarë",
+    "Kutalli",
+    "Kuçovë",
+    "Otllak",
+    "Perondi",
+    "Poshnjë",
+    "Ura Vajgurore",
+    "Velabisht"
+  ]
+}

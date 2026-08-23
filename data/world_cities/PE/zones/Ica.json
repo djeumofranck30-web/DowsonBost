@@ -1,0 +1,23 @@
+{
+  "country": "Perou",
+  "code": "PE",
+  "zone": "Ica",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chincha Alta",
+    "Fonavi",
+    "Ica",
+    "Los Aquijes",
+    "Minas de Marcona",
+    "Nazca",
+    "Palpa",
+    "Pampa de Tate",
+    "Pisco",
+    "San Clemente",
+    "San Juan",
+    "San Juan Bautista",
+    "Santiago",
+    "Subtanjalla",
+    "Tupac Amaru"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "country": "Chili",
+  "code": "CL",
+  "zone": "O'Higgins Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chimbarongo",
+    "Chépica",
+    "Codegua",
+    "Coltauco",
+    "Doñihue",
+    "Graneros",
+    "Las Cabras",
+    "Machalí",
+    "Nancagua",
+    "Peralillo",
+    "Peumo",
+    "Pichidegua",
+    "Pichilemu",
+    "Quinta de Tilcoco",
+    "Rancagua",
+    "Rengo",
+    "Requínoa",
+    "San Francisco de Mostazal",
+    "San Vicente",
+    "San Vicente de Tagua Tagua",
+    "Santa Cruz"
+  ]
+}

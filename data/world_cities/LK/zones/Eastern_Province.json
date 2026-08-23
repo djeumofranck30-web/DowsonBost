@@ -1,0 +1,15 @@
+{
+  "country": "Sri Lanka",
+  "code": "LK",
+  "zone": "Eastern Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ampara",
+    "Batticaloa",
+    "Eravur Town",
+    "Kalmunai",
+    "Pottuvil",
+    "Trincomalee",
+    "Vakarai"
+  ]
+}

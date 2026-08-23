@@ -1,0 +1,9 @@
+{
+  "country": "Canada",
+  "code": "CA",
+  "zone": "Yukon",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Whitehorse"
+  ]
+}

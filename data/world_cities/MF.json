@@ -1,0 +1,10 @@
+{
+  "country": "Saint-Martin",
+  "code": "MF",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Concordia",
+    "Grand-Case",
+    "Marigot"
+  ]
+}

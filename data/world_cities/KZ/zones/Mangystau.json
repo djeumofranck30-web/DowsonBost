@@ -1,0 +1,16 @@
+{
+  "country": "Kazakhstan",
+  "code": "KZ",
+  "zone": "Mangystau",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aktau",
+    "Beyneu",
+    "Fort-Shevchenko",
+    "Kuryk",
+    "Mangistau",
+    "Shetpe",
+    "Zhanaozen",
+    "Zhetybay"
+  ]
+}

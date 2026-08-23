@@ -1,0 +1,23 @@
+{
+  "country": "Tchequie",
+  "code": "CZ",
+  "zone": "Liberec Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chrastava",
+    "Doksy",
+    "Frýdlant",
+    "Hrádek nad Nisou",
+    "Jablonec nad Nisou",
+    "Jilemnice",
+    "Liberec",
+    "Lomnice nad Popelkou",
+    "Mimoň",
+    "Nový Bor",
+    "Semily",
+    "Tanvald",
+    "Turnov",
+    "Česká Lípa",
+    "Železný Brod"
+  ]
+}

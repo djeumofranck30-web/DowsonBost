@@ -1,0 +1,11 @@
+{
+  "country": "Equateur",
+  "code": "EC",
+  "zone": "Chimborazo Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alausí",
+    "Guano",
+    "Riobamba"
+  ]
+}

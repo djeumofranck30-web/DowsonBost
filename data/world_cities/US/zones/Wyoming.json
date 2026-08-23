@@ -1,0 +1,26 @@
+{
+  "country": "États-Unis",
+  "code": "US",
+  "zone": "Wyoming",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Casper",
+    "Cheyenne",
+    "Cody",
+    "Douglas",
+    "Evanston",
+    "Gillette",
+    "Green River",
+    "Jackson",
+    "Lander",
+    "Laramie",
+    "Powell",
+    "Ranchettes",
+    "Rawlins",
+    "Riverton",
+    "Rock Springs",
+    "Sheridan",
+    "Torrington",
+    "Worland"
+  ]
+}

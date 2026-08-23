@@ -1,0 +1,25 @@
+{
+  "country": "Tchequie",
+  "code": "CZ",
+  "zone": "Pardubice Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Choceň",
+    "Chrudim",
+    "Hlinsko",
+    "Holice",
+    "Lanškroun",
+    "Letohrad",
+    "Litomyšl",
+    "Moravská Třebová",
+    "Pardubice",
+    "Polička",
+    "Přelouč",
+    "Skuteč",
+    "Svitavy",
+    "Vysoké Mýto",
+    "Ústí nad Orlicí",
+    "Česká Třebová",
+    "Žamberk"
+  ]
+}

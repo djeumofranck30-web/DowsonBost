@@ -1,0 +1,25 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Ca Mau",
+  "source": "geonames_cities5000",
+  "cities": [
+    "An Trạch",
+    "Bạc Liêu",
+    "Cà Mau",
+    "Cái Đôi Vàm",
+    "Giá Rai",
+    "Gành Hào",
+    "Hưng Mỹ",
+    "Năm Căn",
+    "Phong Thạnh",
+    "Rạch Gốc",
+    "Tam Giang",
+    "Thới Bình",
+    "Trần Văn Thời",
+    "U Minh",
+    "Ông Do",
+    "Ông Yến",
+    "Ấp Hô Phòng"
+  ]
+}

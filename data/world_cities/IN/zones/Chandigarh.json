@@ -1,0 +1,13 @@
+{
+  "country": "Inde",
+  "code": "IN",
+  "zone": "Chandigarh",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Behlana",
+    "Chandigarh",
+    "Dariya",
+    "Khuda Alisher",
+    "Mauli Jagran"
+  ]
+}

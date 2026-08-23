@@ -1,0 +1,19 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Minya",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abū Qurqāş",
+    "Al ‘Idwah",
+    "Al-Minyā al-Jadīdah",
+    "Banī Mazār",
+    "Banī ‘Ubayd",
+    "Dayr Mawās",
+    "Maghāghah",
+    "Mallawī",
+    "Maţāy",
+    "Minya",
+    "Samālūţ"
+  ]
+}

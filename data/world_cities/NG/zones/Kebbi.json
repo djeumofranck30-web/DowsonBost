@@ -1,0 +1,26 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Kebbi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Argungu",
+    "Bagudo",
+    "Bena",
+    "Bin Yauri",
+    "Birnin Kebbi",
+    "Dabai",
+    "Dakingari",
+    "Gulma",
+    "Gwandu",
+    "Jega",
+    "Kamba",
+    "Kangiwa",
+    "Kende",
+    "Mahuta",
+    "Maiyama",
+    "Shanga",
+    "Wasagu",
+    "Zuru"
+  ]
+}

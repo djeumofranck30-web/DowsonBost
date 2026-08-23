@@ -1,0 +1,19 @@
+{
+  "country": "Myanmar",
+  "code": "MM",
+  "zone": "Rakhine",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ann",
+    "Buthidaung Town",
+    "Gwa",
+    "Kyaukpyu",
+    "Kyauktaw",
+    "Kyeintali",
+    "Manaung",
+    "Mrauk U",
+    "Ngapali",
+    "Sittwe",
+    "Taungup"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "country": "Bermudes",
+  "code": "BM",
+  "zone": "Hamilton",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Hamilton Parish"
+  ]
+}

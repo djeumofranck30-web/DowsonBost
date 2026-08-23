@@ -1,0 +1,15 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Nasarawa State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akwanga",
+    "Buga",
+    "Doma",
+    "Keffi",
+    "Lafia",
+    "Nasarawa",
+    "Wamba"
+  ]
+}

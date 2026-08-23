@@ -1,0 +1,25 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "North Ossetia–Alania",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alagir",
+    "Ardon",
+    "Arkhonskaya",
+    "Beslan",
+    "Chermen",
+    "Chikola",
+    "Digora",
+    "Gizel’",
+    "Kambileyevskoye",
+    "Kizlyar",
+    "Mikhaylovskoye",
+    "Mozdok",
+    "Nogir",
+    "Pavlodol’skaya",
+    "Sunzha",
+    "Vladikavkaz",
+    "Zmeyskaya"
+  ]
+}

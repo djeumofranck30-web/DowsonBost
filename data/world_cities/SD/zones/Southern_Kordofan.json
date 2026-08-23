@@ -1,0 +1,13 @@
+{
+  "country": "Soudan",
+  "code": "SD",
+  "zone": "Southern Kordofan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abu Jibeha",
+    "Al Fūlah",
+    "Dilling",
+    "Kadugli",
+    "Talodi"
+  ]
+}

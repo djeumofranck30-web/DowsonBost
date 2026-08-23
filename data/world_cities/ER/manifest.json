@@ -1,0 +1,15 @@
+{
+  "country": "Erythree",
+  "code": "ER",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Anseba",
+    "Debub",
+    "Gash-Barka",
+    "Maekel",
+    "Northern Red Sea",
+    "Southern Red Sea"
+  ],
+  "source": "geonames_admin1"
+}

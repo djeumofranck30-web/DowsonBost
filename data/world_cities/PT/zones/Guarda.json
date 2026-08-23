@@ -1,0 +1,16 @@
+{
+  "country": "Portugal",
+  "code": "PT",
+  "zone": "Guarda",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aguiar da Beira",
+    "Custoias",
+    "Guarda",
+    "Mêda",
+    "Seia",
+    "Sequeira",
+    "São Romão",
+    "Vila Nova de Foz Côa"
+  ]
+}

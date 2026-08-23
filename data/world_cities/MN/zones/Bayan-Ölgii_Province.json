@@ -1,0 +1,10 @@
+{
+  "country": "Mongolie",
+  "code": "MN",
+  "zone": "Bayan-Ölgii Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Jargalant",
+    "Ölgii"
+  ]
+}

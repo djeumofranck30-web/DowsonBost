@@ -1,0 +1,9 @@
+{
+  "country": "Andorre",
+  "code": "AD",
+  "zone": "Canillo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Canillo"
+  ]
+}

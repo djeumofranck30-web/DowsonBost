@@ -1,0 +1,16 @@
+{
+  "country": "Honduras",
+  "code": "HN",
+  "zone": "Francisco Morazán Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alubarén",
+    "Guaimaca",
+    "Maraita",
+    "Sabanagrande",
+    "San Juan de Flores",
+    "Talanga",
+    "Tegucigalpa",
+    "Villa de San Francisco"
+  ]
+}

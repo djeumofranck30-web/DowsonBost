@@ -1,0 +1,14 @@
+{
+  "country": "Autriche",
+  "code": "AT",
+  "zone": "Salzburg",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bischofshofen",
+    "Hallein",
+    "Oberndorf bei Salzburg",
+    "Saalfelden am Steinernen Meer",
+    "Salzburg",
+    "Zell am See"
+  ]
+}

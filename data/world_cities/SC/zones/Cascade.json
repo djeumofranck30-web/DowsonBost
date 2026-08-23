@@ -1,0 +1,9 @@
+{
+  "country": "Seychelles",
+  "code": "SC",
+  "zone": "Cascade",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cascade"
+  ]
+}

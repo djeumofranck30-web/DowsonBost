@@ -1,0 +1,17 @@
+{
+  "country": "Kazakhstan",
+  "code": "KZ",
+  "zone": "West Kazakhstan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aqsay",
+    "Chapayev",
+    "Oral",
+    "Shyngyrlau",
+    "Tasqala",
+    "Terekti",
+    "Zhangaqala",
+    "Zhanibek",
+    "Zhympity"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "country": "Irlande",
+  "code": "IE",
+  "zone": "Connacht",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ballina",
+    "Ballinasloe",
+    "Castlebar",
+    "Galway",
+    "Loughrea",
+    "Roscommon",
+    "Sligo",
+    "Tuam",
+    "Westport"
+  ]
+}

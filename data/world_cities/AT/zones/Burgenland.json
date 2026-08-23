@@ -1,0 +1,16 @@
+{
+  "country": "Autriche",
+  "code": "AT",
+  "zone": "Burgenland",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Eisenstadt",
+    "Eisenzicken",
+    "Gfangen",
+    "Mattersburg",
+    "Neusiedl am See",
+    "Oberwart",
+    "Pinkafeld",
+    "Walbersdorf"
+  ]
+}

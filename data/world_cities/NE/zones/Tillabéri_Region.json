@@ -1,0 +1,23 @@
+{
+  "country": "Niger",
+  "code": "NE",
+  "zone": "Tillabéri Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abala",
+    "Ayorou",
+    "Baléyara",
+    "Bani Bangou",
+    "Bankilaré",
+    "Filingué",
+    "Gothèye",
+    "Kollo",
+    "Méhana",
+    "Ouallam",
+    "Say",
+    "Tillabéri",
+    "Torodi",
+    "Téra",
+    "Youri Kourtéré"
+  ]
+}

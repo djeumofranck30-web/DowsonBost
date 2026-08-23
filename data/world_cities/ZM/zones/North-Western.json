@@ -1,0 +1,20 @@
+{
+  "country": "Zambie",
+  "code": "ZM",
+  "zone": "North-Western",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chavuma",
+    "Chisasa",
+    "Kabompo",
+    "Kalengwa",
+    "Kansanshi",
+    "Kasempa",
+    "Manyama",
+    "Manyinga",
+    "Mufumbwe",
+    "Mwinilunga",
+    "Solwezi",
+    "Zambezi"
+  ]
+}

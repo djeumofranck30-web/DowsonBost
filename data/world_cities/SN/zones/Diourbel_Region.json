@@ -1,0 +1,14 @@
+{
+  "country": "Senegal",
+  "code": "SN",
+  "zone": "Diourbel Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bambey",
+    "Diourbel",
+    "Keur Médoune",
+    "Mbaké",
+    "Tiébo",
+    "Touba"
+  ]
+}

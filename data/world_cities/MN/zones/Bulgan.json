@@ -1,0 +1,9 @@
+{
+  "country": "Mongolie",
+  "code": "MN",
+  "zone": "Bulgan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bulgan"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Cambodge",
+  "code": "KH",
+  "zone": "Preah Sihanouk",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Andoung Thma",
+    "Ream",
+    "Sihanoukville"
+  ]
+}

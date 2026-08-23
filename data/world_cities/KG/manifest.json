@@ -1,0 +1,17 @@
+{
+  "country": "Kirghizistan",
+  "code": "KG",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Batken",
+    "Bishkek",
+    "Chuy Region",
+    "Issyk-Kul",
+    "Jalal-Abad Region",
+    "Naryn Region",
+    "Osh Region",
+    "Talas Region"
+  ],
+  "source": "geonames_admin1"
+}

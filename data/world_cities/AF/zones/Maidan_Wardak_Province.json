@@ -1,0 +1,10 @@
+{
+  "country": "Afghanistan",
+  "code": "AF",
+  "zone": "Maidan Wardak Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Markaz-e Sayyidābād",
+    "Maydanshakhr"
+  ]
+}

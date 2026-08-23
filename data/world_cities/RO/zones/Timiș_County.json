@@ -1,0 +1,30 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Timiș County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Biled",
+    "Buziaş",
+    "Ciacova",
+    "Cărpiniş",
+    "Deta",
+    "Dudeştii Vechi",
+    "Făget",
+    "Giarmata",
+    "Gătaia",
+    "Jebel",
+    "Jimbolia",
+    "Lenauheim",
+    "Lovrin",
+    "Lugoj",
+    "Periam",
+    "Recaş",
+    "Sânandrei",
+    "Sânnicolau Mare",
+    "Sânpetru Mare",
+    "Săcălaz",
+    "Timişoara",
+    "Variaş"
+  ]
+}

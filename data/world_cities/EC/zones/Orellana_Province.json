@@ -1,0 +1,10 @@
+{
+  "country": "Equateur",
+  "code": "EC",
+  "zone": "Orellana Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Boca Suno",
+    "Puerto Francisco de Orellana"
+  ]
+}

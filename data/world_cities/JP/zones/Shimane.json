@@ -1,0 +1,22 @@
+{
+  "country": "Japon",
+  "code": "JP",
+  "zone": "Shimane",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gōtsuchō",
+    "Hamada",
+    "Hiratachō",
+    "Izumo",
+    "Kyōmendao",
+    "Masuda",
+    "Matsue",
+    "Minari",
+    "Nishida",
+    "Okugano",
+    "Tsuwano",
+    "Unnan",
+    "Yasugichō",
+    "Ōdachō-ōda"
+  ]
+}

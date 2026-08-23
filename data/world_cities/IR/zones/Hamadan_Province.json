@@ -1,0 +1,25 @@
+{
+  "country": "Iran",
+  "code": "IR",
+  "zone": "Hamadan Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Asadābād",
+    "Aznāv",
+    "Bahār",
+    "Fāmenīn",
+    "Fīrūzān",
+    "Hamadān",
+    "Jūraqān",
+    "Kabūdarāhang",
+    "Lālejīn",
+    "Malāyer",
+    "Maryānaj",
+    "Mohājerān",
+    "Nahāvand",
+    "Qorveh-ye Dargazīn",
+    "Razan",
+    "Tūyserkān",
+    "Şāleḩābād"
+  ]
+}

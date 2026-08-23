@@ -1,0 +1,21 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Oryol oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bolkhov",
+    "Dmitrovsk",
+    "Glazunovka",
+    "Kolpna",
+    "Kromy",
+    "Livny",
+    "Mtsensk",
+    "Naryshkino",
+    "Orël",
+    "Verkhov’ye",
+    "Zalegoshch’",
+    "Zmiyëvka",
+    "Znamenka"
+  ]
+}

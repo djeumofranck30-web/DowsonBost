@@ -1,0 +1,13 @@
+{
+  "country": "Mauritanie",
+  "code": "MR",
+  "zone": "Assaba",
+  "source": "geonames_cities5000",
+  "cities": [
+    "El ’Ayoûn",
+    "Elghabra",
+    "Guerou",
+    "Kankossa",
+    "Kiffa"
+  ]
+}

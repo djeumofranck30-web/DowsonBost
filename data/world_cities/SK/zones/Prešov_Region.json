@@ -1,0 +1,27 @@
+{
+  "country": "Slovaquie",
+  "code": "SK",
+  "zone": "Prešov Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bardejov",
+    "Humenné",
+    "Jarovnice",
+    "Kežmarok",
+    "Lendak",
+    "Levoča",
+    "Lipany",
+    "Medzilaborce",
+    "Poprad",
+    "Prešov",
+    "Sabinov",
+    "Snina",
+    "Spišská Belá",
+    "Stará Ľubovňa",
+    "Stropkov",
+    "Svidník",
+    "Svit",
+    "Veľký Šariš",
+    "Vranov nad Topľou"
+  ]
+}

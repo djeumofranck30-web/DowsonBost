@@ -1,0 +1,17 @@
+{
+  "country": "Slovaquie",
+  "code": "SK",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Banská Bystrica Region",
+    "Bratislava Region",
+    "Košice Region",
+    "Nitra Region",
+    "Prešov Region",
+    "Trenčín Region",
+    "Trnava Region",
+    "Žilina Region"
+  ],
+  "source": "geonames_admin1"
+}

@@ -1,0 +1,24 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Blida",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Beni Mered",
+    "Beni Tamou",
+    "Blida",
+    "Boufarik",
+    "Bougara",
+    "Bouinan",
+    "Boû Arfa",
+    "Chebli",
+    "Chiffa",
+    "El Affroun",
+    "Larbaâ",
+    "Meftah",
+    "Mouzaïa",
+    "Oued el Alleug",
+    "Ouled Slama Fouaga",
+    "Souma"
+  ]
+}

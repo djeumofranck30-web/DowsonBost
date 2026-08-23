@@ -1,0 +1,24 @@
+{
+  "country": "Slovaquie",
+  "code": "SK",
+  "zone": "Trenčín Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Beluša",
+    "Bojnice",
+    "Bánovce nad Bebravou",
+    "Dubnica nad Váhom",
+    "Handlová",
+    "Ilava",
+    "Myjava",
+    "Nemšová",
+    "Nová Dubnica",
+    "Nové Mesto nad Váhom",
+    "Partizánske",
+    "Považská Bystrica",
+    "Prievidza",
+    "Púchov",
+    "Stará Turá",
+    "Trenčín"
+  ]
+}

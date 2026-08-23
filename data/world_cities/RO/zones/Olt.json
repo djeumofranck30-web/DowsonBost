@@ -1,0 +1,19 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Olt",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Balş",
+    "Caracal",
+    "Corabia",
+    "Drăgăneşti-Olt",
+    "Fărcaşele",
+    "Izbiceni",
+    "Osica de Sus",
+    "Piatra Olt",
+    "Potcoava",
+    "Scorniceşti",
+    "Slatina"
+  ]
+}

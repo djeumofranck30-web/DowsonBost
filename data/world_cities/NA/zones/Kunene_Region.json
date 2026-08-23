@@ -1,0 +1,11 @@
+{
+  "country": "Namibie",
+  "code": "NA",
+  "zone": "Kunene Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Khorixas",
+    "Opuwo",
+    "Outjo"
+  ]
+}

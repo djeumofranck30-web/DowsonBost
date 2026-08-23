@@ -1,0 +1,12 @@
+{
+  "country": "Tonga",
+  "code": "TO",
+  "source": "geonames_cities5000",
+  "cities": [
+    "'Ohonua",
+    "Hihifo",
+    "Neiafu",
+    "Nuku‘alofa",
+    "Pangai"
+  ]
+}

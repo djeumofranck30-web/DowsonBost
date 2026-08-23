@@ -1,0 +1,14 @@
+{
+  "country": "Salvador",
+  "code": "SV",
+  "zone": "Santa Ana Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Candelaria de La Frontera",
+    "Chalchuapa",
+    "Coatepeque",
+    "El Congo",
+    "Metapán",
+    "Santa Ana"
+  ]
+}

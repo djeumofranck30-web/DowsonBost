@@ -1,0 +1,13 @@
+{
+  "country": "Armenie",
+  "code": "AM",
+  "zone": "Shirak",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akhuryan",
+    "Artik",
+    "Azatan",
+    "Gyumri",
+    "Maralik"
+  ]
+}

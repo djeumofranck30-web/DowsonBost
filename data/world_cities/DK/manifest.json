@@ -1,0 +1,14 @@
+{
+  "country": "Danemark",
+  "code": "DK",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Capital Region",
+    "Central Jutland",
+    "North Denmark",
+    "South Denmark",
+    "Zealand"
+  ],
+  "source": "geonames_admin1"
+}

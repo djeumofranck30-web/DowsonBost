@@ -1,0 +1,21 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Karachayevo-Cherkesiya Republic",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ali-Berdukovskiy",
+    "Cherkessk",
+    "Karachayevsk",
+    "Kardonikskaya",
+    "Khabez",
+    "Pervomayskoye",
+    "Pregradnaya",
+    "Psyzh",
+    "Storozhevaya",
+    "Tereze",
+    "Uchkeken",
+    "Ust’-Dzheguta",
+    "Zelenchukskaya"
+  ]
+}

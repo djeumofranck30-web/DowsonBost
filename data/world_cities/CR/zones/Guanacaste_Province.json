@@ -1,0 +1,14 @@
+{
+  "country": "Costa Rica",
+  "code": "CR",
+  "zone": "Guanacaste Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cañas",
+    "Liberia",
+    "Nicoya",
+    "Santa Cruz",
+    "Tamarindo",
+    "Tilarán"
+  ]
+}

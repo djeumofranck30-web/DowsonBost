@@ -1,0 +1,28 @@
+{
+  "country": "Ouzbekistan",
+  "code": "UZ",
+  "zone": "Tashkent Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amir Timur",
+    "Angren",
+    "Bekobod",
+    "Bo‘ka",
+    "Chinoz",
+    "Chirchiq",
+    "G‘azalkent",
+    "Iskandar",
+    "Ohangaron",
+    "Olmaliq",
+    "Oqqo‘rg‘on",
+    "Parkent",
+    "Piskent",
+    "Qibray",
+    "Salor",
+    "Tŭytepa",
+    "Yangiobod",
+    "Yangiyŭl",
+    "Zafar",
+    "Ŭrtaowul"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "country": "Zimbabwe",
+  "code": "ZW",
+  "zone": "Masvingo Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chiredzi",
+    "Mashava",
+    "Masvingo",
+    "Zvishavane"
+  ]
+}

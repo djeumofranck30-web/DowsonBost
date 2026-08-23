@@ -1,0 +1,14 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Batman",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Batman",
+    "Beşiri",
+    "Gercüş",
+    "Kayapınar",
+    "Kozluk",
+    "Sason"
+  ]
+}

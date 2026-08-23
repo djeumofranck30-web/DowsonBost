@@ -1,0 +1,19 @@
+{
+  "country": "Hong Kong",
+  "code": "HK",
+  "zone": "Central and Western",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Admiralty",
+    "Central",
+    "Kennedy Town",
+    "Kwun Lung Lau",
+    "Mid Levels",
+    "Mount Davis",
+    "Sai Wan",
+    "Sai Ying Pun",
+    "The Belcher's",
+    "The Peak",
+    "Victoria"
+  ]
+}

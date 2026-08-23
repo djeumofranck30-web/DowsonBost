@@ -1,0 +1,13 @@
+{
+  "country": "Benin",
+  "code": "BJ",
+  "zone": "Plateau",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Adjaouèrè",
+    "Banigbé",
+    "Kétou",
+    "Pobé",
+    "Sakété"
+  ]
+}

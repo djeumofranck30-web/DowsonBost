@@ -1,0 +1,33 @@
+{
+  "country": "Perou",
+  "code": "PE",
+  "zone": "Junin",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Acolla",
+    "Carhuamayo",
+    "Chilca",
+    "Chupaca",
+    "Concepción",
+    "Huancayo",
+    "Huasahuasi",
+    "Huayucachi",
+    "Jauja",
+    "Junín",
+    "La Oroya",
+    "Mazamari",
+    "Morococha",
+    "Perené",
+    "Pilcomayo",
+    "San Agustin",
+    "San Jeronimo De Tunan",
+    "San Martín de Pangoa",
+    "San Pedro de Cajas",
+    "San Ramón",
+    "Santa Rosa",
+    "Santa Rosa de Sacco",
+    "Satipo",
+    "Sicaya",
+    "Tarma"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Tomsk Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aleksandrovskoye",
+    "Asino",
+    "Bakchar",
+    "Belyy Yar",
+    "Kargasok",
+    "Kolpashevo",
+    "Kozhevnikovo",
+    "Krivosheino",
+    "Mel’nikovo",
+    "Molchanovo",
+    "Parabel’",
+    "Pervomayskoye",
+    "Podgornoye",
+    "Samus’",
+    "Seversk",
+    "Strezhevoy",
+    "Svetlyy",
+    "Timiryazevskoye",
+    "Togur",
+    "Tomsk",
+    "Zyryanskoye"
+  ]
+}

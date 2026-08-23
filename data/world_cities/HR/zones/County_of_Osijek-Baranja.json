@@ -1,0 +1,19 @@
+{
+  "country": "Croatie",
+  "code": "HR",
+  "zone": "County of Osijek-Baranja",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Beli Manastir",
+    "Belišće",
+    "Donji Miholjac",
+    "Liberpolis",
+    "Našice",
+    "Osijek",
+    "Tenja",
+    "Valpovo",
+    "Višnjevac",
+    "Čepin",
+    "Đakovo"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Soudan du Sud",
+  "code": "SS",
+  "zone": "Eastern Equatoria",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kapoeta",
+    "Pajok",
+    "Torit"
+  ]
+}

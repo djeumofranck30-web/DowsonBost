@@ -1,0 +1,10 @@
+{
+  "country": "Cambodge",
+  "code": "KH",
+  "zone": "Preah Vihear",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Tbeng Meanchey",
+    "Tuek Kraham"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Kigoma",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kakonko",
+    "Kasulu",
+    "Kibondo",
+    "Kigoma",
+    "Mabamba",
+    "Mwandiga",
+    "Nguruka",
+    "Uvinza"
+  ]
+}

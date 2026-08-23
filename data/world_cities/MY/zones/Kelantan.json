@@ -1,0 +1,27 @@
+{
+  "country": "Malaisie",
+  "code": "MY",
+  "zone": "Kelantan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cherang Ruku",
+    "Gua Musang",
+    "Kampong Gunong",
+    "Kampong Kadok",
+    "Kampong Pangkal Kalong",
+    "Kampong Tanjong Chat",
+    "Kampung Jeli",
+    "Kampung Kuala Balah",
+    "Kampung Wakaf Stan",
+    "Kota Bharu",
+    "Kuala Krai",
+    "Melor",
+    "Pasir Mas",
+    "Pasir Puteh",
+    "Pengkalan Chepa",
+    "Peringat",
+    "Tanah Merah",
+    "Tumpat",
+    "Wakaf Baharu"
+  ]
+}

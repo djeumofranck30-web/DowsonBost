@@ -1,0 +1,14 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Cao Bằng Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cao Bằng",
+    "Thị Trấn Nguyên Bình",
+    "Thị Trấn Nước Hai",
+    "Thị Trấn Trùng Khánh",
+    "Thị Trấn Tĩnh Túc",
+    "Thị Trấn Đông Khê"
+  ]
+}

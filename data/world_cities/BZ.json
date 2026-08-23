@@ -1,0 +1,20 @@
+{
+  "country": "Belize",
+  "code": "BZ",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Belize City",
+    "Bella Vista",
+    "Belmopan",
+    "Benque Viejo el Carmen",
+    "Corozal",
+    "Dangriga",
+    "Ladyville",
+    "Orange Walk",
+    "Punta Gorda",
+    "San Ignacio",
+    "San Pedro",
+    "Santa Elena",
+    "Trial Farm"
+  ]
+}

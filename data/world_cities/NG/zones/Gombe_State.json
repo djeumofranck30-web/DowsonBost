@@ -1,0 +1,22 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Gombe State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akko",
+    "Bara",
+    "Biliri",
+    "Dadiya",
+    "Deba",
+    "Dukku",
+    "Garko",
+    "Gombe",
+    "Hinna",
+    "Kafarati",
+    "Kaltungo",
+    "Kumo",
+    "Nafada",
+    "Pindiga"
+  ]
+}

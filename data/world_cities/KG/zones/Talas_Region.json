@@ -1,0 +1,11 @@
+{
+  "country": "Kirghizistan",
+  "code": "KG",
+  "zone": "Talas Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kyzyl-Adyr",
+    "Pokrovka",
+    "Talas"
+  ]
+}

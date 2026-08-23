@@ -1,0 +1,16 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Kwale County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gazi",
+    "Kinango",
+    "Kwale",
+    "Matuga",
+    "Mazeras",
+    "Msambweni",
+    "Sawa Sawa",
+    "Ukunda"
+  ]
+}

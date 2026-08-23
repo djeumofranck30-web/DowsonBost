@@ -1,0 +1,15 @@
+{
+  "country": "Hongrie",
+  "code": "HU",
+  "zone": "Győr-Moson-Sopron",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Csorna",
+    "Győr",
+    "Jánossomorja",
+    "Kapuvár",
+    "Mosonmagyaróvár",
+    "Rajka",
+    "Sopron"
+  ]
+}

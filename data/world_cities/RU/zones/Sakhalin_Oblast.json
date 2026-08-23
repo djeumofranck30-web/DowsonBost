@@ -1,0 +1,25 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Sakhalin Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aleksandrovsk-Sakhalinskiy",
+    "Aniva",
+    "Dolinsk",
+    "Gornozavodsk",
+    "Kholmsk",
+    "Korsakov",
+    "Makarov",
+    "Nevel’sk",
+    "Nogliki",
+    "Okha",
+    "Poronaysk",
+    "Shakhtërsk",
+    "Smirnykh",
+    "Tymovskoye",
+    "Uglegorsk",
+    "Yuzhno-Kurilsk",
+    "Yuzhno-Sakhalinsk"
+  ]
+}

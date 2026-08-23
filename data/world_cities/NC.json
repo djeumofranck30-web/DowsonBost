@@ -1,0 +1,20 @@
+{
+  "country": "Nouvelle-Caledonie",
+  "code": "NC",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bourail",
+    "Dumbéa",
+    "Koné",
+    "La Foa",
+    "Magenta",
+    "Mont-Dore",
+    "Nouméa",
+    "Païta",
+    "Poindimié",
+    "Rivière-Salée",
+    "Tadine",
+    "Vallée des Colons",
+    "Wé"
+  ]
+}

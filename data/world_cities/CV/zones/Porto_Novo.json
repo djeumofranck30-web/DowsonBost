@@ -1,0 +1,9 @@
+{
+  "country": "Cap-Vert",
+  "code": "CV",
+  "zone": "Porto Novo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Porto Novo"
+  ]
+}

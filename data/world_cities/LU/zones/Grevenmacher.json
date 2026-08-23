@@ -1,0 +1,9 @@
+{
+  "country": "Luxembourg",
+  "code": "LU",
+  "zone": "Grevenmacher",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Grevenmacher"
+  ]
+}

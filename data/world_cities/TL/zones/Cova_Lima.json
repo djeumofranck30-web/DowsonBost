@@ -1,0 +1,10 @@
+{
+  "country": "Timor oriental",
+  "code": "TL",
+  "zone": "Cova Lima",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Suai",
+    "Tilomar"
+  ]
+}

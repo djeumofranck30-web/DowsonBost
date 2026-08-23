@@ -1,0 +1,12 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Nong Bua Lamphu",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Na Klang",
+    "Non Sang",
+    "Nong Bua Lamphu",
+    "Si Bun Rueang"
+  ]
+}

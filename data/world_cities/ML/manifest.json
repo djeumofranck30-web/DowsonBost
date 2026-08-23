@@ -1,0 +1,20 @@
+{
+  "country": "Mali",
+  "code": "ML",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Bamako",
+    "Gao",
+    "Kayes",
+    "Kidal",
+    "Koulikoro",
+    "Mopti",
+    "Ménaka",
+    "Sikasso",
+    "Ségou",
+    "Taoudénit",
+    "Tombouctou"
+  ],
+  "source": "geonames_admin1"
+}

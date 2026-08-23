@@ -1,0 +1,12 @@
+{
+  "country": "Jamaique",
+  "code": "JM",
+  "zone": "Saint Ann Parish",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Discovery Bay",
+    "Ocho Rios",
+    "Runaway Bay",
+    "Saint Ann’s Bay"
+  ]
+}

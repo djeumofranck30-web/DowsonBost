@@ -1,0 +1,10 @@
+{
+  "country": "Liban",
+  "code": "LB",
+  "zone": "Beirut",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Beirut",
+    "Ra’s Bayrūt"
+  ]
+}

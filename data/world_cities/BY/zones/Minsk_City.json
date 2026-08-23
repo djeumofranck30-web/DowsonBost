@@ -1,0 +1,9 @@
+{
+  "country": "Bielorussie",
+  "code": "BY",
+  "zone": "Minsk City",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Minsk"
+  ]
+}

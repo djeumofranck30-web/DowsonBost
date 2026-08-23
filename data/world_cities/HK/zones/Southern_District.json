@@ -1,0 +1,29 @@
+{
+  "country": "Hong Kong",
+  "code": "HK",
+  "zone": "Southern District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aberdeen",
+    "Aberdeen Centre",
+    "Ap Lei Chau Estate",
+    "Baguio Villa",
+    "Chek Chue",
+    "Chi Fu Fa Yuen",
+    "Lei Tung",
+    "Lei Tung Estate",
+    "Pok Fu Lam",
+    "Residence Bel-air",
+    "Shek O",
+    "Shek Pai Wan Estate",
+    "South Horizons",
+    "South Horizons (Estate)",
+    "Tin Wan",
+    "Tin Wan Estate",
+    "Wah Fu",
+    "Wah Kwai",
+    "Wah Kwai Estate",
+    "Wong Chuk Hang",
+    "Yue On Court"
+  ]
+}

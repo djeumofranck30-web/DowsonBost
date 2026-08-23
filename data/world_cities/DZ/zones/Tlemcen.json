@@ -1,0 +1,22 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Tlemcen",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Beni Mester",
+    "Bensekrane",
+    "Chetouane",
+    "Ghazaouet",
+    "Hennaya",
+    "Maghnia",
+    "Mansoûra",
+    "Nedroma",
+    "Ouled Mimoun",
+    "Remchi",
+    "Sebdou",
+    "Sidi Abdelli",
+    "Sidi Senoussi سيدي سنوسي",
+    "Tlemcen"
+  ]
+}

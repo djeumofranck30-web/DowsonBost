@@ -1,0 +1,14 @@
+{
+  "country": "Togo",
+  "code": "TG",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Centrale",
+    "Kara",
+    "Maritime",
+    "Plateaux",
+    "Savanes"
+  ],
+  "source": "geonames_admin1"
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Croatie",
+  "code": "HR",
+  "zone": "Zadar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Biograd na Moru",
+    "Zadar"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "country": "Equateur",
+  "code": "EC",
+  "zone": "Loja",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cariamanga",
+    "Catacocha",
+    "Catamayo",
+    "Celica",
+    "Loja",
+    "Macará"
+  ]
+}

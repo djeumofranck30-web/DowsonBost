@@ -1,0 +1,9 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Surin",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Surin"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Kiambu County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gatundu",
+    "Githiga A",
+    "Githunguri",
+    "Juja",
+    "Karuri",
+    "Kawaida",
+    "Kiambu",
+    "Kikuyu",
+    "Limuru",
+    "Rironi",
+    "Ruiru",
+    "Tinganga"
+  ]
+}

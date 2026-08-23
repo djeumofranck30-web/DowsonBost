@@ -1,0 +1,9 @@
+{
+  "country": "Yemen",
+  "code": "YE",
+  "zone": "Soqatra",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Hadibu"
+  ]
+}

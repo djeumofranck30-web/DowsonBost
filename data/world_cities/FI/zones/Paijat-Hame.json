@@ -1,0 +1,15 @@
+{
+  "country": "Finlande",
+  "code": "FI",
+  "zone": "Paijat-Hame",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Asikkala",
+    "Heinola",
+    "Hollola",
+    "Iitti",
+    "Lahti",
+    "Nastola",
+    "Orimattila"
+  ]
+}

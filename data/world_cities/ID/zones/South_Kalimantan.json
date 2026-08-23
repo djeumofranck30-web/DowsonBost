@@ -1,0 +1,14 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "South Kalimantan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amuntai",
+    "Banjarbaru",
+    "Banjarmasin",
+    "Barabai",
+    "Martapura",
+    "Tanjung"
+  ]
+}

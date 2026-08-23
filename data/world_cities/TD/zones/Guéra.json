@@ -1,0 +1,12 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Guéra",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bitkine",
+    "Mangalmé",
+    "Melfi",
+    "Mongo"
+  ]
+}

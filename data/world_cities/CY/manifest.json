@@ -1,0 +1,15 @@
+{
+  "country": "Chypre",
+  "code": "CY",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Ammochostos",
+    "Keryneia",
+    "Larnaka",
+    "Limassol",
+    "Nicosia",
+    "Pafos"
+  ],
+  "source": "geonames_admin1"
+}

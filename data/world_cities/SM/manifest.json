@@ -1,0 +1,18 @@
+{
+  "country": "Saint-Marin",
+  "code": "SM",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Acquaviva",
+    "Borgo Maggiore",
+    "Chiesanuova",
+    "Domagnano",
+    "Faetano",
+    "Fiorentino",
+    "Montegiardino",
+    "San Marino",
+    "Serravalle"
+  ],
+  "source": "geonames_admin1"
+}

@@ -1,0 +1,9 @@
+{
+  "country": "Dominique",
+  "code": "DM",
+  "zone": "Saint David Parish",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Rosalie"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "country": "Hongrie",
+  "code": "HU",
+  "zone": "Vas County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Celldömölk",
+    "Körmend",
+    "Kőszeg",
+    "Szentgotthárd",
+    "Szombathely",
+    "Sárvár"
+  ]
+}

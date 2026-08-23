@@ -1,0 +1,13 @@
+{
+  "country": "Australie",
+  "code": "AU",
+  "zone": "Northern Territory",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alice Springs",
+    "Darwin",
+    "Howard Springs",
+    "Katherine",
+    "Palmerston"
+  ]
+}

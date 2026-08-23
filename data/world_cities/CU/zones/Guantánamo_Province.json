@@ -1,0 +1,13 @@
+{
+  "country": "Cuba",
+  "code": "CU",
+  "zone": "Guantánamo Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baracoa",
+    "Guantánamo",
+    "Maisí",
+    "Naval Station Guantanamo Bay",
+    "Río Guayabal de Yateras"
+  ]
+}

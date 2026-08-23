@@ -1,0 +1,30 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Ivanovo Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Furmanov",
+    "Gavrilov Posad",
+    "Ivanovo",
+    "Kineshma",
+    "Kokhma",
+    "Komsomol’sk",
+    "Lezhnevo",
+    "Navoloki",
+    "Novo-Talitsy",
+    "Palekh",
+    "Privolzhsk",
+    "Puchezh",
+    "Rodniki",
+    "Savino",
+    "Shuya",
+    "Staraya Vichuga",
+    "Talitsy",
+    "Teykovo",
+    "Vichuga",
+    "Yur’yevets",
+    "Yuzha",
+    "Zavolzhsk"
+  ]
+}

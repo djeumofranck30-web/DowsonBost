@@ -1,0 +1,13 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Mandoul",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bédiondo",
+    "Goundi",
+    "Koumra",
+    "Maro",
+    "Moïssala"
+  ]
+}

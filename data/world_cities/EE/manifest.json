@@ -1,0 +1,24 @@
+{
+  "country": "Estonie",
+  "code": "EE",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Harjumaa",
+    "Hiiumaa",
+    "Ida-Virumaa",
+    "Järvamaa",
+    "Jõgevamaa",
+    "Lääne",
+    "Lääne-Virumaa",
+    "Pärnumaa",
+    "Põlvamaa",
+    "Raplamaa",
+    "Saare",
+    "Tartu",
+    "Valgamaa",
+    "Viljandimaa",
+    "Võrumaa"
+  ],
+  "source": "geonames_admin1"
+}

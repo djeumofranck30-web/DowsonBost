@@ -1,0 +1,21 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Hunedoara County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Brad",
+    "Călan",
+    "Deva",
+    "Geoagiu",
+    "Haţeg",
+    "Hunedoara",
+    "Lupeni",
+    "Orăştie",
+    "Petrila",
+    "Petroşani",
+    "Simeria",
+    "Uricani",
+    "Vulcan"
+  ]
+}

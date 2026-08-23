@@ -1,0 +1,19 @@
+{
+  "country": "Portugal",
+  "code": "PT",
+  "zone": "Azores",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Angra do Heroísmo",
+    "Arrifes",
+    "Horta",
+    "Lagoa",
+    "Madalena",
+    "Ponta Delgada",
+    "Praia da Vitória",
+    "Rabo de Peixe",
+    "Ribeira Grande",
+    "Rosto de Cão",
+    "Vila Franca do Campo"
+  ]
+}

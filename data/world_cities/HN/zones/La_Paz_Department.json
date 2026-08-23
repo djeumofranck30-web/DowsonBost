@@ -1,0 +1,15 @@
+{
+  "country": "Honduras",
+  "code": "HN",
+  "zone": "La Paz Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chinacla",
+    "Guajiquiro",
+    "La Paz",
+    "Marcala",
+    "Opatoro",
+    "San Pedro de Tutule",
+    "Yarula"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "Central Kalimantan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kualakapuas",
+    "Muara Teweh",
+    "Palangkaraya",
+    "Pangkalanbuun",
+    "Sampit"
+  ]
+}

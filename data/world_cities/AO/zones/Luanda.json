@@ -1,0 +1,30 @@
+{
+  "country": "Angola",
+  "code": "AO",
+  "zone": "Luanda",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Benfica",
+    "Cacuaco",
+    "Camama",
+    "Cazenga",
+    "Golfe",
+    "Hoji ya Henda",
+    "Ingombota",
+    "Kikolo",
+    "Kilamba",
+    "Kima Kieza",
+    "Luanda",
+    "Maianga",
+    "Mulenvos",
+    "Nova Vida",
+    "Ramiros",
+    "Rangel",
+    "Samba",
+    "Sambizanga",
+    "Talatona",
+    "Viana",
+    "Vila Flor",
+    "Zango"
+  ]
+}

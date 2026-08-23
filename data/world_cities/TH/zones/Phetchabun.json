@@ -1,0 +1,14 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Phetchabun",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban I Loet",
+    "Chon Daen",
+    "Lom Sak",
+    "Nong Phai",
+    "Phetchabun",
+    "Wichian Buri"
+  ]
+}

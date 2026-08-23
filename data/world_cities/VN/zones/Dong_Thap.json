@@ -1,0 +1,19 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Dong Thap",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cai Lậy",
+    "Cao Lãnh",
+    "Gò Công",
+    "Hồng Ngự",
+    "Lai Vung",
+    "Mỹ Tho",
+    "Sa Dec",
+    "Sa Rài",
+    "Tràm Chim",
+    "Tân Ninh",
+    "Ấp Tân Mỹ"
+  ]
+}

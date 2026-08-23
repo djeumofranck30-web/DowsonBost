@@ -1,0 +1,19 @@
+{
+  "country": "Panama",
+  "code": "PA",
+  "zone": "Panamá Oeste Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Altos de San Francisco",
+    "Arraiján",
+    "El Coco",
+    "Guadalupe",
+    "La Chorrera",
+    "La Herradura",
+    "La Mitra",
+    "La Pesa",
+    "Nuevo Arraiján",
+    "Veracruz",
+    "Vista Alegre"
+  ]
+}

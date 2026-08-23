@@ -1,0 +1,14 @@
+{
+  "country": "Azerbaidjan",
+  "code": "AZ",
+  "zone": "Şǝmkir",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chinarli",
+    "Dallar",
+    "Dollyar-Dzhagir",
+    "Kur",
+    "Shamkhir",
+    "Zayam"
+  ]
+}

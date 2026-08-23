@@ -1,0 +1,14 @@
+{
+  "country": "Perou",
+  "code": "PE",
+  "zone": "Huánuco Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ambo",
+    "Castillo Grande",
+    "Huánuco",
+    "San Miguel de Cauri",
+    "Tingo María",
+    "Yanacancha"
+  ]
+}

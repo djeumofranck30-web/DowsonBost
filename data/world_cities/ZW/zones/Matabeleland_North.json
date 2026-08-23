@@ -1,0 +1,12 @@
+{
+  "country": "Zimbabwe",
+  "code": "ZW",
+  "zone": "Matabeleland North",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Hwange",
+    "Inyati",
+    "Lupane",
+    "Victoria Falls"
+  ]
+}

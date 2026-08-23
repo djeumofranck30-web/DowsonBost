@@ -1,0 +1,26 @@
+{
+  "country": "Belgique",
+  "code": "BE",
+  "zone": "Bruxelles-Capitale",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anderlecht",
+    "Auderghem",
+    "Berchem-Sainte-Agathe",
+    "Brussels",
+    "Etterbeek",
+    "Evere",
+    "Forest",
+    "Ganshoren",
+    "Ixelles",
+    "Jette",
+    "Koekelberg",
+    "Molenbeek-Saint-Jean",
+    "Saint-Gilles",
+    "Saint-Josse-ten-Noode",
+    "Schaerbeek",
+    "Uccle",
+    "Watermael-Boitsfort",
+    "Woluwe-Saint-Lambert"
+  ]
+}

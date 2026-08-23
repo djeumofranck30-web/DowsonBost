@@ -1,0 +1,24 @@
+{
+  "country": "Mauritanie",
+  "code": "MR",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Adrar",
+    "Assaba",
+    "Brakna",
+    "Dakhlet Nouadhibou",
+    "Gorgol",
+    "Guidimaka",
+    "Hodh Ech Chargi",
+    "Hodh El Gharbi",
+    "Inchiri",
+    "Nouakchott North",
+    "Nouakchott South",
+    "Nouakchott West",
+    "Tagant",
+    "Tiris Zemmour",
+    "Trarza"
+  ],
+  "source": "geonames_admin1"
+}

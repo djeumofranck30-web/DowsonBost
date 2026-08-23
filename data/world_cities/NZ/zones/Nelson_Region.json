@@ -1,0 +1,10 @@
+{
+  "country": "Nouvelle-Zelande",
+  "code": "NZ",
+  "zone": "Nelson Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Nelson",
+    "Stoke"
+  ]
+}

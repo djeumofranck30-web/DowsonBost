@@ -1,0 +1,31 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Komi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ezhva",
+    "Inta",
+    "Krasnozatonskiy",
+    "Mikun’",
+    "Nizhniy Odes",
+    "Pechora",
+    "Raduzhnyy",
+    "Sosnogorsk",
+    "Syktyvkar",
+    "Troitsko-Pechorsk",
+    "Ukhta",
+    "Usinsk",
+    "Usogorsk",
+    "Ust-Tsilma",
+    "Ust’-Kulom",
+    "Vizinga",
+    "Vodnyy",
+    "Vorgashor",
+    "Vorkuta",
+    "Vuktyl",
+    "Yarega",
+    "Yemva",
+    "Zheshart"
+  ]
+}

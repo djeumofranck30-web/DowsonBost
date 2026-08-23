@@ -1,0 +1,18 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Bolívar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Caicara del Orinoco",
+    "Ciudad Bolívar",
+    "Ciudad Guayana",
+    "Ciudad Piar",
+    "El Dorado",
+    "Guasipati",
+    "La Paragua",
+    "Santa Elena de Uairén",
+    "Tumeremo",
+    "Upata"
+  ]
+}

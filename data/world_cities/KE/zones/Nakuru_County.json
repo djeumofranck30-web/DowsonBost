@@ -1,0 +1,20 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Nakuru County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dundori",
+    "Elburgon",
+    "Gilgil",
+    "Maai Mahiu",
+    "Mai",
+    "Mau Narok",
+    "Molo",
+    "Naivasha",
+    "Nakuru",
+    "Njoro",
+    "Rongai",
+    "Subukia"
+  ]
+}

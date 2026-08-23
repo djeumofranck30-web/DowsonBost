@@ -1,0 +1,17 @@
+{
+  "country": "Burkina Faso",
+  "code": "BF",
+  "zone": "Centre-Est",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bittou",
+    "Béguédo",
+    "Cinkansé",
+    "Garango",
+    "Koupéla",
+    "Ouargaye",
+    "Pouytenga",
+    "Tenkodogo",
+    "Zabré"
+  ]
+}

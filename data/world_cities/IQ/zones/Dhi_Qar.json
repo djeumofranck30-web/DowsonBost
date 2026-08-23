@@ -1,0 +1,12 @@
+{
+  "country": "Irak",
+  "code": "IQ",
+  "zone": "Dhi Qar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ash Shaţrah",
+    "Nasiriyah",
+    "Nāḩiyat al Fuhūd",
+    "Qal‘at Sukkar"
+  ]
+}

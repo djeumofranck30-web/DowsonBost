@@ -1,0 +1,13 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Erzincan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cimin",
+    "Erzincan",
+    "İliç",
+    "Refahiye",
+    "Tercan"
+  ]
+}

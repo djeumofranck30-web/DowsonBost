@@ -1,0 +1,30 @@
+{
+  "country": "États-Unis",
+  "code": "US",
+  "zone": "Alaska",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anchorage",
+    "Badger",
+    "Bethel",
+    "College",
+    "Eagle River",
+    "Elmendorf Air Force Base",
+    "Fairbanks",
+    "Gateway",
+    "Homer",
+    "Juneau",
+    "Kalifornsky",
+    "Kenai",
+    "Ketchikan",
+    "Knik-Fairview",
+    "Kodiak",
+    "Lakes",
+    "Meadow Lakes",
+    "Palmer",
+    "Sitka",
+    "Sterling",
+    "Tanaina",
+    "Wasilla"
+  ]
+}

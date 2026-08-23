@@ -1,0 +1,20 @@
+{
+  "country": "Myanmar",
+  "code": "MM",
+  "zone": "Mon",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Don Wun",
+    "Hmaw Bi",
+    "Kyaikkami",
+    "Kyaikto",
+    "Kyauktaga",
+    "Martaban",
+    "Mawlamyine",
+    "Mudon",
+    "Paung",
+    "Thanbyuzayat",
+    "Thaton",
+    "Ye"
+  ]
+}

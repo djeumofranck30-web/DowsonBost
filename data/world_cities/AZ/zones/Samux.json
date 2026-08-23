@@ -1,0 +1,10 @@
+{
+  "country": "Azerbaidjan",
+  "code": "AZ",
+  "zone": "Samux",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Garayeri",
+    "Samukh"
+  ]
+}

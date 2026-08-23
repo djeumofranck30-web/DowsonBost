@@ -1,0 +1,10 @@
+{
+  "country": "Namibie",
+  "code": "NA",
+  "zone": "Omusati Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Okahao",
+    "Outapi"
+  ]
+}

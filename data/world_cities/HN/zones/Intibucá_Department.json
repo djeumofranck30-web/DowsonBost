@@ -1,0 +1,15 @@
+{
+  "country": "Honduras",
+  "code": "HN",
+  "zone": "Intibucá Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Camasca",
+    "Colomoncagua",
+    "Intibucá",
+    "Jesús de Otoro",
+    "La Esperanza",
+    "Santa Cruz",
+    "Yamaranguila"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Ben Arous Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ben Arous",
+    "Borj Cedria",
+    "Boumhel El Bassatine",
+    "El Mourouj",
+    "Ez Zahra",
+    "Fouchana",
+    "Hammam-Lif",
+    "Khledia",
+    "La Sebala du Mornag",
+    "Radès"
+  ]
+}

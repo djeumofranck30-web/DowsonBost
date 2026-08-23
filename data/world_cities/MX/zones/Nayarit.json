@@ -1,0 +1,32 @@
+{
+  "country": "Mexique",
+  "code": "MX",
+  "zone": "Nayarit",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Acaponeta",
+    "Ahuacatlán",
+    "Bucerías",
+    "Compostela",
+    "El Porvenir",
+    "Francisco I. Madero",
+    "Ixtlán del Río",
+    "Jala",
+    "La Peñita de Jaltemba",
+    "Las Jarretaderas",
+    "Las Varas",
+    "Mezcales",
+    "Ruiz",
+    "San Blas",
+    "San José del Valle",
+    "San Juan de Abajo",
+    "San Vicente",
+    "Santiago Ixcuintla",
+    "Tecuala",
+    "Tepic",
+    "Tuxpan",
+    "Valle de Banderas",
+    "Villa Hidalgo",
+    "Xalisco"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Ang Thong",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ang Thong",
+    "Ban Thai Tan",
+    "Chaiyo",
+    "Pho Thong",
+    "Wiset Chaichan"
+  ]
+}

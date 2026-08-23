@@ -1,0 +1,12 @@
+{
+  "country": "Angola",
+  "code": "AO",
+  "zone": "Cunene",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cahama",
+    "Humbe",
+    "Ondjiva",
+    "Xangongo"
+  ]
+}

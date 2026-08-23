@@ -1,0 +1,13 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Wajir County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bute",
+    "Eldas",
+    "Giriftu",
+    "Habaswein",
+    "Wajir"
+  ]
+}

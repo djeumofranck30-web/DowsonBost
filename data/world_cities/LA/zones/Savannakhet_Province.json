@@ -1,0 +1,11 @@
+{
+  "country": "Laos",
+  "code": "LA",
+  "zone": "Savannakhet Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Kèngkok",
+    "Ban Xénô",
+    "Savannakhet"
+  ]
+}

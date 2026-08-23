@@ -1,0 +1,33 @@
+{
+  "country": "Israel",
+  "code": "IL",
+  "zone": "Southern District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "AlSayid Tribe",
+    "Arad",
+    "Ashdod",
+    "Ashkelon",
+    "Beersheba",
+    "Bir Hadaj",
+    "Dimona",
+    "Eilat",
+    "H̱ura",
+    "Kiryat Gat",
+    "Kuseifa",
+    "Laqiyya",
+    "Lehavim",
+    "Meitar",
+    "Mitzpe Ramon",
+    "Netivot",
+    "Ofaqim",
+    "Qiryat Mal’akhi",
+    "Rahat",
+    "Sderot",
+    "Segev Shalom",
+    "Tel Sheva‘",
+    "Yeroẖam",
+    "‘Ar‘ara BaNegev",
+    "‘Omer"
+  ]
+}

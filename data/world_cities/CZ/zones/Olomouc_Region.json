@@ -1,0 +1,21 @@
+{
+  "country": "Tchequie",
+  "code": "CZ",
+  "zone": "Olomouc Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Hranice",
+    "Jeseník",
+    "Kojetín",
+    "Lipník nad Bečvou",
+    "Litovel",
+    "Mohelnice",
+    "Olomouc",
+    "Prostějov",
+    "Přerov",
+    "Uničov",
+    "Zábřeh",
+    "Šternberk",
+    "Šumperk"
+  ]
+}

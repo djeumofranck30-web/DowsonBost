@@ -1,0 +1,9 @@
+{
+  "country": "Groenland",
+  "code": "GL",
+  "zone": "Avannaata",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ilulissat"
+  ]
+}

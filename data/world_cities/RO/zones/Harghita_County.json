@@ -1,0 +1,28 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Harghita County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bălan",
+    "Corund",
+    "Cristuru Secuiesc",
+    "Cârţa",
+    "Ditrău",
+    "Gheorgheni",
+    "Joseni",
+    "Lunca de Jos",
+    "Miercurea-Ciuc",
+    "Mugeni",
+    "Odorheiu Secuiesc",
+    "Praid",
+    "Remetea",
+    "Siculeni",
+    "Suseni",
+    "Sâncrăieni",
+    "Sândominic",
+    "Topliţa",
+    "Vlăhiţa",
+    "Zetea"
+  ]
+}

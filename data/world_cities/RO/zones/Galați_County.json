@@ -1,0 +1,30 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Galați County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Barcea",
+    "Brăhăşeştii de Sus",
+    "Corod",
+    "Cosmeşti",
+    "Cudalbi",
+    "Drăguşeni",
+    "Drăgăneşti",
+    "Frumuşiţa",
+    "Galaţi",
+    "Ghidigeni",
+    "Iveşti",
+    "Lieşti",
+    "Matca",
+    "Munteni",
+    "Măstăcani",
+    "Nicoreşti",
+    "Pechea",
+    "Piscu",
+    "Tecuci",
+    "Tudor Vladimirescu",
+    "Tuluceşti",
+    "Umbrăreşti"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Nicaragua",
+  "code": "NI",
+  "zone": "Granada Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Diriomo",
+    "Granada",
+    "Nandaime"
+  ]
+}

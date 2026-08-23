@@ -1,0 +1,18 @@
+{
+  "country": "Macédoine du Nord",
+  "code": "MK",
+  "zone": "Grad Skopje",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Butel",
+    "Dračevo",
+    "Gjorče Petro",
+    "Kisela Voda",
+    "Kondovo",
+    "Radishani",
+    "Saraj",
+    "Skopje",
+    "Čair",
+    "Šuto Orizare"
+  ]
+}

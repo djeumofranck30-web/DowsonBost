@@ -1,0 +1,21 @@
+{
+  "country": "Senegal",
+  "code": "SN",
+  "zone": "Matam",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amady Ounaré",
+    "Dembankané",
+    "Diawara",
+    "Kanel",
+    "Matam",
+    "Nguidjlone",
+    "Odobéré",
+    "Ouro Sogui",
+    "Sintiou Bamambé",
+    "Sémé",
+    "Thilogne",
+    "Tilogne Tokossel",
+    "Waoundé"
+  ]
+}

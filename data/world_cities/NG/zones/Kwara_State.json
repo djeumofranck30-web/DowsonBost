@@ -1,0 +1,21 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Kwara State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ajasse Ipo",
+    "Bode Saadu",
+    "Gwasoro",
+    "Ilorin",
+    "Jebba",
+    "Kaiama",
+    "Lafiagi",
+    "Offa",
+    "Okuta",
+    "Omu-Aran",
+    "Patigi",
+    "Suya",
+    "Yashikira"
+  ]
+}

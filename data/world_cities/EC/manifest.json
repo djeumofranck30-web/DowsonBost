@@ -1,0 +1,33 @@
+{
+  "country": "Equateur",
+  "code": "EC",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Azuay",
+    "Bolívar",
+    "Canar",
+    "Carchi",
+    "Chimborazo Province",
+    "Cotopaxi",
+    "El Oro",
+    "Esmeraldas",
+    "Galápagos",
+    "Guayas",
+    "Imbabura",
+    "Loja",
+    "Los Ríos",
+    "Manabí",
+    "Morona-Santiago Province",
+    "Napo",
+    "Orellana Province",
+    "Pastaza Province",
+    "Pichincha",
+    "Santa Elena",
+    "Santo Domingo de los Tsáchilas",
+    "Sucumbíos",
+    "Tungurahua Province",
+    "Zamora Chinchipe"
+  ],
+  "source": "geonames_admin1"
+}

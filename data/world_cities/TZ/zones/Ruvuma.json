@@ -1,0 +1,18 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Ruvuma",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kigonsera",
+    "Liuli",
+    "Mahanje",
+    "Maposeni",
+    "Matiri",
+    "Mbamba Bay",
+    "Mbinga",
+    "Songea",
+    "Tingi",
+    "Tunduru"
+  ]
+}

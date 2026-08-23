@@ -1,0 +1,19 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Samsun",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ayvacık",
+    "Bafra",
+    "Havza",
+    "Kavak",
+    "Ladik",
+    "Samsun",
+    "Tekkeköy",
+    "Terme",
+    "Vezirköprü",
+    "Yakakent",
+    "Çarşamba"
+  ]
+}

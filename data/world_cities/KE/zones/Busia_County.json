@@ -1,0 +1,13 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Busia County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Busia",
+    "Luanda",
+    "Lugulu",
+    "Malaba",
+    "Port Victoria"
+  ]
+}

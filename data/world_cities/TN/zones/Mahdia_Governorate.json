@@ -1,0 +1,21 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Mahdia Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chebba",
+    "Chehimet Nord",
+    "Chorbane",
+    "El Bahira",
+    "El Jem",
+    "Kerker",
+    "Ksour Essaf",
+    "Mahdia",
+    "Melloulèche",
+    "Rejiche",
+    "Sidi Alouane",
+    "Souassi",
+    "Zouila"
+  ]
+}

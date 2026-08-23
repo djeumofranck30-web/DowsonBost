@@ -1,0 +1,10 @@
+{
+  "country": "Jamaique",
+  "code": "JM",
+  "zone": "Saint Mary Parish",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Annotto Bay",
+    "Port Maria"
+  ]
+}

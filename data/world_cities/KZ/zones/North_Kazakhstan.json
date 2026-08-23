@@ -1,0 +1,16 @@
+{
+  "country": "Kazakhstan",
+  "code": "KZ",
+  "zone": "North Kazakhstan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bishkul",
+    "Bulayevo",
+    "Kishkenekol’",
+    "Novoishimskiy",
+    "Petropavl",
+    "Sergeyevka",
+    "Smirnovo",
+    "Taiynsha"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Constanța County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Agigea",
+    "Băneasa",
+    "Castelu",
+    "Cernavodă",
+    "Cobadin",
+    "Cogealac",
+    "Constanţa",
+    "Corbu",
+    "Cumpăna",
+    "Eforie Sud",
+    "Hârşova",
+    "Lumina",
+    "Mangalia",
+    "Medgidia",
+    "Mihail Kogălniceanu",
+    "Mircea Vodă",
+    "Murfatlar",
+    "Negru Vodă",
+    "Năvodari",
+    "Ostrov",
+    "Ovidiu",
+    "Techirghiol",
+    "Topraisar",
+    "Tuzla",
+    "Valu lui Traian"
+  ]
+}

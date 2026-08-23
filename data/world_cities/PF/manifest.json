@@ -1,0 +1,13 @@
+{
+  "country": "Polynesie francaise",
+  "code": "PF",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Austral Islands",
+    "Leeward Islands",
+    "Marquesas Islands",
+    "Îles du Vent"
+  ],
+  "source": "geonames_admin1"
+}

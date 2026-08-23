@@ -1,0 +1,14 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "Haut-Lomami",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bukama",
+    "Kamina",
+    "Kanyama",
+    "Kipamba",
+    "Malemba-Nkulu",
+    "Mulongo"
+  ]
+}

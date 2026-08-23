@@ -1,0 +1,19 @@
+{
+  "country": "Zambie",
+  "code": "ZM",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Central Province",
+    "Copperbelt",
+    "Eastern Province",
+    "Luapula Province",
+    "Lusaka Province",
+    "Muchinga",
+    "North-Western",
+    "Northern Province",
+    "Southern Province",
+    "Western Province"
+  ],
+  "source": "geonames_admin1"
+}

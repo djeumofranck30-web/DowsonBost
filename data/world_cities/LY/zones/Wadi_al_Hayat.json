@@ -1,0 +1,10 @@
+{
+  "country": "Libye",
+  "code": "LY",
+  "zone": "Wadi al Hayat",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Ghurayfah",
+    "Ubari"
+  ]
+}

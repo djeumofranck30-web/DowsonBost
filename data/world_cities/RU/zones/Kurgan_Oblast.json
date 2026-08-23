@@ -1,0 +1,28 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Kurgan Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dalmatovo",
+    "Ikovka",
+    "Kargapol’ye",
+    "Kataysk",
+    "Ketovo",
+    "Kurgan",
+    "Kurtamysh",
+    "Lebyazh’ye",
+    "Lesnikovo",
+    "Makushino",
+    "Mishkino",
+    "Petukhovo",
+    "Polovinnoye",
+    "Shadrinsk",
+    "Shatrovo",
+    "Shchuch’ye",
+    "Shumikha",
+    "Tselinnoye",
+    "Vargashi",
+    "Yurgamysh"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Guárico",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Altagracia de Orituco",
+    "Calabozo",
+    "Camaguán",
+    "Chaguaramas",
+    "El Sombrero",
+    "San Juan de los Morros",
+    "Tucupido",
+    "Valle de La Pascua",
+    "Zaraza"
+  ]
+}

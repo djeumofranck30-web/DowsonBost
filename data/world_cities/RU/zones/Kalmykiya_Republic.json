@@ -1,0 +1,19 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Kalmykiya Republic",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Elista",
+    "Gorodoviki",
+    "Gorodovikovsk",
+    "Komsomol’skiy",
+    "Lagan’",
+    "Malyye Derbety",
+    "Priyutnoye",
+    "Sadovoye",
+    "Troitskoye",
+    "Tsagan Aman",
+    "Yashkul’"
+  ]
+}

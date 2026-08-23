@@ -1,0 +1,14 @@
+{
+  "country": "Oman",
+  "code": "OM",
+  "zone": "Al Batinah North",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Khābūrah",
+    "As Suwayq",
+    "Liwá",
+    "Shināş",
+    "Sohar",
+    "Şaḩam"
+  ]
+}

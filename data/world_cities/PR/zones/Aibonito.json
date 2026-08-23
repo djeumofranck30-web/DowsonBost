@@ -1,0 +1,9 @@
+{
+  "country": "Porto Rico",
+  "code": "PR",
+  "zone": "Aibonito",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aibonito"
+  ]
+}

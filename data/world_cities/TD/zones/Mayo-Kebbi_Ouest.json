@@ -1,0 +1,11 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Mayo-Kebbi Ouest",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Léré",
+    "Mboursou Léré",
+    "Pala"
+  ]
+}

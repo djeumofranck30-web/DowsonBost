@@ -1,0 +1,13 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Garissa County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bura",
+    "Dadaab",
+    "Garissa",
+    "Ijara",
+    "Mado Gashi"
+  ]
+}

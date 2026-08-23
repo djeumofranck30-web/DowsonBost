@@ -1,0 +1,20 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Nghệ An Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bản Na Hỷ",
+    "Bến Thủy",
+    "Cửa Lô",
+    "Diễn Thành",
+    "Hoàng Mai",
+    "Kim Liên",
+    "Nghĩa Đàn",
+    "Phúc Sơn",
+    "Quán Hành",
+    "Thái Hòa",
+    "Vinh",
+    "Yên Vinh"
+  ]
+}

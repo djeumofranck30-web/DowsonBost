@@ -1,0 +1,9 @@
+{
+  "country": "Panama",
+  "code": "PA",
+  "zone": "Embera",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Unión Chocó"
+  ]
+}

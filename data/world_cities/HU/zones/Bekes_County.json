@@ -1,0 +1,30 @@
+{
+  "country": "Hongrie",
+  "code": "HU",
+  "zone": "Bekes County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Battonya",
+    "Békés",
+    "Békéscsaba",
+    "Csorvás",
+    "Dévaványa",
+    "Elek",
+    "Füzesgyarmat",
+    "Gyomaendrőd",
+    "Gyula",
+    "Kondoros",
+    "Körösladány",
+    "Mezőberény",
+    "Mezőhegyes",
+    "Mezőkovácsháza",
+    "Nagyszénás",
+    "Orosháza",
+    "Sarkad",
+    "Szarvas",
+    "Szeghalom",
+    "Tótkomlós",
+    "Vésztő",
+    "Újkígyós"
+  ]
+}

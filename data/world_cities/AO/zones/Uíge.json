@@ -1,0 +1,17 @@
+{
+  "country": "Angola",
+  "code": "AO",
+  "zone": "Uíge",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Banza Damba",
+    "Cuango Calumbo",
+    "Damba",
+    "Maquela do Zombo",
+    "Negage",
+    "Puri",
+    "Sanza Pombo",
+    "Songo",
+    "Uíge"
+  ]
+}

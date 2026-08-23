@@ -1,0 +1,11 @@
+{
+  "country": "Paraguay",
+  "code": "PY",
+  "zone": "Misiones Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ayolas",
+    "San Juan Bautista",
+    "Santa Rosa"
+  ]
+}

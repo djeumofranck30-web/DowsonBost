@@ -1,0 +1,22 @@
+{
+  "country": "Malawi",
+  "code": "MW",
+  "zone": "Southern Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Balaka",
+    "Blantyre",
+    "Chikwawa",
+    "Liwonde",
+    "Luchenza",
+    "Mangochi",
+    "Monkey Bay",
+    "Mulanje",
+    "Mwanza",
+    "Ngabu",
+    "Nsanje",
+    "Phalombe",
+    "Thyolo",
+    "Zomba"
+  ]
+}

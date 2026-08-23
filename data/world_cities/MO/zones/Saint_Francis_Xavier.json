@@ -1,0 +1,10 @@
+{
+  "country": "Macao",
+  "code": "MO",
+  "zone": "Saint Francis Xavier",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Lai Chi Van",
+    "Luhuan"
+  ]
+}

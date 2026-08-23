@@ -1,0 +1,13 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Adrar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Adrar",
+    "Aoulef",
+    "Kasbate El Djena",
+    "Reggane",
+    "Tilouline"
+  ]
+}

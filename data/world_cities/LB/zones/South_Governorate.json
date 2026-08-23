@@ -1,0 +1,14 @@
+{
+  "country": "Liban",
+  "code": "LB",
+  "zone": "South Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "En Nâqoûra",
+    "Ghazieh",
+    "Qâna",
+    "Sarafand",
+    "Sidon",
+    "Tyre"
+  ]
+}

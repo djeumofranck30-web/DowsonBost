@@ -1,0 +1,15 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Makueni County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Emali",
+    "Kibwezi",
+    "Makindu",
+    "Makueni Boma",
+    "Mtito Andei",
+    "Sultan Hamud",
+    "Wote"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Arad County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arad",
+    "Chişineu-Criş",
+    "Curtici",
+    "Felnac",
+    "Fântânele",
+    "Ineu",
+    "Lipova",
+    "Macea",
+    "Nădlac",
+    "Pecica",
+    "Pâncota",
+    "Sebiş",
+    "Secusigiu",
+    "Sântana",
+    "Târnova",
+    "Vinga",
+    "Vladimirescu",
+    "Şiria"
+  ]
+}

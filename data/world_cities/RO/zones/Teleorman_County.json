@@ -1,0 +1,23 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Teleorman County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alexandria",
+    "Botoroaga",
+    "Băbăiţa",
+    "Dobroteşti",
+    "Islaz",
+    "Lunca",
+    "Mavrodin",
+    "Orbeasca de Sus",
+    "Peretu",
+    "Plosca",
+    "Roșiorii de Vede",
+    "Turnu Măgurele",
+    "Videle",
+    "Zimnicea",
+    "Ţigăneşti"
+  ]
+}

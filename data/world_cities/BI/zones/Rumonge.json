@@ -1,0 +1,9 @@
+{
+  "country": "Burundi",
+  "code": "BI",
+  "zone": "Rumonge",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Rumonge"
+  ]
+}

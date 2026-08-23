@@ -1,0 +1,21 @@
+{
+  "country": "Honduras",
+  "code": "HN",
+  "zone": "Santa Bárbara Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Atima",
+    "Azacualpa",
+    "Concepción del Norte",
+    "Las Vegas, Santa Barbara",
+    "Macuelizo",
+    "Nuevo Celilac",
+    "Petoa",
+    "Quimistán",
+    "San Francisco de Ojuera",
+    "San José de Colinas",
+    "San Luis",
+    "San Pedro Zacapa",
+    "Santa Bárbara"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Itasy",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arivonimamo",
+    "Imerintsiatosika",
+    "Miarinarivo",
+    "Soavinandriana"
+  ]
+}

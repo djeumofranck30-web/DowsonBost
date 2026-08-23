@@ -1,0 +1,11 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Sing Buri",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bang Racham",
+    "In Buri",
+    "Sing Buri"
+  ]
+}

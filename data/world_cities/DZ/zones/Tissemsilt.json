@@ -1,0 +1,11 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Tissemsilt",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Lardjem",
+    "Theniet el Had",
+    "Tissemsilt"
+  ]
+}

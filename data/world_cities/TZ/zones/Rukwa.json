@@ -1,0 +1,15 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Rukwa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chala",
+    "Kirando",
+    "Laela",
+    "Matai",
+    "Namanyere",
+    "Nkove",
+    "Sumbawanga"
+  ]
+}

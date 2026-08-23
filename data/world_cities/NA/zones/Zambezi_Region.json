@@ -1,0 +1,9 @@
+{
+  "country": "Namibie",
+  "code": "NA",
+  "zone": "Zambezi Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Katima Mulilo"
+  ]
+}

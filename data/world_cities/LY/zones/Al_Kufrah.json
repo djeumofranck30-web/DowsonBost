@@ -1,0 +1,11 @@
+{
+  "country": "Libye",
+  "code": "LY",
+  "zone": "Al Kufrah",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Jawf",
+    "At Tāj",
+    "Tāzirbū"
+  ]
+}

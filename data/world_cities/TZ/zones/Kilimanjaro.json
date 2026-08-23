@@ -1,0 +1,21 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Kilimanjaro",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Boma la Ngombe",
+    "Hedaru",
+    "Kihurio",
+    "Kisiwani",
+    "Kwakoa",
+    "Lembeni",
+    "Makanya",
+    "Moshi",
+    "Mwembe",
+    "Ndungu",
+    "Same",
+    "Tarakea",
+    "Usangi"
+  ]
+}

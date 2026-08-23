@@ -1,0 +1,10 @@
+{
+  "country": "Cap-Vert",
+  "code": "CV",
+  "zone": "Sal",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Espargos",
+    "Santa Maria"
+  ]
+}

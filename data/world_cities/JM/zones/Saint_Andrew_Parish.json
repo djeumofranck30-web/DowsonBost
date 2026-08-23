@@ -1,0 +1,16 @@
+{
+  "country": "Jamaique",
+  "code": "JM",
+  "zone": "Saint Andrew Parish",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Constant Spring",
+    "Half Way Tree",
+    "Mountain View Gardens",
+    "New Kingston",
+    "Penwood",
+    "Stony Hill",
+    "Torrington Park",
+    "Tower Hill"
+  ]
+}

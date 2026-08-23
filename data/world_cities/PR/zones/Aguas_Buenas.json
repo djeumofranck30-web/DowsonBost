@@ -1,0 +1,9 @@
+{
+  "country": "Porto Rico",
+  "code": "PR",
+  "zone": "Aguas Buenas",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aguas Buenas"
+  ]
+}

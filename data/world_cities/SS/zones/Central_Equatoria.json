@@ -1,0 +1,10 @@
+{
+  "country": "Soudan du Sud",
+  "code": "SS",
+  "zone": "Central Equatoria",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Juba",
+    "Yei"
+  ]
+}

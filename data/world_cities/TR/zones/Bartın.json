@@ -1,0 +1,11 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Bartın",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amasra",
+    "Bartın",
+    "Ulus"
+  ]
+}

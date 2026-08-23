@@ -1,0 +1,18 @@
+{
+  "country": "Portugal",
+  "code": "PT",
+  "zone": "Vila Real",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alijó",
+    "Boticas",
+    "Chaves",
+    "Mondim de Basto",
+    "Peso da Régua",
+    "Ribeira de Pena",
+    "Sabrosa",
+    "Vidago",
+    "Vila Real",
+    "Vilela"
+  ]
+}

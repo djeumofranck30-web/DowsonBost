@@ -1,0 +1,27 @@
+{
+  "country": "Hong Kong",
+  "code": "HK",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Central and Western",
+    "Eastern District",
+    "Islands",
+    "Kowloon City",
+    "Kwai Tsing District",
+    "Kwun Tong District",
+    "North District",
+    "Sai Kung District",
+    "Sha Tin",
+    "Sham Shui Po District",
+    "Southern District",
+    "Tai Po",
+    "Tsuen Wan",
+    "Tuen Mun",
+    "Wan Chai",
+    "Wong Tai Sin District",
+    "Yau Tsim Mong District",
+    "Yuen Long"
+  ],
+  "source": "geonames_admin1"
+}

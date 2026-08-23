@@ -1,0 +1,30 @@
+{
+  "country": "Slovaquie",
+  "code": "SK",
+  "zone": "Žilina Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bytča",
+    "Dolný Kubín",
+    "Krásno nad Kysucou",
+    "Kysucké Nové Mesto",
+    "Liptovský Hrádok",
+    "Liptovský Mikuláš",
+    "Martin",
+    "Námestovo",
+    "Oščadnica",
+    "Rabča",
+    "Rajec",
+    "Raková",
+    "Ružomberok",
+    "Skalité",
+    "Trstená",
+    "Turzovka",
+    "Turčianske Teplice",
+    "Tvrdošín",
+    "Vrútky",
+    "Zákamenné",
+    "Čadca",
+    "Žilina"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Murang'A",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kangema",
+    "Karuri",
+    "Kenol",
+    "Maragua",
+    "Murang’a"
+  ]
+}

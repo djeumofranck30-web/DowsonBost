@@ -1,0 +1,25 @@
+{
+  "country": "Norvege",
+  "code": "NO",
+  "zone": "Rogaland",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bryne",
+    "Egersund",
+    "Haugesund",
+    "Hommersåk",
+    "Jørpeland",
+    "Kleppe",
+    "Kopervik",
+    "Nærbø",
+    "Orstad",
+    "Sandnes",
+    "Sola",
+    "Stavanger",
+    "Strand",
+    "Sæveland",
+    "Tananger",
+    "Time",
+    "Åkrehamn"
+  ]
+}

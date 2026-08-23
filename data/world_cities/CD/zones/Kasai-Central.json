@@ -1,0 +1,10 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "Kasai-Central",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Demba",
+    "Kananga"
+  ]
+}

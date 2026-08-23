@@ -1,0 +1,13 @@
+{
+  "country": "Somalie",
+  "code": "SO",
+  "zone": "Woqooyi Galbeed",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Agabar",
+    "Berbera",
+    "Gebiley",
+    "Hargeysa",
+    "Tog Wajaale"
+  ]
+}

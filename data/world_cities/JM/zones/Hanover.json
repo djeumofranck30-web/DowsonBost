@@ -1,0 +1,10 @@
+{
+  "country": "Jamaique",
+  "code": "JM",
+  "zone": "Hanover",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Barbican",
+    "Lucea"
+  ]
+}

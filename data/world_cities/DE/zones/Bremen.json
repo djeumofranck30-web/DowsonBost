@@ -1,0 +1,12 @@
+{
+  "country": "Allemagne",
+  "code": "DE",
+  "zone": "Bremen",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bremen",
+    "Bremerhaven",
+    "Burglesum",
+    "Vegesack"
+  ]
+}

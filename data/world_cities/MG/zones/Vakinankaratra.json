@@ -1,0 +1,15 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Vakinankaratra",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ambatolampy",
+    "Antanifotsy",
+    "Antsirabe",
+    "Betafo",
+    "Faratsiho",
+    "Miandrarivo",
+    "Soanindrariny"
+  ]
+}

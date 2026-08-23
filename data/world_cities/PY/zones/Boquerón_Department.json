@@ -1,0 +1,11 @@
+{
+  "country": "Paraguay",
+  "code": "PY",
+  "zone": "Boquerón Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Colonia Menno",
+    "Filadelfia",
+    "Loma Plata"
+  ]
+}

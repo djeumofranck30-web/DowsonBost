@@ -1,0 +1,15 @@
+{
+  "country": "Salomon",
+  "code": "SB",
+  "zone": "Honiara",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Honiara",
+    "Kola'a",
+    "Mataniko",
+    "Mbumburu",
+    "Panatina",
+    "Vavaea",
+    "Vura"
+  ]
+}

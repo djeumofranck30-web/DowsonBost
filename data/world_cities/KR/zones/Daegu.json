@@ -1,0 +1,10 @@
+{
+  "country": "Coree du Sud",
+  "code": "KR",
+  "zone": "Daegu",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Daegu",
+    "Hwawŏn"
+  ]
+}

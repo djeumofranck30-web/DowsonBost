@@ -1,0 +1,12 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "Jalapa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Jalapa",
+    "Mataquescuintla",
+    "Monjas",
+    "San Luis Jilotepeque"
+  ]
+}

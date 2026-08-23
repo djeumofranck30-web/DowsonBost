@@ -1,0 +1,10 @@
+{
+  "country": "Bhoutan",
+  "code": "BT",
+  "zone": "Sarpang District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Geylegphug",
+    "Sarpang"
+  ]
+}

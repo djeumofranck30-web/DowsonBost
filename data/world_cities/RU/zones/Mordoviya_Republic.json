@@ -1,0 +1,27 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Mordoviya Republic",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ardatov",
+    "Atyashevo",
+    "Chamzinka",
+    "Insar",
+    "Komsomol’skiy",
+    "Kovylkino",
+    "Krasnoslobodsk",
+    "Lukhovka",
+    "Lyambir’",
+    "Nikolayevka",
+    "Romodanovo",
+    "Ruzayevka",
+    "Saransk",
+    "Temnikov",
+    "Torbeyevo",
+    "Turgenevo",
+    "Yalga",
+    "Yavas",
+    "Zubova Polyana"
+  ]
+}

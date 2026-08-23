@@ -1,0 +1,12 @@
+{
+  "country": "Burkina Faso",
+  "code": "BF",
+  "zone": "Nord",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gourcy",
+    "Ouahigouya",
+    "Titao",
+    "Yako"
+  ]
+}

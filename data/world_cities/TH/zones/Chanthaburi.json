@@ -1,0 +1,14 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Chanthaburi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban I Pat",
+    "Chanthaburi",
+    "Khlung",
+    "Laem Sing",
+    "Pong Nam Ron",
+    "Tha Mai"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Miranda",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baruta",
+    "Carrizal",
+    "Caucagua",
+    "Caucagüito",
+    "Chacao",
+    "Charallave",
+    "Cúa",
+    "El Cafetal",
+    "El Hatillo",
+    "Guarenas",
+    "Guatire",
+    "Higuerote",
+    "La Dolorita",
+    "Lander",
+    "Los Dos Caminos",
+    "Los Teques",
+    "Mamporal",
+    "Ocumare del Tuy",
+    "Petare",
+    "Río Chico",
+    "San Antonio de Los Altos",
+    "San José de Barlovento",
+    "Santa Teresa del Tuy"
+  ]
+}

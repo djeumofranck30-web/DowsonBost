@@ -1,0 +1,19 @@
+{
+  "country": "Kazakhstan",
+  "code": "KZ",
+  "zone": "Zhambyl",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Karatau",
+    "Korday",
+    "Kulan",
+    "Lugovoy",
+    "Merke",
+    "Moyynkum",
+    "Oytal",
+    "Sarykemer",
+    "Shu",
+    "Taraz",
+    "Zhangatas"
+  ]
+}

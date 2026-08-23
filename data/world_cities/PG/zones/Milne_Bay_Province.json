@@ -1,0 +1,9 @@
+{
+  "country": "Papouasie-Nouvelle-Guinee",
+  "code": "PG",
+  "zone": "Milne Bay Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alotau"
+  ]
+}

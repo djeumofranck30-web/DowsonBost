@@ -1,0 +1,9 @@
+{
+  "country": "Bahamas",
+  "code": "BS",
+  "zone": "East Grand Bahama",
+  "source": "geonames_cities5000",
+  "cities": [
+    "High Rock"
+  ]
+}

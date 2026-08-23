@@ -1,0 +1,9 @@
+{
+  "country": "Bahamas",
+  "code": "BS",
+  "zone": "Cat Island",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arthur’s Town"
+  ]
+}

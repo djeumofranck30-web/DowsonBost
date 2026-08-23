@@ -1,0 +1,19 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Simiyu",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bariadi",
+    "Kisesa",
+    "Lalago",
+    "Malampaka",
+    "Maswa",
+    "Matonga",
+    "Mwanhuzi",
+    "Nyakabindi",
+    "Nyalikungu",
+    "Shanwa",
+    "Somanda"
+  ]
+}

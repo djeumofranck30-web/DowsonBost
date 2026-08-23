@@ -1,0 +1,13 @@
+{
+  "country": "Lituanie",
+  "code": "LT",
+  "zone": "Panevėžys",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Birzai",
+    "Kupiskis",
+    "Panevėžys",
+    "Pasvalys",
+    "Rokiškis"
+  ]
+}

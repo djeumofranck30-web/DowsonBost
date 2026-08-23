@@ -1,0 +1,27 @@
+{
+  "country": "Somalie",
+  "code": "SO",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Awdal",
+    "Bakool",
+    "Banaadir",
+    "Bari",
+    "Bay",
+    "Galguduud",
+    "Gedo",
+    "Hiiraan",
+    "Lower Juba",
+    "Lower Shabeelle",
+    "Middle Juba",
+    "Middle Shabele",
+    "Mudug",
+    "Nugaal",
+    "Sanaag",
+    "Sool",
+    "Togdheer",
+    "Woqooyi Galbeed"
+  ],
+  "source": "geonames_admin1"
+}

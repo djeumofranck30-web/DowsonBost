@@ -1,0 +1,9 @@
+{
+  "country": "Uruguay",
+  "code": "UY",
+  "zone": "Montevideo Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Montevideo"
+  ]
+}

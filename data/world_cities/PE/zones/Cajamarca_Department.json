@@ -1,0 +1,16 @@
+{
+  "country": "Perou",
+  "code": "PE",
+  "zone": "Cajamarca Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bambamarca",
+    "Bellavista",
+    "Cajabamba",
+    "Cajamarca",
+    "Celendín",
+    "Chota",
+    "Jaén",
+    "San Ignacio"
+  ]
+}

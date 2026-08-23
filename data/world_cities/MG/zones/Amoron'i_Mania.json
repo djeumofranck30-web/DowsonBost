@@ -1,0 +1,11 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Amoron'i Mania",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ambatofinandrahana",
+    "Ambositra",
+    "Fandriana"
+  ]
+}

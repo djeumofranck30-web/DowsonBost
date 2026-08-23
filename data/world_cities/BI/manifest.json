@@ -1,0 +1,24 @@
+{
+  "country": "Burundi",
+  "code": "BI",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Bubanza",
+    "Bujumbura Mairie",
+    "Bujumbura Rural",
+    "Bururi",
+    "Cankuzo",
+    "Cibitoke",
+    "Gitega",
+    "Kayanza",
+    "Kirundo",
+    "Makamba",
+    "Muyinga",
+    "Ngozi",
+    "Rumonge",
+    "Rutana",
+    "Ruyigi"
+  ],
+  "source": "geonames_admin1"
+}

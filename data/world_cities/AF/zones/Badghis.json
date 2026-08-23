@@ -1,0 +1,10 @@
+{
+  "country": "Afghanistan",
+  "code": "AF",
+  "zone": "Badghis",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ghormach",
+    "Qala i Naw"
+  ]
+}

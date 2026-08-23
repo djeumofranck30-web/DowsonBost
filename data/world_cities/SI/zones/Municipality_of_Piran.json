@@ -1,0 +1,10 @@
+{
+  "country": "Slovenie",
+  "code": "SI",
+  "zone": "Municipality of Piran",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Lucija",
+    "Piran"
+  ]
+}

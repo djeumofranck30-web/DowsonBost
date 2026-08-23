@@ -1,0 +1,17 @@
+{
+  "country": "Libye",
+  "code": "LY",
+  "zone": "Al Jabal al Akhdar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Abraq",
+    "Al Bayḑā’",
+    "Massah",
+    "Qandūlah",
+    "Qaryat ‘Umar al Mukhtār",
+    "Qaşr Lībiyā",
+    "Shahhat",
+    "Sūsah",
+    "Wardāmah"
+  ]
+}

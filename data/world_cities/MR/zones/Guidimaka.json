@@ -1,0 +1,15 @@
+{
+  "country": "Mauritanie",
+  "code": "MR",
+  "zone": "Guidimaka",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bouanzé",
+    "Bouly",
+    "Diaguily",
+    "Diogountourou",
+    "Hassi Chegar",
+    "Ould Yenjé",
+    "Sélibaby"
+  ]
+}

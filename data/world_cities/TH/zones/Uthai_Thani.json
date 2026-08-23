@@ -1,0 +1,12 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Uthai Thani",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Huai Khot",
+    "Lan Sak",
+    "Thap Than",
+    "Uthai Thani"
+  ]
+}

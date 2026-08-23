@@ -1,0 +1,26 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Bursa Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akhisar",
+    "Bursa",
+    "Demirci",
+    "Demirtaş",
+    "Gemlik",
+    "Görükle",
+    "Gürsu",
+    "İnegol",
+    "İznik",
+    "Karacabey",
+    "Kestel",
+    "Mudanya",
+    "Mustafakemalpaşa",
+    "Nilüfer",
+    "Orhaneli",
+    "Orhangazi",
+    "Yalıntaş",
+    "Yenişehir"
+  ]
+}

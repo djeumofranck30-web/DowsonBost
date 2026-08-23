@@ -1,0 +1,16 @@
+{
+  "country": "Honduras",
+  "code": "HN",
+  "zone": "Ocotepeque Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Belén Gualcho",
+    "La Labor",
+    "Lucerna",
+    "Nueva Ocotepeque",
+    "San Francisco del Valle",
+    "San Marcos",
+    "Sensenti",
+    "Sinuapa"
+  ]
+}

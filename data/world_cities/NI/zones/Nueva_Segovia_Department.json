@@ -1,0 +1,12 @@
+{
+  "country": "Nicaragua",
+  "code": "NI",
+  "zone": "Nueva Segovia Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Jalapa",
+    "Ocotal",
+    "Quilalí",
+    "Wiwilí"
+  ]
+}

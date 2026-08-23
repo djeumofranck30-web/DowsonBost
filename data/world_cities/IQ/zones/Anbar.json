@@ -1,0 +1,17 @@
+{
+  "country": "Irak",
+  "code": "IQ",
+  "zone": "Anbar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Fallūjah",
+    "Al Qā’im",
+    "Ar Ruţbah",
+    "Hīt",
+    "Ramadi",
+    "Rāwah",
+    "Ḩadīthah",
+    "‘Anah",
+    "‘Anat al Qadīmah"
+  ]
+}

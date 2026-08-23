@@ -1,0 +1,9 @@
+{
+  "country": "Barbade",
+  "code": "BB",
+  "zone": "Saint James",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Holetown"
+  ]
+}

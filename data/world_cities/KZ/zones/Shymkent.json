@@ -1,0 +1,9 @@
+{
+  "country": "Kazakhstan",
+  "code": "KZ",
+  "zone": "Shymkent",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Shymkent"
+  ]
+}

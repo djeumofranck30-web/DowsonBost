@@ -1,0 +1,13 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Ebonyi State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abakaliki",
+    "Afikpo",
+    "Effium",
+    "Ezza-Ohu",
+    "Isieke"
+  ]
+}

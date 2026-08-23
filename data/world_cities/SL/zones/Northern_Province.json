@@ -1,0 +1,22 @@
+{
+  "country": "Sierra Leone",
+  "code": "SL",
+  "zone": "Northern Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Binkolo",
+    "Kabala",
+    "Kamakwie",
+    "Kambia",
+    "Kassiri",
+    "Kukuna",
+    "Lunsar",
+    "Magburaka",
+    "Makeni",
+    "Mambolo",
+    "Masingbi",
+    "Mile 91",
+    "Rokupr",
+    "Tintafor"
+  ]
+}

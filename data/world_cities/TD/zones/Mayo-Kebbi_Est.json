@@ -1,0 +1,12 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Mayo-Kebbi Est",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bongor",
+    "Fianga",
+    "Gounou Gaya",
+    "Guelendeng"
+  ]
+}

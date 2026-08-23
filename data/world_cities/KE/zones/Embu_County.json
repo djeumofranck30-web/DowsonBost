@@ -1,0 +1,9 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Embu County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Embu"
+  ]
+}

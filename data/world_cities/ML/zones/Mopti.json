@@ -1,0 +1,15 @@
+{
+  "country": "Mali",
+  "code": "ML",
+  "zone": "Mopti",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bandiagara",
+    "Bankass",
+    "Djenné",
+    "Douentza",
+    "Koro",
+    "Mopti",
+    "Ténenkou"
+  ]
+}

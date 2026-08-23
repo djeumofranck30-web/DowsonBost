@@ -1,0 +1,10 @@
+{
+  "country": "Belize",
+  "code": "BZ",
+  "zone": "Orange Walk District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Orange Walk",
+    "Trial Farm"
+  ]
+}

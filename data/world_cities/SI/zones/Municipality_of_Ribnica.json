@@ -1,0 +1,9 @@
+{
+  "country": "Slovenie",
+  "code": "SI",
+  "zone": "Municipality of Ribnica",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ribnica"
+  ]
+}

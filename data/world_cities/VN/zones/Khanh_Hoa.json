@@ -1,0 +1,14 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Khanh Hoa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cam Ranh",
+    "Khánh Hải",
+    "Nha Trang",
+    "Ninh Hòa",
+    "Phan Rang-Tháp Chàm",
+    "Tu Bông"
+  ]
+}

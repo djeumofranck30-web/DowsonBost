@@ -1,0 +1,19 @@
+{
+  "country": "Guyana",
+  "code": "GY",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Barima-Waini",
+    "Cuyuni-Mazaruni",
+    "Demerara-Mahaica",
+    "East Berbice-Corentyne",
+    "Essequibo Islands-West Demerara",
+    "Mahaica-Berbice",
+    "Pomeroon-Supenaam",
+    "Potaro-Siparuni",
+    "Upper Demerara-Berbice",
+    "Upper Takutu-Upper Essequibo"
+  ],
+  "source": "geonames_admin1"
+}

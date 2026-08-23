@@ -1,0 +1,19 @@
+{
+  "country": "Jordanie",
+  "code": "JO",
+  "zone": "Amman",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Jubayhah",
+    "Amman",
+    "Jāwā",
+    "Khuraybat as Sūq",
+    "Marj Al Hamam",
+    "Saḩāb",
+    "Umm as Summāq",
+    "Wādī as Sīr",
+    "Ḩayy al Bunayyāt",
+    "Ḩayy al Quwaysimah",
+    "Ḩayy Khildā"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "country": "Grece",
+  "code": "GR",
+  "zone": "Peloponnese",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Asíni",
+    "Filiatrá",
+    "Gargaliánoi",
+    "Kalamata",
+    "Kiáto",
+    "Kyparissía",
+    "Kórinthos",
+    "Loutráki",
+    "Megalópoli",
+    "Messíni",
+    "Neápoli",
+    "Náfplio",
+    "Sparta",
+    "Trípoli",
+    "Xylókastro",
+    "Árgos"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Boyacá",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aquitania",
+    "Belén",
+    "Chiquinquirá",
+    "Duitama",
+    "Garagoa",
+    "Guateque",
+    "Miraflores",
+    "Moniquirá",
+    "Muzo",
+    "Otanche",
+    "Paipa",
+    "Pauna",
+    "Pesca",
+    "Puerto Boyacá",
+    "Ramiriquí",
+    "San Pablo de Borbur",
+    "Santa Rosa de Viterbo",
+    "Soatá",
+    "Sogamoso",
+    "Tunja",
+    "Villa de Leyva"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "country": "Hong Kong",
+  "code": "HK",
+  "zone": "Sha Tin",
+  "source": "geonames_cities5000",
+  "cities": [
+    "City One",
+    "Fo Tan",
+    "Jat Min Chuen",
+    "Kam Ying",
+    "Keng Hau",
+    "Kwong Yuen",
+    "Lee On",
+    "Ma On Shan",
+    "Nai Chung",
+    "Pak Shek Kok",
+    "Pok Hong",
+    "San Tin",
+    "Sha Tin",
+    "Sha Tin Wai",
+    "Shui Chuen O",
+    "Siu Lek Yuen",
+    "Sun Tin Wai",
+    "Tai Shui Hang",
+    "Tai Wai",
+    "Wo Che",
+    "Wu Kai Sha",
+    "Yu Chui"
+  ]
+}

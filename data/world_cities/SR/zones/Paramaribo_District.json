@@ -1,0 +1,19 @@
+{
+  "country": "Suriname",
+  "code": "SR",
+  "zone": "Paramaribo District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Beekhuizen",
+    "Blauwgrond",
+    "Flora",
+    "Latour",
+    "Livorno",
+    "Munder Buiten",
+    "Paramaribo",
+    "Rainville",
+    "Tammenga",
+    "Weg naar Zee",
+    "Welgelegen"
+  ]
+}

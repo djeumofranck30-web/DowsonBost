@@ -1,0 +1,13 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Dobrich",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Balchik",
+    "Dobrich",
+    "General Toshevo",
+    "Kavarna",
+    "Tervel"
+  ]
+}

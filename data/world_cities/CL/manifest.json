@@ -1,0 +1,25 @@
+{
+  "country": "Chili",
+  "code": "CL",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Antofagasta",
+    "Araucania",
+    "Arica y Parinacota Region",
+    "Atacama",
+    "Aysén",
+    "Biobio",
+    "Coquimbo Region",
+    "Los Lagos Region",
+    "Los Ríos Region",
+    "Maule Region",
+    "O'Higgins Region",
+    "Region of Magallanes",
+    "Santiago Metropolitan",
+    "Tarapacá",
+    "Valparaiso",
+    "Ñuble"
+  ],
+  "source": "geonames_admin1"
+}

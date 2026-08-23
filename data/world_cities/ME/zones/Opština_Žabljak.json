@@ -1,0 +1,9 @@
+{
+  "country": "Montenegro",
+  "code": "ME",
+  "zone": "Opština Žabljak",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Žabljak"
+  ]
+}

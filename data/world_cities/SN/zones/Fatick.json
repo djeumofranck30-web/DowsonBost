@@ -1,0 +1,17 @@
+{
+  "country": "Senegal",
+  "code": "SN",
+  "zone": "Fatick",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Diofior",
+    "Fatick",
+    "Foundiougne",
+    "Gossas Village",
+    "Karang Poste",
+    "Passy",
+    "Poukham Un",
+    "Sokone",
+    "Soum"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "country": "Lituanie",
+  "code": "LT",
+  "zone": "Vilnius",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Antakalnis",
+    "Elektrėnai",
+    "Fabijoniškės",
+    "Grigiškės",
+    "Justiniškės",
+    "Karoliniškės",
+    "Lazdynai",
+    "Lentvaris",
+    "Naujamiestis",
+    "Naujininkai",
+    "Naujoji Vilnia",
+    "Nemenčinė",
+    "Pabradė",
+    "Pašilaičiai",
+    "Pilaitė",
+    "Rasos",
+    "Trakai",
+    "Ukmerge",
+    "Vilkpėdė",
+    "Vilnius",
+    "Šalčininkai",
+    "Šeškinė",
+    "Širvintos",
+    "Švenčionys"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "Totonicapán",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Momostenango",
+    "San Andrés Xecul",
+    "San Francisco El Alto",
+    "Santa María Chiquimula",
+    "Totonicapán"
+  ]
+}

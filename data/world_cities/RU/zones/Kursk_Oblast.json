@@ -1,0 +1,25 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Kursk Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dmitriyev",
+    "Fatezh",
+    "Glushkovo",
+    "Gorshechnoye",
+    "Imeni Karla Libknekhta",
+    "Korenevo",
+    "Kshenskiy",
+    "Kurchatov",
+    "Kursk",
+    "L’govskiy",
+    "Oboyan’",
+    "Pristen’",
+    "Pryamitsyno",
+    "Ryl’sk",
+    "Shchigry",
+    "Sudzha",
+    "Zheleznogorsk"
+  ]
+}

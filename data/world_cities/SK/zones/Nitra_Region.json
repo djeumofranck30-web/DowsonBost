@@ -1,0 +1,25 @@
+{
+  "country": "Slovaquie",
+  "code": "SK",
+  "zone": "Nitra Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dvory nad Žitavou",
+    "Hurbanovo",
+    "Kolárovo",
+    "Komárno",
+    "Levice",
+    "Nesvady",
+    "Nitra",
+    "Nové Zámky",
+    "Topoľčany",
+    "Tvrdošovce",
+    "Vráble",
+    "Zlaté Moravce",
+    "Šahy",
+    "Šaľa",
+    "Štúrovo",
+    "Šurany",
+    "Želiezovce"
+  ]
+}

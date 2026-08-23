@@ -1,0 +1,21 @@
+{
+  "country": "Islande",
+  "code": "IS",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akranes",
+    "Akureyri",
+    "Borgarnes",
+    "Egilsstaðir",
+    "Garðabær",
+    "Hafnarfjörður",
+    "Keflavík",
+    "Kópavogur",
+    "Mosfellsbær",
+    "Reykjanesbær",
+    "Reykjavík",
+    "Sauðárkrókur",
+    "Selfoss",
+    "Ísafjörður"
+  ]
+}

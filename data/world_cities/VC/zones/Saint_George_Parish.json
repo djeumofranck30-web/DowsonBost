@@ -1,0 +1,10 @@
+{
+  "country": "Saint-Vincent-et-les-Grenadines",
+  "code": "VC",
+  "zone": "Saint George Parish",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Calliaqua",
+    "Kingstown"
+  ]
+}

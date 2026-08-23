@@ -1,0 +1,14 @@
+{
+  "country": "Paraguay",
+  "code": "PY",
+  "zone": "Caaguazú Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Caaguazú",
+    "Colonia General Alfredo Stroessner",
+    "Coronel Oviedo",
+    "Doctor Juan Eulogio Estigarribia",
+    "Repatriación",
+    "San José de los Arroyos"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "North Kivu",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Beni",
+    "Butembo",
+    "Goma",
+    "Hyosha",
+    "Kanyobagonga",
+    "Katanda",
+    "Katwa",
+    "Kayna",
+    "Kirumba",
+    "Lubero",
+    "Mangina",
+    "Rutshuru",
+    "Sake"
+  ]
+}

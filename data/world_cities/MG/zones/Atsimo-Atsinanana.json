@@ -1,0 +1,14 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Atsimo-Atsinanana",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Farafangana",
+    "Ivato",
+    "Manato",
+    "Vangaindrano",
+    "Vohipaho",
+    "Vondrozo"
+  ]
+}

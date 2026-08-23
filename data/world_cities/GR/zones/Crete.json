@@ -1,0 +1,23 @@
+{
+  "country": "Grece",
+  "code": "GR",
+  "zone": "Crete",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arkalochóri",
+    "Atsipópoulo",
+    "Chaniá",
+    "Gázi",
+    "Ierápetra",
+    "Irákleion",
+    "Mourniés",
+    "Moíres",
+    "Nerokoúros",
+    "Néa Alikarnassós",
+    "Rethymno",
+    "Sitia",
+    "Soúda",
+    "Tympáki",
+    "Ágios Nikólaos"
+  ]
+}

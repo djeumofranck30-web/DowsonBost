@@ -1,0 +1,22 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Bizerte Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Matlīn",
+    "Aousja",
+    "Bizerte",
+    "Douar Tindja",
+    "El Alia",
+    "Mateur",
+    "Menzel Abderhaman",
+    "Menzel Bourguiba",
+    "Menzel Jemil",
+    "Rafrāf",
+    "Rass el Djebel",
+    "Rhar el Melah",
+    "Sejenane",
+    "Tinja"
+  ]
+}

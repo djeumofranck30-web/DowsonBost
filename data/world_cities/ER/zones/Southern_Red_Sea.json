@@ -1,0 +1,10 @@
+{
+  "country": "Erythree",
+  "code": "ER",
+  "zone": "Southern Red Sea",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Assab",
+    "Edd"
+  ]
+}

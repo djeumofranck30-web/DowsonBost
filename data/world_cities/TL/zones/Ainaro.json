@@ -1,0 +1,10 @@
+{
+  "country": "Timor oriental",
+  "code": "TL",
+  "zone": "Ainaro",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ainaro",
+    "Hatoudo"
+  ]
+}

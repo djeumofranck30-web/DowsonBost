@@ -1,0 +1,14 @@
+{
+  "country": "Armenie",
+  "code": "AM",
+  "zone": "Armavir",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Armavir",
+    "Metsamor",
+    "Mrgashat",
+    "Parakar",
+    "Sardarapat",
+    "Vagharshapat"
+  ]
+}

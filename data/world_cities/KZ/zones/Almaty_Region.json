@@ -1,0 +1,19 @@
+{
+  "country": "Kazakhstan",
+  "code": "KZ",
+  "zone": "Almaty Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bakanas",
+    "Burunday",
+    "Esik",
+    "Jıbek joly",
+    "Kegen",
+    "Konayev",
+    "Narynkol",
+    "Otegen Batyra",
+    "Shelek",
+    "Talghar",
+    "Turgen"
+  ]
+}

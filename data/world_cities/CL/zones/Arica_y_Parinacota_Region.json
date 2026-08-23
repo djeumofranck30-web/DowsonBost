@@ -1,0 +1,9 @@
+{
+  "country": "Chili",
+  "code": "CL",
+  "zone": "Arica y Parinacota Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arica"
+  ]
+}

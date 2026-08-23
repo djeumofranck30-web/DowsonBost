@@ -1,0 +1,10 @@
+{
+  "country": "Lituanie",
+  "code": "LT",
+  "zone": "Tauragė County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Jurbarkas",
+    "Taurage"
+  ]
+}

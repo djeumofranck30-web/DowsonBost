@@ -1,0 +1,9 @@
+{
+  "country": "Lettonie",
+  "code": "LV",
+  "zone": "Saldus Rajons",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Saldus"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "country": "Jamaique",
+  "code": "JM",
+  "zone": "Portland Parish",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Port Antonio"
+  ]
+}

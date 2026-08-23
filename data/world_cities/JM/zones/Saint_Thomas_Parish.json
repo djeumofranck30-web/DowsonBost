@@ -1,0 +1,10 @@
+{
+  "country": "Jamaique",
+  "code": "JM",
+  "zone": "Saint Thomas Parish",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Morant Bay",
+    "Yallahs"
+  ]
+}

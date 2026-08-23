@@ -1,0 +1,11 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Kyustendil",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bobov Dol",
+    "Dupnitsa",
+    "Kyustendil"
+  ]
+}

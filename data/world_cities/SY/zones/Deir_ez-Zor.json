@@ -1,0 +1,14 @@
+{
+  "country": "Syrie",
+  "code": "SY",
+  "zone": "Deir ez-Zor",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Mayādīn",
+    "As Sūsah",
+    "Deir ez-Zor",
+    "Hajīn",
+    "Subaykhān",
+    "Ālbū Kamāl"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Surat Thani",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Na San",
+    "Chai Buri",
+    "Chaiya",
+    "Don Sak",
+    "Ko Pha Ngan",
+    "Ko Samui",
+    "Surat Thani",
+    "Tha Kham",
+    "Tha Khanon",
+    "Wiang Sa"
+  ]
+}

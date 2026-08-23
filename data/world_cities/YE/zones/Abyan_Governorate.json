@@ -1,0 +1,10 @@
+{
+  "country": "Yemen",
+  "code": "YE",
+  "zone": "Abyan Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Jawf al Maqbābah",
+    "Zinjibār"
+  ]
+}

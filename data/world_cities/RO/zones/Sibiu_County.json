@@ -1,0 +1,18 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Sibiu County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Agnita",
+    "Avrig",
+    "Cisnădie",
+    "Copşa Mică",
+    "Dumbrăveni",
+    "Mediaş",
+    "Răşinari",
+    "Sibiu",
+    "Sălişte",
+    "Tălmaciu"
+  ]
+}

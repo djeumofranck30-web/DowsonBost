@@ -1,0 +1,16 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "West Sumatra",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bukittinggi",
+    "Padang",
+    "Padangpanjang",
+    "Pariaman",
+    "Payakumbuh",
+    "Sijunjung",
+    "Solok",
+    "Tuapejat"
+  ]
+}

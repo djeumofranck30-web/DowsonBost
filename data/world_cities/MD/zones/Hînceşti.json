@@ -1,0 +1,10 @@
+{
+  "country": "Moldavie",
+  "code": "MD",
+  "zone": "Hînceşti",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dancu",
+    "Hînceşti"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "country": "Croatie",
+  "code": "HR",
+  "zone": "Istria",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Labin",
+    "Pazin",
+    "Poreč",
+    "Pula",
+    "Rovinj",
+    "Umag"
+  ]
+}

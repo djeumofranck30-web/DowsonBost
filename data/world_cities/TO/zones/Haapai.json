@@ -1,0 +1,9 @@
+{
+  "country": "Tonga",
+  "code": "TO",
+  "zone": "Haapai",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Pangai"
+  ]
+}

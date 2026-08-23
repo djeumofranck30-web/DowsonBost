@@ -1,0 +1,9 @@
+{
+  "country": "Nicaragua",
+  "code": "NI",
+  "zone": "Madriz Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Somoto"
+  ]
+}

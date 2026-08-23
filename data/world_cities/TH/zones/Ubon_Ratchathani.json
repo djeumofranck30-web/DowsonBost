@@ -1,0 +1,13 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Ubon Ratchathani",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Det Udom",
+    "Phibun Mangsahan",
+    "Sawang Wirawong",
+    "Ubon Ratchathani",
+    "Warin Chamrap"
+  ]
+}

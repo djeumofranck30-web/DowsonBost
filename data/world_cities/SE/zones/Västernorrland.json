@@ -1,0 +1,16 @@
+{
+  "country": "Suede",
+  "code": "SE",
+  "zone": "Västernorrland",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Härnösand",
+    "Kramfors",
+    "Kvissleby",
+    "Sollefteå",
+    "Sundsvall",
+    "Timrå",
+    "Vi",
+    "Örnsköldsvik"
+  ]
+}

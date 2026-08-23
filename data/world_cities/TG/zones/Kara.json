@@ -1,0 +1,15 @@
+{
+  "country": "Togo",
+  "code": "TG",
+  "zone": "Kara",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bafilo",
+    "Bassar",
+    "Guérin-Kouka",
+    "Kandé",
+    "Kara",
+    "Niamtougou",
+    "Pagouda"
+  ]
+}

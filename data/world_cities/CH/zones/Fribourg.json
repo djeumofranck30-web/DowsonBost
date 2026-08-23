@@ -1,0 +1,17 @@
+{
+  "country": "Suisse",
+  "code": "CH",
+  "zone": "Fribourg",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bulle",
+    "Châtel-Saint-Denis",
+    "Düdingen",
+    "Estavayer-le-Lac",
+    "Fribourg",
+    "Marly",
+    "Murten/Morat",
+    "Romont",
+    "Villars-sur-Glâne"
+  ]
+}

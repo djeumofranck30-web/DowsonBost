@@ -1,0 +1,11 @@
+{
+  "country": "Trinite-et-Tobago",
+  "code": "TT",
+  "zone": "Tunapuna/Piarco",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arouca",
+    "Paradise",
+    "Tunapuna"
+  ]
+}

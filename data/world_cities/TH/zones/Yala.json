@@ -1,0 +1,10 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Yala",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Betong",
+    "Yala"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Afghanistan",
+  "code": "AF",
+  "zone": "Parwan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Charikar",
+    "Jabal os Saraj"
+  ]
+}

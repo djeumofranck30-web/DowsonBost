@@ -1,0 +1,18 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Batna",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arris",
+    "Aïn Touta",
+    "Barika",
+    "Batna",
+    "Boumagueur",
+    "Merouana",
+    "N’Gaous",
+    "Râs el Aïoun",
+    "Tazoult-Lambese",
+    "Timgad"
+  ]
+}

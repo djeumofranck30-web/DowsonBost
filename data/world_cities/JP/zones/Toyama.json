@@ -1,0 +1,28 @@
+{
+  "country": "Japon",
+  "code": "JP",
+  "zone": "Toyama",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Asahi",
+    "Fukumitsu",
+    "Gohyakkoku",
+    "Himi",
+    "Himimachi",
+    "Imizu",
+    "Kamiichi",
+    "Koshi",
+    "Kurobe-shi",
+    "Namerikawa",
+    "Nanto",
+    "Nanto-shi",
+    "Nishishinminato",
+    "Nyūzen",
+    "Oyabe",
+    "Takaoka",
+    "Tonami",
+    "Toyama",
+    "Uozu",
+    "Yatsuomachi-higashikumisaka"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "country": "Irak",
+  "code": "IQ",
+  "zone": "Diyala",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Miqdādīyah",
+    "Baqubah",
+    "Habhab",
+    "Khāliş",
+    "Khānaqīn",
+    "Kifrī",
+    "Mandalī",
+    "Sarājīq"
+  ]
+}

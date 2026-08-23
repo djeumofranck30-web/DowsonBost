@@ -1,0 +1,19 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Adamawa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ganye",
+    "Gombi",
+    "Holma",
+    "Jimeta",
+    "Madagali",
+    "Mayo-Belwa",
+    "Mubi",
+    "Ngurore",
+    "Numan",
+    "Toungo",
+    "Yola"
+  ]
+}

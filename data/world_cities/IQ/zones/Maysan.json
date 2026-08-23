@@ -1,0 +1,11 @@
+{
+  "country": "Irak",
+  "code": "IQ",
+  "zone": "Maysan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al ‘Amārah",
+    "Qal‘at Şāliḩ",
+    "‘Alī al Gharbī"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "country": "Islande",
+  "code": "IS",
+  "zone": "South",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Selfoss"
+  ]
+}

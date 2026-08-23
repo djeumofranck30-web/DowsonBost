@@ -1,0 +1,19 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Asyut",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abnūb",
+    "Abū Tīj",
+    "Al Badārī",
+    "Al Ghanāyim",
+    "Al Qūşīyah",
+    "An Nāşirīyah",
+    "As Sāḩil",
+    "Assiut",
+    "Dayrūţ",
+    "Manfalūţ",
+    "Şidfā"
+  ]
+}

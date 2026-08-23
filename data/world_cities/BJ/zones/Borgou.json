@@ -1,0 +1,17 @@
+{
+  "country": "Benin",
+  "code": "BJ",
+  "zone": "Borgou",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bembèrèkè",
+    "Bétérou",
+    "Kalalé",
+    "Ndali",
+    "Nikki",
+    "Parakou",
+    "Pèrèrè",
+    "Sinendé",
+    "Tchaourou"
+  ]
+}

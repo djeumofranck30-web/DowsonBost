@@ -1,0 +1,10 @@
+{
+  "country": "Burundi",
+  "code": "BI",
+  "zone": "Bubanza",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bubanza",
+    "Mpanda"
+  ]
+}

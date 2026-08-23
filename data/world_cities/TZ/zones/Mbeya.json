@@ -1,0 +1,26 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Mbeya",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chimala",
+    "Dunda",
+    "Igurusi",
+    "Ipinda",
+    "Kandete",
+    "Katumba",
+    "Kiwira",
+    "Kyela",
+    "Makongolosi",
+    "Masoko",
+    "Matundasi",
+    "Mbeya",
+    "Mwaya",
+    "Rujewa",
+    "Tukuyu",
+    "Ulenje",
+    "Urunda",
+    "Utengule"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "country": "Kirghizistan",
+  "code": "KG",
+  "zone": "Chuy Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Belovodskoye",
+    "Ivanovka",
+    "Kaindy",
+    "Kant",
+    "Kara-Balta",
+    "Kemin",
+    "Lebedinovka",
+    "Mayevka",
+    "Nizhnyaya Ala-Archa",
+    "Sosnovka",
+    "Tokmok"
+  ]
+}

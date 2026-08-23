@@ -1,0 +1,9 @@
+{
+  "country": "Salomon",
+  "code": "SB",
+  "zone": "Central Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Tulagi"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "country": "Armenie",
+  "code": "AM",
+  "zone": "Lori",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alaverdi",
+    "Gugark",
+    "Metsavan",
+    "Spitak",
+    "Stepanavan",
+    "Tashir",
+    "Vanadzor"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "country": "Islande",
+  "code": "IS",
+  "zone": "Northwest",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Sauðárkrókur"
+  ]
+}

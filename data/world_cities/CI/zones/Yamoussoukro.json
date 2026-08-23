@@ -1,0 +1,17 @@
+{
+  "country": "Cote d Ivoire",
+  "code": "CI",
+  "zone": "Yamoussoukro",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akpessékro",
+    "Baonfla",
+    "Duonfla",
+    "Kami",
+    "Lolobo",
+    "Séman",
+    "Tombokro",
+    "Zambakro",
+    "Zata"
+  ]
+}

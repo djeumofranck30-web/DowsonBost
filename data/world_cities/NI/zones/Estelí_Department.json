@@ -1,0 +1,10 @@
+{
+  "country": "Nicaragua",
+  "code": "NI",
+  "zone": "Estelí Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Condega",
+    "Estelí"
+  ]
+}

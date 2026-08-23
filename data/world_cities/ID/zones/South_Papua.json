@@ -1,0 +1,11 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "South Papua",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Agats",
+    "Kepi",
+    "Merauke"
+  ]
+}

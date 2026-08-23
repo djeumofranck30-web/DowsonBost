@@ -1,0 +1,18 @@
+{
+  "country": "Sainte-Lucie",
+  "code": "LC",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Anse-la-Raye",
+    "Castries",
+    "Choiseul",
+    "Dennery",
+    "Gros-Islet",
+    "Laborie",
+    "Micoud",
+    "Soufrière",
+    "Vieux-Fort"
+  ],
+  "source": "geonames_admin1"
+}

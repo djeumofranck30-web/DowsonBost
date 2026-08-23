@@ -1,0 +1,28 @@
+{
+  "country": "Hongrie",
+  "code": "HU",
+  "zone": "Jász-Nagykun-Szolnok",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Fegyvernek",
+    "Jászapáti",
+    "Jászberény",
+    "Jászkisér",
+    "Jászladány",
+    "Jászárokszállás",
+    "Karcag",
+    "Kenderes",
+    "Kisújszállás",
+    "Kunhegyes",
+    "Kunmadaras",
+    "Kunszentmárton",
+    "Mezőtúr",
+    "Rákóczifalva",
+    "Szolnok",
+    "Tiszaföldvár",
+    "Tiszafüred",
+    "Törökszentmiklós",
+    "Túrkeve",
+    "Újszász"
+  ]
+}

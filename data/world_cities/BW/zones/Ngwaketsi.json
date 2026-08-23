@@ -1,0 +1,14 @@
+{
+  "country": "Botswana",
+  "code": "BW",
+  "zone": "Ngwaketsi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Good Hope",
+    "Kanye",
+    "Lotlhakane",
+    "Mmathete",
+    "Mosopa",
+    "Sese"
+  ]
+}

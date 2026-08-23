@@ -1,0 +1,12 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Bingöl",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bingöl",
+    "Genç",
+    "Karlıova",
+    "Solhan"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "country": "Mali",
+  "code": "ML",
+  "zone": "Koulikoro",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Banamba",
+    "Dialakorodji",
+    "Dioïla",
+    "Fana",
+    "Kabala",
+    "Kalaban Koro",
+    "Kangaba",
+    "Kati",
+    "Kolokani",
+    "Koulikoro",
+    "Moribabougou",
+    "Nara",
+    "Sangarébougou",
+    "Sibi",
+    "Sirakoro Méguétana",
+    "Toubakoura"
+  ]
+}

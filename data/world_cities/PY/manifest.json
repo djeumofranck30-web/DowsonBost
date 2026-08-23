@@ -1,0 +1,27 @@
+{
+  "country": "Paraguay",
+  "code": "PY",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Alto Paraguay",
+    "Alto Paraná Department",
+    "Amambay Department",
+    "Asuncion",
+    "Boquerón Department",
+    "Caaguazú Department",
+    "Caazapá",
+    "Canindeyú",
+    "Central Department",
+    "Concepción",
+    "Cordillera Department",
+    "Guairá",
+    "Itapúa",
+    "Misiones Department",
+    "Paraguarí",
+    "Presidente Hayes",
+    "San Pedro Department",
+    "Ñeembucú Department"
+  ],
+  "source": "geonames_admin1"
+}

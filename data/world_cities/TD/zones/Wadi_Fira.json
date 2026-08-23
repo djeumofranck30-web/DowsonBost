@@ -1,0 +1,11 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Wadi Fira",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Biltine",
+    "Guéréda",
+    "Iriba"
+  ]
+}

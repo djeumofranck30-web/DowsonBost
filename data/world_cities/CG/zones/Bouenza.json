@@ -1,0 +1,15 @@
+{
+  "country": "Congo",
+  "code": "CG",
+  "zone": "Bouenza",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bouansa",
+    "Kayes",
+    "Loudima",
+    "Loutété",
+    "Madingou",
+    "Mouyondzi",
+    "Nkayi"
+  ]
+}

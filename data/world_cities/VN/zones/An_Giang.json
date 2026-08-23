@@ -1,0 +1,32 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "An Giang",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ba Chúc",
+    "Châu Phong",
+    "Châu Đốc",
+    "Chợ Mới",
+    "Cô Tô",
+    "Dương Đông",
+    "Hà Tiên",
+    "Hàm Ninh",
+    "Khánh Hòa",
+    "Kiên Hải",
+    "Kiến An",
+    "Long Xuyên",
+    "Nhà Bàng",
+    "Núi Sập",
+    "Phu Quoc",
+    "Phú Quốc",
+    "Rạch Giá",
+    "Tân Châu",
+    "Tịnh Biên",
+    "Xóm Cái Nước",
+    "Óc Eo",
+    "Ấp Bình Chánh",
+    "Ấp Long Thạnh",
+    "Ấp Phú Hòa"
+  ]
+}

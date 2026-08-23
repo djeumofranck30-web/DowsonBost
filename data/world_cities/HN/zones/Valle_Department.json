@@ -1,0 +1,16 @@
+{
+  "country": "Honduras",
+  "code": "HN",
+  "zone": "Valle Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amapala",
+    "Aramecina",
+    "Goascorán",
+    "La Alianza",
+    "Langue",
+    "Nacaome",
+    "San Francisco de Coray",
+    "San Lorenzo"
+  ]
+}

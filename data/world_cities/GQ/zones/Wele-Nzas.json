@@ -1,0 +1,11 @@
+{
+  "country": "Guinee equatoriale",
+  "code": "GQ",
+  "zone": "Wele-Nzas",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aconibe",
+    "Añisoc",
+    "Mongomo"
+  ]
+}

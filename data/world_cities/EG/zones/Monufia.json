@@ -1,0 +1,18 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Monufia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Bājūr",
+    "Ash Shuhadā’",
+    "Ashmūn",
+    "Birkat as Sab‘",
+    "Kafr Shukr",
+    "Munūf",
+    "Quwaysinā",
+    "Shibīn al Kawm",
+    "Sirs al Layyānah",
+    "Talā"
+  ]
+}

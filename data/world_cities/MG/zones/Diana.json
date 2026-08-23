@@ -1,0 +1,15 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Diana",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ambanja",
+    "Ambarakaraka",
+    "Ambilobe",
+    "Antsiranana",
+    "Antsohimbondrona",
+    "Hell-Ville",
+    "Sadjoavato"
+  ]
+}

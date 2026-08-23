@@ -1,0 +1,13 @@
+{
+  "country": "Cambodge",
+  "code": "KH",
+  "zone": "Banteay Meanchey",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kuttasat",
+    "Ou Bei Choan",
+    "Paoy Paet",
+    "Sisophon",
+    "Yeang Dangkum"
+  ]
+}

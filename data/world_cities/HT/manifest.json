@@ -1,0 +1,19 @@
+{
+  "country": "Haiti",
+  "code": "HT",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Artibonite",
+    "Centre",
+    "Grand'Anse",
+    "Nippes",
+    "Nord",
+    "Nord-Est",
+    "Nord-Ouest",
+    "Ouest",
+    "Sud",
+    "Sud-Est"
+  ],
+  "source": "geonames_admin1"
+}

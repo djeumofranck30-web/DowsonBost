@@ -1,0 +1,20 @@
+{
+  "country": "Cuba",
+  "code": "CU",
+  "zone": "Granma Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bartolomé Masó",
+    "Bayamo",
+    "Campechuela",
+    "Cauto Cristo",
+    "Guisa",
+    "Jiguaní",
+    "Manzanillo",
+    "Media Luna",
+    "Niquero",
+    "Pilón",
+    "Río Cauto",
+    "Yara"
+  ]
+}

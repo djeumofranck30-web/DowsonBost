@@ -1,0 +1,10 @@
+{
+  "country": "Mali",
+  "code": "ML",
+  "zone": "Kidal",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aguelhok",
+    "Kidal"
+  ]
+}

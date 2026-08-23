@@ -1,0 +1,31 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Huila Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aipe",
+    "Algeciras",
+    "Campoalegre",
+    "Colombia",
+    "Garzón",
+    "Gigante",
+    "Guadalupe",
+    "Isnos",
+    "La Plata",
+    "Neiva",
+    "Oporapa",
+    "Palermo",
+    "Palestina",
+    "Pital",
+    "Pitalito",
+    "Rivera",
+    "Saladoblanco",
+    "San Agustín",
+    "Tarqui",
+    "Tello",
+    "Timaná",
+    "Yaguará",
+    "Íquira"
+  ]
+}

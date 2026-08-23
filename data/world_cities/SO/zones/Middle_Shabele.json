@@ -1,0 +1,11 @@
+{
+  "country": "Somalie",
+  "code": "SO",
+  "zone": "Middle Shabele",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cadale",
+    "Jawhar",
+    "Mahaddayweyne"
+  ]
+}

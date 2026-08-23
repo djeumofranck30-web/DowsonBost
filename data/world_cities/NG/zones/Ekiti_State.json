@@ -1,0 +1,21 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Ekiti State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ado-Ekiti",
+    "Aramoko-Ekiti",
+    "Efon-Alaaye",
+    "Emure-Ekiti",
+    "Ifaki",
+    "Igbara-Odo",
+    "Igede-Ekiti",
+    "Ijero-Ekiti",
+    "Ikere-Ekiti",
+    "Ipoti",
+    "Ise-Ekiti",
+    "Oke Ila",
+    "Omuo-Ekiti"
+  ]
+}

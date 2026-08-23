@@ -1,0 +1,25 @@
+{
+  "country": "Pays-Bas",
+  "code": "NL",
+  "zone": "Drenthe",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Angelslo",
+    "Assen",
+    "Bargeres",
+    "Beilen",
+    "Coevorden",
+    "Eelde",
+    "Emmen",
+    "Emmer-Compascuum",
+    "Emmerhout",
+    "Emmermeer",
+    "Hoogeveen",
+    "Klazienaveen",
+    "Krakeel",
+    "Marsdijk",
+    "Meppel",
+    "Peelo",
+    "Roden"
+  ]
+}

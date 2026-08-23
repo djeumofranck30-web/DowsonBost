@@ -1,0 +1,21 @@
+{
+  "country": "Argentine",
+  "code": "AR",
+  "zone": "Santa Cruz",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Caleta Olivia",
+    "Comandante Luis Piedrabuena",
+    "El Calafate",
+    "Gobernador Gregores",
+    "Las Heras",
+    "Perito Moreno",
+    "Pico Truncado",
+    "Puerto Deseado",
+    "Puerto San Julián",
+    "Puerto Santa Cruz",
+    "Río Gallegos",
+    "Río Turbio",
+    "Yacimientos Río Turbio"
+  ]
+}

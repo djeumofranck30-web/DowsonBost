@@ -1,0 +1,12 @@
+{
+  "country": "Angola",
+  "code": "AO",
+  "zone": "Lunda Sul",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cacolo",
+    "Dala",
+    "Muconda",
+    "Saurimo"
+  ]
+}

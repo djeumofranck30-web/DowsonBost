@@ -1,0 +1,9 @@
+{
+  "country": "Salomon",
+  "code": "SB",
+  "zone": "Isabel Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Buala"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Geita",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Buseresere",
+    "Chato",
+    "Diobahika",
+    "Geita",
+    "Kasamwa",
+    "Katoro",
+    "Masumbwe",
+    "Mhalamba",
+    "Ushirombo",
+    "Uyovu"
+  ]
+}

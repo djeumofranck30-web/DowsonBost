@@ -1,0 +1,9 @@
+{
+  "country": "Bahamas",
+  "code": "BS",
+  "zone": "North Abaco",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cooper’s Town"
+  ]
+}

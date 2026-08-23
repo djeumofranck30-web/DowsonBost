@@ -1,0 +1,19 @@
+{
+  "country": "Lituanie",
+  "code": "LT",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Alytus",
+    "Kaunas",
+    "Klaipėda County",
+    "Marijampolė County",
+    "Panevėžys",
+    "Siauliai",
+    "Tauragė County",
+    "Telsiai",
+    "Utena",
+    "Vilnius"
+  ],
+  "source": "geonames_admin1"
+}

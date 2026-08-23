@@ -1,0 +1,14 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Sukhothai",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Dan Lan Hoi",
+    "Ban Na",
+    "Khiri Mat",
+    "Sawankhalok",
+    "Si Satchanalai",
+    "Sukhothai"
+  ]
+}

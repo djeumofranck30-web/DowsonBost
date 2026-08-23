@@ -1,0 +1,10 @@
+{
+  "country": "Lettonie",
+  "code": "LV",
+  "zone": "Ķekava",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baloži",
+    "Ķekava"
+  ]
+}

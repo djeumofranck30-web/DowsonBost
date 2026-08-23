@@ -1,0 +1,22 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Delta",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abraka",
+    "Agbor",
+    "Asaba",
+    "Bomadi",
+    "Burutu",
+    "Kwale",
+    "Obiaruku",
+    "Ogwashi-Uku",
+    "Orerokpe",
+    "Patani",
+    "Sapele",
+    "Ughelli",
+    "Umunede",
+    "Warri"
+  ]
+}

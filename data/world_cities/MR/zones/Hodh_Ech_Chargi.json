@@ -1,0 +1,18 @@
+{
+  "country": "Mauritanie",
+  "code": "MR",
+  "zone": "Hodh Ech Chargi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amourj",
+    "Basseknou",
+    "Bougadoum",
+    "Bousteila",
+    "Djiguenni",
+    "Mbera",
+    "Néma",
+    "Oualata",
+    "Tembedgha",
+    "Vassala"
+  ]
+}

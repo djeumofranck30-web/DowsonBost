@@ -1,0 +1,22 @@
+{
+  "country": "Coree du Sud",
+  "code": "KR",
+  "zone": "Gyeongsangnam-do",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Changnyeong",
+    "Changwon",
+    "Chinju",
+    "Geoje",
+    "Goseong",
+    "Hadong",
+    "Kimhae",
+    "Kyosai",
+    "Miryang",
+    "Naesŏ",
+    "Sinhyeon",
+    "Tongyeong",
+    "Ungsang",
+    "Yangsan"
+  ]
+}

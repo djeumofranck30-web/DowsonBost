@@ -1,0 +1,15 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Brăila County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Brăila",
+    "Chiscani",
+    "Ianca",
+    "Tudor Vladimirescu",
+    "Tufeşti",
+    "Viziru",
+    "Însurăţei"
+  ]
+}

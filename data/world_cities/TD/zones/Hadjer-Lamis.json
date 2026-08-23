@@ -1,0 +1,12 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Hadjer-Lamis",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bokoro",
+    "Massaguet",
+    "Massakory",
+    "Ngama"
+  ]
+}

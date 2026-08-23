@@ -1,0 +1,30 @@
+{
+  "country": "Bielorussie",
+  "code": "BY",
+  "zone": "Grodnenskaya",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Astraviec",
+    "Byarozawka",
+    "Dyatlovo",
+    "Hrodna",
+    "Iwye",
+    "Korelichi",
+    "Krasnosel’skiy",
+    "Lida",
+    "Mosty",
+    "Novogrudok",
+    "Oshmyany",
+    "Ross’",
+    "Shchuchyn",
+    "Skidel’",
+    "Slonim",
+    "Smarhoń",
+    "Svislach",
+    "Vaukavysk",
+    "Vishnyeva",
+    "Voronovo",
+    "Vyalikaya Byerastavitsa",
+    "Zel’va"
+  ]
+}

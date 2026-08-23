@@ -1,0 +1,24 @@
+{
+  "country": "Japon",
+  "code": "JP",
+  "zone": "Kagawa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Higashikagawa",
+    "Hiragi",
+    "Horikoshi",
+    "Kan’onjichō",
+    "Kotohira",
+    "Marugame",
+    "Mitoyo",
+    "Sakaidechō",
+    "Shido",
+    "Shioiri",
+    "Tadotsu",
+    "Takamatsu",
+    "Takinomiya",
+    "Tonoshō",
+    "Utazu",
+    "Zentsujichó"
+  ]
+}

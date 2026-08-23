@@ -1,0 +1,14 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Ağrı",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ağrı",
+    "Diyadin",
+    "Doğubayazıt",
+    "Eleşkirt",
+    "Patnos",
+    "Taşlıçay"
+  ]
+}

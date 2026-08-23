@@ -1,0 +1,32 @@
+{
+  "country": "Canada",
+  "code": "CA",
+  "zone": "Newfoundland and Labrador",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bay Roberts",
+    "Churchill Park",
+    "Clarenville",
+    "Conception Bay South",
+    "Corner Brook",
+    "Deer Lake",
+    "Donovans",
+    "Downtown St. John's",
+    "Gander",
+    "Grand Falls-Windsor",
+    "Happy Valley-Goose Bay",
+    "Kilbride",
+    "Labrador City",
+    "Marystown",
+    "Mount Cashel",
+    "Mount Pearl",
+    "Mundy Pond",
+    "Paradise",
+    "Pearlgate",
+    "Rabbittown",
+    "Southlands",
+    "St. John's",
+    "Stephenville",
+    "Torbay"
+  ]
+}

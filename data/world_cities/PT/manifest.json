@@ -1,0 +1,29 @@
+{
+  "country": "Portugal",
+  "code": "PT",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Aveiro",
+    "Azores",
+    "Beja",
+    "Braga",
+    "Bragança",
+    "Castelo Branco",
+    "Coimbra",
+    "Faro",
+    "Guarda",
+    "Leiria",
+    "Lisbon",
+    "Madeira",
+    "Portalegre",
+    "Porto",
+    "Santarém",
+    "Setúbal",
+    "Viana do Castelo",
+    "Vila Real",
+    "Viseu",
+    "Évora"
+  ],
+  "source": "geonames_admin1"
+}

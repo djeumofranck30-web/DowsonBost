@@ -1,0 +1,23 @@
+{
+  "country": "Coree du Sud",
+  "code": "KR",
+  "zone": "Gangwon-do",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cheorwon",
+    "Chuncheon",
+    "Donghae City",
+    "Gangneung",
+    "Hongch’ŏn",
+    "Hwacheon",
+    "Jumunjin",
+    "Kosong",
+    "Neietsu",
+    "Pyeongchang",
+    "Santyoku",
+    "Sokcho",
+    "T’aebaek",
+    "Wŏnju",
+    "Yanggu"
+  ]
+}

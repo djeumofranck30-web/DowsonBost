@@ -1,0 +1,13 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Phayao",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chiang Kham",
+    "Dok Kham Tai",
+    "Mae Chai",
+    "Phayao",
+    "Pong"
+  ]
+}

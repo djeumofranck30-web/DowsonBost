@@ -1,0 +1,10 @@
+{
+  "country": "Mongolie",
+  "code": "MN",
+  "zone": "Central Aimak",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dzuunmod",
+    "Zuunmod"
+  ]
+}

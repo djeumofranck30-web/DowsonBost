@@ -1,0 +1,13 @@
+{
+  "country": "Koweit",
+  "code": "KW",
+  "zone": "Al Asimah",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ad Dasmah",
+    "Ar Rābiyah",
+    "Ash Shāmīyah",
+    "Az Zawr",
+    "Kuwait City"
+  ]
+}

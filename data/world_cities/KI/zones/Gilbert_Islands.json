@@ -1,0 +1,11 @@
+{
+  "country": "Kiribati",
+  "code": "KI",
+  "zone": "Gilbert Islands",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Betio Village",
+    "Bikenibeu Village",
+    "Tarawa"
+  ]
+}

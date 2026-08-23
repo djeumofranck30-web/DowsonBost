@@ -1,0 +1,14 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Zaghouan Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bir M’cherga",
+    "Cheylus",
+    "Djebibina",
+    "El Fahs",
+    "Zaghouan",
+    "Zriba-Village"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "country": "Autriche",
+  "code": "AT",
+  "zone": "Vienna",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alsergrund",
+    "Aspern",
+    "Brigittenau",
+    "Donaustadt",
+    "Döbling",
+    "Essling",
+    "Favoriten",
+    "Floridsdorf",
+    "Fünfhaus",
+    "Hernals",
+    "Hietzing",
+    "Innere Stadt",
+    "Josefstadt",
+    "Landstraße",
+    "Margareten",
+    "Mariahilf",
+    "Meidling",
+    "Neubau",
+    "Ottakring",
+    "Penzing",
+    "Simmering",
+    "Vienna",
+    "Währing"
+  ]
+}

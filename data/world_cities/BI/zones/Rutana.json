@@ -1,0 +1,9 @@
+{
+  "country": "Burundi",
+  "code": "BI",
+  "zone": "Rutana",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Rutana"
+  ]
+}

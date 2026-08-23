@@ -1,0 +1,15 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Nyeri County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chaka",
+    "Karatina",
+    "Mukurwe-ini",
+    "Naro Moru",
+    "Nyeri",
+    "Othaya",
+    "Tetu"
+  ]
+}

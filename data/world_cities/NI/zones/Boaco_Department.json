@@ -1,0 +1,11 @@
+{
+  "country": "Nicaragua",
+  "code": "NI",
+  "zone": "Boaco Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Boaco",
+    "Camoapa",
+    "San Lorenzo"
+  ]
+}

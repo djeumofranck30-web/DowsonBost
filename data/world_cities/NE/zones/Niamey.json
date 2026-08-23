@@ -1,0 +1,9 @@
+{
+  "country": "Niger",
+  "code": "NE",
+  "zone": "Niamey",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Niamey"
+  ]
+}

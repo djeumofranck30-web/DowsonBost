@@ -1,0 +1,15 @@
+{
+  "country": "Benin",
+  "code": "BJ",
+  "zone": "Ouémé",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Adjarra",
+    "Avrankou",
+    "Ekpé",
+    "Missérété",
+    "Porto-Novo",
+    "Semi",
+    "Zounké"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Uruguay",
+  "code": "UY",
+  "zone": "Lavalleja",
+  "source": "geonames_cities5000",
+  "cities": [
+    "José Pedro Varela",
+    "Minas"
+  ]
+}

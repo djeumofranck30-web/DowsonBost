@@ -1,0 +1,11 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Laikipia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Nanyuki",
+    "Nyahururu",
+    "Rumuruti"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Bongolava",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Fenoarivo Be",
+    "Tsiroanomandidy"
+  ]
+}

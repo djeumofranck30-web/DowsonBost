@@ -1,0 +1,12 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Düzce",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akçakoca",
+    "Cumayeri",
+    "Düzce",
+    "Kaynaşlı"
+  ]
+}

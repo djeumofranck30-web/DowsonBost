@@ -1,0 +1,27 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Osun State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Apomu",
+    "Ede",
+    "Ejigbo",
+    "Gbongan",
+    "Ijebu-Jesa",
+    "Ikire",
+    "Ikirun",
+    "Ila Orangun",
+    "Ile-Ife",
+    "Ilesa",
+    "Ilobu",
+    "Inisa",
+    "Iwo",
+    "Modakeke",
+    "Oke Mesi",
+    "Olupona",
+    "Osogbo",
+    "Otan Ayegbaju",
+    "Oyan"
+  ]
+}

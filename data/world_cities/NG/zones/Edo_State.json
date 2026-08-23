@@ -1,0 +1,17 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Edo State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Agenebode",
+    "Auchi",
+    "Benin City",
+    "Ekpoma",
+    "Igarra",
+    "Illushi",
+    "Siluko",
+    "Ubiaja",
+    "Uromi"
+  ]
+}

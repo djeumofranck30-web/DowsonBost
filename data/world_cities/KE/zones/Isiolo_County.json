@@ -1,0 +1,12 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Isiolo County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Garba Tula",
+    "Isiolo",
+    "Kinna",
+    "Merti"
+  ]
+}

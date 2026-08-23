@@ -1,0 +1,33 @@
+{
+  "country": "Japon",
+  "code": "JP",
+  "zone": "Kyoto",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arashiyama",
+    "Ayabe",
+    "Fukuchiyama",
+    "Ide",
+    "Jōyō",
+    "Kameoka",
+    "Kamigyō-ku",
+    "Kizugawa",
+    "Kyoto",
+    "Kyōtamba",
+    "Kyōtanabe",
+    "Kyōtango",
+    "Kōtari",
+    "Maizuru",
+    "Miyazu",
+    "Mukō",
+    "Nantan",
+    "Oyamazaki",
+    "Sayama",
+    "Sugai",
+    "Tachikawa",
+    "Tanabe",
+    "Uji",
+    "Yawata",
+    "Yotsutsuji"
+  ]
+}

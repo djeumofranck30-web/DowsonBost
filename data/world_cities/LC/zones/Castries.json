@@ -1,0 +1,10 @@
+{
+  "country": "Sainte-Lucie",
+  "code": "LC",
+  "zone": "Castries",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bisee",
+    "Castries"
+  ]
+}

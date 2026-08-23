@@ -1,0 +1,24 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "Guatemala",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amatitlán",
+    "Chinautla",
+    "Chuarrancho",
+    "Fraijanes",
+    "Guatemala City",
+    "Mixco",
+    "Palencia",
+    "Petapa",
+    "San José Pinula",
+    "San Juan Sacatepéquez",
+    "San Pedro Ayampuc",
+    "San Pedro Sacatepéquez",
+    "San Raimundo",
+    "Santa Catarina Pinula",
+    "Villa Canales",
+    "Villa Nueva"
+  ]
+}

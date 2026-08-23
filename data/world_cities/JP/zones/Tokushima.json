@@ -1,0 +1,29 @@
+{
+  "country": "Japon",
+  "code": "JP",
+  "zone": "Tokushima",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anan",
+    "Awa",
+    "Hara",
+    "Hiwasaura",
+    "Ikedachō",
+    "Ishii",
+    "Kamojimachō-jōgejima",
+    "Kawaguchi",
+    "Komatsushimachō",
+    "Matsushige",
+    "Mima",
+    "Narutochō-mitsuishi",
+    "Okuno",
+    "Sadamitsu",
+    "Shichijō",
+    "Takabō",
+    "Tokushima",
+    "Tomoura",
+    "Wakimachi",
+    "Yakami",
+    "Yoshinogawa"
+  ]
+}

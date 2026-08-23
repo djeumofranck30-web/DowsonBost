@@ -1,0 +1,10 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Ennedi-Ouest",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Fada",
+    "Ounianga Kébir"
+  ]
+}

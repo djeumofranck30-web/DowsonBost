@@ -1,0 +1,23 @@
+{
+  "country": "Cuba",
+  "code": "CU",
+  "zone": "Villa Clara Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Caibarién",
+    "Calabazar de Sagua",
+    "Camajuaní",
+    "Cifuentes",
+    "Corralillo",
+    "Encrucijada",
+    "Esperanza",
+    "Manicaragua",
+    "Placetas",
+    "Quemado de Güines",
+    "Ranchuelo",
+    "Remedios",
+    "Sagua la Grande",
+    "Santa Clara",
+    "Santo Domingo"
+  ]
+}

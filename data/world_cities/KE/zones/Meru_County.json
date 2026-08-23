@@ -1,0 +1,13 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Meru County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Lare",
+    "Maua",
+    "Meru",
+    "Nkubu",
+    "Timau"
+  ]
+}

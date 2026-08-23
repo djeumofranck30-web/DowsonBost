@@ -1,0 +1,13 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Vratsa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Byala Slatina",
+    "Kozloduy",
+    "Mezdra",
+    "Oryahovo",
+    "Vratsa"
+  ]
+}

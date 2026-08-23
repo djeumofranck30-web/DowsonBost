@@ -1,0 +1,9 @@
+{
+  "country": "Saint-Kitts-et-Nevis",
+  "code": "KN",
+  "zone": "Saint George Basseterre",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Basseterre"
+  ]
+}

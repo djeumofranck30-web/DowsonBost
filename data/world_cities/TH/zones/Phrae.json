@@ -1,0 +1,12 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Phrae",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Den Chai",
+    "Long",
+    "Phrae",
+    "Rong Kwang"
+  ]
+}

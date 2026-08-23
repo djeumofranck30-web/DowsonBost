@@ -1,0 +1,10 @@
+{
+  "country": "Bahamas",
+  "code": "BS",
+  "zone": "Freeport",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Freeport",
+    "Lucaya"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Norvege",
+  "code": "NO",
+  "zone": "Oslo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ensjø",
+    "Oslo"
+  ]
+}

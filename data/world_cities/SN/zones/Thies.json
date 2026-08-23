@@ -1,0 +1,26 @@
+{
+  "country": "Senegal",
+  "code": "SN",
+  "zone": "Thies",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dougnane",
+    "Joal",
+    "Kayar",
+    "Kbombole",
+    "Khombole",
+    "Mboro",
+    "Mbour",
+    "Mékhé",
+    "Ngaparou",
+    "Nguékhokh",
+    "Poponguine",
+    "Pout",
+    "Sali",
+    "Somone",
+    "Thiadiaye",
+    "Thiès",
+    "Thiès Nones",
+    "Tivaouane"
+  ]
+}

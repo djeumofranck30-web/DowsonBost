@@ -1,0 +1,17 @@
+{
+  "country": "Argentine",
+  "code": "AR",
+  "zone": "Santiago del Estero",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Añatuya",
+    "Beltrán",
+    "Campo Gallo",
+    "Clodomira",
+    "Quimilí",
+    "Santiago del Estero",
+    "Suncho Corral",
+    "Termas de Río Hondo",
+    "Villa Ojo de Agua"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Bayelsa State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amassoma",
+    "Twon-Brass",
+    "Yenagoa"
+  ]
+}

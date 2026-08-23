@@ -1,0 +1,10 @@
+{
+  "country": "Paraguay",
+  "code": "PY",
+  "zone": "Caazapá",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Caazapá",
+    "San Juan Nepomuceno"
+  ]
+}

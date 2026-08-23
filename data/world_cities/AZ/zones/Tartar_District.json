@@ -1,0 +1,9 @@
+{
+  "country": "Azerbaidjan",
+  "code": "AZ",
+  "zone": "Tartar District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Tartar"
+  ]
+}

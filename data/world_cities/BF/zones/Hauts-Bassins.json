@@ -1,0 +1,12 @@
+{
+  "country": "Burkina Faso",
+  "code": "BF",
+  "zone": "Hauts-Bassins",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bobo-Dioulasso",
+    "Houndé",
+    "Karankasso",
+    "Orodara"
+  ]
+}

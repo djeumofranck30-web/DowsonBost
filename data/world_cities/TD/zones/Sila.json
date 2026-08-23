@@ -1,0 +1,10 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Sila",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Am Dam",
+    "Goz Beida"
+  ]
+}

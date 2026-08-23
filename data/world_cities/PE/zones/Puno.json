@@ -1,0 +1,25 @@
+{
+  "country": "Perou",
+  "code": "PE",
+  "zone": "Puno",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Atuncolla",
+    "Ayaviri",
+    "Azángaro",
+    "Crucero",
+    "Desaguadero",
+    "Hacienda Huancane",
+    "Huancané",
+    "Ilave",
+    "Juli",
+    "Juliaca",
+    "La Rinconada",
+    "La Rinconada Ana Maria (La Rinconada)",
+    "Macusani",
+    "Puno",
+    "Putina",
+    "San Miguel",
+    "Yunguyo"
+  ]
+}

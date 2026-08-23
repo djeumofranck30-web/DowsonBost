@@ -1,0 +1,21 @@
+{
+  "country": "Myanmar",
+  "code": "MM",
+  "zone": "Mandalay Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amarapura",
+    "Kyaukpadaung",
+    "Kyaukse",
+    "Madaya",
+    "Mandalay",
+    "Meiktila",
+    "Mogok",
+    "Myingyan",
+    "Nyaung-U",
+    "Pyawbwe",
+    "Pyin Oo Lwin",
+    "Wundwin",
+    "Yamethin"
+  ]
+}

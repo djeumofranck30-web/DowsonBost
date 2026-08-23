@@ -1,0 +1,16 @@
+{
+  "country": "Costa Rica",
+  "code": "CR",
+  "zone": "Puntarenas Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Buenos Aires",
+    "Chacarita",
+    "Corredor",
+    "Esparza",
+    "Golfito",
+    "Miramar",
+    "Puntarenas",
+    "Quepos"
+  ]
+}

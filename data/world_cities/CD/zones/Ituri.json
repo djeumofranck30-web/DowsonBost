@@ -1,0 +1,12 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "Ituri",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aru",
+    "Bunia",
+    "Djugu",
+    "Mangbwalu"
+  ]
+}

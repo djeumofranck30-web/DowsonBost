@@ -1,0 +1,19 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Yozgat",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akdağmadeni",
+    "Aydıncık",
+    "Kadışehri",
+    "Saraykent",
+    "Sorgun",
+    "Yenifakılı",
+    "Yerköy",
+    "Yozgat",
+    "Çayıralan",
+    "Çekerek",
+    "Şefaatlı"
+  ]
+}

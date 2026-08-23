@@ -1,0 +1,13 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Tipaza",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bou Ismaïl",
+    "Cherchell",
+    "Hadjout",
+    "Kolea",
+    "Tipasa"
+  ]
+}

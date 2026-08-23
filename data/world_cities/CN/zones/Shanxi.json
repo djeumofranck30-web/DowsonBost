@@ -1,0 +1,26 @@
+{
+  "country": "Chine",
+  "code": "CN",
+  "zone": "Shanxi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Changzhi",
+    "Datong",
+    "Gutao",
+    "Jiexiu",
+    "Jincheng",
+    "Jinzhong",
+    "Linfen",
+    "Lüliang",
+    "Shuozhou",
+    "Taiyuan",
+    "Xinzhi",
+    "Xinzhou",
+    "Yangjiaying",
+    "Yangquan",
+    "Yongji",
+    "Yuanping",
+    "Yuci",
+    "Yuncheng"
+  ]
+}

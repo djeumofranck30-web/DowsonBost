@@ -1,0 +1,9 @@
+{
+  "country": "Saint-Vincent-et-les-Grenadines",
+  "code": "VC",
+  "zone": "Grenadines Parish",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Port Elizabeth"
+  ]
+}

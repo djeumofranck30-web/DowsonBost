@@ -1,0 +1,9 @@
+{
+  "country": "Montenegro",
+  "code": "ME",
+  "zone": "Gusinje Municipality",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gusinje"
+  ]
+}

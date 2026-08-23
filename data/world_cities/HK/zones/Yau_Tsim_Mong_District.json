@@ -1,0 +1,19 @@
+{
+  "country": "Hong Kong",
+  "code": "HK",
+  "zone": "Yau Tsim Mong District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Charming Garden",
+    "Cosmopolitan Estate",
+    "Hoi Fu Court",
+    "Island Harbourview",
+    "Jordan",
+    "Metro Harbour",
+    "Mong Kok",
+    "Olympic",
+    "Sorrento",
+    "Tai Kok Tsui",
+    "Yau Ma Tei"
+  ]
+}

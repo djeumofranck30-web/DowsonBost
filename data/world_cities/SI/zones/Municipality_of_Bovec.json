@@ -1,0 +1,9 @@
+{
+  "country": "Slovenie",
+  "code": "SI",
+  "zone": "Municipality of Bovec",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bovec"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Ariana Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aryanah",
+    "Ettadhamen",
+    "Galaat el Andeless",
+    "Mnihla",
+    "Rawad",
+    "Sidi Tabet",
+    "Sukrah"
+  ]
+}

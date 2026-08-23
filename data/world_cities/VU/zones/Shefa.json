@@ -1,0 +1,9 @@
+{
+  "country": "Vanuatu",
+  "code": "VU",
+  "zone": "Shefa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Port-Vila"
+  ]
+}

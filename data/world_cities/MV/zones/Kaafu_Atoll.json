@@ -1,0 +1,9 @@
+{
+  "country": "Maldives",
+  "code": "MV",
+  "zone": "Kaafu Atoll",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Male"
+  ]
+}

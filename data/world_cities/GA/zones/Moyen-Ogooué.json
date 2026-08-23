@@ -1,0 +1,11 @@
+{
+  "country": "Gabon",
+  "code": "GA",
+  "zone": "Moyen-Ogooué",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Lambaréné",
+    "Ndjolé",
+    "Oyam"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "country": "Hongrie",
+  "code": "HU",
+  "zone": "Heves County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Eger",
+    "Füzesabony",
+    "Gyöngyös",
+    "Hatvan",
+    "Heves",
+    "Lőrinci",
+    "Átány"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Pattani",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Nong Chik",
+    "Pattani",
+    "Sai Buri",
+    "Yaring"
+  ]
+}

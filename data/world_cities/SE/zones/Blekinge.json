@@ -1,0 +1,13 @@
+{
+  "country": "Suede",
+  "code": "SE",
+  "zone": "Blekinge",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Karlshamn",
+    "Karlskrona",
+    "Olofström",
+    "Ronneby",
+    "Sölvesborg"
+  ]
+}

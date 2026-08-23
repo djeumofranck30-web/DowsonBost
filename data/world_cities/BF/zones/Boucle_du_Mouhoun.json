@@ -1,0 +1,17 @@
+{
+  "country": "Burkina Faso",
+  "code": "BF",
+  "zone": "Boucle du Mouhoun",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bama",
+    "Boromo",
+    "Dédougou",
+    "Fara Department",
+    "Nouna",
+    "Pa",
+    "Solenzo",
+    "Toma",
+    "Tougan"
+  ]
+}

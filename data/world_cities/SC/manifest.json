@@ -1,0 +1,19 @@
+{
+  "country": "Seychelles",
+  "code": "SC",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Anse Boileau",
+    "Anse Royale",
+    "Baie Sainte Anne",
+    "Beau Vallon",
+    "Bel Ombre",
+    "Cascade",
+    "La Digue and Inner Islands",
+    "La Rivière Anglaise",
+    "Port Glaud",
+    "Takamaka"
+  ],
+  "source": "geonames_admin1"
+}

@@ -1,0 +1,25 @@
+{
+  "country": "Arabie saoudite",
+  "code": "SA",
+  "zone": "Al-Qassim Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Adh Dhibiyah",
+    "Al Badā’i‘ al Wusţá",
+    "Al Bukayrīyah",
+    "Al Fuwayliq",
+    "Al Khabrā’",
+    "Al Mithnab",
+    "Al Mulaydā’",
+    "Ar Rass",
+    "Ayn Ibn Fuhayd",
+    "Buraydah",
+    "Dukhnah",
+    "Qibah",
+    "Riyāḑ al Khabrā’",
+    "Tanūmah",
+    "Unaizah",
+    "‘Uqlat aş Şuqūr",
+    "‘Uyūn al Jiwā’"
+  ]
+}

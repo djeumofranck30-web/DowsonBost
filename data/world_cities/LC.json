@@ -1,0 +1,17 @@
+{
+  "country": "Sainte-Lucie",
+  "code": "LC",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anse La Raye",
+    "Bisee",
+    "Castries",
+    "Choiseul",
+    "Dennery",
+    "Gros Islet",
+    "Laborie",
+    "Micoud",
+    "Soufrière",
+    "Vieux Fort"
+  ]
+}

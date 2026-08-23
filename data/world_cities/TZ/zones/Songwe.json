@@ -1,0 +1,12 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Songwe",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Itumba",
+    "Mlowo",
+    "Tunduma",
+    "Vwawa"
+  ]
+}

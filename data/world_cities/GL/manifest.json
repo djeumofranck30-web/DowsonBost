@@ -1,0 +1,14 @@
+{
+  "country": "Groenland",
+  "code": "GL",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Avannaata",
+    "Kujalleq",
+    "Qeqertalik",
+    "Qeqqata",
+    "Sermersooq"
+  ],
+  "source": "geonames_admin1"
+}

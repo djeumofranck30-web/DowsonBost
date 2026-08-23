@@ -1,0 +1,16 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Matruh",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Ḩammām",
+    "Al ‘Alamayn",
+    "An-Najaylah",
+    "As Sallūm",
+    "El Dabaa",
+    "Marsá Maţrūḩ",
+    "Sīdī Barānī",
+    "Sīwah"
+  ]
+}

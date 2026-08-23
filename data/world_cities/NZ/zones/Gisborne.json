@@ -1,0 +1,12 @@
+{
+  "country": "Nouvelle-Zelande",
+  "code": "NZ",
+  "zone": "Gisborne",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gisborne",
+    "Kaiti",
+    "Mangapapa",
+    "Te Hapara"
+  ]
+}

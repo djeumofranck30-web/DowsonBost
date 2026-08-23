@@ -1,0 +1,18 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "Santa Rosa Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Barberena",
+    "Casillas",
+    "Chiquimulilla",
+    "Cuilapa",
+    "Guazacapán",
+    "Nueva Santa Rosa",
+    "Oratorio",
+    "Santa Cruz Naranjo",
+    "Santa Rosa de Lima",
+    "Taxisco"
+  ]
+}

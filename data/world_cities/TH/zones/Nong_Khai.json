@@ -1,0 +1,12 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Nong Khai",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Nong Khai",
+    "Phon Charoen",
+    "Si Chiang Mai",
+    "Tha Bo"
+  ]
+}

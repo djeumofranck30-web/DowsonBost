@@ -1,0 +1,16 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "North Sulawesi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Airmadidi",
+    "Bitung",
+    "Kotamobagu",
+    "Laikit, Laikit II (Dimembe)",
+    "Manado",
+    "Tahuna",
+    "Tomohon",
+    "Tondano"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "country": "Botswana",
+  "code": "BW",
+  "zone": "Central",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bobonong",
+    "Borolong",
+    "Chadibe",
+    "Gweta",
+    "Lerala",
+    "Letlhakane",
+    "Mahalapye",
+    "Mathangwane",
+    "Mmadinare",
+    "Nata",
+    "Orapa",
+    "Palapye",
+    "Sefhare",
+    "Sefophe",
+    "Serowe",
+    "Shashe Mooke",
+    "Shoshong",
+    "Tonota",
+    "Tsetsebjwe",
+    "Tutume"
+  ]
+}

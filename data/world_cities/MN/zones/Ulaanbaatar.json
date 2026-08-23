@@ -1,0 +1,10 @@
+{
+  "country": "Mongolie",
+  "code": "MN",
+  "zone": "Ulaanbaatar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Nalayh",
+    "Ulan Bator"
+  ]
+}

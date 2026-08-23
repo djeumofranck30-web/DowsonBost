@@ -1,0 +1,12 @@
+{
+  "country": "Estonie",
+  "code": "EE",
+  "zone": "Ida-Virumaa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Jõhvi",
+    "Kohtla-Järve",
+    "Narva",
+    "Sillamäe"
+  ]
+}

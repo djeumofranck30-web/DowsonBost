@@ -1,0 +1,14 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Gia Lai",
+  "source": "geonames_cities5000",
+  "cities": [
+    "A Yun Pa",
+    "An Khê",
+    "An Nhơn",
+    "Phú Túc",
+    "Pleiku",
+    "Qui Nhon"
+  ]
+}

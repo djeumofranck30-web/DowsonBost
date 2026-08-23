@@ -1,0 +1,12 @@
+{
+  "country": "Ghana",
+  "code": "GH",
+  "zone": "Ahafo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bechem",
+    "Duayaw-Nkwanta",
+    "Goaso",
+    "Mim"
+  ]
+}

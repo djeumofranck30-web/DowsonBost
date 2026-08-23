@@ -1,0 +1,19 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Adıyaman Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Adıyaman",
+    "Altınşehir",
+    "Besni",
+    "Gölbaşı",
+    "Karapınar",
+    "Kâhta",
+    "Malazgirt",
+    "Samsat",
+    "Sincik",
+    "Tut",
+    "Çelikhan"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "country": "Ouzbekistan",
+  "code": "UZ",
+  "zone": "Surxondaryo Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Boysun",
+    "Denov",
+    "Sho‘rchi",
+    "Tirmiz"
+  ]
+}

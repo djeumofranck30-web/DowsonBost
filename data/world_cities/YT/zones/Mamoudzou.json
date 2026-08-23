@@ -1,0 +1,16 @@
+{
+  "country": "Mayotte",
+  "code": "YT",
+  "zone": "Mamoudzou",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Combani",
+    "Kaouéni",
+    "Kavani",
+    "Mamoudzou",
+    "Mtsapéré",
+    "Passamainty",
+    "Tsoundzou 1",
+    "Vahibé"
+  ]
+}

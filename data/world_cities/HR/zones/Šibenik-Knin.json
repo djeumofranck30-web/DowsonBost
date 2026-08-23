@@ -1,0 +1,11 @@
+{
+  "country": "Croatie",
+  "code": "HR",
+  "zone": "Šibenik-Knin",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Knin",
+    "Vodice",
+    "Šibenik"
+  ]
+}

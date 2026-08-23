@@ -1,0 +1,10 @@
+{
+  "country": "Nouvelle-Zelande",
+  "code": "NZ",
+  "zone": "Tasman District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Motueka",
+    "Richmond"
+  ]
+}

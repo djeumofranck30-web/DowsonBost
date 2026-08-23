@@ -1,0 +1,10 @@
+{
+  "country": "Ghana",
+  "code": "GH",
+  "zone": "Western North",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bibiani",
+    "Sefwi Wiawso"
+  ]
+}

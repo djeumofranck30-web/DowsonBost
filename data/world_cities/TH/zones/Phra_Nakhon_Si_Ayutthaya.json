@@ -1,0 +1,15 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Phra Nakhon Si Ayutthaya",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bang Ban",
+    "Bang Pa-in",
+    "Nakhon Luang",
+    "Phak Hai",
+    "Phra Nakhon Si Ayutthaya",
+    "Tha Ruea",
+    "Wang Noi"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "country": "Saint-Kitts-et-Nevis",
+  "code": "KN",
+  "zone": "Saint Paul Charlestown",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Charlestown"
+  ]
+}

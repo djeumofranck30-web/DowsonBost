@@ -1,0 +1,15 @@
+{
+  "country": "Salvador",
+  "code": "SV",
+  "zone": "Usulutan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Berlín",
+    "Jiquilisco",
+    "Jucuapa",
+    "Puerto El Triunfo",
+    "Santa Elena",
+    "Santiago de María",
+    "Usulután"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Mali",
+  "code": "ML",
+  "zone": "Bamako",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abdel Begrou",
+    "Bamako"
+  ]
+}

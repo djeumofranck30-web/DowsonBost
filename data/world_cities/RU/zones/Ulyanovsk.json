@@ -1,0 +1,30 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Ulyanovsk",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Barysh",
+    "Bazarnyy Syzgan",
+    "Cherdakly",
+    "Dimitrovgrad",
+    "Inza",
+    "Isheyevka",
+    "Karsun",
+    "Kuzovatovo",
+    "Mayna",
+    "Mullovka",
+    "Nikolayevka",
+    "Novaya Mayna",
+    "Novospasskoye",
+    "Novoul’yanovsk",
+    "Pavlovka",
+    "Sengiley",
+    "Staraya Kulatka",
+    "Staraya Mayna",
+    "Surskoye",
+    "Teren’ga",
+    "Ulyanovsk",
+    "Veshkayma"
+  ]
+}

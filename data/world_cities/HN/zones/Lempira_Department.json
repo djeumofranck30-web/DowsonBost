@@ -1,0 +1,21 @@
+{
+  "country": "Honduras",
+  "code": "HN",
+  "zone": "Lempira Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Erandique",
+    "Gracias",
+    "Gualcince",
+    "Guarita",
+    "La Iguala",
+    "Lepaera",
+    "Piraera",
+    "San Andrés",
+    "San Francisco",
+    "San Manuel de Colohete",
+    "San Sebastián",
+    "Talgua",
+    "Tomalá"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Lindi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kilwa Masoko",
+    "Lindi",
+    "Liwale",
+    "Mbekenyera",
+    "Mingoyo",
+    "Mtama",
+    "Nachingwea",
+    "Nyangao",
+    "Ruangwa"
+  ]
+}

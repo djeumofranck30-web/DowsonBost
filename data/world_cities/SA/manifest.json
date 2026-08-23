@@ -1,0 +1,22 @@
+{
+  "country": "Arabie saoudite",
+  "code": "SA",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "'Asir Region",
+    "Al Bahah Region",
+    "Al Jawf Region",
+    "Al-Qassim Region",
+    "Eastern Province",
+    "Ha'il Region",
+    "Jazan Region",
+    "Mecca Region",
+    "Medina Region",
+    "Najran Region",
+    "Northern Borders Region",
+    "Riyadh Region",
+    "Tabuk Region"
+  ],
+  "source": "geonames_admin1"
+}

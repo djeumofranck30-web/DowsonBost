@@ -1,0 +1,21 @@
+{
+  "country": "Kirghizistan",
+  "code": "KG",
+  "zone": "Jalal-Abad Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ala-Buka",
+    "Bazar-Korgon",
+    "Kara-Kul’",
+    "Kazarman",
+    "Kerben",
+    "Kochkor-Ata",
+    "Kolkhoz Imeni Kirova",
+    "Manas",
+    "Massy",
+    "Sovetskoye",
+    "Suzak",
+    "Tash-Kumyr",
+    "Toktogul"
+  ]
+}

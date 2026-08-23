@@ -1,0 +1,14 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Rize Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ardeşen",
+    "Güneysu",
+    "İyidere",
+    "Kalkandere",
+    "Rize",
+    "Çayeli"
+  ]
+}

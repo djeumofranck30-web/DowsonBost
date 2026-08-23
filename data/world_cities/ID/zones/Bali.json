@@ -1,0 +1,29 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "Bali",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amlapura",
+    "Amlapura city",
+    "Banjar",
+    "Batubulan",
+    "Bedugul",
+    "Benoa",
+    "Dalung",
+    "Denpasar",
+    "Klungkung",
+    "Kuta",
+    "Legian",
+    "Lovina",
+    "Munduk",
+    "Negara",
+    "Sanur",
+    "Seririt",
+    "Singaraja",
+    "Sukawati",
+    "Tabanan",
+    "Tuban",
+    "Ubud"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "West Pokot County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kapenguria",
+    "Makutano"
+  ]
+}

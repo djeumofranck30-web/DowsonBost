@@ -1,0 +1,9 @@
+{
+  "country": "Erythree",
+  "code": "ER",
+  "zone": "Northern Red Sea",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Massawa"
+  ]
+}

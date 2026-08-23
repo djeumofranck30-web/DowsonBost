@@ -1,0 +1,10 @@
+{
+  "country": "Guyana",
+  "code": "GY",
+  "zone": "Essequibo Islands-West Demerara",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Tuschen",
+    "Vreed-en-Hoop"
+  ]
+}

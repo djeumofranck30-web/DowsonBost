@@ -1,0 +1,10 @@
+{
+  "country": "Porto Rico",
+  "code": "PR",
+  "zone": "Salinas",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Coco",
+    "Salinas"
+  ]
+}

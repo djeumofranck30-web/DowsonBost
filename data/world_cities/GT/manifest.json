@@ -1,0 +1,31 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Alta Verapaz",
+    "Baja Verapaz",
+    "Chimaltenango",
+    "Chiquimula",
+    "El Progreso",
+    "Escuintla",
+    "Guatemala",
+    "Huehuetenango",
+    "Izabal Department",
+    "Jalapa",
+    "Jutiapa",
+    "Petén",
+    "Quetzaltenango",
+    "Quiché",
+    "Retalhuleu",
+    "Sacatepéquez",
+    "San Marcos",
+    "Santa Rosa Department",
+    "Sololá",
+    "Suchitepeque",
+    "Totonicapán",
+    "Zacapa"
+  ],
+  "source": "geonames_admin1"
+}

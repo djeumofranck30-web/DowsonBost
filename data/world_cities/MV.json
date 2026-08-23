@@ -1,0 +1,26 @@
+{
+  "country": "Maldives",
+  "code": "MV",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dhihdhoo",
+    "Eydhafushi",
+    "Felidhoo",
+    "Fonadhoo",
+    "Funadhoo",
+    "Fuvahmulah",
+    "Hithadhoo",
+    "Kudahuvadhoo",
+    "Kulhudhuffushi",
+    "Mahibadhoo",
+    "Male",
+    "Manadhoo",
+    "Muli",
+    "Naifaru",
+    "Nilandhoo",
+    "Thinadhoo",
+    "Un’goofaaru",
+    "Veymandoo",
+    "Viligili"
+  ]
+}

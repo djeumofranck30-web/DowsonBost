@@ -1,0 +1,20 @@
+{
+  "country": "Argentine",
+  "code": "AR",
+  "zone": "Catamarca",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Andalgalá",
+    "Belén",
+    "Capayán",
+    "Catamarca",
+    "Chumbicha",
+    "Fiambalá",
+    "Los Altos",
+    "Recreo",
+    "San Isidro",
+    "San José",
+    "Santa María",
+    "Tinogasta"
+  ]
+}

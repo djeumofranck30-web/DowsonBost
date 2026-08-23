@@ -1,0 +1,31 @@
+{
+  "country": "Yemen",
+  "code": "YE",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Abyan Governorate",
+    "Aden",
+    "Al Bayda",
+    "Al Hudaydah",
+    "Al Jawf",
+    "Al Mahrah Governorate",
+    "Al Mahwit Governorate",
+    "Amanat Alasimah",
+    "Aḑ Ḑāli‘",
+    "Dhamār",
+    "Ibb Governorate",
+    "Laḩij",
+    "Ma’rib",
+    "Muhafazat Hadramaout",
+    "Omran",
+    "Raymah",
+    "Sanaa Governorate",
+    "Shabwah",
+    "Soqatra",
+    "Ta‘izz",
+    "Şa‘dah",
+    "Ḩajjah"
+  ],
+  "source": "geonames_admin1"
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Namibie",
+  "code": "NA",
+  "zone": "Oshana Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ondangwa",
+    "Ongwediva",
+    "Oshakati"
+  ]
+}

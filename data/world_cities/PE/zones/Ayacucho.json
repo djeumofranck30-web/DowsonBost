@@ -1,0 +1,15 @@
+{
+  "country": "Perou",
+  "code": "PE",
+  "zone": "Ayacucho",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ayacucho",
+    "Coracora",
+    "Huanta",
+    "Las Nazarenas",
+    "Puquio",
+    "San Miguel",
+    "Tambo"
+  ]
+}

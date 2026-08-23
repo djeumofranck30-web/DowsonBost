@@ -1,0 +1,11 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "East Kasai",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kabeya-Kamwanga",
+    "Mbuji-Mayi",
+    "Miabi"
+  ]
+}

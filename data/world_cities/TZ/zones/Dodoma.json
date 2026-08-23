@@ -1,0 +1,16 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Dodoma",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dodoma",
+    "Kibaigwa",
+    "Kibakwe",
+    "Kisasa",
+    "Kondoa",
+    "Kongwa",
+    "Mpwapwa",
+    "Msanga"
+  ]
+}

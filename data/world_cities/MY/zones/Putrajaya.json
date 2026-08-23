@@ -1,0 +1,9 @@
+{
+  "country": "Malaisie",
+  "code": "MY",
+  "zone": "Putrajaya",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Putrajaya"
+  ]
+}

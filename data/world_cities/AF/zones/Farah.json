@@ -1,0 +1,10 @@
+{
+  "country": "Afghanistan",
+  "code": "AF",
+  "zone": "Farah",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anār Darah",
+    "Farah"
+  ]
+}

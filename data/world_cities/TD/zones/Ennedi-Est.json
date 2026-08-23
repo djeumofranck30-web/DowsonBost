@@ -1,0 +1,9 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Ennedi-Est",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amdjarass"
+  ]
+}

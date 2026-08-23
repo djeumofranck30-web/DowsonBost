@@ -1,0 +1,9 @@
+{
+  "country": "Canada",
+  "code": "CA",
+  "zone": "Northwest Territories",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Yellowknife"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "country": "Mozambique",
+  "code": "MZ",
+  "zone": "Manica",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Catandica",
+    "Chimoio",
+    "Gondola",
+    "Machipanda",
+    "Manica",
+    "Messica"
+  ]
+}

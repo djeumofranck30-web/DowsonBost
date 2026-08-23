@@ -1,0 +1,23 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Kagera",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Biharamulo",
+    "Bugarama",
+    "Bugene",
+    "Bukoba",
+    "Kabanga",
+    "Kamachumu",
+    "Katerero",
+    "Katoro",
+    "Kyaka",
+    "Muleba",
+    "Ngara",
+    "Nshamba",
+    "Nsunga",
+    "Nyakahanga",
+    "Rulenge"
+  ]
+}

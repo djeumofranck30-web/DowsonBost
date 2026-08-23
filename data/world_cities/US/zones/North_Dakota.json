@@ -1,0 +1,22 @@
+{
+  "country": "États-Unis",
+  "code": "US",
+  "zone": "North Dakota",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bismarck",
+    "Devils Lake",
+    "Dickinson",
+    "Fargo",
+    "Grand Forks",
+    "Jamestown",
+    "Mandan",
+    "Minot",
+    "Minot Air Force Base",
+    "Valley City",
+    "Wahpeton",
+    "Watford City",
+    "West Fargo",
+    "Williston"
+  ]
+}

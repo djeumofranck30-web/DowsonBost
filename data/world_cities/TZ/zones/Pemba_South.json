@@ -1,0 +1,11 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Pemba South",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chake Chake",
+    "Mkoani",
+    "Mtambile"
+  ]
+}

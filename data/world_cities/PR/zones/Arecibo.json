@@ -1,0 +1,9 @@
+{
+  "country": "Porto Rico",
+  "code": "PR",
+  "zone": "Arecibo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arecibo"
+  ]
+}

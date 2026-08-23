@@ -1,0 +1,10 @@
+{
+  "country": "Guinee equatoriale",
+  "code": "GQ",
+  "zone": "Annobon",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aual",
+    "San Antonio de Palé"
+  ]
+}

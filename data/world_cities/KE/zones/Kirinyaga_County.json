@@ -1,0 +1,14 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Kirinyaga County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kagio",
+    "Kerugoya",
+    "Kimbimbi",
+    "Kutus",
+    "Sagana",
+    "Wanguru"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Monagas",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Barrancas",
+    "Caicara",
+    "Caripito",
+    "Maturín",
+    "Punta de Mata",
+    "San Antonio",
+    "Temblador"
+  ]
+}

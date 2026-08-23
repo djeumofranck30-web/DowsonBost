@@ -1,0 +1,18 @@
+{
+  "country": "Myanmar",
+  "code": "MM",
+  "zone": "Kachin State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bhamo",
+    "Danai",
+    "Hopin",
+    "Hpākān",
+    "Lakang",
+    "Mogaung",
+    "Mohnyin",
+    "Myitkyina",
+    "Putao",
+    "Shwegu"
+  ]
+}

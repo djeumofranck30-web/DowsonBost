@@ -1,0 +1,14 @@
+{
+  "country": "Tadjikistan",
+  "code": "TJ",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Dushanbe",
+    "Gorno-Badakhshan",
+    "Khatlon Province",
+    "Republican Subordination",
+    "Sughd"
+  ],
+  "source": "geonames_admin1"
+}

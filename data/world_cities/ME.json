@@ -1,0 +1,33 @@
+{
+  "country": "Montenegro",
+  "code": "ME",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Andrijevica",
+    "Bar",
+    "Berane",
+    "Bijelo Polje",
+    "Budva",
+    "Cetinje",
+    "Danilovgrad",
+    "Dobrota",
+    "Golubovci",
+    "Gusinje",
+    "Herceg Novi",
+    "Kolašin",
+    "Kotor",
+    "Mojkovac",
+    "Nikšić",
+    "Petnjica",
+    "Plav",
+    "Pljevlja",
+    "Plužine",
+    "Podgorica",
+    "Rožaje",
+    "Tivat",
+    "Tuzi",
+    "Ulcinj",
+    "Šavnik",
+    "Žabljak"
+  ]
+}

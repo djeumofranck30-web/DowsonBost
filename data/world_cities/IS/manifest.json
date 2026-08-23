@@ -1,0 +1,17 @@
+{
+  "country": "Islande",
+  "code": "IS",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Capital Region",
+    "East",
+    "Northeast",
+    "Northwest",
+    "South",
+    "Southern Peninsula",
+    "West",
+    "Westfjords"
+  ],
+  "source": "geonames_admin1"
+}

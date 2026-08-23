@@ -1,0 +1,24 @@
+{
+  "country": "Myanmar",
+  "code": "MM",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Ayeyarwady",
+    "Bago Region",
+    "Chin State",
+    "Kachin State",
+    "Kayah State",
+    "Kayin State",
+    "Magway",
+    "Mandalay Region",
+    "Mon",
+    "Nay Pyi Taw",
+    "Rakhine",
+    "Sagaing Region",
+    "Shan State",
+    "Tanintharyi Region",
+    "Yangon"
+  ],
+  "source": "geonames_admin1"
+}

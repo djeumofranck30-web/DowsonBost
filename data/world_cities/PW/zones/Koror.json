@@ -1,0 +1,10 @@
+{
+  "country": "Palaos",
+  "code": "PW",
+  "zone": "Koror",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Koror",
+    "Koror Town"
+  ]
+}

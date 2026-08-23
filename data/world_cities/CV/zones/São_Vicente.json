@@ -1,0 +1,13 @@
+{
+  "country": "Cap-Vert",
+  "code": "CV",
+  "zone": "São Vicente",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bela Vista",
+    "Chã de Alecrim",
+    "Fonte Inês",
+    "Mindelo",
+    "Ribeirinha"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "country": "Vanuatu",
+  "code": "VU",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Malampa",
+    "Penama",
+    "Sanma",
+    "Shefa",
+    "Tafea",
+    "Torba"
+  ],
+  "source": "geonames_admin1"
+}

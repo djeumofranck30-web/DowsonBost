@@ -1,0 +1,10 @@
+{
+  "country": "Gabon",
+  "code": "GA",
+  "zone": "Ogooué-Lolo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Koulamoutou",
+    "Lastoursville"
+  ]
+}

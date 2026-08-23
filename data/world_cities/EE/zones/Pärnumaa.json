@@ -1,0 +1,10 @@
+{
+  "country": "Estonie",
+  "code": "EE",
+  "zone": "Pärnumaa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Pärnu",
+    "Tori"
+  ]
+}

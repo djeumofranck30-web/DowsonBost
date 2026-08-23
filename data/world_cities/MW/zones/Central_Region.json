@@ -1,0 +1,20 @@
+{
+  "country": "Malawi",
+  "code": "MW",
+  "zone": "Central Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chipeni",
+    "Chipoka",
+    "Dedza",
+    "Dowa",
+    "Kasungu",
+    "Lilongwe",
+    "Mchinji",
+    "Mponela",
+    "Nkhotakota",
+    "Ntcheu",
+    "Ntchisi",
+    "Salima"
+  ]
+}

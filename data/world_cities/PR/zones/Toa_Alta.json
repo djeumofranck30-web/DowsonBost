@@ -1,0 +1,10 @@
+{
+  "country": "Porto Rico",
+  "code": "PR",
+  "zone": "Toa Alta",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Pájaros",
+    "Toa Alta"
+  ]
+}

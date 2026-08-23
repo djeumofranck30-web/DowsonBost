@@ -1,0 +1,12 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Alexandria",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abū Qīr",
+    "Alexandria",
+    "Burj al ‘Arab",
+    "Burj al ‘Arab al Jadīdah"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Vatovavy Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ifanadiana",
+    "Mananjary",
+    "Nosy Varika",
+    "Sahavato"
+  ]
+}

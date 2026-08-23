@@ -1,0 +1,28 @@
+{
+  "country": "Bangladesh",
+  "code": "BD",
+  "zone": "Khulna Division",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bagerhat",
+    "Bherāmāra",
+    "Bhātpāra Abhaynagar",
+    "Jessore",
+    "Jhingergācha",
+    "Kesabpur",
+    "Khulna",
+    "Kushtia",
+    "Kālia",
+    "Kālīganj",
+    "Morrelgonj",
+    "Nachnapāra",
+    "Nalua",
+    "Narail",
+    "Phultala",
+    "Samonta Bazar",
+    "Sarankhola",
+    "Sātkhira",
+    "Taluker Char Doani",
+    "Uttar Char Fasson"
+  ]
+}

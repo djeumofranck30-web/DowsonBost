@@ -1,0 +1,14 @@
+{
+  "country": "Arabie saoudite",
+  "code": "SA",
+  "zone": "Medina Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al-`Ula",
+    "Badr Ḩunayn",
+    "Madinah",
+    "Mahd adh Dhahab",
+    "Sulţānah",
+    "Yanbu"
+  ]
+}

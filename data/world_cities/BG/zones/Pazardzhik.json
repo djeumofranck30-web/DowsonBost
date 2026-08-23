@@ -1,0 +1,14 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Pazardzhik",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Panagyurishte",
+    "Pazardzhik",
+    "Peshtera",
+    "Rakitovo",
+    "Septemvri",
+    "Velingrad"
+  ]
+}

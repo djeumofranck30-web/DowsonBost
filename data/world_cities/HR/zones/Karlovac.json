@@ -1,0 +1,11 @@
+{
+  "country": "Croatie",
+  "code": "HR",
+  "zone": "Karlovac",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Duga Resa",
+    "Karlovac",
+    "Ogulin"
+  ]
+}

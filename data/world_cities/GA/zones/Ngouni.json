@@ -1,0 +1,13 @@
+{
+  "country": "Gabon",
+  "code": "GA",
+  "zone": "Ngouni",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Fougamou",
+    "Lébamba",
+    "Mbigou",
+    "Mouila",
+    "Ndendé"
+  ]
+}

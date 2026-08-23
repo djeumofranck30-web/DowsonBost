@@ -1,0 +1,13 @@
+{
+  "country": "Soudan",
+  "code": "SD",
+  "zone": "Northern Darfur",
+  "source": "geonames_cities5000",
+  "cities": [
+    "El Fasher",
+    "Kabkābīyah",
+    "Kutum",
+    "Mellit",
+    "Umm Kaddadah"
+  ]
+}

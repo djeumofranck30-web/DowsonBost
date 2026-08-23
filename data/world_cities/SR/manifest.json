@@ -1,0 +1,18 @@
+{
+  "country": "Suriname",
+  "code": "SR",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Brokopondo District",
+    "Commewijne District",
+    "Coronie District",
+    "Marowijne District",
+    "Nickerie District",
+    "Para District",
+    "Paramaribo District",
+    "Saramacca District",
+    "Wanica District"
+  ],
+  "source": "geonames_admin1"
+}

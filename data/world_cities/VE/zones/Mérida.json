@@ -1,0 +1,22 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Mérida",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bailadores",
+    "Ejido",
+    "El Vigía",
+    "La Azulita",
+    "Lagunillas",
+    "Mucuchíes",
+    "Mérida",
+    "Nueva Bolivia",
+    "Santa Cruz de Mora",
+    "Tabay",
+    "Timotes",
+    "Tovar",
+    "Tucaní",
+    "Zea"
+  ]
+}

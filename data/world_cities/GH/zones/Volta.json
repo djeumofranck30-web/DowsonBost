@@ -1,0 +1,16 @@
+{
+  "country": "Ghana",
+  "code": "GH",
+  "zone": "Volta",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aflao",
+    "Akatsi",
+    "Anloga",
+    "Dzodze",
+    "Ho",
+    "Hohoe",
+    "Keta",
+    "Kpandu"
+  ]
+}

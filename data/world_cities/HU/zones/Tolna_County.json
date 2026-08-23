@@ -1,0 +1,16 @@
+{
+  "country": "Hongrie",
+  "code": "HU",
+  "zone": "Tolna County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bonyhád",
+    "Bátaszék",
+    "Dombóvár",
+    "Dunaföldvár",
+    "Paks",
+    "Szekszárd",
+    "Tamási",
+    "Tolna"
+  ]
+}

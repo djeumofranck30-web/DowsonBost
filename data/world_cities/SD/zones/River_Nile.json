@@ -1,0 +1,14 @@
+{
+  "country": "Soudan",
+  "code": "SD",
+  "zone": "River Nile",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ad-Damir",
+    "Atbara",
+    "Berber",
+    "El Bauga",
+    "El Matama",
+    "Shendi"
+  ]
+}

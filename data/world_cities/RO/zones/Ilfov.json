@@ -1,0 +1,33 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Ilfov",
+  "source": "geonames_cities5000",
+  "cities": [
+    "1 Decembrie",
+    "Afumaţi",
+    "Baloteşti",
+    "Bragadiru",
+    "Brăneşti",
+    "Buftea",
+    "Cernica",
+    "Chiajna",
+    "Chitila",
+    "Cornetu",
+    "Dobroeşti",
+    "Domneşti-Sârbi",
+    "Domnești",
+    "Glina",
+    "Gruiu",
+    "Jilava",
+    "Mogoşoaia",
+    "Măgurele",
+    "Otopeni",
+    "Pantelimon",
+    "Periş",
+    "Popeşti-Leordeni",
+    "Snagov",
+    "Vidra",
+    "Voluntari"
+  ]
+}

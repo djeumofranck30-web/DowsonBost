@@ -1,0 +1,10 @@
+{
+  "country": "Guinee equatoriale",
+  "code": "GQ",
+  "zone": "Kié-Ntem",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ebebiyin",
+    "Mikomeseng"
+  ]
+}

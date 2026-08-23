@@ -1,0 +1,15 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Republic of Tyva",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ak-Dovurak",
+    "Chadan",
+    "Kaa-Khem",
+    "Kyzyl",
+    "Kyzyl-Mazhalyk",
+    "Shagonar",
+    "Turan"
+  ]
+}

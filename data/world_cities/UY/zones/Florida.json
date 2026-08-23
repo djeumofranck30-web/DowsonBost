@@ -1,0 +1,10 @@
+{
+  "country": "Uruguay",
+  "code": "UY",
+  "zone": "Florida",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Florida",
+    "Sarandí Grande"
+  ]
+}

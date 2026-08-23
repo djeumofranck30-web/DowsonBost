@@ -1,0 +1,9 @@
+{
+  "country": "Malte",
+  "code": "MT",
+  "zone": "In-Nadur",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Nadur"
+  ]
+}

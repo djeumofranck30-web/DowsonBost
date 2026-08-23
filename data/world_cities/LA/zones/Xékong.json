@@ -1,0 +1,10 @@
+{
+  "country": "Laos",
+  "code": "LA",
+  "zone": "Xékong",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Thatèng",
+    "Sekong"
+  ]
+}

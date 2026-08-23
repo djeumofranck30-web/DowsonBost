@@ -1,0 +1,9 @@
+{
+  "country": "Guam",
+  "code": "GU",
+  "zone": "Piti",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Piti Village"
+  ]
+}

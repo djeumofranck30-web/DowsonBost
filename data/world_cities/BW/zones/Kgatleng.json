@@ -1,0 +1,11 @@
+{
+  "country": "Botswana",
+  "code": "BW",
+  "zone": "Kgatleng",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bokaa",
+    "Mochudi",
+    "Rasesa"
+  ]
+}

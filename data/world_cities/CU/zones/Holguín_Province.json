@@ -1,0 +1,17 @@
+{
+  "country": "Cuba",
+  "code": "CU",
+  "zone": "Holguín Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Banes",
+    "Cacocum",
+    "Cueto",
+    "Gibara",
+    "Holguín",
+    "Jobabo",
+    "Moa",
+    "Sagua de Tánamo",
+    "San Germán"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "country": "Paraguay",
+  "code": "PY",
+  "zone": "Itapúa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Encarnación",
+    "Hohenau",
+    "Obligado",
+    "San Pedro del Paraná",
+    "Tomás Romero Pereira"
+  ]
+}

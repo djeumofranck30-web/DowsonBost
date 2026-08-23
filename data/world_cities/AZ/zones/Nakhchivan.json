@@ -1,0 +1,17 @@
+{
+  "country": "Azerbaidjan",
+  "code": "AZ",
+  "zone": "Nakhchivan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Babak",
+    "Givrag",
+    "Jahri",
+    "Julfa",
+    "Naxçıvan",
+    "Nehram",
+    "Ordubad",
+    "Sharur City",
+    "Yaycı"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "country": "Bielorussie",
+  "code": "BY",
+  "zone": "Vitebsk",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baran’",
+    "Beshenkovichi",
+    "Braslav",
+    "Chashniki",
+    "Dokshytsy",
+    "Dubrowna",
+    "Gorodok",
+    "Hlybokaye",
+    "Liozno",
+    "Lyepyel’",
+    "Miory",
+    "Novolukoml’",
+    "Novopolotsk",
+    "Orsha",
+    "Pastavy",
+    "Polotsk",
+    "Rossony",
+    "Senno",
+    "Sharkovshchina",
+    "Shumilino",
+    "Tolochin",
+    "Ushachi",
+    "Verkhnedvinsk",
+    "Vitebsk"
+  ]
+}

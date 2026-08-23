@@ -1,0 +1,12 @@
+{
+  "country": "Lesotho",
+  "code": "LS",
+  "zone": "Leribe",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Hlotse",
+    "Maputsoe",
+    "Peka",
+    "Pitseng"
+  ]
+}

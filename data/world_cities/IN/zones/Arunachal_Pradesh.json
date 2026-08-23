@@ -1,0 +1,28 @@
+{
+  "country": "Inde",
+  "code": "IN",
+  "zone": "Arunachal Pradesh",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Along",
+    "Bomdila",
+    "Changlang",
+    "Daporijo",
+    "Deomali",
+    "Itanagar",
+    "Jining",
+    "Khonsa",
+    "Miāo",
+    "Naharlagun",
+    "Namsai",
+    "Pāsighāt",
+    "Roing",
+    "Seppa",
+    "Shi Yomi",
+    "Taipi Duidam",
+    "Tawang Town",
+    "Tezu",
+    "Yingkiong",
+    "Ziro"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Botswana",
+  "code": "BW",
+  "zone": "North-West",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gumare",
+    "Maun",
+    "Shakawe"
+  ]
+}

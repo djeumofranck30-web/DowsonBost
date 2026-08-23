@@ -1,0 +1,19 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Yaracuy",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aroa",
+    "Boraure",
+    "Chivacoa",
+    "Cocorote",
+    "Guama",
+    "Nirgua",
+    "Sabana de Parra",
+    "San Felipe",
+    "Urachiche",
+    "Yaritagua",
+    "Yumare"
+  ]
+}

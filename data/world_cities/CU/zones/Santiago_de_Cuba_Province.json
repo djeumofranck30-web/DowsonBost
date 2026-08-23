@@ -1,0 +1,12 @@
+{
+  "country": "Cuba",
+  "code": "CU",
+  "zone": "Santiago de Cuba Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Contramaestre",
+    "Palma Soriano",
+    "San Luis",
+    "Santiago de Cuba"
+  ]
+}

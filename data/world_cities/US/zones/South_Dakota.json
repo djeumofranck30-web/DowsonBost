@@ -1,0 +1,27 @@
+{
+  "country": "États-Unis",
+  "code": "US",
+  "zone": "South Dakota",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aberdeen",
+    "Belle Fourche",
+    "Box Elder",
+    "Brandon",
+    "Brookings",
+    "Ellsworth Air Force Base",
+    "Harrisburg",
+    "Huron",
+    "Madison",
+    "Mitchell",
+    "Pierre",
+    "Rapid City",
+    "Rapid Valley",
+    "Sioux Falls",
+    "Spearfish",
+    "Sturgis",
+    "Vermillion",
+    "Watertown",
+    "Yankton"
+  ]
+}

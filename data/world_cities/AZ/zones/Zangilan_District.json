@@ -1,0 +1,10 @@
+{
+  "country": "Azerbaidjan",
+  "code": "AZ",
+  "zone": "Zangilan District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Mincivan",
+    "Zangilan"
+  ]
+}

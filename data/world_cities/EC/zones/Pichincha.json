@@ -1,0 +1,14 @@
+{
+  "country": "Equateur",
+  "code": "EC",
+  "zone": "Pichincha",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cayambe",
+    "Machachi",
+    "Oyambarillo",
+    "Pomasqui",
+    "Quito",
+    "Sangolquí"
+  ]
+}

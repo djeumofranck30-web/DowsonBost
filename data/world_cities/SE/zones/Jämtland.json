@@ -1,0 +1,9 @@
+{
+  "country": "Suede",
+  "code": "SE",
+  "zone": "Jämtland",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Östersund"
+  ]
+}

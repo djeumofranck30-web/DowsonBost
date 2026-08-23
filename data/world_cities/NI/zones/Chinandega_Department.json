@@ -1,0 +1,16 @@
+{
+  "country": "Nicaragua",
+  "code": "NI",
+  "zone": "Chinandega Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chichigalpa",
+    "Chinandega",
+    "Corinto",
+    "El Realejo",
+    "El Viejo",
+    "Posoltega",
+    "Puerto Morazán",
+    "Somotillo"
+  ]
+}

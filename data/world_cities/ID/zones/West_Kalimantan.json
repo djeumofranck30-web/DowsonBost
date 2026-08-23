@@ -1,0 +1,16 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "West Kalimantan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bengkayang",
+    "Kota Sambas",
+    "Manismata",
+    "Pemangkat",
+    "Pontianak",
+    "Singkawang",
+    "Sintang",
+    "Sungai Raya"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "country": "Bolivie",
+  "code": "BO",
+  "zone": "Potosí Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ckochas",
+    "Colchani",
+    "Llallagua",
+    "Porco",
+    "Potosí",
+    "Tupiza",
+    "Uncía",
+    "Uyuni",
+    "Villazón"
+  ]
+}

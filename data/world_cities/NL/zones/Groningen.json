@@ -1,0 +1,28 @@
+{
+  "country": "Pays-Bas",
+  "code": "NL",
+  "zone": "Groningen",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Appingedam",
+    "Bedum",
+    "Delfzijl",
+    "Groningen",
+    "Haren",
+    "Helpman",
+    "Hoogezand",
+    "Hoogkerk",
+    "Korrewegwijk",
+    "Leek",
+    "Marum",
+    "Musselkanaal",
+    "Oosterpark",
+    "Oude Pekela",
+    "Sappemeer",
+    "Selwerd",
+    "Stadskanaal",
+    "Veendam",
+    "Winschoten",
+    "Zuidhorn"
+  ]
+}

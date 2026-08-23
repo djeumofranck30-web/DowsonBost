@@ -1,0 +1,9 @@
+{
+  "country": "Guinee-Bissau",
+  "code": "GW",
+  "zone": "Biombo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Quinhámel"
+  ]
+}

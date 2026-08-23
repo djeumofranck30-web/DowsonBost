@@ -1,0 +1,10 @@
+{
+  "country": "Perou",
+  "code": "PE",
+  "zone": "Madre de Dios",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Puerto Maldonado",
+    "Tambopata"
+  ]
+}

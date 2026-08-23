@@ -1,0 +1,19 @@
+{
+  "country": "Soudan du Sud",
+  "code": "SS",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Central Equatoria",
+    "Eastern Equatoria",
+    "Jonglei",
+    "Lakes",
+    "Northern Bahr al Ghazal",
+    "Unity",
+    "Upper Nile",
+    "Warrap",
+    "Western Bahr al Ghazal",
+    "Western Equatoria"
+  ],
+  "source": "geonames_admin1"
+}

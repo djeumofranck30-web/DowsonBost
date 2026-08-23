@@ -1,0 +1,11 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Salamat",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abou Déïa",
+    "Am Timan",
+    "Haraze"
+  ]
+}

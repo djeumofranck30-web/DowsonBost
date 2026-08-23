@@ -1,0 +1,15 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Bitlis",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Adilcevaz",
+    "Ahlat",
+    "Bitlis",
+    "Güroymak",
+    "Hizan",
+    "Mutki",
+    "Tatvan"
+  ]
+}

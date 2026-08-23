@@ -1,0 +1,10 @@
+{
+  "country": "Georgie",
+  "code": "GE",
+  "zone": "Guria",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Lanchkhuti",
+    "Ozurgeti"
+  ]
+}

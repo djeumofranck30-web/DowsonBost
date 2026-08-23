@@ -1,0 +1,18 @@
+{
+  "country": "Tadjikistan",
+  "code": "TJ",
+  "zone": "Republican Subordination",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Hisor",
+    "Khodzha-Maston",
+    "Novobod",
+    "Obigarm",
+    "Rasht",
+    "Roghun",
+    "Shahrinav",
+    "Tavildara",
+    "Tursunzoda",
+    "Vahdat"
+  ]
+}

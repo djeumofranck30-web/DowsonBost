@@ -1,0 +1,12 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Vargas",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Caraballeda",
+    "Catia La Mar",
+    "La Guaira",
+    "Maiquetía"
+  ]
+}

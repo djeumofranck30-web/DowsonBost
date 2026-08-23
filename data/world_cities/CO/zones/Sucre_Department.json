@@ -1,0 +1,25 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Sucre Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Corozal",
+    "Galeras",
+    "Los Palmitos",
+    "Majagual",
+    "Ovejas",
+    "Palmito",
+    "Sampués",
+    "San Benito Abad",
+    "San Juan de Betulia",
+    "San Luis de Sincé",
+    "San Marcos",
+    "San Onofre",
+    "San Pedro",
+    "Santiago de Tolú",
+    "Sincelejo",
+    "Sucre",
+    "Tolú Viejo"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "country": "Benin",
+  "code": "BJ",
+  "zone": "Atakora",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Boukoumbé",
+    "Cobly",
+    "Guilmaro",
+    "Kérou",
+    "Matéri",
+    "Natitingou",
+    "Péhonko",
+    "Tanguiéta",
+    "Tobré",
+    "Toukountouna"
+  ]
+}

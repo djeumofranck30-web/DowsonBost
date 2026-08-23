@@ -1,0 +1,16 @@
+{
+  "country": "Cuba",
+  "code": "CU",
+  "zone": "Cienfuegos Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abreus",
+    "Aguada de Pasajeros",
+    "Cienfuegos",
+    "Cruces",
+    "Cumanayagua",
+    "Lajas",
+    "Palmira",
+    "Rodas"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Zimbabwe",
+  "code": "ZW",
+  "zone": "Harare",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chitungwiza",
+    "Epworth",
+    "Harare"
+  ]
+}

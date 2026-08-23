@@ -1,0 +1,12 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Tozeur Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Degache",
+    "El-Hamma-Djerid",
+    "Nefta",
+    "Tozeur"
+  ]
+}

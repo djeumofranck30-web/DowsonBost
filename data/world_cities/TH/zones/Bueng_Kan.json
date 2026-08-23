@@ -1,0 +1,10 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Bueng Kan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bueng Kan",
+    "Seka"
+  ]
+}

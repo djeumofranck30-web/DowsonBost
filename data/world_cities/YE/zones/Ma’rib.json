@@ -1,0 +1,9 @@
+{
+  "country": "Yemen",
+  "code": "YE",
+  "zone": "Ma’rib",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ma'rib"
+  ]
+}

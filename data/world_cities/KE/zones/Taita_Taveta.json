@@ -1,0 +1,12 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Taita Taveta",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Mwatate",
+    "Taveta",
+    "Voi",
+    "Wundanyi"
+  ]
+}

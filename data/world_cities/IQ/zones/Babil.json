@@ -1,0 +1,14 @@
+{
+  "country": "Irak",
+  "code": "IQ",
+  "zone": "Babil",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Hillah",
+    "Al Maḩāwīl",
+    "Al-Musayab",
+    "Al-Qāsim",
+    "Nāḩiyat al Iskandarīyah",
+    "Saddat al Hindīyah"
+  ]
+}

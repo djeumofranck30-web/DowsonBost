@@ -1,0 +1,11 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Phang Nga",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Phru Nai",
+    "Phang Nga",
+    "Takua Pa"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "country": "Syrie",
+  "code": "SY",
+  "zone": "Rif-dimashq",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Kiswah",
+    "Al Quţayfah",
+    "An Nabk",
+    "At Tall",
+    "Az Zabadānī",
+    "Babīlā",
+    "Dayr al ‘Aşāfīr",
+    "Dārayyā",
+    "Dūmā",
+    "Jaramānā",
+    "Jayrūd",
+    "Kanākir",
+    "Muadamiyat al-Sham",
+    "Qaţanā",
+    "Qārah",
+    "Yabrūd",
+    "Zākīyah",
+    "Şaḩnāyā",
+    "Ḩarastā",
+    "‘Irbīn"
+  ]
+}

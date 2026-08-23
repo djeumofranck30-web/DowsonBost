@@ -1,0 +1,15 @@
+{
+  "country": "Botswana",
+  "code": "BW",
+  "zone": "South-East",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Janeng",
+    "Kopong",
+    "Oodi",
+    "Otse",
+    "Ramotswa",
+    "Ramotswa Station/Taung",
+    "Tlokweng"
+  ]
+}

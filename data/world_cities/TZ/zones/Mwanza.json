@@ -1,0 +1,19 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Mwanza",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kihangara",
+    "Kisesa",
+    "Magu",
+    "Malya",
+    "Misasi",
+    "Misungwi",
+    "Mwanza",
+    "Ngudu",
+    "Nyanguge",
+    "Sengerema",
+    "Usagara"
+  ]
+}

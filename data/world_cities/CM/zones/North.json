@@ -1,0 +1,18 @@
+{
+  "country": "Cameroun",
+  "code": "CM",
+  "zone": "North",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Figuil",
+    "Garoua",
+    "Guider",
+    "Lagdo",
+    "Pitoa",
+    "Poli",
+    "Rey Bouba",
+    "Tcholliré",
+    "Tchéboa",
+    "Touboro"
+  ]
+}

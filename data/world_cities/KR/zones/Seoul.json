@@ -1,0 +1,11 @@
+{
+  "country": "Coree du Sud",
+  "code": "KR",
+  "zone": "Seoul",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Seoul",
+    "Siheungdong",
+    "Yongsan-dong"
+  ]
+}

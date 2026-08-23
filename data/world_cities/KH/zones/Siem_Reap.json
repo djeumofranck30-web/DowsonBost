@@ -1,0 +1,13 @@
+{
+  "country": "Cambodge",
+  "code": "KH",
+  "zone": "Siem Reap",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Damnak Khchas",
+    "Kampong Thkov",
+    "Siem Reab",
+    "Siem Reap",
+    "Yeang"
+  ]
+}

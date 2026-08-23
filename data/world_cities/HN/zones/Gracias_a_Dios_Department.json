@@ -1,0 +1,10 @@
+{
+  "country": "Honduras",
+  "code": "HN",
+  "zone": "Gracias a Dios Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Brus Laguna",
+    "Puerto Lempira"
+  ]
+}

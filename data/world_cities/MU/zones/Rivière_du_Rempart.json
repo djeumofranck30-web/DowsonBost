@@ -1,0 +1,17 @@
+{
+  "country": "Maurice",
+  "code": "MU",
+  "zone": "Rivière du Rempart",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Belle Vue Maurel",
+    "Calodyne",
+    "Goodlands",
+    "Grand Baie",
+    "Grand Gaube",
+    "Petit Raffray",
+    "Piton",
+    "Rivière du Rempart",
+    "Roches Noire"
+  ]
+}

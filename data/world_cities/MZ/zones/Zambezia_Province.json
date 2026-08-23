@@ -1,0 +1,19 @@
+{
+  "country": "Mozambique",
+  "code": "MZ",
+  "zone": "Zambezia Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alto Molocue",
+    "Chinde",
+    "Gurúè",
+    "Luabo",
+    "Maganja",
+    "Milange",
+    "Mocuba",
+    "Morrumbala",
+    "Namacurra",
+    "Pebane",
+    "Quelimane"
+  ]
+}

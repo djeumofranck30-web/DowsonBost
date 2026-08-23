@@ -1,0 +1,12 @@
+{
+  "country": "Maurice",
+  "code": "MU",
+  "zone": "Black River",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bambous",
+    "Petite Rivière",
+    "Richelieu",
+    "Tamarin"
+  ]
+}

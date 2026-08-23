@@ -1,0 +1,12 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Pathum Thani",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Bang Kadi",
+    "Ban Lam Luk Ka",
+    "Khlong Luang",
+    "Pathum Thani"
+  ]
+}

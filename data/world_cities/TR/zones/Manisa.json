@@ -1,0 +1,24 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Manisa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ahmetli",
+    "Akgedik",
+    "Akhisar",
+    "Alaşehir",
+    "Demirci",
+    "Gölmarmara",
+    "Gördes",
+    "Kula",
+    "Kırkağaç",
+    "Manisa",
+    "Salihli",
+    "Saruhanlı",
+    "Sarıgöl",
+    "Selendi",
+    "Soma",
+    "Turgutlu"
+  ]
+}

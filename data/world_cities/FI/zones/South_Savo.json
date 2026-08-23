@@ -1,0 +1,16 @@
+{
+  "country": "Finlande",
+  "code": "FI",
+  "zone": "South Savo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Juva",
+    "Kangasniemi",
+    "Kerimäki",
+    "Mikkeli",
+    "Mäntyharju",
+    "Pieksämäki",
+    "Ristiina",
+    "Savonlinna"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "country": "Haiti",
+  "code": "HT",
+  "zone": "Artibonite",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dessalines",
+    "Désarmes",
+    "Gonaïves",
+    "Gros Morne",
+    "Saint-Marc",
+    "Saint-Michel de l'Atalaye",
+    "Verrettes"
+  ]
+}

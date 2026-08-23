@@ -1,0 +1,13 @@
+{
+  "country": "Somalie",
+  "code": "SO",
+  "zone": "Gedo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baardheere",
+    "Beled Hawo",
+    "Dhamas",
+    "Garbahaarrey",
+    "Luuq"
+  ]
+}

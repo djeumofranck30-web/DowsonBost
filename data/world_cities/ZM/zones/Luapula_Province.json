@@ -1,0 +1,16 @@
+{
+  "country": "Zambie",
+  "code": "ZM",
+  "zone": "Luapula Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chiengi",
+    "Kawambwa",
+    "Lubwe",
+    "Mansa",
+    "Mununga",
+    "Mwansabombwe",
+    "Nchelenge",
+    "Samfya"
+  ]
+}

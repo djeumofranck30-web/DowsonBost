@@ -1,0 +1,18 @@
+{
+  "country": "Nouvelle-Zelande",
+  "code": "NZ",
+  "zone": "Otago",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alexandra",
+    "Cromwell",
+    "Dunedin",
+    "Mosgiel",
+    "North East Valley",
+    "Oamaru",
+    "Papatowai",
+    "Queenstown",
+    "Saint Kilda",
+    "Wanaka"
+  ]
+}

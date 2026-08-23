@@ -1,0 +1,19 @@
+{
+  "country": "Perou",
+  "code": "PE",
+  "zone": "Ancash",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Caraz",
+    "Carhuaz",
+    "Centenario",
+    "Chimbote",
+    "Coishco",
+    "Huaraz",
+    "Huarmey",
+    "Pilcomayo",
+    "Puerto Santa",
+    "Yauya",
+    "Yungay"
+  ]
+}

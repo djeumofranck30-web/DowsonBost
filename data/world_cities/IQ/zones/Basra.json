@@ -1,0 +1,17 @@
+{
+  "country": "Irak",
+  "code": "IQ",
+  "zone": "Basra",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abū al-Kahṣīb",
+    "Al Fāw",
+    "Al Hārithah",
+    "Al Madīnah",
+    "Al Qurnah",
+    "Az Zubayr",
+    "Basrah",
+    "Umm Qaşr",
+    "Şafwān"
+  ]
+}

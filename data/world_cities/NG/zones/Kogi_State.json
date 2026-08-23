@@ -1,0 +1,24 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Kogi State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abocho",
+    "Adoru",
+    "Ajaokuta",
+    "Ankpa",
+    "Bugana",
+    "Dekina",
+    "Egbe",
+    "Icheu",
+    "Idah",
+    "Isanlu-Itedoijowa",
+    "Kabba",
+    "Koton-Karfe",
+    "Lokoja",
+    "Ogaminana",
+    "Ogurugu",
+    "Okene"
+  ]
+}

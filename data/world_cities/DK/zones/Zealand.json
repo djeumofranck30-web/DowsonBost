@@ -1,0 +1,30 @@
+{
+  "country": "Danemark",
+  "code": "DK",
+  "zone": "Zealand",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alholm",
+    "Greve",
+    "Haslev",
+    "Holbæk",
+    "Jyllinge",
+    "Kalundborg",
+    "Klinteby Frihed",
+    "Korsør",
+    "Køge",
+    "Maribo",
+    "Nakskov",
+    "Nykøbing Falster",
+    "Nykøbing Sjælland",
+    "Næstved",
+    "Ringsted",
+    "Roskilde",
+    "Skælskør",
+    "Slagelse",
+    "Solrød Strand",
+    "Sorø",
+    "Tune",
+    "Vordingborg"
+  ]
+}

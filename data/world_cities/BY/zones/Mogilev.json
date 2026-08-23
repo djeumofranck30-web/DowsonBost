@@ -1,0 +1,27 @@
+{
+  "country": "Bielorussie",
+  "code": "BY",
+  "zone": "Mogilev",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Belynichi",
+    "Bobruysk",
+    "Bykhov",
+    "Chausy",
+    "Cherikov",
+    "Glusk",
+    "Horki",
+    "Kirovsk",
+    "Klimovichi",
+    "Kličaŭ",
+    "Kostyukovichi",
+    "Krasnapollye",
+    "Krugloye",
+    "Krychaw",
+    "Mahilyow",
+    "Mscislau",
+    "Osipovichi",
+    "Shklov",
+    "Slawharad"
+  ]
+}

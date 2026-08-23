@@ -1,0 +1,26 @@
+{
+  "country": "Philippines",
+  "code": "PH",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Autonomous Region in Muslim Mindanao",
+    "Bicol Region",
+    "Cagayan Valley",
+    "Calabarzon",
+    "Caraga",
+    "Central Luzon",
+    "Central Visayas",
+    "Cordillera",
+    "Davao Region",
+    "Eastern Visayas",
+    "Ilocos",
+    "Mimaropa",
+    "National Capital Region",
+    "Northern Mindanao",
+    "Soccsksargen",
+    "Western Visayas",
+    "Zamboanga Peninsula"
+  ],
+  "source": "geonames_admin1"
+}

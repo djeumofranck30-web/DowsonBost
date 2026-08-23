@@ -1,0 +1,12 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Ghardaia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Berriane",
+    "Ghardaïa",
+    "Guerara",
+    "Metlili Chaamba"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Sofia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Botevgrad",
+    "Elin Pelin",
+    "Etropole",
+    "Godech",
+    "Ihtiman",
+    "Kostinbrod",
+    "Pirdop",
+    "Samokov",
+    "Slivnitsa",
+    "Svoge",
+    "Zlatitsa"
+  ]
+}

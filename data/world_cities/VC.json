@@ -1,0 +1,14 @@
+{
+  "country": "Saint-Vincent-et-les-Grenadines",
+  "code": "VC",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Barrouallie",
+    "Calliaqua",
+    "Chateaubelair",
+    "Georgetown",
+    "Kingstown",
+    "Layou",
+    "Port Elizabeth"
+  ]
+}

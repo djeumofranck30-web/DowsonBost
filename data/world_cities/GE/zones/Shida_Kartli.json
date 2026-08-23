@@ -1,0 +1,14 @@
+{
+  "country": "Georgie",
+  "code": "GE",
+  "zone": "Shida Kartli",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gori",
+    "Kareli",
+    "Kaspi",
+    "Khashuri",
+    "Surami",
+    "Ts’khinvali"
+  ]
+}

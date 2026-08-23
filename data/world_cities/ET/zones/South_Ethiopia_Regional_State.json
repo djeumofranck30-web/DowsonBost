@@ -1,0 +1,29 @@
+{
+  "country": "Ethiopie",
+  "code": "ET",
+  "zone": "South Ethiopia Regional State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arba Minch",
+    "Badessa",
+    "Bako",
+    "Bale Hawassa",
+    "Bedēsa",
+    "Bodītī",
+    "Bombe",
+    "Ch’ench’a",
+    "Dimtu",
+    "Dīla",
+    "Felege Neway",
+    "Gasuba",
+    "Gununo",
+    "Gīdolē",
+    "Jinka",
+    "Shanto",
+    "Sodo",
+    "Tebela",
+    "Wenago",
+    "Yirga Ch’efē",
+    "Āreka"
+  ]
+}

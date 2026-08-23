@@ -1,0 +1,9 @@
+{
+  "country": "Mauritanie",
+  "code": "MR",
+  "zone": "Dakhlet Nouadhibou",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Nouadhibou"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "country": "Bangladesh",
+  "code": "BD",
+  "zone": "Rajshahi Division",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bera",
+    "Bogra",
+    "Ishwardi",
+    "Joypur Hāt",
+    "Mohammadpur",
+    "Natore",
+    "Nawābganj",
+    "Puthia",
+    "Pābna",
+    "Pār Naogaon",
+    "Rajshahi",
+    "Shibganj",
+    "Shāhzādpur",
+    "Sirajganj"
+  ]
+}

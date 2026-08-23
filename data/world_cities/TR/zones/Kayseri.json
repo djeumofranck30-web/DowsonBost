@@ -1,0 +1,19 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Kayseri",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bünyan",
+    "Develi",
+    "Felahiye",
+    "Hacılar",
+    "Kayseri",
+    "Pınarbaşı",
+    "Sarıoğlan",
+    "Talas",
+    "Tomarza",
+    "Yahyalı",
+    "Yeşilhisar"
+  ]
+}

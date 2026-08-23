@@ -1,0 +1,11 @@
+{
+  "country": "Hong Kong",
+  "code": "HK",
+  "zone": "North District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Fanling",
+    "Sha Tau Kok",
+    "Sheung Shui"
+  ]
+}

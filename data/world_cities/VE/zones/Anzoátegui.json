@@ -1,0 +1,23 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Anzoátegui",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anaco",
+    "Aragua de Barcelona",
+    "Barcelona",
+    "Boca de Uchire",
+    "Cantaura",
+    "Clarines",
+    "El Tigre",
+    "Lecherías",
+    "Pariaguán",
+    "Puerto La Cruz",
+    "Puerto Píritu",
+    "San José de Guanipa",
+    "San Mateo",
+    "Soledad",
+    "Valle de Guanape"
+  ]
+}

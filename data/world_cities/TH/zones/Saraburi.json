@@ -1,0 +1,13 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Saraburi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Mo",
+    "Kaeng Khoi",
+    "Nong Khae",
+    "Phra Phutthabat",
+    "Saraburi"
+  ]
+}

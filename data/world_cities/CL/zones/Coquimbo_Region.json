@@ -1,0 +1,20 @@
+{
+  "country": "Chili",
+  "code": "CL",
+  "zone": "Coquimbo Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Andacollo",
+    "Canela",
+    "Combarbalá",
+    "Coquimbo",
+    "Illapel",
+    "La Serena",
+    "Los Vilos",
+    "Monte Patria",
+    "Ovalle",
+    "Punitaqui",
+    "Salamanca",
+    "Vicuña"
+  ]
+}

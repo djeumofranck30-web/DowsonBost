@@ -1,0 +1,11 @@
+{
+  "country": "Brunei",
+  "code": "BN",
+  "zone": "Belait",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kampung Panaga",
+    "Kuala Belait",
+    "Liang"
+  ]
+}

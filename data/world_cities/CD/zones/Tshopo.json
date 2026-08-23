@@ -1,0 +1,12 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "Tshopo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Babamba",
+    "Basoko",
+    "Kisangani",
+    "Yangambi"
+  ]
+}

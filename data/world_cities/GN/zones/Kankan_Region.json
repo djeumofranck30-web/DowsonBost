@@ -1,0 +1,18 @@
+{
+  "country": "Guinee",
+  "code": "GN",
+  "zone": "Kankan Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Douako",
+    "Kankan",
+    "Kintinian",
+    "Kouroussa",
+    "Kérouané",
+    "Mandiana",
+    "Nongoa",
+    "Siguiri",
+    "Tokonou",
+    "Tomba-kanssa"
+  ]
+}

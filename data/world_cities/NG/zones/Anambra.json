@@ -1,0 +1,20 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Anambra",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Agulu",
+    "Atani",
+    "Awka",
+    "Enugu-Ukwu",
+    "Igbo-Ukwu",
+    "Ihiala",
+    "Nkpor",
+    "Nnewi",
+    "Onitsha",
+    "Ozubulu",
+    "Uga",
+    "Uruobo-Okija"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "country": "Japon",
+  "code": "JP",
+  "zone": "Fukui",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Asahi",
+    "Awara",
+    "Echizen",
+    "Fukui-shi",
+    "Hongō",
+    "Iijima",
+    "Katsuyama",
+    "Kumagawa",
+    "Maruoka",
+    "Mikuni",
+    "Obama",
+    "Ono",
+    "Sabae",
+    "Sakai",
+    "Sugahama",
+    "Takahama",
+    "Takefu",
+    "Tsuruga",
+    "Yunoo"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "country": "Espagne",
+  "code": "ES",
+  "zone": "Navarre",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Altsasu",
+    "Atarrabia",
+    "Barañáin",
+    "Berriozar",
+    "Burlata",
+    "Cintruénigo",
+    "Corella",
+    "Ermitagaña",
+    "Estella-Lizarra",
+    "Iturrama",
+    "Pamplona",
+    "Peralta",
+    "Primer Ensanche",
+    "San Adrián",
+    "Sangüesa/Zangoza",
+    "Sarriguren",
+    "Segundo Ensanche",
+    "Tafalla",
+    "Tudela",
+    "Zizur Mayor"
+  ]
+}

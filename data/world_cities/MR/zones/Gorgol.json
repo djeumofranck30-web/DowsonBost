@@ -1,0 +1,16 @@
+{
+  "country": "Mauritanie",
+  "code": "MR",
+  "zone": "Gorgol",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Djowol",
+    "Ganki Un",
+    "Kaédi",
+    "Lexeiba Un",
+    "Maghama",
+    "Mboutt",
+    "Sagné",
+    "Wali Djantang"
+  ]
+}

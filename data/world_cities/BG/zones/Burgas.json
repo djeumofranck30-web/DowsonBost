@@ -1,0 +1,15 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Burgas",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aytos",
+    "Burgas",
+    "Karnobat",
+    "Nesebar",
+    "Pomorie",
+    "Sredets",
+    "Tsarevo"
+  ]
+}

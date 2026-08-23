@@ -1,0 +1,13 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Marsabit County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Laisamis",
+    "Loiyangalani",
+    "Marsabit",
+    "Moyale",
+    "North Horr"
+  ]
+}

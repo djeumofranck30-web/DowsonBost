@@ -1,0 +1,14 @@
+{
+  "country": "Gabon",
+  "code": "GA",
+  "zone": "Haut-Ogooué",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akiéni",
+    "Franceville",
+    "Lékoni",
+    "Moanda",
+    "Mounana",
+    "Okondja"
+  ]
+}

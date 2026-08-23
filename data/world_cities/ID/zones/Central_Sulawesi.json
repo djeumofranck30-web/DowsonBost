@@ -1,0 +1,13 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "Central Sulawesi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bungku",
+    "Luwuk",
+    "Palu",
+    "Poso",
+    "Toli-Toli"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "country": "Afghanistan",
+  "code": "AF",
+  "zone": "Badakhshan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ashkāsham",
+    "Bahārak",
+    "Fayzabad",
+    "Jurm",
+    "Khandūd"
+  ]
+}

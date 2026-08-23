@@ -1,0 +1,15 @@
+{
+  "country": "Emirats arabes unis",
+  "code": "AE",
+  "zone": "Ajman",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ajman",
+    "Al Jurf",
+    "Al Manāmah",
+    "Al Ḩamīdīyah",
+    "Ar Rumaylah",
+    "Maşfūţ",
+    "Mushayrif"
+  ]
+}

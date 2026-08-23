@@ -1,0 +1,14 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "Highland Papua",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Elelim",
+    "Karubaga",
+    "Kenyam",
+    "Kobakma",
+    "Tiom",
+    "Wamena"
+  ]
+}

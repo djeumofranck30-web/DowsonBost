@@ -1,0 +1,20 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Sakarya",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Adapazarı",
+    "Akyazı",
+    "Ferizli",
+    "Geyve",
+    "Hendek",
+    "Karasu",
+    "Karasu Mahallesi",
+    "Kaynarca",
+    "Kocaali",
+    "Pamukova",
+    "Sapanca",
+    "Söğütlü"
+  ]
+}

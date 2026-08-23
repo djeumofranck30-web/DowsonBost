@@ -1,0 +1,10 @@
+{
+  "country": "Bhoutan",
+  "code": "BT",
+  "zone": "Thimphu District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Lungtenzampa",
+    "Thimphu"
+  ]
+}

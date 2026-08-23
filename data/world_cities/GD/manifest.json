@@ -1,0 +1,16 @@
+{
+  "country": "Grenade",
+  "code": "GD",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Carriacou and Petite Martinique",
+    "Saint Andrew Parish",
+    "Saint David Parish",
+    "Saint George Parish",
+    "Saint John Parish",
+    "Saint Mark Parish",
+    "Saint Patrick Parish"
+  ],
+  "source": "geonames_admin1"
+}

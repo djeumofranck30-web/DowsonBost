@@ -1,0 +1,21 @@
+{
+  "country": "Perou",
+  "code": "PE",
+  "zone": "Cuzco Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anta",
+    "Calca",
+    "Cusco",
+    "Pangoa",
+    "Pichari",
+    "Quillabamba",
+    "Santa Ana",
+    "Santiago",
+    "Sicuani",
+    "Urcos",
+    "Urubamba",
+    "Wanchaq",
+    "Yauri"
+  ]
+}

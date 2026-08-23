@@ -1,0 +1,14 @@
+{
+  "country": "Benin",
+  "code": "BJ",
+  "zone": "Zou",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abomey",
+    "Bohicon",
+    "Cové",
+    "Djidja",
+    "Kpozoun",
+    "Ouinhi"
+  ]
+}

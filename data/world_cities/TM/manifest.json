@@ -1,0 +1,15 @@
+{
+  "country": "Turkmenistan",
+  "code": "TM",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Ahal",
+    "Ashgabat",
+    "Balkan",
+    "Dasoguz",
+    "Lebap",
+    "Mary"
+  ],
+  "source": "geonames_admin1"
+}

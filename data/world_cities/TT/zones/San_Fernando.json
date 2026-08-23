@@ -1,0 +1,11 @@
+{
+  "country": "Trinite-et-Tobago",
+  "code": "TT",
+  "zone": "San Fernando",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Marabella",
+    "Mon Repos",
+    "San Fernando"
+  ]
+}

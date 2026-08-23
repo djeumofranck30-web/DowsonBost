@@ -1,0 +1,23 @@
+{
+  "country": "Kazakhstan",
+  "code": "KZ",
+  "zone": "Karaganda",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abay",
+    "Aktas",
+    "Aktau",
+    "Aqadyr",
+    "Balqash",
+    "Karagandy",
+    "Novodolinskiy",
+    "Nura",
+    "Osakarovka",
+    "Priozersk",
+    "Qarqaraly",
+    "Saran",
+    "Shakhan",
+    "Shakhtinsk",
+    "Temirtau"
+  ]
+}

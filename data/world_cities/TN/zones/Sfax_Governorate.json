@@ -1,0 +1,21 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Sfax Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Agareb",
+    "Dar el Haj Taïeb",
+    "Djebeniana",
+    "El Ain",
+    "Gremda",
+    "Hencha",
+    "Kellabine",
+    "Mahires",
+    "Sakiet ed Daier",
+    "Sakiet ez Zit",
+    "Sfax",
+    "Sidi Abid",
+    "Skhira"
+  ]
+}

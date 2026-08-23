@@ -1,0 +1,33 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Vologda Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Babayevo",
+    "Belozërsk",
+    "Chagoda",
+    "Cherepovets",
+    "Gryazovets",
+    "Kadnikov",
+    "Kaduy",
+    "Kharovsk",
+    "Kichmengskiy Gorodok",
+    "Kirillov",
+    "Krasavino",
+    "Molochnoye",
+    "Nikol’sk",
+    "Sheksna",
+    "Sokol",
+    "Suda",
+    "Tarnogskiy Gorodok",
+    "Tot’ma",
+    "Ustyuzhna",
+    "Velikiy Ustyug",
+    "Verkhovazh’ye",
+    "Vokhtoga",
+    "Vologda",
+    "Vozhega",
+    "Vytegra"
+  ]
+}

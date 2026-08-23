@@ -1,0 +1,12 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Tak",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Tak",
+    "Mae Ramat",
+    "Mae Sot",
+    "Tak"
+  ]
+}

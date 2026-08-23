@@ -1,0 +1,13 @@
+{
+  "country": "Finlande",
+  "code": "FI",
+  "zone": "Kainuu",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kajaani",
+    "Kuhmo",
+    "Sotkamo",
+    "Suomussalmi",
+    "Vuokatti"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "country": "Armenie",
+  "code": "AM",
+  "zone": "Gegharkunik",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chambarak",
+    "Gavar",
+    "Geghhovit",
+    "Karanlukh",
+    "Lichk",
+    "Martuni",
+    "Nerkin Getashen",
+    "Noratus",
+    "Sarukhan",
+    "Sevan",
+    "Vardenik",
+    "Vardenis",
+    "Yeranos",
+    "Zolakar"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Nakhon Ratchasima",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amphoe Sikhiu",
+    "Ban Huai Thalaeng",
+    "Bua Yai",
+    "Chok Chai",
+    "Dan Khun Thot",
+    "Kham Sakae Saeng",
+    "Khon Buri",
+    "Nakhon Ratchasima",
+    "Non Sung",
+    "Non Thai",
+    "Pak Chong",
+    "Phimai",
+    "Soeng Sang",
+    "Sung Noen"
+  ]
+}

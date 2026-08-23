@@ -1,0 +1,23 @@
+{
+  "country": "Uruguay",
+  "code": "UY",
+  "zone": "Canelones",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Atlántida",
+    "Barra de Carrasco",
+    "Barros Blancos",
+    "Canelones",
+    "Colonia Nicolich",
+    "Joaquín Suárez",
+    "La Paz",
+    "Las Piedras",
+    "Pando",
+    "Paso de Carrasco",
+    "Progreso",
+    "Salinas",
+    "San Ramón",
+    "Santa Lucía",
+    "Sauce"
+  ]
+}

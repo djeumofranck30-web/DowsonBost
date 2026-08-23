@@ -1,0 +1,16 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Lạng Sơn Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chi Lăng",
+    "Lạng Sơn",
+    "Lộc Bình",
+    "Thị Trấn Cao Lộc",
+    "Thị Trấn Na Dương",
+    "Thị Trấn Na Sầm",
+    "Thị Trấn Thất Khê",
+    "Thị Trấn Đồng Đăng"
+  ]
+}

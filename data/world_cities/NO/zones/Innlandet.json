@@ -1,0 +1,15 @@
+{
+  "country": "Norvege",
+  "code": "NO",
+  "zone": "Innlandet",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Brumunddal",
+    "Elverum",
+    "Gjøvik",
+    "Hamar",
+    "Kongsvinger",
+    "Lillehammer",
+    "Raufoss"
+  ]
+}

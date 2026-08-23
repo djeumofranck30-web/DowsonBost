@@ -1,0 +1,23 @@
+{
+  "country": "Myanmar",
+  "code": "MM",
+  "zone": "Sagaing Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Indaw",
+    "Kalemyo",
+    "Kalewa",
+    "Kanbalu",
+    "Katha",
+    "Kyauktan",
+    "Longwa",
+    "Mawlaik",
+    "Monywa",
+    "Pa Du Mone",
+    "Sagaing",
+    "Shwebo",
+    "Tamu",
+    "Tatkon",
+    "Ye-u"
+  ]
+}

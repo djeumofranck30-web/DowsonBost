@@ -1,0 +1,11 @@
+{
+  "country": "Soudan",
+  "code": "SD",
+  "zone": "Western Darfur",
+  "source": "geonames_cities5000",
+  "cities": [
+    "'Ārdamatā",
+    "Al-Junaynah",
+    "El Geneina Fort"
+  ]
+}

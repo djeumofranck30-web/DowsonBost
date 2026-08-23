@@ -1,0 +1,16 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "South Sumatra",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baturaja",
+    "Indralaya",
+    "Lahat",
+    "Lubuklinggau",
+    "Pagar Alam",
+    "Palembang",
+    "Prabumulih",
+    "Tanjungagung"
+  ]
+}

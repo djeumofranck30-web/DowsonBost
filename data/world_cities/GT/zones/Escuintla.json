@@ -1,0 +1,18 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "Escuintla",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Escuintla",
+    "La Democracia",
+    "La Gomera",
+    "Masagua",
+    "Nueva Concepción",
+    "Palín",
+    "Puerto San José",
+    "San Vicente Pacaya",
+    "Santa Lucía Cotzumalguapa",
+    "Tiquisate"
+  ]
+}

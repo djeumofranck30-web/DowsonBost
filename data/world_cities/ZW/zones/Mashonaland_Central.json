@@ -1,0 +1,14 @@
+{
+  "country": "Zimbabwe",
+  "code": "ZW",
+  "zone": "Mashonaland Central",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bindura",
+    "Glendale",
+    "Mazowe",
+    "Mount Darwin",
+    "Mvurwi",
+    "Shamva"
+  ]
+}

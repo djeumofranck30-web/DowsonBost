@@ -1,0 +1,15 @@
+{
+  "country": "Nicaragua",
+  "code": "NI",
+  "zone": "Masaya Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "La Concepción",
+    "Masatepe",
+    "Masaya",
+    "Nandasmo",
+    "Nindirí",
+    "Niquinohomo",
+    "Tisma"
+  ]
+}

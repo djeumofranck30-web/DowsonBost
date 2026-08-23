@@ -1,0 +1,18 @@
+{
+  "country": "Benin",
+  "code": "BJ",
+  "zone": "Atlantique",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abomey-Calavi",
+    "Allada",
+    "Ganvié",
+    "Godomè",
+    "Hévié",
+    "Kouandé",
+    "Ouidah",
+    "Tori-Bossito",
+    "Zinvié",
+    "Zé"
+  ]
+}

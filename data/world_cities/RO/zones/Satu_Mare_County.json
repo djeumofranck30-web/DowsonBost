@@ -1,0 +1,22 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Satu Mare County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ardud",
+    "Bixad",
+    "Carei",
+    "Certeze",
+    "Halmeu",
+    "Lazuri",
+    "Livada",
+    "Medieşu Aurit",
+    "Negreşti-Oaş",
+    "Oraşu Nou",
+    "Sanislău",
+    "Satu Mare",
+    "Turţ",
+    "Tăşnad"
+  ]
+}

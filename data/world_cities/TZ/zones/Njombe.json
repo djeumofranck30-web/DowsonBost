@@ -1,0 +1,15 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Njombe",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ilembula",
+    "Makumbako",
+    "Manda",
+    "Matamba",
+    "Mlangali",
+    "Mtwango",
+    "Njombe"
+  ]
+}

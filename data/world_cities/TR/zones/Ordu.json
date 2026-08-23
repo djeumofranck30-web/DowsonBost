@@ -1,0 +1,22 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Ordu",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akkuş",
+    "Ayazlı",
+    "Fatsa",
+    "Gürgentepe",
+    "İkizce",
+    "Kabataş",
+    "Korgan",
+    "Kumru",
+    "Mesudiye",
+    "Ordu",
+    "Perşembe",
+    "Ulubey",
+    "Çamaş",
+    "Ünye"
+  ]
+}

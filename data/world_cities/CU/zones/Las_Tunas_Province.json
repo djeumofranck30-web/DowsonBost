@@ -1,0 +1,15 @@
+{
+  "country": "Cuba",
+  "code": "CU",
+  "zone": "Las Tunas Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amancio",
+    "Colombia",
+    "Jesús Menéndez",
+    "Jobabo",
+    "Las Tunas",
+    "Manatí",
+    "Puerto Padre"
+  ]
+}

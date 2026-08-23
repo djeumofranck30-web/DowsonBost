@@ -1,0 +1,10 @@
+{
+  "country": "Irak",
+  "code": "IQ",
+  "zone": "Muthanna",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ar Rumaythah",
+    "As Samawah"
+  ]
+}

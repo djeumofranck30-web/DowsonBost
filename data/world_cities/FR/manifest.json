@@ -1,0 +1,22 @@
+{
+  "country": "France",
+  "code": "FR",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Bourgogne",
+    "Brittany",
+    "Centre-Val de Loire",
+    "Corsica",
+    "Grand Est",
+    "Hauts-de-France",
+    "New Aquitaine",
+    "Normandy",
+    "Occitanie",
+    "Pays de la Loire",
+    "Provence-Alpes-Côte d'Azur",
+    "Rhône-Alpes",
+    "Île-de-France"
+  ],
+  "source": "geonames_admin1"
+}

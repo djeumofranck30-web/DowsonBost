@@ -1,0 +1,23 @@
+{
+  "country": "Slovaquie",
+  "code": "SK",
+  "zone": "Trnava Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dunajská Streda",
+    "Gabčíkovo",
+    "Galanta",
+    "Hlohovec",
+    "Holíč",
+    "Piešťany",
+    "Senica",
+    "Sereď",
+    "Skalica",
+    "Sládkovičovo",
+    "Trnava",
+    "Veľké Úľany",
+    "Veľký Meder",
+    "Vrbové",
+    "Šamorín"
+  ]
+}

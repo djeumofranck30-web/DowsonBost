@@ -1,0 +1,26 @@
+{
+  "country": "Portugal",
+  "code": "PT",
+  "zone": "Madeira",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Camacha",
+    "Caniço",
+    "Corujeira de Dentro",
+    "Câmara de Lobos",
+    "Estreito de Câmara de Lobos",
+    "Funchal",
+    "Machico",
+    "Nossa Senhora do Monte",
+    "Ribeira Brava",
+    "Santa Cruz",
+    "Santa Luzia",
+    "Santa Maria Maior",
+    "Santana",
+    "Santo António",
+    "São Gonçalo",
+    "São Martinho",
+    "São Roque",
+    "São Vicente"
+  ]
+}

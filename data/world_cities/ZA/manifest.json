@@ -1,0 +1,18 @@
+{
+  "country": "Afrique du Sud",
+  "code": "ZA",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Eastern Cape",
+    "Free State",
+    "Gauteng",
+    "KwaZulu-Natal",
+    "Limpopo",
+    "Mpumalanga",
+    "North West",
+    "Northern Cape",
+    "Western Cape"
+  ],
+  "source": "geonames_admin1"
+}

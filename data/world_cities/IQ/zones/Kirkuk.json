@@ -1,0 +1,10 @@
+{
+  "country": "Irak",
+  "code": "IQ",
+  "zone": "Kirkuk",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kirkuk",
+    "Tāzah Khūrmātū"
+  ]
+}

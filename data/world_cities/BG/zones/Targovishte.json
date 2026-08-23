@@ -1,0 +1,11 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Targovishte",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Omurtag",
+    "Popovo",
+    "Targovishte"
+  ]
+}

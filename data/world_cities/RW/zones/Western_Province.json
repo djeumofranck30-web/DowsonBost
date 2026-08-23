@@ -1,0 +1,31 @@
+{
+  "country": "Rwanda",
+  "code": "RW",
+  "zone": "Western Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bugarama",
+    "Bushekeri",
+    "Bushenge",
+    "Cyangugu",
+    "Cyato",
+    "Gihombo",
+    "Gisenyi",
+    "Gitesi",
+    "Kagano",
+    "Karambi",
+    "Karengera",
+    "Kibuye",
+    "Kirambo",
+    "Kirimbi",
+    "Kora",
+    "Mabanza",
+    "Macuba",
+    "Mahembe",
+    "Mukamira",
+    "Ngororero",
+    "Nyabitekeli",
+    "Rangiro",
+    "Shangi"
+  ]
+}

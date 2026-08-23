@@ -1,0 +1,33 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Ariana Governorate",
+    "Ben Arous Governorate",
+    "Bizerte Governorate",
+    "Béja Governorate",
+    "Gabès Governorate",
+    "Gafsa",
+    "Jendouba Governorate",
+    "Kairouan",
+    "Kasserine Governorate",
+    "Kebili Governorate",
+    "Kef Governorate",
+    "Mahdia Governorate",
+    "Manouba",
+    "Medenine Governorate",
+    "Monastir Governorate",
+    "Nabeul Governorate",
+    "Sfax Governorate",
+    "Sidi Bouzid Governorate",
+    "Siliana Governorate",
+    "Sousse Governorate",
+    "Tataouine",
+    "Tozeur Governorate",
+    "Tunis Governorate",
+    "Zaghouan Governorate"
+  ],
+  "source": "geonames_admin1"
+}

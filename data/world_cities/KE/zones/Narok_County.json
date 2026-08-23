@@ -1,0 +1,12 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Narok County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kilgoris",
+    "Lolgorien",
+    "Narok",
+    "Olulung’a"
+  ]
+}

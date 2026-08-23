@@ -1,0 +1,11 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Suphan Buri",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Sam Chuk",
+    "Doembang Nangbuat",
+    "Suphan Buri"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "country": "Slovenie",
+  "code": "SI",
+  "zone": "Municipality of Muta",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Muta"
+  ]
+}

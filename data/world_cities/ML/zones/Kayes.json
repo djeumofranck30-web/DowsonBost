@@ -1,0 +1,16 @@
+{
+  "country": "Mali",
+  "code": "ML",
+  "zone": "Kayes",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bafoulabé",
+    "Diéma",
+    "Kayes",
+    "Kita",
+    "Kokofata",
+    "Mahina",
+    "Nioro",
+    "Sagalo"
+  ]
+}

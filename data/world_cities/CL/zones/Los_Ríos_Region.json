@@ -1,0 +1,19 @@
+{
+  "country": "Chili",
+  "code": "CL",
+  "zone": "Los Ríos Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Corral",
+    "Futrono",
+    "La Unión",
+    "Lanco",
+    "Las Animas",
+    "Los Lagos",
+    "Paillaco",
+    "Panguipulli",
+    "Río Bueno",
+    "San José de la Mariquina",
+    "Valdivia"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "country": "Croatie",
+  "code": "HR",
+  "zone": "Varaždin",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Varaždin"
+  ]
+}

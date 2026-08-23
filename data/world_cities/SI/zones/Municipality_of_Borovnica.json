@@ -1,0 +1,9 @@
+{
+  "country": "Slovenie",
+  "code": "SI",
+  "zone": "Municipality of Borovnica",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Borovnica"
+  ]
+}

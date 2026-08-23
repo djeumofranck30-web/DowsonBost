@@ -1,0 +1,10 @@
+{
+  "country": "Islande",
+  "code": "IS",
+  "zone": "West",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akranes",
+    "Borgarnes"
+  ]
+}

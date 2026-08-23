@@ -1,0 +1,9 @@
+{
+  "country": "Burundi",
+  "code": "BI",
+  "zone": "Muyinga",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Muyinga"
+  ]
+}

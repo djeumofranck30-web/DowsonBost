@@ -1,0 +1,16 @@
+{
+  "country": "Israel",
+  "code": "IL",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Central District",
+    "Haifa",
+    "Jerusalem",
+    "Judea and Samaria Area",
+    "Northern District",
+    "Southern District",
+    "Tel Aviv"
+  ],
+  "source": "geonames_admin1"
+}

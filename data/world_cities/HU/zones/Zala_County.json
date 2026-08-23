@@ -1,0 +1,13 @@
+{
+  "country": "Hongrie",
+  "code": "HU",
+  "zone": "Zala County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Keszthely",
+    "Lenti",
+    "Nagykanizsa",
+    "Zalaegerszeg",
+    "Zalaszentgrót"
+  ]
+}

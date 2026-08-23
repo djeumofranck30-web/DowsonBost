@@ -1,0 +1,12 @@
+{
+  "country": "Burkina Faso",
+  "code": "BF",
+  "zone": "Centre-Sud",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gomboussougou",
+    "Kombissiri",
+    "Manga",
+    "Pô"
+  ]
+}

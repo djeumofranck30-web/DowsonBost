@@ -1,0 +1,12 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "Lampung",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bandar Lampung",
+    "Kotabumi",
+    "Metro",
+    "Terbanggi Besar"
+  ]
+}

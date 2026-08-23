@@ -1,0 +1,19 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Sohag",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akhmīm",
+    "Al Balyanā",
+    "Al Marāghah",
+    "Al Minshāh",
+    "Dār as Salām",
+    "Girga",
+    "Juhaynah",
+    "Sohag",
+    "Sāqultah",
+    "Ţahţā",
+    "Ţimā"
+  ]
+}

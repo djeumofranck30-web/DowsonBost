@@ -1,0 +1,19 @@
+{
+  "country": "Kazakhstan",
+  "code": "KZ",
+  "zone": "Aktobe",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aktobe",
+    "Badamsha",
+    "Bayganin",
+    "Embi",
+    "Kandyagash",
+    "Khromtau",
+    "Martuk",
+    "Oyyl",
+    "Shalqar",
+    "Shubarkuduk",
+    "Shubarshi"
+  ]
+}

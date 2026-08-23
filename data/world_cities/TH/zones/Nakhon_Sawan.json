@@ -1,0 +1,13 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Nakhon Sawan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Lat Yao",
+    "Nakhon Sawan",
+    "Nong Bua",
+    "Phai Sali",
+    "Phayuha Khiri"
+  ]
+}

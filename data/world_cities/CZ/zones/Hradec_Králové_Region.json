@@ -1,0 +1,30 @@
+{
+  "country": "Tchequie",
+  "code": "CZ",
+  "zone": "Hradec Králové Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Broumov",
+    "Chlumec nad Cidlinou",
+    "Dobruška",
+    "Dvůr Králové nad Labem",
+    "Hořice",
+    "Hradec Králové",
+    "Hronov",
+    "Jaroměř",
+    "Jičín",
+    "Kostelec nad Orlicí",
+    "Nová Paka",
+    "Nové Město nad Metují",
+    "Nový Bydžov",
+    "Náchod",
+    "Rychnov nad Kněžnou",
+    "Trutnov",
+    "Týniště nad Orlicí",
+    "Třebechovice pod Orebem",
+    "Vrchlabí",
+    "Úpice",
+    "Červený Kostelec",
+    "Česká Skalice"
+  ]
+}

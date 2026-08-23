@@ -1,0 +1,11 @@
+{
+  "country": "Salomon",
+  "code": "SB",
+  "zone": "Guadalcanal Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Malango",
+    "Nggosi",
+    "Tandai"
+  ]
+}

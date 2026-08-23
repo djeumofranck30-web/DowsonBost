@@ -1,0 +1,14 @@
+{
+  "country": "Inde",
+  "code": "IN",
+  "zone": "Sikkim",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gangtok",
+    "Jorethang",
+    "Namchi",
+    "Rangpo",
+    "Rhenok",
+    "Singtam"
+  ]
+}

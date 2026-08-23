@@ -1,0 +1,13 @@
+{
+  "country": "Albanie",
+  "code": "AL",
+  "zone": "Lezhë County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Laç",
+    "Lezhë",
+    "Mamurras",
+    "Rrëshen",
+    "Shëngjin"
+  ]
+}

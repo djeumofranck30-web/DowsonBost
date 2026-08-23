@@ -1,0 +1,11 @@
+{
+  "country": "Paraguay",
+  "code": "PY",
+  "zone": "Canindeyú",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Nueva Esperanza",
+    "Salto del Guairá",
+    "San Isidro de Curuguaty"
+  ]
+}

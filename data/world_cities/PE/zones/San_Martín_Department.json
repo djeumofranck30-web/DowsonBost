@@ -1,0 +1,27 @@
+{
+  "country": "Perou",
+  "code": "PE",
+  "zone": "San Martín Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bellavista",
+    "Chazuta",
+    "Huicungo",
+    "Jepelacio",
+    "Juanjuí",
+    "La Banda",
+    "Lamas",
+    "Moyobamba",
+    "Picota",
+    "Rioja",
+    "San Jose De Sisa",
+    "Saposoa",
+    "Segunda Jerusalén - Azunguillo",
+    "Sisa",
+    "Soritor",
+    "Tabaloslos",
+    "Tabalosos",
+    "Tocache",
+    "Uchiza"
+  ]
+}

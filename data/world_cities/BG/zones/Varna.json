@@ -1,0 +1,17 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Varna",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aksakovo",
+    "Asparuhovo",
+    "Beloslav",
+    "Dalgopol",
+    "Devnya",
+    "Dolni Chiflik",
+    "Provadia",
+    "Varna",
+    "Zlatni Pyasatsi"
+  ]
+}

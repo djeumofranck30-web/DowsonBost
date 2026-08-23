@@ -1,0 +1,13 @@
+{
+  "country": "Ouzbekistan",
+  "code": "UZ",
+  "zone": "Navoiy Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "G‘ozg‘on",
+    "Navoiy",
+    "Nurota",
+    "Qiziltepa",
+    "Yangirabot"
+  ]
+}

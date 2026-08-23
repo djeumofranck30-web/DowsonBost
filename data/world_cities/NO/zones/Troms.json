@@ -1,0 +1,12 @@
+{
+  "country": "Norvege",
+  "code": "NO",
+  "zone": "Troms",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Harstad",
+    "Lenvik",
+    "Tromsdalen",
+    "Tromsø"
+  ]
+}

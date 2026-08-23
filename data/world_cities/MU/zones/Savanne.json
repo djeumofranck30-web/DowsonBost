@@ -1,0 +1,14 @@
+{
+  "country": "Maurice",
+  "code": "MU",
+  "zone": "Savanne",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Camp Diable",
+    "Chemin Grenier",
+    "Grand Bois",
+    "Rivière des Anguilles",
+    "Souillac",
+    "Surinam"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "Huehuetenango",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aguacatán",
+    "Barillas",
+    "Chiantla",
+    "Concepción Huista",
+    "Huehuetenango",
+    "Jacaltenango",
+    "La Libertad",
+    "Nuevo León",
+    "San Antonio Huista",
+    "San Mateo Ixtatán",
+    "Soloma"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "country": "Cambodge",
+  "code": "KH",
+  "zone": "Kampot",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Andoung Khmaer",
+    "Angkor Meas",
+    "Banteay Meas Khang Kaeut",
+    "Doun Yay",
+    "Kampot",
+    "Koun Sat",
+    "L’ang",
+    "Sdach Kong Khang Cheung",
+    "Voat Angk Khang Cheung",
+    "Voat Angk Khang Tboung"
+  ]
+}

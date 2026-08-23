@@ -1,0 +1,30 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Nabeul Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Beni Khalled",
+    "Beni Khiar",
+    "Bou Arkoub",
+    "Dar Chabanne",
+    "Douane",
+    "El Haouaria",
+    "El Maamoura",
+    "Es Somaa",
+    "Grombalia",
+    "Hammam el Rhezez",
+    "Hammamet",
+    "Korba",
+    "Kélibia",
+    "Mennzel Bou Zelfa",
+    "Menzel Heurr",
+    "Menzel Temime",
+    "Nabeul",
+    "Soliman",
+    "Takelsa",
+    "Tazarka",
+    "Zaouiat Djedidi",
+    "Zaouiet Azmour"
+  ]
+}

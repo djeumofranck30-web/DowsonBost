@@ -1,0 +1,33 @@
+{
+  "country": "Angola",
+  "code": "AO",
+  "zone": "Bengo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ambriz",
+    "Barra do Dande",
+    "Bela Vista",
+    "Bula Atumba",
+    "Cage Mazumbo",
+    "Calumbo",
+    "Canacassala",
+    "Caxito",
+    "Gama",
+    "Gombe",
+    "Mabubas",
+    "Muxaluando",
+    "Muxima",
+    "Pango Aluquém",
+    "Panguíla",
+    "Paredes",
+    "Piri",
+    "Quiage",
+    "Quibaxe",
+    "Quicabo",
+    "Quicunzo",
+    "Quixico",
+    "Tabi",
+    "Zala",
+    "Úcua"
+  ]
+}

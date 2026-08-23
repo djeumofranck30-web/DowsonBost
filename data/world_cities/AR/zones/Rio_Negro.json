@@ -1,0 +1,29 @@
+{
+  "country": "Argentine",
+  "code": "AR",
+  "zone": "Rio Negro",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Allen",
+    "Catriel",
+    "Cervantes",
+    "Choele Choel",
+    "Cinco Saltos",
+    "Cipolletti",
+    "Dina Huapi",
+    "El Bolsón",
+    "Fray Luis Beltrán",
+    "General Conesa",
+    "General Fernández Oro",
+    "General Roca",
+    "Ingeniero Jacobacci",
+    "Ingeniero Luis A. Huergo",
+    "Lamarque",
+    "Río Colorado",
+    "San Antonio Oeste",
+    "San Carlos de Bariloche",
+    "Sierra Grande",
+    "Viedma",
+    "Villa Regina"
+  ]
+}

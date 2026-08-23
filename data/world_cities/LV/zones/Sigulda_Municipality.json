@@ -1,0 +1,9 @@
+{
+  "country": "Lettonie",
+  "code": "LV",
+  "zone": "Sigulda Municipality",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Sigulda"
+  ]
+}

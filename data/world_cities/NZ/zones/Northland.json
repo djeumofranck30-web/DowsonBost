@@ -1,0 +1,14 @@
+{
+  "country": "Nouvelle-Zelande",
+  "code": "NZ",
+  "zone": "Northland",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dargaville",
+    "Kerikeri",
+    "Onerahi",
+    "Raumanga",
+    "Tikipunga",
+    "Whangarei"
+  ]
+}

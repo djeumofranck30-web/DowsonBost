@@ -1,0 +1,18 @@
+{
+  "country": "Bolivie",
+  "code": "BO",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Beni Department",
+    "Chuquisaca Department",
+    "Cochabamba",
+    "La Paz Department",
+    "Oruro",
+    "Pando",
+    "Potosí Department",
+    "Santa Cruz Department",
+    "Tarija Department"
+  ],
+  "source": "geonames_admin1"
+}

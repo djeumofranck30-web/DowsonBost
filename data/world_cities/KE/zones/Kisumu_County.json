@@ -1,0 +1,14 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Kisumu County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ahero",
+    "Awasi",
+    "Katito",
+    "Kisumu",
+    "Maseno",
+    "Muhoroni"
+  ]
+}

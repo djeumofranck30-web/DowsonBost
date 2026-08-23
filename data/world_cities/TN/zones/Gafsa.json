@@ -1,0 +1,16 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Gafsa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ar Rudayyif",
+    "As Sanad",
+    "El Guetar",
+    "El Ksar",
+    "Gafsa",
+    "Metlaoui",
+    "Moularès",
+    "M’dhilla"
+  ]
+}

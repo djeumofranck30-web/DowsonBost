@@ -1,0 +1,21 @@
+{
+  "country": "Senegal",
+  "code": "SN",
+  "zone": "Saint-Louis",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dagana",
+    "Galoya Toucouleur",
+    "Gaé",
+    "Goléré",
+    "Guédé",
+    "Haïré Lao",
+    "Ndioum",
+    "Pal",
+    "Podor",
+    "Richard-Toll",
+    "Ross-Bétio",
+    "Rosso",
+    "Saint-Louis"
+  ]
+}

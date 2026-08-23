@@ -1,0 +1,17 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Tunis Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Carthage",
+    "La Goulette",
+    "La Marsa",
+    "La Mohammedia",
+    "Le Bardo",
+    "Le Kram",
+    "Mégrine",
+    "Sīdī Ḥusayn",
+    "Tunis"
+  ]
+}

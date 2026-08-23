@@ -1,0 +1,26 @@
+{
+  "country": "Tchequie",
+  "code": "CZ",
+  "zone": "Vysocina",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bystřice nad Pernštejnem",
+    "Chotěboř",
+    "Havlíčkův Brod",
+    "Humpolec",
+    "Jihlava",
+    "Ledeč nad Sázavou",
+    "Moravské Budějovice",
+    "Nové Město na Moravě",
+    "Pacov",
+    "Pelhřimov",
+    "Polná",
+    "Světlá nad Sázavou",
+    "Telč",
+    "Třebíč",
+    "Třešť",
+    "Velká Bíteš",
+    "Velké Meziříčí",
+    "Žďár nad Sázavou"
+  ]
+}

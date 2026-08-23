@@ -1,0 +1,31 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Niger State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Agaie",
+    "Auna",
+    "Babana",
+    "Badeggi",
+    "Baro",
+    "Bida",
+    "Bokani",
+    "Duku",
+    "Ibeto",
+    "Konkwesso",
+    "Kontagora",
+    "Kusheriki",
+    "Kuta",
+    "Lapai",
+    "Minna",
+    "Mokwa",
+    "New Shagunnu",
+    "Rijau",
+    "Suleja",
+    "Tegina",
+    "Ukata",
+    "Wawa",
+    "Zungeru"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "country": "Argentine",
+  "code": "AR",
+  "zone": "Formosa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Clorinda",
+    "Comandante Fontana",
+    "El Colorado",
+    "Formosa",
+    "Ibarreta",
+    "Ingeniero Guillermo N. Juárez",
+    "Las Lomitas",
+    "Palo Santo",
+    "Pirané"
+  ]
+}

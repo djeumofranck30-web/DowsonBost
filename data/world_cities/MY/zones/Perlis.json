@@ -1,0 +1,14 @@
+{
+  "country": "Malaisie",
+  "code": "MY",
+  "zone": "Perlis",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kampung Chuping",
+    "Kampung Hutan Arau",
+    "Kampung Oran",
+    "Kampung Titi Tinggi",
+    "Kangar",
+    "Kuala Perlis"
+  ]
+}

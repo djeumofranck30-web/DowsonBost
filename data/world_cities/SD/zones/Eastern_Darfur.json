@@ -1,0 +1,10 @@
+{
+  "country": "Soudan",
+  "code": "SD",
+  "zone": "Eastern Darfur",
+  "source": "geonames_cities5000",
+  "cities": [
+    "El Daein",
+    "Sh'īarīah"
+  ]
+}

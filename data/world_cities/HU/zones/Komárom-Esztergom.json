@@ -1,0 +1,19 @@
+{
+  "country": "Hongrie",
+  "code": "HU",
+  "zone": "Komárom-Esztergom",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dorog",
+    "Esztergom",
+    "Kisbér",
+    "Komárom",
+    "Lábatlan",
+    "Nyergesújfalu",
+    "Oroszlány",
+    "Tata",
+    "Tatabánya",
+    "Tát",
+    "Ács"
+  ]
+}

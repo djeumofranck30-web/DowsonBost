@@ -1,0 +1,19 @@
+{
+  "country": "Lesotho",
+  "code": "LS",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Berea",
+    "Butha-Buthe",
+    "Leribe",
+    "Mafeteng District",
+    "Maseru District",
+    "Mohale's Hoek District",
+    "Mokhotlong District",
+    "Qacha's Nek District",
+    "Quthing",
+    "Thaba-Tseka"
+  ],
+  "source": "geonames_admin1"
+}

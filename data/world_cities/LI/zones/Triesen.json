@@ -1,0 +1,9 @@
+{
+  "country": "Liechtenstein",
+  "code": "LI",
+  "zone": "Triesen",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Triesen"
+  ]
+}

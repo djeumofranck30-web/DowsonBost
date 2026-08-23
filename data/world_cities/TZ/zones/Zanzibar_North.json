@@ -1,0 +1,10 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Zanzibar North",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Mkokotoni",
+    "Nungwi"
+  ]
+}

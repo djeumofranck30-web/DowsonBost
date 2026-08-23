@@ -1,0 +1,20 @@
+{
+  "country": "Mozambique",
+  "code": "MZ",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Cabo Delgado Province",
+    "Gaza Province",
+    "Inhambane Province",
+    "Manica",
+    "Maputo City",
+    "Maputo Province",
+    "Nampula",
+    "Niassa Province",
+    "Sofala",
+    "Tete",
+    "Zambezia Province"
+  ],
+  "source": "geonames_admin1"
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Somalie",
+  "code": "SO",
+  "zone": "Bakool",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Waajid",
+    "Xuddur",
+    "Yeed"
+  ]
+}

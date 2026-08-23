@@ -1,0 +1,26 @@
+{
+  "country": "Slovaquie",
+  "code": "SK",
+  "zone": "Banská Bystrica Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Banská Bystrica",
+    "Banská Štiavnica",
+    "Brezno",
+    "Detva",
+    "Fiľakovo",
+    "Hnúšťa",
+    "Hriňová",
+    "Krupina",
+    "Lučenec",
+    "Nová Baňa",
+    "Poltár",
+    "Revúca",
+    "Rimavská Sobota",
+    "Tornaľa",
+    "Veľký Krtíš",
+    "Zvolen",
+    "Žarnovica",
+    "Žiar nad Hronom"
+  ]
+}

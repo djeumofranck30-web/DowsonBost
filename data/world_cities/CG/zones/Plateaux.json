@@ -1,0 +1,13 @@
+{
+  "country": "Congo",
+  "code": "CG",
+  "zone": "Plateaux",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Djambala",
+    "Gamboma",
+    "Lékana",
+    "Ngo",
+    "Olombo"
+  ]
+}

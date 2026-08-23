@@ -1,0 +1,12 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Karabük Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bostanbükü",
+    "Gözyeri",
+    "Karabük",
+    "Safranbolu"
+  ]
+}

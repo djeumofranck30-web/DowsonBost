@@ -1,0 +1,16 @@
+{
+  "country": "Lettonie",
+  "code": "LV",
+  "zone": "Riga",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Berģi",
+    "Bolderaja",
+    "Daugavgrīva",
+    "Dreiliņi",
+    "Dārzciems",
+    "Mežciems",
+    "Riga",
+    "Čiekurkalns"
+  ]
+}

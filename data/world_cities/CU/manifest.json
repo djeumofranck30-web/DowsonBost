@@ -1,0 +1,25 @@
+{
+  "country": "Cuba",
+  "code": "CU",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Artemisa",
+    "Camagüey",
+    "Ciego de Ávila Province",
+    "Cienfuegos Province",
+    "Granma Province",
+    "Guantánamo Province",
+    "Havana",
+    "Holguín Province",
+    "Isla de la Juventud",
+    "Las Tunas Province",
+    "Matanzas Province",
+    "Mayabeque",
+    "Pinar del Río",
+    "Sancti Spíritus Province",
+    "Santiago de Cuba Province",
+    "Villa Clara Province"
+  ],
+  "source": "geonames_admin1"
+}

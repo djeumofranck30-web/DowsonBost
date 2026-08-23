@@ -1,0 +1,10 @@
+{
+  "country": "Irak",
+  "code": "IQ",
+  "zone": "Karbala",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Hindīyah",
+    "Karbala"
+  ]
+}

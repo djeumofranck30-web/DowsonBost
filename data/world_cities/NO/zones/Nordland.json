@@ -1,0 +1,16 @@
+{
+  "country": "Norvege",
+  "code": "NO",
+  "zone": "Nordland",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bodø",
+    "Brønnøysund",
+    "Fauske",
+    "Mo i Rana",
+    "Mosjøen",
+    "Narvik",
+    "Sandnessjøen",
+    "Sortland"
+  ]
+}

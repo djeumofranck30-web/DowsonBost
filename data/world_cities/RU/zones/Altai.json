@@ -1,0 +1,13 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Altai",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gorno-Altaysk",
+    "Kosh-Agach",
+    "Mayma",
+    "Onguday",
+    "Turochak"
+  ]
+}

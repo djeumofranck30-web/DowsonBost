@@ -1,0 +1,16 @@
+{
+  "country": "Angola",
+  "code": "AO",
+  "zone": "Moxico",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Calandula",
+    "Camanongue",
+    "Cameia",
+    "Cazombo",
+    "Luau",
+    "Luena",
+    "Lumbala",
+    "Léua"
+  ]
+}

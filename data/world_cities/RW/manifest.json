@@ -1,0 +1,14 @@
+{
+  "country": "Rwanda",
+  "code": "RW",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Eastern Province",
+    "Kigali",
+    "Northern Province",
+    "Southern Province",
+    "Western Province"
+  ],
+  "source": "geonames_admin1"
+}

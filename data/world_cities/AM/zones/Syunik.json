@@ -1,0 +1,12 @@
+{
+  "country": "Armenie",
+  "code": "AM",
+  "zone": "Syunik",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Goris",
+    "Kajaran",
+    "Kapan",
+    "Sisian"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "country": "Mali",
+  "code": "ML",
+  "zone": "Sikasso",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bougouni",
+    "Finnkolo",
+    "Kadiolo",
+    "Kolondiéba",
+    "Kouri",
+    "Koutiala",
+    "Massiogo",
+    "Ntossoni",
+    "Sikasso",
+    "Yanfolila",
+    "Yorosso",
+    "Zégoua"
+  ]
+}

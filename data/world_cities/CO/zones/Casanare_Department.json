@@ -1,0 +1,17 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Casanare Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aguazul",
+    "Maní",
+    "Monterrey",
+    "Municipio Hato Corozal",
+    "Paz de Ariporo",
+    "Tauramena",
+    "Trinidad",
+    "Villanueva",
+    "Yopal"
+  ]
+}

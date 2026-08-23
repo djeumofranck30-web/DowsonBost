@@ -1,0 +1,10 @@
+{
+  "country": "Tadjikistan",
+  "code": "TJ",
+  "zone": "Dushanbe",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Boshkengash",
+    "Dushanbe"
+  ]
+}

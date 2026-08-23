@@ -1,0 +1,19 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Şanlıurfa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akçakale",
+    "Birecik",
+    "Bozova",
+    "Ceylanpınar",
+    "Harran",
+    "Hilvan",
+    "Konuklu",
+    "Siverek",
+    "Suruç",
+    "Viranşehir",
+    "Şanlıurfa"
+  ]
+}

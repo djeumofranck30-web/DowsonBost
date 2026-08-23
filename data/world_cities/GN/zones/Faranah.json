@@ -1,0 +1,19 @@
+{
+  "country": "Guinee",
+  "code": "GN",
+  "zone": "Faranah",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Albadéria",
+    "Arfa Moussaïa",
+    "Banko",
+    "Bissikrima",
+    "Dabola",
+    "Dinguiraye",
+    "Dogomet",
+    "Faranah",
+    "Kissidougou",
+    "Selouma",
+    "Yende Millimou"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "country": "Suisse",
+  "code": "CH",
+  "zone": "Lucerne",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Adligenswil",
+    "Buchrain",
+    "Ebikon",
+    "Emmen",
+    "Hochdorf",
+    "Horw",
+    "Kriens",
+    "Littau",
+    "Luzern",
+    "Malters",
+    "Meggen",
+    "Neuenkirch",
+    "Ruswil",
+    "Sursee",
+    "Willisau"
+  ]
+}

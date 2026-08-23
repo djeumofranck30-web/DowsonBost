@@ -1,0 +1,12 @@
+{
+  "country": "Chypre",
+  "code": "CY",
+  "zone": "Limassol",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Germasógeia",
+    "Káto Polemídia",
+    "Limassol",
+    "Ýpsonas"
+  ]
+}

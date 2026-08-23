@@ -1,0 +1,28 @@
+{
+  "country": "Uruguay",
+  "code": "UY",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Artigas",
+    "Canelones",
+    "Cerro Largo",
+    "Colonia",
+    "Durazno Department",
+    "Flores Department",
+    "Florida",
+    "Lavalleja",
+    "Maldonado",
+    "Montevideo Department",
+    "Paysandú Department",
+    "Rivera Department",
+    "Rocha Department",
+    "Río Negro Department",
+    "Salto Department",
+    "San José Department",
+    "Soriano",
+    "Tacuarembó Department",
+    "Treinta y Tres Department"
+  ],
+  "source": "geonames_admin1"
+}

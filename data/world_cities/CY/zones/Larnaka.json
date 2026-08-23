@@ -1,0 +1,17 @@
+{
+  "country": "Chypre",
+  "code": "CY",
+  "zone": "Larnaka",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aradíppou",
+    "Athíenou",
+    "Dhromolaxia",
+    "Kolossi",
+    "Kíti",
+    "Larnaca",
+    "Livádia",
+    "Pérgamos",
+    "Xylofágou"
+  ]
+}

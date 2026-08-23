@@ -1,0 +1,23 @@
+{
+  "country": "Salvador",
+  "code": "SV",
+  "zone": "San Salvador Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aguilares",
+    "Apopa",
+    "Ayutuxtepeque",
+    "Cuscatancingo",
+    "Delgado",
+    "Guazapa",
+    "Ilopango",
+    "Mejicanos",
+    "Panchimalco",
+    "Rosario de Mora",
+    "San Marcos",
+    "San Salvador",
+    "Santo Tomás",
+    "Soyapango",
+    "Tonacatepeque"
+  ]
+}

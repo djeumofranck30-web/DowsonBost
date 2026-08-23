@@ -1,0 +1,20 @@
+{
+  "country": "Soudan",
+  "code": "SD",
+  "zone": "White Nile",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ad Douiem",
+    "Al Jazeera Aba",
+    "Al Kawa",
+    "Al Qiţena",
+    "Al-Quṭaynah",
+    "ALdinigila wad dhahi",
+    "Kosti",
+    "Marabba",
+    "Rabak",
+    "Tandaltī",
+    "Um Jar Al Gharbiyya",
+    "Wad az Zāki"
+  ]
+}

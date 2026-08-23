@@ -1,0 +1,18 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Kajiado County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Il",
+    "Isinya",
+    "Kajiado",
+    "Kimana",
+    "Kiserian",
+    "Kitengela",
+    "Magadi",
+    "Ngong",
+    "Oloitokitok",
+    "Ongata Rongai"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Laos",
+  "code": "LA",
+  "zone": "Xiagnabouli",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Siphôm",
+    "Muang Hôngsa",
+    "Sainyabuli"
+  ]
+}

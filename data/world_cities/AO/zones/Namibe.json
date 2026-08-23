@@ -1,0 +1,13 @@
+{
+  "country": "Angola",
+  "code": "AO",
+  "zone": "Namibe",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bibala",
+    "Camucuio",
+    "Mossamedes",
+    "Tômbua",
+    "Virei"
+  ]
+}

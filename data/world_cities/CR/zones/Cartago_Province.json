@@ -1,0 +1,15 @@
+{
+  "country": "Costa Rica",
+  "code": "CR",
+  "zone": "Cartago Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cartago",
+    "Concepción",
+    "Cot",
+    "Paraíso",
+    "San Diego",
+    "Tres Ríos",
+    "Turrialba"
+  ]
+}

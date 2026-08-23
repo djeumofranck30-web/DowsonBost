@@ -1,0 +1,16 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Sidi Bouzid Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ben Aoun",
+    "Bir el Hafey",
+    "El Maknassi",
+    "Er Regueb",
+    "Jilma",
+    "Menzel Bouzaiane",
+    "Mezzouna",
+    "Sidi Bouzid"
+  ]
+}

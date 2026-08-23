@@ -1,0 +1,25 @@
+{
+  "country": "Cuba",
+  "code": "CU",
+  "zone": "Matanzas Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alacranes",
+    "Australia",
+    "Bolondrón",
+    "Calimete",
+    "Campo Florido",
+    "Colón",
+    "Cárdenas",
+    "Jagüey Grande",
+    "Jovellanos",
+    "Limonar",
+    "Los Arabos",
+    "Martí",
+    "Matanzas",
+    "Pedro Betancourt",
+    "Perico",
+    "Unión de Reyes",
+    "Varadero"
+  ]
+}

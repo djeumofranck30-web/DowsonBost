@@ -1,0 +1,23 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Diyarbakır Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ambar",
+    "Bismil",
+    "Dicle",
+    "Diyarbakır",
+    "Ergani",
+    "Gürbüz",
+    "Hani",
+    "Hazro",
+    "Kocaköy",
+    "Kulp",
+    "Lice",
+    "Salat",
+    "Silvan",
+    "Çermik",
+    "Çüngüş"
+  ]
+}

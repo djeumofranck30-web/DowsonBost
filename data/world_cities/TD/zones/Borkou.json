@@ -1,0 +1,10 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Borkou",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Faya-Largeau",
+    "Kirdimi"
+  ]
+}

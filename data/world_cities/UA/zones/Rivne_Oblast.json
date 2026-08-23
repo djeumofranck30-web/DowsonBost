@@ -1,0 +1,25 @@
+{
+  "country": "Ukraine",
+  "code": "UA",
+  "zone": "Rivne Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Berezne",
+    "Dubno",
+    "Dubrovytsya",
+    "Hoshcha",
+    "Korets",
+    "Kostopil",
+    "Kvasyliv",
+    "Mlyniv",
+    "Ostroh",
+    "Radyvyliv",
+    "Rivne",
+    "Rokytne",
+    "Sarny",
+    "Varash",
+    "Volodymyrets",
+    "Zarichne",
+    "Zdolbuniv"
+  ]
+}

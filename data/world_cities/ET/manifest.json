@@ -1,0 +1,23 @@
+{
+  "country": "Ethiopie",
+  "code": "ET",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Addis Ababa",
+    "Amhara",
+    "Bīnshangul Gumuz",
+    "Central Ethiopia Regional State",
+    "Dire Dawa",
+    "Gambela",
+    "Harari",
+    "Oromiya",
+    "Sidama Region",
+    "Somali",
+    "South Ethiopia Regional State",
+    "South West Ethiopia Peoples' Region",
+    "Tigray",
+    "Āfar"
+  ],
+  "source": "geonames_admin1"
+}

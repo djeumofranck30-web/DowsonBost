@@ -1,0 +1,10 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Elegeyo-Marakwet",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Iten",
+    "Kapsowar"
+  ]
+}

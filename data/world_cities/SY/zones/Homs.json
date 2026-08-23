@@ -1,0 +1,18 @@
+{
+  "country": "Syrie",
+  "code": "SY",
+  "zone": "Homs",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Ghanţū",
+    "Al Qaryatayn",
+    "Al Quşayr",
+    "Ar Rastan",
+    "Homs",
+    "Kafr Lāhā",
+    "Mukharram al Fawqānī",
+    "Tadmur",
+    "Tallbīsah",
+    "Tallkalakh"
+  ]
+}

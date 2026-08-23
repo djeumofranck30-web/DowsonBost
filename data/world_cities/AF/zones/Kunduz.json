@@ -1,0 +1,14 @@
+{
+  "country": "Afghanistan",
+  "code": "AF",
+  "zone": "Kunduz",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chīchkah",
+    "Dasht-e Archī",
+    "Imām Şāḩib",
+    "Khanabad",
+    "Kunduz",
+    "Qarāwul"
+  ]
+}

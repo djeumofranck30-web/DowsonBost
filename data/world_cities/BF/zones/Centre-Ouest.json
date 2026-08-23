@@ -1,0 +1,21 @@
+{
+  "country": "Burkina Faso",
+  "code": "BF",
+  "zone": "Centre-Ouest",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gao",
+    "Goulouré",
+    "Kindi",
+    "Kokologo",
+    "Koudougou",
+    "Léo",
+    "Nanoro",
+    "Pitmoaga",
+    "Réo",
+    "Sabou",
+    "Sapouy",
+    "Tita",
+    "Tô"
+  ]
+}

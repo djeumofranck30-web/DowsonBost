@@ -1,0 +1,12 @@
+{
+  "country": "Salvador",
+  "code": "SV",
+  "zone": "La Paz Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "El Rosario",
+    "Olocuilta",
+    "Santiago Nonualco",
+    "Zacatecoluca"
+  ]
+}

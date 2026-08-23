@@ -1,0 +1,10 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Lampang",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Lampang",
+    "Thoen"
+  ]
+}

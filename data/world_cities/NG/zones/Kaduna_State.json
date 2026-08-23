@@ -1,0 +1,25 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Kaduna State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anchau",
+    "Burumburum",
+    "Dutsen Wai",
+    "Hunkuyi",
+    "Igabi",
+    "Kachia",
+    "Kaduna",
+    "Kafanchan",
+    "Kagoro",
+    "Kajuru",
+    "Kujama",
+    "Lere",
+    "Mando",
+    "Saminaka",
+    "Soba",
+    "Sofo-Birnin-Gwari",
+    "Zaria"
+  ]
+}

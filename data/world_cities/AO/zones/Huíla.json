@@ -1,0 +1,17 @@
+{
+  "country": "Angola",
+  "code": "AO",
+  "zone": "Huíla",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Caconda",
+    "Calonamba",
+    "Caluquembe",
+    "Chibia",
+    "Chicomba",
+    "Chipindo",
+    "Lubango",
+    "Matala",
+    "Quipungo"
+  ]
+}

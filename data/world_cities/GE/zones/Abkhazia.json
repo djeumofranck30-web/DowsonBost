@@ -1,0 +1,16 @@
+{
+  "country": "Georgie",
+  "code": "GE",
+  "zone": "Abkhazia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gagra",
+    "Gali",
+    "Gudauta",
+    "Ipnari",
+    "Ochamchire",
+    "Sokhumi",
+    "Stantsiya Novyy Afon",
+    "Tqvarch'eli"
+  ]
+}

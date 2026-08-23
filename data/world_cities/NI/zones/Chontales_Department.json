@@ -1,0 +1,14 @@
+{
+  "country": "Nicaragua",
+  "code": "NI",
+  "zone": "Chontales Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Acoyapa",
+    "Juigalpa",
+    "Los Copeles",
+    "Santo Domingo",
+    "Santo Tomás",
+    "Villa Sandino"
+  ]
+}

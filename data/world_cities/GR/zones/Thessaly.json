@@ -1,0 +1,24 @@
+{
+  "country": "Grece",
+  "code": "GR",
+  "zone": "Thessaly",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Agriá",
+    "Almyrós",
+    "Ampelóna",
+    "Elassóna",
+    "Fársala",
+    "Giánnouli",
+    "Kalampáka",
+    "Kardítsa",
+    "Lárisa",
+    "Néa Anchiálos",
+    "Néa Ionía",
+    "Palamás",
+    "Platýkampos",
+    "Tríkala",
+    "Týrnavos",
+    "Volos"
+  ]
+}

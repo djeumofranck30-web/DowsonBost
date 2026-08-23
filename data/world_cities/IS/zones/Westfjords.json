@@ -1,0 +1,9 @@
+{
+  "country": "Islande",
+  "code": "IS",
+  "zone": "Westfjords",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ísafjörður"
+  ]
+}

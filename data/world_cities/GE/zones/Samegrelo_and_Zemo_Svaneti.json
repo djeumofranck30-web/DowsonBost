@@ -1,0 +1,11 @@
+{
+  "country": "Georgie",
+  "code": "GE",
+  "zone": "Samegrelo and Zemo Svaneti",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Poti",
+    "Senaki",
+    "Zugdidi"
+  ]
+}

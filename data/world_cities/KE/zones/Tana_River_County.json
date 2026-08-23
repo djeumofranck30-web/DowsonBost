@@ -1,0 +1,12 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Tana River County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bura Tana",
+    "Garsen",
+    "Hola",
+    "Masalani"
+  ]
+}

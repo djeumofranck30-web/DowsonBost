@@ -1,0 +1,31 @@
+{
+  "country": "Ukraine",
+  "code": "UA",
+  "zone": "Khmelnytskyi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bilohirya",
+    "Chemerivtsi",
+    "Derazhnya",
+    "Dunayivtsi",
+    "Horodok",
+    "Iziaslav",
+    "Kamyanets-Podilskyi",
+    "Khmelnytskyi",
+    "Krasyliv",
+    "Letychiv",
+    "Makiv",
+    "Netishyn",
+    "Polonne",
+    "Poninka",
+    "Rakove",
+    "Shepetivka",
+    "Slavuta",
+    "Stara Synyava",
+    "Starokostyantyniv",
+    "Teofipol",
+    "Vinkivtsi",
+    "Volochysk",
+    "Yarmolyntsi"
+  ]
+}

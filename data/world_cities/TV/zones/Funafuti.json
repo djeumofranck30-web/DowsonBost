@@ -1,0 +1,9 @@
+{
+  "country": "Tuvalu",
+  "code": "TV",
+  "zone": "Funafuti",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Funafuti"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "Maniema",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kampene",
+    "Kasongo",
+    "Kindu"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Trat",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Hat Lek",
+    "Bo Rai",
+    "Khao Saming",
+    "Khlong Yai",
+    "Ko Chang",
+    "Laem Ngop",
+    "Trat"
+  ]
+}

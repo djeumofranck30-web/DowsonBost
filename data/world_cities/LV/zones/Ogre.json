@@ -1,0 +1,11 @@
+{
+  "country": "Lettonie",
+  "code": "LV",
+  "zone": "Ogre",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ikšķile",
+    "Lielvārde",
+    "Ogre"
+  ]
+}

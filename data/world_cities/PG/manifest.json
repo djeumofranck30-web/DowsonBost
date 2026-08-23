@@ -1,0 +1,30 @@
+{
+  "country": "Papouasie-Nouvelle-Guinee",
+  "code": "PG",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Bougainville",
+    "Chimbu Province",
+    "East New Britain Province",
+    "East Sepik Province",
+    "Eastern Highlands Province",
+    "Enga Province",
+    "Gulf Province",
+    "Hela Province",
+    "Jiwaka Province",
+    "Madang Province",
+    "Manus Province",
+    "Milne Bay Province",
+    "Morobe Province",
+    "National Capital",
+    "New Ireland",
+    "Oro Province",
+    "Sandaun Province",
+    "Southern Highlands Province",
+    "West New Britain Province",
+    "Western Highlands Province",
+    "Western Province"
+  ],
+  "source": "geonames_admin1"
+}

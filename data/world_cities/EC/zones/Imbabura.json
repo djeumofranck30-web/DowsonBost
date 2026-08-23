@@ -1,0 +1,13 @@
+{
+  "country": "Equateur",
+  "code": "EC",
+  "zone": "Imbabura",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Atuntaqui",
+    "Cotacachi",
+    "Ibarra",
+    "Otavalo",
+    "Pimampiro"
+  ]
+}

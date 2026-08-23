@@ -1,0 +1,27 @@
+{
+  "country": "Grece",
+  "code": "GR",
+  "zone": "Central Greece",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alivéri",
+    "Amárynthos",
+    "Chalkída",
+    "Dhrosiá",
+    "Efpálio",
+    "Itéa",
+    "Karpenísi",
+    "Kárystos",
+    "Kými",
+    "Lamía",
+    "Livadeiá",
+    "Makrakómi",
+    "Néa Artáki",
+    "Orchomenós",
+    "Psachná",
+    "Thívai",
+    "Vasilikón",
+    "Vathí",
+    "Ámfissa"
+  ]
+}

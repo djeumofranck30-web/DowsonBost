@@ -1,0 +1,25 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Pwani",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bagamoyo",
+    "Bungu",
+    "Chalinze",
+    "Ikwiriri",
+    "Kibaha",
+    "Kibiti",
+    "Kilindoni",
+    "Kisarawe",
+    "Lugoba",
+    "Maneromango",
+    "Mapinga",
+    "Mkuranga",
+    "Mlandizi",
+    "Mvomero",
+    "Mwandege",
+    "Utete",
+    "Vikindu"
+  ]
+}

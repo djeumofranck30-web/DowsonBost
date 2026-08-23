@@ -1,0 +1,12 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Osmaniye",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Hasanbeyli",
+    "Kadirli",
+    "Osmaniye",
+    "Toprakkale"
+  ]
+}

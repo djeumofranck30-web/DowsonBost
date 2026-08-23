@@ -1,0 +1,16 @@
+{
+  "country": "Portugal",
+  "code": "PT",
+  "zone": "Viana do Castelo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arcos de Valdevez",
+    "Darque",
+    "Meadela",
+    "Monção",
+    "Mozelos",
+    "Ponte de Lima",
+    "Valenza",
+    "Viana do Castelo"
+  ]
+}

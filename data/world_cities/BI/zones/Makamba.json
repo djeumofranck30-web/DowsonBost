@@ -1,0 +1,11 @@
+{
+  "country": "Burundi",
+  "code": "BI",
+  "zone": "Makamba",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kayogoro",
+    "Mabanda",
+    "Makamba"
+  ]
+}

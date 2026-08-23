@@ -1,0 +1,11 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "El Bayadh",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Brezina",
+    "El Abiodh Sidi Cheikh",
+    "El Bayadh"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "country": "Honduras",
+  "code": "HN",
+  "zone": "Yoro Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Agua Blanca Sur",
+    "El Negrito",
+    "El Progreso",
+    "Jocón",
+    "Morazán",
+    "Olanchito",
+    "Santa Rita",
+    "Sulaco",
+    "Victoria",
+    "Yorito",
+    "Yoro"
+  ]
+}

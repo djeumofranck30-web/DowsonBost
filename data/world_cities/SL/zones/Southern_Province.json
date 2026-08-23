@@ -1,0 +1,21 @@
+{
+  "country": "Sierra Leone",
+  "code": "SL",
+  "zone": "Southern Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baoma",
+    "Bo",
+    "Bomi",
+    "Bonthe",
+    "Bumpe",
+    "Foindu",
+    "Gandorhun",
+    "Mamboma",
+    "Mattru Jong",
+    "Moyamba",
+    "Njala",
+    "Pujehun",
+    "Sumbuya"
+  ]
+}

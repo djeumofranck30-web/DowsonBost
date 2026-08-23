@@ -1,0 +1,11 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Razgrad",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Isperih",
+    "Kubrat",
+    "Razgrad"
+  ]
+}

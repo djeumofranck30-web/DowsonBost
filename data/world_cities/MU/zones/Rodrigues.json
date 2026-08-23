@@ -1,0 +1,9 @@
+{
+  "country": "Maurice",
+  "code": "MU",
+  "zone": "Rodrigues",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Port Mathurin"
+  ]
+}

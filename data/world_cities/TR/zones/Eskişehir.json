@@ -1,0 +1,14 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Eskişehir",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alpu",
+    "Beylikova",
+    "Eskişehir",
+    "Mihalgazi",
+    "Sivrihisar",
+    "Çifteler"
+  ]
+}

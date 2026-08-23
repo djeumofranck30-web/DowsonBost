@@ -1,0 +1,10 @@
+{
+  "country": "Moldavie",
+  "code": "MD",
+  "zone": "Sîngerei",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bilicenii Vechi",
+    "Sîngerei"
+  ]
+}

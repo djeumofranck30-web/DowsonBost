@@ -1,0 +1,28 @@
+{
+  "country": "Irak",
+  "code": "IQ",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Al-Qadisiyah",
+    "Anbar",
+    "Babil",
+    "Baghdad",
+    "Basra",
+    "Dhi Qar",
+    "Diyala",
+    "Duhok",
+    "Erbil",
+    "Halabja",
+    "Karbala",
+    "Kirkuk",
+    "Maysan",
+    "Muthanna",
+    "Najaf",
+    "Nineveh",
+    "Salah ad Din",
+    "Sulaymaniyah",
+    "Wasit"
+  ],
+  "source": "geonames_admin1"
+}

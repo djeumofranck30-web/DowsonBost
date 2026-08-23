@@ -1,0 +1,15 @@
+{
+  "country": "Myanmar",
+  "code": "MM",
+  "zone": "Tanintharyi Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bokpyin",
+    "Dawei",
+    "Kawthoung",
+    "Me Taw",
+    "Myeik",
+    "Tanintharyi",
+    "Taw Pyar"
+  ]
+}

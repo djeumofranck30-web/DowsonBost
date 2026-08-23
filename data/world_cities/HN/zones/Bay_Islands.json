@@ -1,0 +1,10 @@
+{
+  "country": "Honduras",
+  "code": "HN",
+  "zone": "Bay Islands",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Coxen Hole",
+    "Guanaja"
+  ]
+}

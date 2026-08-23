@@ -1,0 +1,11 @@
+{
+  "country": "Congo",
+  "code": "CG",
+  "zone": "Lékoumou",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Komono",
+    "Sibiti",
+    "Zanaga"
+  ]
+}

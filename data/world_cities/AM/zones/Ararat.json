@@ -1,0 +1,17 @@
+{
+  "country": "Armenie",
+  "code": "AM",
+  "zone": "Ararat",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ararat",
+    "Ararat village",
+    "Artashat",
+    "Ayntap",
+    "Masis",
+    "Mkhchyan",
+    "Nor Kharberd",
+    "Vedi",
+    "Vosketap"
+  ]
+}

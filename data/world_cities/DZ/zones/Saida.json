@@ -1,0 +1,10 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Saida",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Saïda",
+    "’Aïn el Hadjar"
+  ]
+}

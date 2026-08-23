@@ -1,0 +1,14 @@
+{
+  "country": "Soudan",
+  "code": "SD",
+  "zone": "Red Sea",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gebeit",
+    "Jubayt",
+    "Port Sudan",
+    "Sinkat",
+    "Suakin",
+    "Tokār"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Suriname",
+  "code": "SR",
+  "zone": "Wanica District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Lelydorp",
+    "Pontbuiten"
+  ]
+}

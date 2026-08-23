@@ -1,0 +1,21 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Phuket",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Chalong",
+    "Ban Kamala",
+    "Ban Karon",
+    "Ban Ko Kaeo",
+    "Ban Ko Sire",
+    "Ban Ratsada",
+    "Ban Talat Nua",
+    "Ban Talat Yai",
+    "Kathu",
+    "Patong",
+    "Phuket",
+    "Rawai",
+    "Wichit"
+  ]
+}

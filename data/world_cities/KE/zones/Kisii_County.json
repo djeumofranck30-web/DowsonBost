@@ -1,0 +1,12 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Kisii County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kisii",
+    "Nyambunwa",
+    "Ogembo",
+    "Thomas Magena home"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "country": "Angola",
+  "code": "AO",
+  "zone": "Zaire",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cuímba",
+    "Mbanza Kongo",
+    "N'zeto",
+    "Soyo",
+    "Tombôco"
+  ]
+}

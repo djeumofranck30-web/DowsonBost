@@ -1,0 +1,11 @@
+{
+  "country": "Erythree",
+  "code": "ER",
+  "zone": "Gash-Barka",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ak’ordat",
+    "Barentu",
+    "Himora"
+  ]
+}

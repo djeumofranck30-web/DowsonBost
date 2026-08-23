@@ -1,0 +1,12 @@
+{
+  "country": "Benin",
+  "code": "BJ",
+  "zone": "Donga",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bassila",
+    "Djougou",
+    "Kopargo",
+    "Ouaké"
+  ]
+}

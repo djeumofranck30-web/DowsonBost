@@ -1,0 +1,9 @@
+{
+  "country": "Maldives",
+  "code": "MV",
+  "zone": "Noonu Atoll",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Manadhoo"
+  ]
+}

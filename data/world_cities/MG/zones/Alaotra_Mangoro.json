@@ -1,0 +1,16 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Alaotra Mangoro",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ambatondrazaka",
+    "Amparafaravola",
+    "Andilamena",
+    "Antanandava",
+    "Bemaitso",
+    "Didy",
+    "Imerimandroso",
+    "Moramanga"
+  ]
+}

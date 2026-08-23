@@ -1,0 +1,30 @@
+{
+  "country": "Croatie",
+  "code": "HR",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Bjelovar-Bilogora",
+    "Brod-Posavina",
+    "County of Osijek-Baranja",
+    "Dubrovnik-Neretva",
+    "Istria",
+    "Karlovac",
+    "Koprivnica-Križevci",
+    "Krapina-Zagorje",
+    "Lika-Senj",
+    "Međimurje",
+    "Požega-Slavonia",
+    "Primorje-Gorski Kotar",
+    "Sisak-Moslavina",
+    "Split-Dalmatia",
+    "Varaždin",
+    "Virovitica-Podravina",
+    "Vukovar-Srijem",
+    "Zadar",
+    "Zagreb",
+    "Zagreb County",
+    "Šibenik-Knin"
+  ],
+  "source": "geonames_admin1"
+}

@@ -1,0 +1,26 @@
+{
+  "country": "Tchequie",
+  "code": "CZ",
+  "zone": "South Bohemian Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Blatná",
+    "Dačice",
+    "Jindřichův Hradec",
+    "Kaplice",
+    "Milevsko",
+    "Prachatice",
+    "Písek",
+    "Sezimovo Ústí",
+    "Soběslav",
+    "Strakonice",
+    "Tábor",
+    "Týn nad Vltavou",
+    "Třeboň",
+    "Veselí nad Lužnicí",
+    "Vimperk",
+    "Vodňany",
+    "České Budějovice",
+    "Český Krumlov"
+  ]
+}

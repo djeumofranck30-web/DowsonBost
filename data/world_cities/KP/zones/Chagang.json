@@ -1,0 +1,17 @@
+{
+  "country": "Coree du Nord",
+  "code": "KP",
+  "zone": "Chagang",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chasŏng",
+    "Chunggang",
+    "Kanggye",
+    "Kop’ung",
+    "Manp’o",
+    "Sijung",
+    "Songwŏn",
+    "Songwŏn-ŭp",
+    "Yŏch’im-dong"
+  ]
+}

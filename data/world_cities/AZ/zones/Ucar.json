@@ -1,0 +1,9 @@
+{
+  "country": "Azerbaidjan",
+  "code": "AZ",
+  "zone": "Ucar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ujar"
+  ]
+}

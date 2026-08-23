@@ -1,0 +1,13 @@
+{
+  "country": "Liberia",
+  "code": "LR",
+  "zone": "Nimba",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ganta",
+    "Karnplay",
+    "New Yekepa",
+    "Saclepea",
+    "Sanniquellie"
+  ]
+}

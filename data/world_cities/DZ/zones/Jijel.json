@@ -1,0 +1,12 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Jijel",
+  "source": "geonames_cities5000",
+  "cities": [
+    "District of Taher",
+    "El Milia",
+    "Jijel",
+    "Ziama Mansouria"
+  ]
+}

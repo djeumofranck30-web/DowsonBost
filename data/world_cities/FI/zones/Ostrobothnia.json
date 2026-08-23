@@ -1,0 +1,20 @@
+{
+  "country": "Finlande",
+  "code": "FI",
+  "zone": "Ostrobothnia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Jakobstad",
+    "Korsholm",
+    "Kristinestad",
+    "Kronoby",
+    "Laihia",
+    "Larsmo",
+    "Malax",
+    "Nykarleby",
+    "Närpes",
+    "Pedersöre",
+    "Vaasa",
+    "Vörå"
+  ]
+}

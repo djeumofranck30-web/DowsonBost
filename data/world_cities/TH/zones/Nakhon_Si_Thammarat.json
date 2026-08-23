@@ -1,0 +1,17 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Nakhon Si Thammarat",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Na Saton",
+    "Ban Sai Khao",
+    "Chawang",
+    "Hua Sai",
+    "Nakhon Si Thammarat",
+    "Pak Phanang",
+    "Ron Phibun",
+    "Tham Phannara",
+    "Thung Song"
+  ]
+}

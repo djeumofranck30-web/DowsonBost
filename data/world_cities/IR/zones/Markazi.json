@@ -1,0 +1,32 @@
+{
+  "country": "Iran",
+  "code": "IR",
+  "zone": "Markazi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arāk",
+    "Delījān",
+    "Dāvūdābād",
+    "Farmahīn",
+    "Karahrūd",
+    "Khomeyn",
+    "Khondāb",
+    "Khoshkrūd",
+    "Komījān",
+    "Mahājerān",
+    "Maḩallāt",
+    "Māmūnīyeh",
+    "Mīlājerd",
+    "Nīmvar",
+    "Parandak",
+    "Senjān",
+    "Shahbāz",
+    "Shāzand",
+    "Sāveh",
+    "Tafresh",
+    "Zāviyeh",
+    "Ābyek",
+    "Āshtīān",
+    "Āstāneh"
+  ]
+}

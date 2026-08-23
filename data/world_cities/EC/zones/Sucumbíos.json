@@ -1,0 +1,9 @@
+{
+  "country": "Equateur",
+  "code": "EC",
+  "zone": "Sucumbíos",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Nueva Loja"
+  ]
+}

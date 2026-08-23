@@ -1,0 +1,9 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Delta Amacuro",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Tucupita"
+  ]
+}

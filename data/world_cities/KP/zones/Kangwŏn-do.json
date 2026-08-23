@@ -1,0 +1,13 @@
+{
+  "country": "Coree du Nord",
+  "code": "KP",
+  "zone": "Kangwŏn-do",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anbyŏn-ŭp",
+    "Hoeyang",
+    "Kosan",
+    "T’ongch’ŏn-ŭp",
+    "Wŏnsan"
+  ]
+}

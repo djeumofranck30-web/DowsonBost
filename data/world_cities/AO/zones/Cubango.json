@@ -1,0 +1,11 @@
+{
+  "country": "Angola",
+  "code": "AO",
+  "zone": "Cubango",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Calai",
+    "Cuchi",
+    "Menongue"
+  ]
+}

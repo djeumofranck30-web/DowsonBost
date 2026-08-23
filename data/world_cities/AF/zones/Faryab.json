@@ -1,0 +1,10 @@
+{
+  "country": "Afghanistan",
+  "code": "AF",
+  "zone": "Faryab",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Andkhoy",
+    "Maymana"
+  ]
+}

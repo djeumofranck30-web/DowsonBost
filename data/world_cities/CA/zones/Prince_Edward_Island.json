@@ -1,0 +1,15 @@
+{
+  "country": "Canada",
+  "code": "CA",
+  "zone": "Prince Edward Island",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Charlottetown",
+    "Cornwall",
+    "Downtown Charlottetown",
+    "Sherwood",
+    "Stratford",
+    "Summerside",
+    "Three Rivers"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "country": "Paraguay",
+  "code": "PY",
+  "zone": "Cordillera Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Caacupé",
+    "Emboscada",
+    "Eusebio Ayala",
+    "Piribebuy",
+    "Tobatí"
+  ]
+}

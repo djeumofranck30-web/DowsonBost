@@ -1,0 +1,33 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Murmansk",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alakurtti",
+    "Apatity",
+    "Gadzhiyevo",
+    "Kandalaksha",
+    "Kirovsk",
+    "Kola",
+    "Kovdor",
+    "Molochnyy",
+    "Monchegorsk",
+    "Murmansk",
+    "Murmashi",
+    "Nikel",
+    "Olenegorsk",
+    "Polyarnyy",
+    "Polyarnyye Zori",
+    "Revda",
+    "Roslyakovo",
+    "Severomorsk",
+    "Snezhnogorsk",
+    "Umba",
+    "Vidyayevo",
+    "Vysokiy",
+    "Zaozërsk",
+    "Zapolyarnyy",
+    "Zelenoborskiy"
+  ]
+}

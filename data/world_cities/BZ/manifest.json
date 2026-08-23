@@ -1,0 +1,15 @@
+{
+  "country": "Belize",
+  "code": "BZ",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Belize District",
+    "Cayo District",
+    "Corozal District",
+    "Orange Walk District",
+    "Southern District",
+    "Toledo District"
+  ],
+  "source": "geonames_admin1"
+}

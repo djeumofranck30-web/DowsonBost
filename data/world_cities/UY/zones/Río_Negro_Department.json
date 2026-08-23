@@ -1,0 +1,10 @@
+{
+  "country": "Uruguay",
+  "code": "UY",
+  "zone": "Río Negro Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Fray Bentos",
+    "Young"
+  ]
+}

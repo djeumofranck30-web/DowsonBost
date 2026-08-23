@@ -1,0 +1,11 @@
+{
+  "country": "Norvege",
+  "code": "NO",
+  "zone": "Finnmark",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alta",
+    "Hammerfest",
+    "Vadsø"
+  ]
+}

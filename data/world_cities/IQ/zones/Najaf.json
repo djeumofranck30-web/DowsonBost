@@ -1,0 +1,11 @@
+{
+  "country": "Irak",
+  "code": "IQ",
+  "zone": "Najaf",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Mishkhāb",
+    "Kufa",
+    "Najaf"
+  ]
+}

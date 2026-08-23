@@ -1,0 +1,20 @@
+{
+  "country": "Hongrie",
+  "code": "HU",
+  "zone": "Fejér",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bicske",
+    "Csákvár",
+    "Dunaújváros",
+    "Enying",
+    "Ercsi",
+    "Gárdony",
+    "Martonvásár",
+    "Mór",
+    "Polgárdi",
+    "Pusztaszabolcs",
+    "Székesfehérvár",
+    "Sárbogárd"
+  ]
+}

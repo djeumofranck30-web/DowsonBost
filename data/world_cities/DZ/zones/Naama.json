@@ -1,0 +1,11 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Naama",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aïn Sefra",
+    "Mecheria",
+    "Naama"
+  ]
+}

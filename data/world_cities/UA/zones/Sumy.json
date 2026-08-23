@@ -1,0 +1,33 @@
+{
+  "country": "Ukraine",
+  "code": "UA",
+  "zone": "Sumy",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bilopillia",
+    "Buryn",
+    "Hlukhiv",
+    "Khutir-Mykhaylivskyi",
+    "Konotop",
+    "Kovpakivskyi",
+    "Krasnopillya",
+    "Krolevets",
+    "Lebedyn",
+    "Lypova Dolyna",
+    "Nedryhailiv",
+    "Novi Basy",
+    "Okhtyrka",
+    "Putyvl",
+    "Romny",
+    "Seredyna-Buda",
+    "Shostka",
+    "Sumy",
+    "Svesa",
+    "Trostyanets",
+    "Velyka Pysarivka",
+    "Voronizh",
+    "Vorozhba",
+    "Yampil’",
+    "Zarichnyi"
+  ]
+}

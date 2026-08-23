@@ -1,0 +1,28 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Mureș County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Adămuş",
+    "Albeşti",
+    "Band",
+    "Cristeşti",
+    "Ernei",
+    "Gorneşti",
+    "Gurghiu",
+    "Iernut",
+    "Luduş",
+    "Miercurea Nirajului",
+    "Pănet",
+    "Reghin-Sat",
+    "Sighișoara",
+    "Sovata",
+    "Sâncraiu de Mureş",
+    "Sângeorgiu de Mureş",
+    "Sărmaşu",
+    "Târgu Mureş",
+    "Târnăveni",
+    "Ungheni"
+  ]
+}

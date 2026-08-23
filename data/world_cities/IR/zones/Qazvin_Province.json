@@ -1,0 +1,27 @@
+{
+  "country": "Iran",
+  "code": "IR",
+  "zone": "Qazvin Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alvand",
+    "Ardāq",
+    "Asfarvarīn",
+    "Bīdestān",
+    "Chūbīn Dar",
+    "Dānesfahān",
+    "Eqbālīyeh",
+    "Khoramdasht",
+    "Maḩmūdābād Nemūneh",
+    "Moḩammadīyeh",
+    "Narjeh",
+    "Noşratābād",
+    "Qazvin",
+    "Saggez Ābād",
+    "Sharīfābād",
+    "Shāl",
+    "Tākestān",
+    "Ābyek",
+    "Ẕīā’ābād"
+  ]
+}

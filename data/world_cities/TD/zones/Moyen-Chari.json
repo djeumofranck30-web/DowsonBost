@@ -1,0 +1,10 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Moyen-Chari",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kyabé",
+    "Sarh"
+  ]
+}

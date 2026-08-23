@@ -1,0 +1,11 @@
+{
+  "country": "Mongolie",
+  "code": "MN",
+  "zone": "Selenge Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dzüünharaa",
+    "Sharïngol",
+    "Sühbaatar"
+  ]
+}

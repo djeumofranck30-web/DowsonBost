@@ -1,0 +1,9 @@
+{
+  "country": "Montenegro",
+  "code": "ME",
+  "zone": "Opština Plav",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Plav"
+  ]
+}

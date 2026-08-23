@@ -1,0 +1,13 @@
+{
+  "country": "Ghana",
+  "code": "GH",
+  "zone": "Bono East",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Atebubu",
+    "Kintampo",
+    "Nkoranza",
+    "Techiman",
+    "Yegyi"
+  ]
+}

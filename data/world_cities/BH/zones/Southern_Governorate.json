@@ -1,0 +1,12 @@
+{
+  "country": "Bahrein",
+  "code": "BH",
+  "zone": "Southern Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ar Rifā‘",
+    "Az Zallāq",
+    "Dār Kulayb",
+    "Madīnat ‘Īsá"
+  ]
+}

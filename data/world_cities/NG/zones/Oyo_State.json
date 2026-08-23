@@ -1,0 +1,25 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Oyo State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ago-Are",
+    "Alapa",
+    "Eruwa",
+    "Fiditi",
+    "Ibadan",
+    "Igangan",
+    "Igbeti",
+    "Igbo-Ora",
+    "Igboho",
+    "Iseyin",
+    "Kisi",
+    "Lalupon",
+    "Ogbomoso",
+    "Okeho",
+    "Orita-Eruwa",
+    "Oyo",
+    "Saki"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "country": "Nepal",
+  "code": "NP",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Bagmati Province",
+    "Gandaki Pradesh",
+    "Karnali Pradesh",
+    "Koshi",
+    "Lumbini Province",
+    "Madhesh",
+    "Sudurpashchim Pradesh"
+  ],
+  "source": "geonames_admin1"
+}

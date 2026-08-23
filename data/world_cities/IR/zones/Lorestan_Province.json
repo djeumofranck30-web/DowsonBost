@@ -1,0 +1,20 @@
+{
+  "country": "Iran",
+  "code": "IR",
+  "zone": "Lorestan Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aleshtar",
+    "Alīgūdarz",
+    "Aznā",
+    "Borūjerd",
+    "Dorūd",
+    "Khorramabad",
+    "Kūhdasht",
+    "Kūhnānī",
+    "Ma‘mūlān",
+    "Nūrābād",
+    "Oshtorīnān",
+    "Poldokhtar"
+  ]
+}

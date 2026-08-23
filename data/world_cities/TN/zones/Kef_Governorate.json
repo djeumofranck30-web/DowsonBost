@@ -1,0 +1,16 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Kef Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "As Sars",
+    "Dahmani",
+    "El Kef",
+    "El Ksour",
+    "Jerissa",
+    "Kalaat es Senam",
+    "Sakiet Sidi Youssef",
+    "Tajerouine"
+  ]
+}

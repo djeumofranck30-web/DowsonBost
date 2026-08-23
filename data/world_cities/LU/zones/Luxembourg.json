@@ -1,0 +1,24 @@
+{
+  "country": "Luxembourg",
+  "code": "LU",
+  "zone": "Luxembourg",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Belair",
+    "Bertrange",
+    "Bonnevoie-Sud",
+    "Cents",
+    "Cessange",
+    "Gare",
+    "Gasperich",
+    "Hollerich",
+    "Howald",
+    "Kirchberg",
+    "Limpertsberg",
+    "Luxembourg",
+    "Merl",
+    "Neudorf-Weimershof",
+    "Strassen",
+    "Walferdange"
+  ]
+}

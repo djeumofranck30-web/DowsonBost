@@ -1,0 +1,16 @@
+{
+  "country": "Soudan",
+  "code": "SD",
+  "zone": "West Kordofan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abyei",
+    "Abū Zabad",
+    "Al Lagowa",
+    "Al Mijlad",
+    "Al-Fulah",
+    "An Nuhūd",
+    "Babanūsah",
+    "Ghubaysh"
+  ]
+}

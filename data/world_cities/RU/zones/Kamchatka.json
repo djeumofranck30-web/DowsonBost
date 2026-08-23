@@ -1,0 +1,13 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Kamchatka",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Klyuchi",
+    "Mil’kovo",
+    "Petropavlovsk-Kamchatsky",
+    "Vilyuchinsk",
+    "Yelizovo"
+  ]
+}

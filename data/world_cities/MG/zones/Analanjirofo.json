@@ -1,0 +1,17 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Analanjirofo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ambodifotatra",
+    "Ambodimanga II",
+    "Antakotako",
+    "Fenoarivo Atsinanana",
+    "Mananara",
+    "Maroantsetra",
+    "Sahatavy",
+    "Soanierana Ivongo",
+    "Vavatenina"
+  ]
+}

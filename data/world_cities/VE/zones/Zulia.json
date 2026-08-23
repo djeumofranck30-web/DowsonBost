@@ -1,0 +1,31 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Zulia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bobures",
+    "Cabimas",
+    "Caja Seca",
+    "Casigua El Cubo",
+    "Chiquinquirá",
+    "Ciudad Ojeda",
+    "Concepción",
+    "Encontrados",
+    "La Concepción",
+    "La Villa del Rosario",
+    "Lagunillas",
+    "Los Puertos de Altagracia",
+    "Machiques",
+    "Maracaibo",
+    "Mene Grande",
+    "Pueblo Nuevo El Chivo",
+    "Punta Gorda",
+    "San Carlos del Zulia",
+    "San Rafael",
+    "San Timoteo",
+    "Santa Cruz de Mara",
+    "Santa Rita",
+    "Tía Juana"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "country": "Iran",
+  "code": "IR",
+  "zone": "Semnan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Basţām",
+    "Dāmghān",
+    "Dībāj",
+    "Garmsār",
+    "Mahdishahr",
+    "Semnan",
+    "Shahrud",
+    "Sorkheh",
+    "Ārādān",
+    "Īstgāh-e Rāh Āhan-e Garmsār"
+  ]
+}

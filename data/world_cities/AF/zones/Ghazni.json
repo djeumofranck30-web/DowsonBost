@@ -1,0 +1,9 @@
+{
+  "country": "Afghanistan",
+  "code": "AF",
+  "zone": "Ghazni",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ghazni"
+  ]
+}

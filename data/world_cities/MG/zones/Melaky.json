@@ -1,0 +1,12 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Melaky",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Antsalova",
+    "Besalampy",
+    "Mahabe",
+    "Maintirano"
+  ]
+}

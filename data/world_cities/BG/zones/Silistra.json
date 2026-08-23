@@ -1,0 +1,11 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Silistra",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dulovo",
+    "Silistra",
+    "Tutrakan"
+  ]
+}

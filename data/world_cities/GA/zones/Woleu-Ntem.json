@@ -1,0 +1,11 @@
+{
+  "country": "Gabon",
+  "code": "GA",
+  "zone": "Woleu-Ntem",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bitam",
+    "Mitzic",
+    "Oyem"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Balıkesir",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Altınoluk",
+    "Ayvalık",
+    "Balıkesir",
+    "Bandırma",
+    "Bigadiç",
+    "Burhaniye",
+    "Dursunbey",
+    "Edremit",
+    "Erdek",
+    "Gönen",
+    "Havran",
+    "İvrindi",
+    "Kepsut",
+    "Manyas",
+    "Savaştepe",
+    "Susurluk",
+    "Sındırgı",
+    "Ömerli"
+  ]
+}

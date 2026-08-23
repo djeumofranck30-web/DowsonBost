@@ -1,0 +1,9 @@
+{
+  "country": "Nicaragua",
+  "code": "NI",
+  "zone": "Río San Juan Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "San Carlos"
+  ]
+}

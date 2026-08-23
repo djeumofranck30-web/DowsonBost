@@ -1,0 +1,27 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Adana",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Adana",
+    "Bahçe",
+    "Ceyhan",
+    "Doğankent",
+    "İmamoğlu",
+    "Karaisalı",
+    "Karataş",
+    "Karslı",
+    "Kireçocağı",
+    "Kozan",
+    "Kurttepe",
+    "Pozantı",
+    "Saimbeyli",
+    "Sarıhamzalı",
+    "Sarıçam",
+    "Tufanbeyli",
+    "Yeşilova",
+    "Yumurtalık",
+    "Şambayadı"
+  ]
+}

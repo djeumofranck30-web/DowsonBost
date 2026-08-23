@@ -1,0 +1,23 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Novgorod Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Borovichi",
+    "Chudovo",
+    "Demyansk",
+    "Khvoynaya",
+    "Kresttsy",
+    "Malaya Vishera",
+    "Okulovka",
+    "Pankovka",
+    "Parfino",
+    "Pestovo",
+    "Proletariy",
+    "Sol’tsy",
+    "Staraya Russa",
+    "Valday",
+    "Velikiy Novgorod"
+  ]
+}

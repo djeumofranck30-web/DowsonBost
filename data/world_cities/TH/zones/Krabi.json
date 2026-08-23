@@ -1,0 +1,14 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Krabi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ao Luek",
+    "Ban Ao Nang",
+    "Ko Lanta",
+    "Krabi",
+    "Nuea Khlong",
+    "Saladan"
+  ]
+}

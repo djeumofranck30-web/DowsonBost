@@ -1,0 +1,18 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Sokoto",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Binji",
+    "Dange",
+    "Gandi",
+    "Goronyo",
+    "Gwadabawa",
+    "Illela",
+    "Rabah",
+    "Sokoto",
+    "Tambuwal",
+    "Wurno"
+  ]
+}

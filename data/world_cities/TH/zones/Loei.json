@@ -1,0 +1,12 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Loei",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Erawan",
+    "Loei",
+    "Phu Kradueng",
+    "Wang Saphung"
+  ]
+}

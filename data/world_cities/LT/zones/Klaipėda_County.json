@@ -1,0 +1,14 @@
+{
+  "country": "Lituanie",
+  "code": "LT",
+  "zone": "Klaipėda County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gargždai",
+    "Klaipėda",
+    "Kretinga",
+    "Palanga",
+    "Silute",
+    "Skuodas"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "country": "Saint-Kitts-et-Nevis",
+  "code": "KN",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Basseterre",
+    "Cayon",
+    "Charlestown",
+    "Cotton Ground",
+    "Dieppe Bay Town",
+    "Fig Tree",
+    "Market Shop",
+    "Middle Island",
+    "Monkey Hill",
+    "Newcastle",
+    "Nicola Town",
+    "Saint Paul’s",
+    "Sandy Point Town",
+    "Trinity"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "country": "Moldavie",
+  "code": "MD",
+  "zone": "Soroca District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Soroca"
+  ]
+}

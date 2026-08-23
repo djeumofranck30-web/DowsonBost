@@ -1,0 +1,28 @@
+{
+  "country": "Hongrie",
+  "code": "HU",
+  "zone": "Bács-Kiskun",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baja",
+    "Bácsalmás",
+    "Izsák",
+    "Jánoshalma",
+    "Kalocsa",
+    "Kecel",
+    "Kecskemét",
+    "Kerekegyháza",
+    "Kiskunfélegyháza",
+    "Kiskunhalas",
+    "Kiskunmajsa",
+    "Kiskőrös",
+    "Kunszentmiklós",
+    "Lajosmizse",
+    "Mélykút",
+    "Solt",
+    "Soltvadkert",
+    "Szabadszállás",
+    "Tiszaalpár",
+    "Tiszakécske"
+  ]
+}

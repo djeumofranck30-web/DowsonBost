@@ -1,0 +1,14 @@
+{
+  "country": "Benin",
+  "code": "BJ",
+  "zone": "Alibori",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Banikoara",
+    "Gogounou",
+    "Kandi",
+    "Malanville",
+    "Sam",
+    "Ségbana"
+  ]
+}

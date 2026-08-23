@@ -1,0 +1,12 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Kars Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arpaçay",
+    "Kars",
+    "Kağızman",
+    "Sarıkamış"
+  ]
+}

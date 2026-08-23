@@ -1,0 +1,13 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "Lomami",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gandajika",
+    "Kabinda",
+    "Lubao",
+    "Luputa",
+    "Mwene-Ditu"
+  ]
+}

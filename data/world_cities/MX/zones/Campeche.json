@@ -1,0 +1,26 @@
+{
+  "country": "Mexique",
+  "code": "MX",
+  "zone": "Campeche",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bécal",
+    "Calkiní",
+    "Campeche",
+    "Candelaria",
+    "Champotón",
+    "Chiná",
+    "Ciudad del Carmen",
+    "Dzitbalché",
+    "Escárcega",
+    "Hecelchakán",
+    "Hopelchén",
+    "Isla Aguada",
+    "Lerma",
+    "Nunkiní",
+    "Pomuch",
+    "Sabancuy",
+    "Seybaplaya",
+    "Tenabo"
+  ]
+}

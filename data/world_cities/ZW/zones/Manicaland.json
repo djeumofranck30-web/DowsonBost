@@ -1,0 +1,12 @@
+{
+  "country": "Zimbabwe",
+  "code": "ZW",
+  "zone": "Manicaland",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chipinge",
+    "Mutare",
+    "Penhalonga",
+    "Rusape"
+  ]
+}

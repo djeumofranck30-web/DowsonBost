@@ -1,0 +1,16 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "Banten",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cilegon",
+    "Curug",
+    "Labuan",
+    "Pandeglang",
+    "Rangkasbitung",
+    "Serang",
+    "South Tangerang",
+    "Tangerang"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Atsinanana",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ampasimanolotra",
+    "Andovoranto",
+    "Mahanoro",
+    "Mahavelona",
+    "Marolambo",
+    "Toamasina",
+    "Vatomandry",
+    "Vohibinany"
+  ]
+}

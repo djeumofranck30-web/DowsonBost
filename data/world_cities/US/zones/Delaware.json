@@ -1,0 +1,28 @@
+{
+  "country": "États-Unis",
+  "code": "US",
+  "zone": "Delaware",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bear",
+    "Brookside",
+    "Claymont",
+    "Dover",
+    "Edgemoor",
+    "Elsmere",
+    "Georgetown",
+    "Glasgow",
+    "Hockessin",
+    "Middletown",
+    "Milford",
+    "New Castle",
+    "Newark",
+    "North Star",
+    "Pike Creek",
+    "Pike Creek Valley",
+    "Seaford",
+    "Smyrna",
+    "Wilmington",
+    "Wilmington Manor"
+  ]
+}

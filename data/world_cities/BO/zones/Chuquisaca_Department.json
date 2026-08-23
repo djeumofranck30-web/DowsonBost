@@ -1,0 +1,10 @@
+{
+  "country": "Bolivie",
+  "code": "BO",
+  "zone": "Chuquisaca Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Monteagudo",
+    "Sucre"
+  ]
+}

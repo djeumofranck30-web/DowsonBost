@@ -1,0 +1,15 @@
+{
+  "country": "Coree du Nord",
+  "code": "KP",
+  "zone": "North Hwanghae",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anak",
+    "Hwangju-ŭp",
+    "Hŭkkyo-ri",
+    "Koksan-ŭp",
+    "Sariwŏn-si",
+    "Sinmak",
+    "Songnim-ni"
+  ]
+}

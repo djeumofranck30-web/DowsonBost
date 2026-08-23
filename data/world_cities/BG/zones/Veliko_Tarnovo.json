@@ -1,0 +1,16 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Veliko Tarnovo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Elena",
+    "Gorna Oryahovitsa",
+    "Lyaskovets",
+    "Pavlikeni",
+    "Polski Trambesh",
+    "Strazhitsa",
+    "Svishtov",
+    "Veliko Tŭrnovo"
+  ]
+}

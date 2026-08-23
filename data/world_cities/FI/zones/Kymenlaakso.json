@@ -1,0 +1,14 @@
+{
+  "country": "Finlande",
+  "code": "FI",
+  "zone": "Kymenlaakso",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anjala",
+    "Elimäki",
+    "Hamina",
+    "Karhula",
+    "Kotka",
+    "Kouvola"
+  ]
+}

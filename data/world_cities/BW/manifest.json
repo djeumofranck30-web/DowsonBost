@@ -1,0 +1,24 @@
+{
+  "country": "Botswana",
+  "code": "BW",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Central",
+    "Chobe",
+    "City of Francistown",
+    "Gaborone",
+    "Ghanzi",
+    "Jwaneng",
+    "Kgalagadi",
+    "Kgatleng",
+    "Kweneng",
+    "Lobatse",
+    "Ngwaketsi",
+    "North-East",
+    "North-West",
+    "Selibe Phikwe",
+    "South-East"
+  ],
+  "source": "geonames_admin1"
+}

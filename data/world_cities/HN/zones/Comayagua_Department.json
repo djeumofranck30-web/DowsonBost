@@ -1,0 +1,19 @@
+{
+  "country": "Honduras",
+  "code": "HN",
+  "zone": "Comayagua Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ajuterique",
+    "Comayagua",
+    "El Rosario",
+    "Esquías",
+    "Lamaní",
+    "Lejamaní",
+    "Meámbar",
+    "Minas de Oro",
+    "San José de Comayagua",
+    "Siguatepeque",
+    "Villa de San Antonio"
+  ]
+}

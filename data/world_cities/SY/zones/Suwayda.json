@@ -1,0 +1,15 @@
+{
+  "country": "Syrie",
+  "code": "SY",
+  "zone": "Suwayda",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Qurayyā",
+    "As-Suwayda",
+    "Qanawāt",
+    "Shahbā",
+    "Shaqqā",
+    "Şalkhad",
+    "Şalākhid"
+  ]
+}

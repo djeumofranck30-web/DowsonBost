@@ -1,0 +1,15 @@
+{
+  "country": "Portugal",
+  "code": "PT",
+  "zone": "Portalegre",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Campo Maior",
+    "Elvas",
+    "Nisa",
+    "Ponte de Sôr",
+    "Portalegre",
+    "Santo André",
+    "Vale da Amoreira"
+  ]
+}

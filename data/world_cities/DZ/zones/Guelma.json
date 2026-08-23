@@ -1,0 +1,12 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Guelma",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Boumahra Ahmed",
+    "Guelma",
+    "Héliopolis",
+    "Oued Zenati"
+  ]
+}

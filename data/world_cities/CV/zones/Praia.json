@@ -1,0 +1,17 @@
+{
+  "country": "Cap-Vert",
+  "code": "CV",
+  "zone": "Praia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Achada Eugénio Lima",
+    "Achada Santo Antonio",
+    "Achadinha",
+    "Palmarejo",
+    "Ponta de Água",
+    "Praia",
+    "Safende",
+    "São Filipe Praia",
+    "Terra Branca"
+  ]
+}

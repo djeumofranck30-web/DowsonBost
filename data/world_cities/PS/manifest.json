@@ -1,0 +1,11 @@
+{
+  "country": "Palestine",
+  "code": "PS",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Gaza Strip",
+    "West Bank"
+  ],
+  "source": "geonames_admin1"
+}

@@ -1,0 +1,29 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Ryazan Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kadom",
+    "Kasimov",
+    "Korablino",
+    "Lesnoy",
+    "Mikhaylov",
+    "Novomichurinsk",
+    "Oktyabr’skiy",
+    "Polyany",
+    "Ryazan’",
+    "Ryazhsk",
+    "Rybnoye",
+    "Sarayi",
+    "Sasovo",
+    "Shatsk",
+    "Shilovo",
+    "Skopin",
+    "Spas-Klepiki",
+    "Spassk-Ryazanskiy",
+    "Starozhilovo",
+    "Tuma",
+    "Ukholovo"
+  ]
+}

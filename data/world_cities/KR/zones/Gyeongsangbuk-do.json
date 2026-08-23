@@ -1,0 +1,27 @@
+{
+  "country": "Coree du Sud",
+  "code": "KR",
+  "zone": "Gyeongsangbuk-do",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Andong",
+    "Cheongsong gun",
+    "Dodong-ri",
+    "Eisen",
+    "Gimcheon",
+    "Gumi",
+    "Gyeongju",
+    "Gyeongsan-si",
+    "Hayang",
+    "Heunghae",
+    "Jenzan",
+    "Kunwi",
+    "Mungyeong",
+    "Pohang",
+    "Sangju",
+    "Waegwan",
+    "Yecheon",
+    "Yeongju",
+    "Yeonil"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "country": "Qatar",
+  "code": "QA",
+  "zone": "Baladiyat ad Dawhah",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ad Dawḩah al Jadīdah",
+    "Al Ghānim",
+    "Al Hilāl al Gharbīyah",
+    "Al Hilāl ash Sharqīyah",
+    "Al Hitmī",
+    "Al Manşūrah",
+    "Al Markhīyah",
+    "Al Maţār al ‘Atīq",
+    "Al ‘Unayzah",
+    "An Najmah",
+    "As Sadd",
+    "As Sulţah al Jadīdah",
+    "Ath Thumāmah Khamsūn",
+    "Ath Thumāmah Sab‘ah wa Arba‘ūn",
+    "Ath Thumāmah Sittah wa Arba‘ūn",
+    "Aţ Ţarfah",
+    "Doha",
+    "Farīj Kulayb",
+    "Farīq al Hitmī",
+    "Madīnat Khalīfah",
+    "Nu‘ayjah",
+    "Umm Lakhbā"
+  ]
+}

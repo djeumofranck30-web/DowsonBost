@@ -1,0 +1,10 @@
+{
+  "country": "Mayotte",
+  "code": "YT",
+  "zone": "Bandraboua",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bandraboua",
+    "Dzumogne"
+  ]
+}

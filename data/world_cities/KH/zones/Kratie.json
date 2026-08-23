@@ -1,0 +1,20 @@
+{
+  "country": "Cambodge",
+  "code": "KH",
+  "zone": "Kratie",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chhloung",
+    "Damrei Phong",
+    "Han Chey",
+    "Kampong Damrei",
+    "Kanhchor",
+    "Kratié",
+    "Ou Ruessei",
+    "Pongro",
+    "Preaek Prasab",
+    "Preaek Saman",
+    "Roka Kandal",
+    "Snuol"
+  ]
+}

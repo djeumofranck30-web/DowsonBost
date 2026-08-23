@@ -1,0 +1,11 @@
+{
+  "country": "Mongolie",
+  "code": "MN",
+  "zone": "Övörhangay",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arvayheer",
+    "Bogd",
+    "Kharkhorin"
+  ]
+}

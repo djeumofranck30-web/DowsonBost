@@ -1,0 +1,20 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Red Sea",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Quşayr",
+    "Ar Radīsīyah Qiblī",
+    "Banī Suwayf al Jadīdah",
+    "El Gouna",
+    "Hala'ib",
+    "Hurghada",
+    "Marsa Alam",
+    "Ras Gharib",
+    "Safaga",
+    "Shalateen",
+    "Shalātīn",
+    "Zaafarana"
+  ]
+}

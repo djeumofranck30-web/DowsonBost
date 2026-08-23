@@ -1,0 +1,11 @@
+{
+  "country": "Salvador",
+  "code": "SV",
+  "zone": "La Union",
+  "source": "geonames_cities5000",
+  "cities": [
+    "La Unión",
+    "San Alejo",
+    "Santa Rosa de Lima"
+  ]
+}

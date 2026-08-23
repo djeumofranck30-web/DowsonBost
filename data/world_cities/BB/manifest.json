@@ -1,0 +1,19 @@
+{
+  "country": "Barbade",
+  "code": "BB",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Christ Church",
+    "Saint Andrew",
+    "Saint James",
+    "Saint John",
+    "Saint Joseph",
+    "Saint Lucy",
+    "Saint Michael",
+    "Saint Peter",
+    "Saint Philip",
+    "Saint Thomas"
+  ],
+  "source": "geonames_admin1"
+}

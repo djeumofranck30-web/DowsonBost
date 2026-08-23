@@ -1,0 +1,10 @@
+{
+  "country": "Sri Lanka",
+  "code": "LK",
+  "zone": "Sabaragamuwa Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kegalle",
+    "Ratnapura"
+  ]
+}

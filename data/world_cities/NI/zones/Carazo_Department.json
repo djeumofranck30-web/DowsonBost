@@ -1,0 +1,12 @@
+{
+  "country": "Nicaragua",
+  "code": "NI",
+  "zone": "Carazo Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Diriamba",
+    "Dolores",
+    "Jinotepe",
+    "San Marcos"
+  ]
+}

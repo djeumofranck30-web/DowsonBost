@@ -1,0 +1,10 @@
+{
+  "country": "Lesotho",
+  "code": "LS",
+  "zone": "Thaba-Tseka",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Mantsonyane",
+    "Thaba-Tseka"
+  ]
+}

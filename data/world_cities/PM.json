@@ -1,0 +1,9 @@
+{
+  "country": "Saint-Pierre-et-Miquelon",
+  "code": "PM",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Miquelon",
+    "Saint-Pierre"
+  ]
+}

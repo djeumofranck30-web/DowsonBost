@@ -1,0 +1,16 @@
+{
+  "country": "Costa Rica",
+  "code": "CR",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Alajuela Province",
+    "Cartago Province",
+    "Guanacaste Province",
+    "Heredia Province",
+    "Limón Province",
+    "Puntarenas Province",
+    "San José"
+  ],
+  "source": "geonames_admin1"
+}

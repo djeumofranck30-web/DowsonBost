@@ -1,0 +1,12 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "FCT",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abuja",
+    "Kuje",
+    "Kwali",
+    "Madala"
+  ]
+}

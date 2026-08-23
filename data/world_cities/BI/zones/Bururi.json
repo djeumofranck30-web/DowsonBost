@@ -1,0 +1,10 @@
+{
+  "country": "Burundi",
+  "code": "BI",
+  "zone": "Bururi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bururi",
+    "Vyanda"
+  ]
+}

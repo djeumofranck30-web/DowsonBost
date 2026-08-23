@@ -1,0 +1,10 @@
+{
+  "country": "Suriname",
+  "code": "SR",
+  "zone": "Marowijne District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Albina",
+    "Moengo"
+  ]
+}

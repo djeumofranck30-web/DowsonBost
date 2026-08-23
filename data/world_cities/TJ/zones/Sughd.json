@@ -1,0 +1,29 @@
+{
+  "country": "Tadjikistan",
+  "code": "TJ",
+  "zone": "Sughd",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Adrasmon",
+    "Amondara",
+    "Buston",
+    "Bŭston",
+    "Chorbogh",
+    "Dalyoni Bolo",
+    "Isfara",
+    "Istaravshan",
+    "Istiqlol",
+    "Khujand",
+    "Konibodom",
+    "Konsoy",
+    "Muchun",
+    "Nijoní",
+    "Nov",
+    "Pakhtakoron",
+    "Panjakent",
+    "Proletar",
+    "Qayroqqum",
+    "Shahriston",
+    "Shaydon"
+  ]
+}

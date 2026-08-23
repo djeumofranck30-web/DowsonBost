@@ -1,0 +1,16 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Cairo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Badr",
+    "Būlāq Abū al ‘Ilā",
+    "Cairo",
+    "El Shorouk",
+    "Madīnat an Naşr",
+    "New Cairo",
+    "Ḩadā’iq al Qubbah",
+    "Ḩalwān"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "country": "Hongrie",
+  "code": "HU",
+  "zone": "Borsod-Abaúj-Zemplén",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alsózsolca",
+    "Diósgyőr",
+    "Edelény",
+    "Emőd",
+    "Encs",
+    "Felsőzsolca",
+    "Kazincbarcika",
+    "Martin Kertváros",
+    "Mezőcsát",
+    "Mezőkövesd",
+    "Miskolc",
+    "Putnok",
+    "Sajószentpéter",
+    "Szerencs",
+    "Szikszó",
+    "Sárospatak",
+    "Sátoraljaújhely",
+    "Tiszalúc",
+    "Tiszaújváros",
+    "Ózd"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Lipetsk Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Borinskoye",
+    "Chaplygin",
+    "Dankov",
+    "Dobrinka",
+    "Dobroye",
+    "Dolgorukovo",
+    "Gryazi",
+    "Khlevnoye",
+    "Lebedyan’",
+    "Lev Tolstoy",
+    "Lipetsk",
+    "Stanovoye",
+    "Terbuny",
+    "Usman’",
+    "Yelets",
+    "Zadonsk"
+  ]
+}

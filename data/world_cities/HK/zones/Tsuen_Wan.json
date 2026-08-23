@@ -1,0 +1,16 @@
+{
+  "country": "Hong Kong",
+  "code": "HK",
+  "zone": "Tsuen Wan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Discovery Park",
+    "Fuk Loi",
+    "Luk Yeung",
+    "Sham Tseng",
+    "Shek Wai Kok",
+    "Ting Kau",
+    "Tsuen Wan",
+    "Yeung Uk Tsuen"
+  ]
+}

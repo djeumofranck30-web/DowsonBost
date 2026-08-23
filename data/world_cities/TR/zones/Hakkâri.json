@@ -1,0 +1,14 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Hakkâri",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Altınsu",
+    "Hakkâri",
+    "Yüksekova",
+    "Çey",
+    "Çukurca",
+    "Şemdinli"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Papouasie-Nouvelle-Guinee",
+  "code": "PG",
+  "zone": "Western Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Daru",
+    "Kiunga",
+    "Tabubil"
+  ]
+}

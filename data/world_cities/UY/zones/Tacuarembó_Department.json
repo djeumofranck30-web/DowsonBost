@@ -1,0 +1,10 @@
+{
+  "country": "Uruguay",
+  "code": "UY",
+  "zone": "Tacuarembó Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Paso de los Toros",
+    "Tacuarembó"
+  ]
+}

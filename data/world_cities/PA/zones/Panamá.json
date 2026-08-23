@@ -1,0 +1,29 @@
+{
+  "country": "Panama",
+  "code": "PA",
+  "zone": "Panamá",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alcalde Díaz",
+    "Ancón",
+    "Chepo",
+    "Chilibre",
+    "Curundú",
+    "El Chorrillo",
+    "Gonzalillo",
+    "Juan Díaz",
+    "La Cabima",
+    "Las Cumbres",
+    "Nueva Esperanza",
+    "Nuevo Belén",
+    "Pacora",
+    "Panama City",
+    "Parque Lefevre",
+    "Pedregal",
+    "Río Abajo",
+    "San Miguelito",
+    "San Vicente",
+    "Tocumen",
+    "Villa Unida"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Mayotte",
+  "code": "YT",
+  "zone": "Dzaoudzi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dzaoudzi",
+    "Labattoir"
+  ]
+}

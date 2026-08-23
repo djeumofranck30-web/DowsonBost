@@ -1,0 +1,30 @@
+{
+  "country": "Suede",
+  "code": "SE",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Blekinge",
+    "Dalarna",
+    "Gotland",
+    "Gävleborg",
+    "Halland",
+    "Jämtland",
+    "Jönköping",
+    "Kalmar",
+    "Kronoberg",
+    "Norrbotten",
+    "Skåne",
+    "Stockholm",
+    "Södermanland",
+    "Uppsala",
+    "Värmland",
+    "Västerbotten",
+    "Västernorrland",
+    "Västmanland",
+    "Västra Götaland",
+    "Örebro",
+    "Östergötland"
+  ],
+  "source": "geonames_admin1"
+}

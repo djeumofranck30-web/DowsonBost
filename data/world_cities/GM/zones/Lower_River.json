@@ -1,0 +1,10 @@
+{
+  "country": "Gambie",
+  "code": "GM",
+  "zone": "Lower River",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Mansa Konko",
+    "Soma"
+  ]
+}

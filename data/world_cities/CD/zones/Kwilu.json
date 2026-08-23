@@ -1,0 +1,15 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "Kwilu",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bandundu Province",
+    "Bulungu",
+    "Dibaya-Lubwe",
+    "Idiofa",
+    "Kikwit",
+    "Mangai",
+    "Masi-Manimba"
+  ]
+}

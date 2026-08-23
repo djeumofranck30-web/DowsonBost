@@ -1,0 +1,14 @@
+{
+  "country": "Inde",
+  "code": "IN",
+  "zone": "Lakshadweep",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Agatti",
+    "Amini",
+    "Andrott",
+    "Kadmat",
+    "Kavaratti",
+    "Minicoy"
+  ]
+}

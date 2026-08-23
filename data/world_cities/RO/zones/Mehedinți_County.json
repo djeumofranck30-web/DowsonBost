@@ -1,0 +1,16 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Mehedinți County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Corcova",
+    "Drobeta-Turnu Severin",
+    "Gogoşu",
+    "Gârla-Mare",
+    "Orşova",
+    "Strehaia",
+    "Vânju-Mare",
+    "Şimian"
+  ]
+}

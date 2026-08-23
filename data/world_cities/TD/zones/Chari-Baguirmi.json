@@ -1,0 +1,14 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Chari-Baguirmi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bodo",
+    "Bousso",
+    "Dourbali",
+    "Mandelia",
+    "Massenya",
+    "Ngama"
+  ]
+}

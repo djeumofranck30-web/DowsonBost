@@ -1,0 +1,17 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Nueva Esparta",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Juan Griego",
+    "La Asunción",
+    "La Guardia",
+    "Pampatar",
+    "Porlamar",
+    "Punta de Piedras",
+    "San Juan Bautista",
+    "San Pedro de Coche",
+    "Santa Ana"
+  ]
+}

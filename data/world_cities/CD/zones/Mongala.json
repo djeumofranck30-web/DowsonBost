@@ -1,0 +1,11 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "Mongala",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Binga",
+    "Bumba",
+    "Lisala"
+  ]
+}

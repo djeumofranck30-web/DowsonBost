@@ -1,0 +1,12 @@
+{
+  "country": "Irak",
+  "code": "IQ",
+  "zone": "Baghdad",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abū Ghurayb",
+    "Al Maḩmūdīyah",
+    "Baghdad",
+    "Sadr City"
+  ]
+}

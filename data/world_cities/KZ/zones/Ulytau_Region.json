@@ -1,0 +1,12 @@
+{
+  "country": "Kazakhstan",
+  "code": "KZ",
+  "zone": "Ulytau Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Qarazhal",
+    "Satpayev",
+    "Zhangaarqa",
+    "Zhezqazghan"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "country": "Nouvelle-Zelande",
+  "code": "NZ",
+  "zone": "Taranaki Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bell Block",
+    "Hawera",
+    "New Plymouth",
+    "Stratford",
+    "Vogeltown",
+    "Waitara"
+  ]
+}

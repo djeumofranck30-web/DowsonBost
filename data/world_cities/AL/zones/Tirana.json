@@ -1,0 +1,15 @@
+{
+  "country": "Albanie",
+  "code": "AL",
+  "zone": "Tirana",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kamëz",
+    "Kavajë",
+    "Ndroq",
+    "Petrelë",
+    "Rrogozhinë",
+    "Tirana",
+    "Zall-Herr"
+  ]
+}

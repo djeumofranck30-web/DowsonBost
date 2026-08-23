@@ -1,0 +1,15 @@
+{
+  "country": "Jordanie",
+  "code": "JO",
+  "zone": "Karak",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Khinzīrah",
+    "Al Mazār al Janūbī",
+    "Al Qaţrānah",
+    "Karak City",
+    "Safi",
+    "‘Ayy",
+    "‘Izrā"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "country": "Finlande",
+  "code": "FI",
+  "zone": "North Karelia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Eno",
+    "Joensuu",
+    "Kitee",
+    "Kontiolahti",
+    "Lieksa",
+    "Liperi",
+    "Nurmes",
+    "Outokumpu",
+    "Pyhäselkä"
+  ]
+}

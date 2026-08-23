@@ -1,0 +1,17 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "Maluku",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amahai",
+    "Ambon",
+    "Dobo",
+    "Masohi",
+    "Namlea",
+    "Namrole",
+    "Saumlaki",
+    "Tiakur",
+    "Tual"
+  ]
+}

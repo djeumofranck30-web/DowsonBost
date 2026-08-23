@@ -1,0 +1,18 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Béjaïa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akbou",
+    "Amizour",
+    "Barbacha",
+    "Béjaïa",
+    "Chemini",
+    "el hed",
+    "El Kseur",
+    "Feraoun",
+    "Ighram",
+    "Seddouk"
+  ]
+}

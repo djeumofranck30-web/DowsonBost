@@ -1,0 +1,21 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "San Marcos",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ciudad Tecún Umán",
+    "Comitancillo",
+    "Concepción Tutuapa",
+    "El Quetzal",
+    "El Tumbador",
+    "Malacatán",
+    "Nuevo Progreso",
+    "Pajapita",
+    "San Cristóbal Cucho",
+    "San Marcos",
+    "San Pablo",
+    "San Pedro Sacatepéquez",
+    "Tacaná"
+  ]
+}

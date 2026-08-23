@@ -1,0 +1,23 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Táchira",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Capacho Nuevo",
+    "Coloncito",
+    "Colón",
+    "La Fría",
+    "La Grita",
+    "Lobatera",
+    "Michelena",
+    "Palmira",
+    "Rubio",
+    "San Antonio del Táchira",
+    "San Cristóbal",
+    "San Josecito",
+    "Santa Ana",
+    "Táriba",
+    "Ureña"
+  ]
+}

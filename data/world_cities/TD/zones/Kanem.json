@@ -1,0 +1,10 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Kanem",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Mao",
+    "Nokou"
+  ]
+}

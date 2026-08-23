@@ -1,0 +1,10 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Betsiboka",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Maevatanana",
+    "Tsaratanana"
+  ]
+}

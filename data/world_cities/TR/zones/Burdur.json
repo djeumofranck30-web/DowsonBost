@@ -1,0 +1,13 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Burdur",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bucak",
+    "Burdur",
+    "Gölhisar",
+    "Tefenni",
+    "Yeşilova"
+  ]
+}

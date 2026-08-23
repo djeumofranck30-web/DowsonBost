@@ -1,0 +1,13 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Hưng Yên Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ecopark",
+    "Hưng Yên",
+    "Lương Bằng",
+    "Mỹ Hào",
+    "Thái Bình"
+  ]
+}

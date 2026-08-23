@@ -1,0 +1,14 @@
+{
+  "country": "Sierra Leone",
+  "code": "SL",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Eastern Province",
+    "North West",
+    "Northern Province",
+    "Southern Province",
+    "Western Area"
+  ],
+  "source": "geonames_admin1"
+}

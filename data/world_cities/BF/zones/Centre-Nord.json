@@ -1,0 +1,16 @@
+{
+  "country": "Burkina Faso",
+  "code": "BF",
+  "zone": "Centre-Nord",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Boulsa",
+    "Bourzanga",
+    "Kaya",
+    "Kongoussi",
+    "Korsimoro",
+    "Kouka",
+    "Pissila",
+    "Yalgo"
+  ]
+}

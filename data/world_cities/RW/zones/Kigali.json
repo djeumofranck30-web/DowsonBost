@@ -1,0 +1,10 @@
+{
+  "country": "Rwanda",
+  "code": "RW",
+  "zone": "Kigali",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kigali",
+    "Ndera"
+  ]
+}

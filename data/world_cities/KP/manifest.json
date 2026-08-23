@@ -1,0 +1,22 @@
+{
+  "country": "Coree du Nord",
+  "code": "KP",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Chagang",
+    "Kaesong",
+    "Kangwŏn-do",
+    "Nampo",
+    "North Hamgyong",
+    "North Hwanghae",
+    "P'yŏngan-bukto",
+    "Pyongyang",
+    "Rason",
+    "South Hamgyong",
+    "South Hwanghae",
+    "South Pyongan",
+    "Yanggang-do"
+  ],
+  "source": "geonames_admin1"
+}

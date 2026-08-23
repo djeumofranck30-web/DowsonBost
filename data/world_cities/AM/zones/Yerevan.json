@@ -1,0 +1,21 @@
+{
+  "country": "Armenie",
+  "code": "AM",
+  "zone": "Yerevan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ajapnyak",
+    "Arabkir",
+    "Avan",
+    "Davtashen",
+    "Erebuni",
+    "Kanaker-Zeytun",
+    "Kentron",
+    "Malatia-Sebastia",
+    "Nor Nork",
+    "Nork-Marash",
+    "Nubarashen",
+    "Shengavit",
+    "Yerevan"
+  ]
+}

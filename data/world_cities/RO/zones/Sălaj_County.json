@@ -1,0 +1,14 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Sălaj County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Crasna",
+    "Jibou",
+    "Nuşfalău",
+    "Zalău",
+    "Şimleu Silvaniei",
+    "Şărmăşag"
+  ]
+}

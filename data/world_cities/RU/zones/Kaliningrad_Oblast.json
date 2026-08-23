@@ -1,0 +1,27 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Kaliningrad Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bagrationovsk",
+    "Baltiysk",
+    "Chernyakhovsk",
+    "Gur’yevsk",
+    "Gusev",
+    "Gvardeysk",
+    "Kaliningrad",
+    "Mamonovo",
+    "Neman",
+    "Nesterov",
+    "Ozërsk",
+    "Pionerskiy",
+    "Polessk",
+    "Slavsk",
+    "Sovetsk",
+    "Svetlogorsk",
+    "Svetlyy",
+    "Yantarnyy",
+    "Zelenogradsk"
+  ]
+}

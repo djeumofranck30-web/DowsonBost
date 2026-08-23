@@ -1,0 +1,21 @@
+{
+  "country": "Armenie",
+  "code": "AM",
+  "zone": "Kotayk",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abovyan",
+    "Arinj",
+    "Byureghavan",
+    "Charentsavan",
+    "Garni",
+    "Hrazdan",
+    "Jrvezh",
+    "Kasakh",
+    "Nor Geghi",
+    "Nor Hachn",
+    "Proshyan",
+    "Yeghvard",
+    "Zovuni"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "country": "Grenade",
+  "code": "GD",
+  "zone": "Carriacou and Petite Martinique",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Hillsborough"
+  ]
+}

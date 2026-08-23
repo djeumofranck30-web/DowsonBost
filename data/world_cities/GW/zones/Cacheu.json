@@ -1,0 +1,13 @@
+{
+  "country": "Guinee-Bissau",
+  "code": "GW",
+  "zone": "Cacheu",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bula",
+    "Cacheu",
+    "Canchungo",
+    "Ingoré",
+    "São Domingos"
+  ]
+}

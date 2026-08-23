@@ -1,0 +1,11 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Menabe",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Belo sur Tsiribihina",
+    "Miandrivazo",
+    "Morondava"
+  ]
+}

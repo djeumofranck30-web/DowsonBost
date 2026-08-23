@@ -1,0 +1,10 @@
+{
+  "country": "Macédoine du Nord",
+  "code": "MK",
+  "zone": "Bogovinje",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bogovinje",
+    "Kamenjane"
+  ]
+}

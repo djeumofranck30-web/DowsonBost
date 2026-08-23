@@ -1,0 +1,13 @@
+{
+  "country": "Gabon",
+  "code": "GA",
+  "zone": "Estuaire",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akanda",
+    "Kango",
+    "Libreville",
+    "Ntoum",
+    "Owendo"
+  ]
+}

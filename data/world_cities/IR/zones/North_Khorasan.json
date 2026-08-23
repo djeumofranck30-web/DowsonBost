@@ -1,0 +1,15 @@
+{
+  "country": "Iran",
+  "code": "IR",
+  "zone": "North Khorasan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bojnūrd",
+    "Esfarāyen",
+    "Fārūj",
+    "Jājarm",
+    "Khān Laq",
+    "Shīrvān",
+    "Āshkhāneh"
+  ]
+}

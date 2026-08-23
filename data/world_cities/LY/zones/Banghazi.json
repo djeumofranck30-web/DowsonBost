@@ -1,0 +1,12 @@
+{
+  "country": "Libye",
+  "code": "LY",
+  "zone": "Banghazi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Benghazi",
+    "Daryānah",
+    "Qamīnis",
+    "Qaryat Sulūq"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "country": "Ukraine",
+  "code": "UA",
+  "zone": "Sevastopol City",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Balaklava",
+    "Barteniyivka",
+    "Inkerman",
+    "Komyshova Bukhta",
+    "Korabelna Storona",
+    "Mekenziyevi Hory",
+    "Sevastopol"
+  ]
+}

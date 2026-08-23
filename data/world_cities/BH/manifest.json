@@ -1,0 +1,13 @@
+{
+  "country": "Bahrein",
+  "code": "BH",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Manama",
+    "Muharraq",
+    "Northern",
+    "Southern Governorate"
+  ],
+  "source": "geonames_admin1"
+}

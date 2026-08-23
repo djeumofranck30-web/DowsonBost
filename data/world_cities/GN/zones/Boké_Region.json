@@ -1,0 +1,22 @@
+{
+  "country": "Guinee",
+  "code": "GN",
+  "zone": "Boké Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Boffa",
+    "Boké",
+    "Fria",
+    "Gaoual",
+    "Kamabi",
+    "Kamsar",
+    "Kimbo",
+    "Kolaboui",
+    "Koumbia",
+    "Koundara",
+    "Sangarédi",
+    "Sanguéya",
+    "Wendou Borou",
+    "Youkounkoun"
+  ]
+}

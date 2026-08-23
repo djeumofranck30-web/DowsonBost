@@ -1,0 +1,18 @@
+{
+  "country": "Guinee-Bissau",
+  "code": "GW",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Bafatá",
+    "Biombo",
+    "Bissau",
+    "Bolama",
+    "Cacheu",
+    "Gabú",
+    "Oio",
+    "Quinara",
+    "Tombali"
+  ],
+  "source": "geonames_admin1"
+}

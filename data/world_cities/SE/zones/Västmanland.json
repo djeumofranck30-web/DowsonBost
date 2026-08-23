@@ -1,0 +1,16 @@
+{
+  "country": "Suede",
+  "code": "SE",
+  "zone": "Västmanland",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arboga",
+    "Fagersta",
+    "Hallstahammar",
+    "Kungsör",
+    "Köping",
+    "Sala",
+    "Surahammar",
+    "Västerås"
+  ]
+}

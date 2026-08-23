@@ -1,0 +1,9 @@
+{
+  "country": "Salomon",
+  "code": "SB",
+  "zone": "Choiseul Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Taro"
+  ]
+}

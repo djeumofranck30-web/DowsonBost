@@ -1,0 +1,10 @@
+{
+  "country": "Porto Rico",
+  "code": "PR",
+  "zone": "Florida",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Estancias de Florida",
+    "Florida"
+  ]
+}

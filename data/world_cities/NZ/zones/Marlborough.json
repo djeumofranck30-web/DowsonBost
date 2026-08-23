@@ -1,0 +1,12 @@
+{
+  "country": "Nouvelle-Zelande",
+  "code": "NZ",
+  "zone": "Marlborough",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Blenheim",
+    "Redwoodtown",
+    "Springlands",
+    "Witherlea"
+  ]
+}

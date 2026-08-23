@@ -1,0 +1,20 @@
+{
+  "country": "Tchequie",
+  "code": "CZ",
+  "zone": "Carlsbad Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aš",
+    "Cheb",
+    "Chodov",
+    "Františkovy Lázně",
+    "Habartov",
+    "Horní Slavkov",
+    "Karlovy Vary",
+    "Kraslice",
+    "Mariánské Lázně",
+    "Nejdek",
+    "Ostrov",
+    "Sokolov"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "country": "Japon",
+  "code": "JP",
+  "zone": "Okayama",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akaiwa",
+    "Asakuchi",
+    "Bizen",
+    "Hayashima",
+    "Hayashino",
+    "Ibara",
+    "Kamogatachō-kamogata",
+    "Kasaoka",
+    "Katsumada",
+    "Kurashiki",
+    "Maniwa",
+    "Nagi",
+    "Niimi",
+    "Nishiya",
+    "Okayama",
+    "Sakai",
+    "Satoshō",
+    "Setouchi",
+    "Shimogamo",
+    "Sōja",
+    "Takahashi",
+    "Tamano",
+    "Tsuyama",
+    "Wake",
+    "Yakage"
+  ]
+}

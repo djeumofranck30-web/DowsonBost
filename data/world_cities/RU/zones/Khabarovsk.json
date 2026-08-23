@@ -1,0 +1,30 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Khabarovsk",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amursk",
+    "Berëzovyy",
+    "Bikin",
+    "Chegdomyn",
+    "El’ban",
+    "Khabarovsk",
+    "Khor",
+    "Khurba",
+    "Knyaze-Volkonskoye",
+    "Komsomolsk-on-Amur",
+    "Korfovskiy",
+    "Nekrasovka",
+    "Nikolayevsk-on-Amure",
+    "Novyy Urgal",
+    "Okhotsk",
+    "Oktyabr’skiy",
+    "Pereyaslavka",
+    "Solnechnyy",
+    "Sovetskaya Gavan’",
+    "Vanino",
+    "Vyazemskiy",
+    "Zavety Il’icha"
+  ]
+}

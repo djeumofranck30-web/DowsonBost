@@ -1,0 +1,17 @@
+{
+  "country": "Myanmar",
+  "code": "MM",
+  "zone": "Magway",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chauk",
+    "Magway",
+    "Minbu",
+    "Myaydo",
+    "Pakokku",
+    "Taungdwingyi",
+    "Thayetmyo",
+    "Yenangyaung",
+    "Yesagyo"
+  ]
+}

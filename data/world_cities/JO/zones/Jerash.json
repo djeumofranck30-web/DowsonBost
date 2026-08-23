@@ -1,0 +1,14 @@
+{
+  "country": "Jordanie",
+  "code": "JO",
+  "zone": "Jerash",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Kittah",
+    "Balīlā",
+    "Jarash",
+    "Raymūn",
+    "Sakib",
+    "Sūf"
+  ]
+}

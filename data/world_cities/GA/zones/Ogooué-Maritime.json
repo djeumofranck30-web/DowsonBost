@@ -1,0 +1,10 @@
+{
+  "country": "Gabon",
+  "code": "GA",
+  "zone": "Ogooué-Maritime",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gamba",
+    "Port-Gentil"
+  ]
+}

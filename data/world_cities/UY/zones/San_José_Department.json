@@ -1,0 +1,11 @@
+{
+  "country": "Uruguay",
+  "code": "UY",
+  "zone": "San José Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Delta del Tigre",
+    "Libertad",
+    "San José de Mayo"
+  ]
+}

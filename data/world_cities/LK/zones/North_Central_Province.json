@@ -1,0 +1,10 @@
+{
+  "country": "Sri Lanka",
+  "code": "LK",
+  "zone": "North Central Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anuradhapura",
+    "Polonnaruwa"
+  ]
+}

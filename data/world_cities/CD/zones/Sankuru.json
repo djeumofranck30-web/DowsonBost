@@ -1,0 +1,11 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "Sankuru",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Lodja",
+    "Lukula",
+    "Lusambo"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Croatie",
+  "code": "HR",
+  "zone": "Zagreb",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Centar",
+    "Sesvete",
+    "Zagreb"
+  ]
+}

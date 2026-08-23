@@ -1,0 +1,26 @@
+{
+  "country": "Nicaragua",
+  "code": "NI",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Boaco Department",
+    "Carazo Department",
+    "Chinandega Department",
+    "Chontales Department",
+    "Estelí Department",
+    "Granada Department",
+    "Jinotega Department",
+    "León Department",
+    "Madriz Department",
+    "Managua Department",
+    "Masaya Department",
+    "Matagalpa Department",
+    "North Caribbean Coast",
+    "Nueva Segovia Department",
+    "Rivas Department",
+    "Río San Juan Department",
+    "South Caribbean Coast"
+  ],
+  "source": "geonames_admin1"
+}

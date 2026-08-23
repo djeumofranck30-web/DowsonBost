@@ -1,0 +1,14 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Oum el Bouaghi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aïn Beïda",
+    "Aïn Fakroun",
+    "Aïn Kercha",
+    "Aïn M’Lila",
+    "Meskiana",
+    "Oum el Bouaghi"
+  ]
+}

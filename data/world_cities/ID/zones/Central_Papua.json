@@ -1,0 +1,11 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "Central Papua",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Mulia",
+    "Nabire",
+    "Timika"
+  ]
+}

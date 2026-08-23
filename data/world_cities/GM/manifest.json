@@ -1,0 +1,15 @@
+{
+  "country": "Gambie",
+  "code": "GM",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Banjul",
+    "Central River",
+    "Lower River",
+    "North Bank",
+    "Upper River",
+    "Western"
+  ],
+  "source": "geonames_admin1"
+}

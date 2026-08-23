@@ -1,0 +1,17 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Tulcea County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Babadag",
+    "Greci",
+    "Isaccea",
+    "Jijila",
+    "Jurilovca",
+    "Luncaviţa",
+    "Măcin",
+    "Sarichioi",
+    "Tulcea"
+  ]
+}

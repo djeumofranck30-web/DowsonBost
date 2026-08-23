@@ -1,0 +1,15 @@
+{
+  "country": "Uruguay",
+  "code": "UY",
+  "zone": "Colonia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Carmelo",
+    "Colonia del Sacramento",
+    "Juan L. Lacaze",
+    "Nueva Helvecia",
+    "Nueva Palmira",
+    "Rosario",
+    "Tarariras"
+  ]
+}

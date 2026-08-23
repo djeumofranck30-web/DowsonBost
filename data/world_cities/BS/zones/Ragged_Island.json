@@ -1,0 +1,9 @@
+{
+  "country": "Bahamas",
+  "code": "BS",
+  "zone": "Ragged Island",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Duncan Town"
+  ]
+}

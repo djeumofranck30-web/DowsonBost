@@ -1,0 +1,11 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Shumen",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Novi Pazar",
+    "Shumen",
+    "Veliki Preslav"
+  ]
+}

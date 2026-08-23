@@ -1,0 +1,9 @@
+{
+  "country": "Uruguay",
+  "code": "UY",
+  "zone": "Flores Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Trinidad"
+  ]
+}

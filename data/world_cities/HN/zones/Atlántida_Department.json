@@ -1,0 +1,13 @@
+{
+  "country": "Honduras",
+  "code": "HN",
+  "zone": "Atlántida Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arizona",
+    "La Ceiba",
+    "Mezapa",
+    "San Juan Pueblo",
+    "Tela"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Kütahya",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Domaniç",
+    "Emet",
+    "Gediz",
+    "Kütahya",
+    "Pazarlar",
+    "Simav",
+    "Tavşanlı",
+    "Şaphane"
+  ]
+}

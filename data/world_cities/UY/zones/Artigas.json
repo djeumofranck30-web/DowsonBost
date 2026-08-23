@@ -1,0 +1,10 @@
+{
+  "country": "Uruguay",
+  "code": "UY",
+  "zone": "Artigas",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Artigas",
+    "Bella Unión"
+  ]
+}

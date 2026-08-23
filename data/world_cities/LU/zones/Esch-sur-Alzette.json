@@ -1,0 +1,17 @@
+{
+  "country": "Luxembourg",
+  "code": "LU",
+  "zone": "Esch-sur-Alzette",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Belvaux",
+    "Bettembourg",
+    "Differdange",
+    "Dudelange",
+    "Esch-sur-Alzette",
+    "Pétange",
+    "Rodange",
+    "Schifflange",
+    "Soleuvre"
+  ]
+}

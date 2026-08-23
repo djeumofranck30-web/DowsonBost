@@ -1,0 +1,28 @@
+{
+  "country": "Pakistan",
+  "code": "PK",
+  "zone": "Azad Kashmir",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Athhmuqam",
+    "Bhimber",
+    "Bāgh",
+    "Chaksawari",
+    "Charhoi",
+    "Dayal",
+    "Dhirkot",
+    "Fatehpur",
+    "Garhi Dupatta",
+    "Hajira",
+    "Hattiān Bāla",
+    "Islamgarh",
+    "Khai Gala",
+    "Khuiratta",
+    "Kotli",
+    "Muzaffarābād",
+    "New Mirpur City",
+    "Pallandri",
+    "Rawalakot",
+    "Sehnsa"
+  ]
+}

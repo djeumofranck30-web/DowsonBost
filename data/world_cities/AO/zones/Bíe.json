@@ -1,0 +1,20 @@
+{
+  "country": "Angola",
+  "code": "AO",
+  "zone": "Bíe",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Andulo",
+    "Calucinga",
+    "Camacupa",
+    "Catabola",
+    "Chinguar",
+    "Chissamba",
+    "Chitembo",
+    "Cuemba",
+    "Cunhinga",
+    "Cuíto",
+    "Dala",
+    "Nharêa"
+  ]
+}

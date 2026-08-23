@@ -1,0 +1,15 @@
+{
+  "country": "Ethiopie",
+  "code": "ET",
+  "zone": "South West Ethiopia Peoples' Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bonga",
+    "Komtikas",
+    "Mīzan Teferī",
+    "Tarch’a Sodo",
+    "Tēpī",
+    "Wacha",
+    "Waka"
+  ]
+}

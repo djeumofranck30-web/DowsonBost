@@ -1,0 +1,11 @@
+{
+  "country": "Montserrat",
+  "code": "MS",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Saint Anthony",
+    "Saint Peter"
+  ],
+  "source": "geonames_admin1"
+}

@@ -1,0 +1,13 @@
+{
+  "country": "Zimbabwe",
+  "code": "ZW",
+  "zone": "Midlands Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gokwe",
+    "Gweru",
+    "Kwekwe",
+    "Redcliff",
+    "Shurugwi"
+  ]
+}

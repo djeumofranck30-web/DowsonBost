@@ -1,0 +1,28 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Dakahlia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aga",
+    "Al Jammālīyah",
+    "Al Mansurah",
+    "Al Manzalah",
+    "Al Maţarīyah",
+    "As Sinbillāwayn",
+    "Aş Şalāḩāt",
+    "Bilqās",
+    "Dikirnis",
+    "Kafr al Kurdī",
+    "Maḩallat Damanah",
+    "Minyat an Naşr",
+    "Mīt Ghamr",
+    "Mīt Salsīl",
+    "Nabarūh",
+    "Râs el-Barr",
+    "Shirbīn",
+    "Timayy al Imdīd",
+    "Ţalkhā",
+    "‘Izbat al Burj"
+  ]
+}

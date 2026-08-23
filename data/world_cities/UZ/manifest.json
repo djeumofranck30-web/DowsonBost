@@ -1,0 +1,23 @@
+{
+  "country": "Ouzbekistan",
+  "code": "UZ",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Andijan Region",
+    "Bukhara",
+    "Fergana",
+    "Jizzakh Region",
+    "Karakalpakstan",
+    "Namangan",
+    "Navoiy Region",
+    "Qashqadaryo",
+    "Samarqand Region",
+    "Sirdaryo Region",
+    "Surxondaryo Region",
+    "Tashkent",
+    "Tashkent Region",
+    "Xorazm Region"
+  ],
+  "source": "geonames_admin1"
+}

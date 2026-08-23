@@ -1,0 +1,17 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Putumayo Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "La Dorada",
+    "Mocoa",
+    "Orito",
+    "Puerto Asís",
+    "Puerto Leguízamo",
+    "Santiago",
+    "Sibundoy",
+    "Valle del Guamuez",
+    "Villagarzón"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Azerbaidjan",
+  "code": "AZ",
+  "zone": "İmişli",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bahramtepe",
+    "Imishli"
+  ]
+}

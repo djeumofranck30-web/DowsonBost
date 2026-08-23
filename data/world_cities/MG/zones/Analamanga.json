@@ -1,0 +1,25 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Analamanga",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alarobia",
+    "Ambohidratrimo",
+    "Ambohitrandriamanitra",
+    "Ambohitrolomahitsy",
+    "Ambohitseheno",
+    "Anjepy",
+    "Anjozorobe",
+    "Ankazobe",
+    "Ankazondandy",
+    "Antananarivo",
+    "Ivato",
+    "Manjakandriana",
+    "Mantasoa",
+    "Merikanjaka",
+    "Miadanandriana",
+    "Sadabe",
+    "Sambaina"
+  ]
+}

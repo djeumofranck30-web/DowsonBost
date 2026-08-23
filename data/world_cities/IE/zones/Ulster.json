@@ -1,0 +1,13 @@
+{
+  "country": "Irlande",
+  "code": "IE",
+  "zone": "Ulster",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Buncrana",
+    "Carrickmacross",
+    "Cavan",
+    "Letterkenny",
+    "Monaghan"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "country": "Kazakhstan",
+  "code": "KZ",
+  "zone": "Turkistan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abay",
+    "Aksu",
+    "Arys",
+    "Ashchysay",
+    "Asyqata",
+    "Atakent",
+    "Kantagi",
+    "Kazygurt",
+    "Kentau",
+    "Lenger",
+    "Myrzakent",
+    "Qabilanbek",
+    "Saryaghash",
+    "Sastobe",
+    "Shardara",
+    "Shayan",
+    "Sholakkorgan",
+    "Temirlanovka",
+    "Turar Ryskulov",
+    "Turkistan",
+    "Tyul’kubas",
+    "Zhetysay",
+    "Zhibek Zholy"
+  ]
+}

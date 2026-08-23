@@ -1,0 +1,23 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Ialomița County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amara",
+    "Armăşeşti",
+    "Borduşani",
+    "Bucu",
+    "Coşereni",
+    "Dridu",
+    "Feteşti",
+    "Fetești-Gară",
+    "Făcăeni",
+    "Griviţa",
+    "Mihail Kogălniceanu",
+    "Slobozia",
+    "Săveni",
+    "Urziceni",
+    "Ţăndărei"
+  ]
+}

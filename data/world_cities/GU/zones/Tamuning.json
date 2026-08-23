@@ -1,0 +1,11 @@
+{
+  "country": "Guam",
+  "code": "GU",
+  "zone": "Tamuning",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Apotgan",
+    "Tamuning",
+    "Tamuning-Tumon-Harmon Village"
+  ]
+}

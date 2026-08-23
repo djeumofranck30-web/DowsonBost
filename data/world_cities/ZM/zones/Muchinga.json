@@ -1,0 +1,13 @@
+{
+  "country": "Zambie",
+  "code": "ZM",
+  "zone": "Muchinga",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chama",
+    "Chinsali",
+    "Isoka",
+    "Mpika",
+    "Nakonde"
+  ]
+}

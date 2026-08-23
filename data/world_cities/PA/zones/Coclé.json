@@ -1,0 +1,14 @@
+{
+  "country": "Panama",
+  "code": "PA",
+  "zone": "Coclé",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aguadulce",
+    "Antón",
+    "Natá",
+    "Penonomé",
+    "Pocrí",
+    "Río Hato"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Chuvash Republic",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alatyr’",
+    "Batyrevo",
+    "Cheboksary",
+    "Ibresi",
+    "Kanash",
+    "Kozlovka",
+    "Kugesi",
+    "Mariinskiy Posad",
+    "Novocheboksarsk",
+    "Novyye Lapsary",
+    "Poretskoye",
+    "Shumerlya",
+    "Tsivil’sk",
+    "Urmary",
+    "Vurnary",
+    "Yadrin"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Damietta",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ar-Rawḍah",
+    "As Sarw",
+    "Az Zarqā",
+    "Damietta",
+    "Dumyāţ al Jadīdah",
+    "Fāraskūr",
+    "Kafr al Baţţīkh",
+    "Kafr Sa‘d",
+    "Mīt Abū Ghālib"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Medenine Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ajim",
+    "Ben Gardane",
+    "El Mgarsa",
+    "Erriadh",
+    "Houmt Souk",
+    "Medenine",
+    "Midoun",
+    "Zarzis"
+  ]
+}

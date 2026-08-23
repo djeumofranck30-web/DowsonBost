@@ -1,0 +1,16 @@
+{
+  "country": "Nepal",
+  "code": "NP",
+  "zone": "Madhesh",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Birgañj",
+    "Gaur",
+    "Jaleshwar",
+    "Janakpur",
+    "Lahān",
+    "Malaṅgawā",
+    "Rājbirāj",
+    "Siraha"
+  ]
+}

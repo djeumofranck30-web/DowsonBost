@@ -1,0 +1,33 @@
+{
+  "country": "Iran",
+  "code": "IR",
+  "zone": "Golestan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "'Alī Ābād-e Katūl",
+    "Anbār Ālūm",
+    "Bandar-e Gaz",
+    "Bandar-e Torkaman",
+    "Fāẕelābād",
+    "Gadamābād",
+    "Gomīshān",
+    "Gonbad-e Kāvūs",
+    "Gorgān",
+    "Gālīkesh",
+    "Jelīn",
+    "Kalāleh",
+    "Khājeh Nafas",
+    "Khān Bebīn",
+    "Kord Kūy",
+    "Mīnūdasht",
+    "Now Kandeh",
+    "Pīshkamar",
+    "Qoroq",
+    "Sarkhonkalāteh",
+    "Sīmīn Shahr",
+    "Āq Qalā",
+    "Āq Qāyeh",
+    "Āqābād",
+    "Āzādshahr"
+  ]
+}

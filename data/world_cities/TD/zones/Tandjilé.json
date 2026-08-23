@@ -1,0 +1,12 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Tandjilé",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Béré",
+    "Déressia",
+    "Kelo",
+    "Laï"
+  ]
+}

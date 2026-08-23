@@ -1,0 +1,24 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Smolensk Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Demidov",
+    "Desnogorsk",
+    "Dorogobuzh",
+    "Gagarin",
+    "Ozërnyy",
+    "Pochinok",
+    "Roslavl’",
+    "Rudnya",
+    "Safonovo",
+    "Smolensk",
+    "Sychëvka",
+    "Velizh",
+    "Verkhnedneprovskiy",
+    "Vyaz’ma",
+    "Yartsevo",
+    "Yel’nya"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "country": "Zambie",
+  "code": "ZM",
+  "zone": "Copperbelt",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chambishi",
+    "Chililabombwe",
+    "Chingola",
+    "Ibenga",
+    "Kalulushi",
+    "Kataba",
+    "Kitwe",
+    "Luanshya",
+    "Mapalo",
+    "Mpongwe",
+    "Mufulira",
+    "Ndola"
+  ]
+}

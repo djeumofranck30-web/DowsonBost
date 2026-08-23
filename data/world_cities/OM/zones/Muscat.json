@@ -1,0 +1,12 @@
+{
+  "country": "Oman",
+  "code": "OM",
+  "zone": "Muscat",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bawshar",
+    "Muscat",
+    "Qurayyāt",
+    "Seeb"
+  ]
+}

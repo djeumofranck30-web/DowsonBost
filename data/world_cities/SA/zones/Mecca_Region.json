@@ -1,0 +1,22 @@
+{
+  "country": "Arabie saoudite",
+  "code": "SA",
+  "zone": "Mecca Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Hadā",
+    "Al Jumūm",
+    "Al Khurmah",
+    "Al Līth",
+    "Al Muwayh",
+    "Ash Shafā",
+    "Jeddah",
+    "Khulayş",
+    "King Abdullah City",
+    "Makkah",
+    "Rābigh",
+    "Ta’if",
+    "Thuwal",
+    "Turabah"
+  ]
+}

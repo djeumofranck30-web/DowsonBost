@@ -1,0 +1,16 @@
+{
+  "country": "Antigua-et-Barbuda",
+  "code": "AG",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Barbuda",
+    "Saint George Parish",
+    "Saint John Parish",
+    "Saint Mary Parish",
+    "Saint Paul Parish",
+    "Saint Peter Parish",
+    "Saint Philip Parish"
+  ],
+  "source": "geonames_admin1"
+}

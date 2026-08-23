@@ -1,0 +1,9 @@
+{
+  "country": "Croatie",
+  "code": "HR",
+  "zone": "Krapina-Zagorje",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Krapina"
+  ]
+}

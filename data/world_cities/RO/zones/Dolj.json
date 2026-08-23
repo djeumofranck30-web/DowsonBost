@@ -1,0 +1,31 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Dolj",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amărăştii de Jos",
+    "Băileşti",
+    "Calafat",
+    "Celaru",
+    "Cetate",
+    "Ciupercenii Noi",
+    "Coşoveni",
+    "Craiova",
+    "Călăraşi",
+    "Dăbuleni",
+    "Dăneţi",
+    "Filiaşi",
+    "Leu",
+    "Maglavit",
+    "Moţăţei",
+    "Ostroveni",
+    "Piscu Vechi",
+    "Pleniţa",
+    "Podari",
+    "Poiana Mare",
+    "Sadova",
+    "Segarcea",
+    "Valea Stanciului"
+  ]
+}

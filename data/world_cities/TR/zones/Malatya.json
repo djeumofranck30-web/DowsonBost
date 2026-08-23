@@ -1,0 +1,22 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Malatya",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akçadağ",
+    "Arapgir",
+    "Darende",
+    "Dilek",
+    "Doğanyol",
+    "Doğanşehir",
+    "Hanımçiftliği",
+    "Hekimhan",
+    "Kale",
+    "Kuluncak",
+    "Malatya",
+    "Yakınca",
+    "Yazıhan",
+    "Yeşilyurt"
+  ]
+}

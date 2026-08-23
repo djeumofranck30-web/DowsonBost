@@ -1,0 +1,17 @@
+{
+  "country": "Nouvelle-Zelande",
+  "code": "NZ",
+  "zone": "Hawke's Bay Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akina",
+    "Flaxmere",
+    "Hastings",
+    "Havelock North",
+    "Mahora",
+    "Napier",
+    "Onekawa",
+    "Raureka",
+    "Taradale"
+  ]
+}

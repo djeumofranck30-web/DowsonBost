@@ -1,0 +1,31 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Kaluga Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Balabanovo",
+    "Belousovo",
+    "Borovsk",
+    "Duminichi",
+    "Kaluga",
+    "Kirov",
+    "Kondrovo",
+    "Kozel’sk",
+    "Kremenki",
+    "Lyudinovo",
+    "Maloyaroslavets",
+    "Medyn",
+    "Obninsk",
+    "Sosenskiy",
+    "Spas-Demensk",
+    "Sukhinichi",
+    "Tarusa",
+    "Tovarkovo",
+    "Vorotynsk",
+    "Yermolino",
+    "Yukhnov",
+    "Zhizdra",
+    "Zhukov"
+  ]
+}

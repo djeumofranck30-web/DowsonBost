@@ -1,0 +1,12 @@
+{
+  "country": "Comores",
+  "code": "KM",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Anjouan",
+    "Grande Comore",
+    "Mohéli"
+  ],
+  "source": "geonames_admin1"
+}

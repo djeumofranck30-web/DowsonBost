@@ -1,0 +1,9 @@
+{
+  "country": "Mozambique",
+  "code": "MZ",
+  "zone": "Maputo City",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Maputo"
+  ]
+}

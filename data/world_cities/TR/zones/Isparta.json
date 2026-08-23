@@ -1,0 +1,19 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Isparta",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Atabey",
+    "Eğirdir",
+    "Gelendost",
+    "Gönen",
+    "Isparta",
+    "Keçiborlu",
+    "Senirkent",
+    "Uluborlu",
+    "Yalvaç",
+    "Yenişarbademli",
+    "Şarkîkaraağaç"
+  ]
+}

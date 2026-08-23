@@ -1,0 +1,18 @@
+{
+  "country": "Ouzbekistan",
+  "code": "UZ",
+  "zone": "Qashqadaryo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Beshkent",
+    "Chiroqchi",
+    "G‘uzor",
+    "Kitob",
+    "Koson",
+    "Muborak",
+    "Nishon Tumani",
+    "Po‘loti",
+    "Qarshi",
+    "Shahrisabz"
+  ]
+}

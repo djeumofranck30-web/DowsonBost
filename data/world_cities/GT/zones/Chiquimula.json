@@ -1,0 +1,12 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "Chiquimula",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chiquimula",
+    "Esquipulas",
+    "Ipala",
+    "Jocotán"
+  ]
+}

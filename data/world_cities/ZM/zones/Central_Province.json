@@ -1,0 +1,14 @@
+{
+  "country": "Zambie",
+  "code": "ZM",
+  "zone": "Central Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kabwe",
+    "Kapiri Mposhi",
+    "Mkushi",
+    "Mumbwa",
+    "Nampundwe",
+    "Serenje"
+  ]
+}

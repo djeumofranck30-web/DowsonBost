@@ -1,0 +1,13 @@
+{
+  "country": "Congo",
+  "code": "CG",
+  "zone": "Niari",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Divenié",
+    "Dolisie",
+    "Makabana",
+    "Mbinda",
+    "Mossendjo"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Meta Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Acacías",
+    "Cumaral",
+    "Granada",
+    "Guamal",
+    "Lejanías",
+    "Mapiripán",
+    "Mesetas",
+    "Puerto Concordia",
+    "Puerto Gaitán",
+    "Puerto Lleras",
+    "Puerto López",
+    "Puerto Yuca",
+    "Restrepo",
+    "San Carlos de Guaroa",
+    "San Martín",
+    "Villavicencio"
+  ]
+}

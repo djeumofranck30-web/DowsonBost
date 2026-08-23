@@ -1,0 +1,29 @@
+{
+  "country": "Angola",
+  "code": "AO",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Bengo",
+    "Benguela",
+    "Bíe",
+    "Cabinda",
+    "Cuando Province",
+    "Cuanza Norte",
+    "Cubango",
+    "Cunene",
+    "Huambo",
+    "Huíla",
+    "Icolo e Bengo Province",
+    "Kwanza Sul",
+    "Luanda",
+    "Luanda Norte",
+    "Lunda Sul",
+    "Malanje",
+    "Moxico",
+    "Namibe",
+    "Uíge",
+    "Zaire"
+  ],
+  "source": "geonames_admin1"
+}

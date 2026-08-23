@@ -1,0 +1,19 @@
+{
+  "country": "Hong Kong",
+  "code": "HK",
+  "zone": "Islands",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cheung Chau",
+    "Discovery Bay",
+    "Ma Wan",
+    "Mui Wo Kau Tsuen",
+    "Ngong Ping",
+    "Peng Chau",
+    "Pui O",
+    "San Tung Chung Hang",
+    "Sok Kwu Wan",
+    "Tung Chung",
+    "Yung Shue Wan"
+  ]
+}

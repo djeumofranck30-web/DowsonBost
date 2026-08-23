@@ -1,0 +1,20 @@
+{
+  "country": "Croatie",
+  "code": "HR",
+  "zone": "Split-Dalmatia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kaštel Kambelovac",
+    "Kaštel Lukšić",
+    "Kaštel Novi",
+    "Kaštel Stari",
+    "Kaštel Sućurac",
+    "Makarska",
+    "Omiš",
+    "Podstrana",
+    "Sinj",
+    "Solin",
+    "Split",
+    "Trogir"
+  ]
+}

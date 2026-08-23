@@ -1,0 +1,17 @@
+{
+  "country": "Mozambique",
+  "code": "MZ",
+  "zone": "Maputo Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Boane",
+    "Magude",
+    "Manhiça",
+    "Marracuene",
+    "Matola",
+    "Moamba",
+    "Namaacha",
+    "Ressano Garcia",
+    "Xinavane"
+  ]
+}

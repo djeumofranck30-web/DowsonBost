@@ -1,0 +1,9 @@
+{
+  "country": "Mauritanie",
+  "code": "MR",
+  "zone": "Adrar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Atar"
+  ]
+}

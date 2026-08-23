@@ -1,0 +1,10 @@
+{
+  "country": "Uruguay",
+  "code": "UY",
+  "zone": "Paysandú Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Guichón",
+    "Paysandú"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Somalie",
+  "code": "SO",
+  "zone": "Hiiraan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Beledweyne",
+    "Buulobarde",
+    "Jalalaqsi"
+  ]
+}

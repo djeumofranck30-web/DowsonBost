@@ -1,0 +1,10 @@
+{
+  "country": "Azerbaidjan",
+  "code": "AZ",
+  "zone": "Jalilabad",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Geytepe",
+    "Jalilabad"
+  ]
+}

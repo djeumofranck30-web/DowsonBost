@@ -1,0 +1,11 @@
+{
+  "country": "Trinite-et-Tobago",
+  "code": "TT",
+  "zone": "Couva-Tabaquite-Talparo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Claxton Bay",
+    "Couva",
+    "Gasparillo"
+  ]
+}

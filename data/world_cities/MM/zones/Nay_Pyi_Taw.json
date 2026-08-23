@@ -1,0 +1,11 @@
+{
+  "country": "Myanmar",
+  "code": "MM",
+  "zone": "Nay Pyi Taw",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Lewe",
+    "Nay Pyi Taw",
+    "Pyinmana"
+  ]
+}

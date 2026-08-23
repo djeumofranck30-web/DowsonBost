@@ -1,0 +1,28 @@
+{
+  "country": "Japon",
+  "code": "JP",
+  "zone": "Ishikawa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anamizu",
+    "Hakui",
+    "Hitoto",
+    "Hōdatsushimizu",
+    "Kaga",
+    "Kahoku",
+    "Kanazawa",
+    "Komatsu",
+    "Matsutō",
+    "Mukai-awagasaki",
+    "Nakajima",
+    "Nanao",
+    "Nomimachi",
+    "Nonoichi",
+    "Oshima",
+    "Suzu",
+    "Tsubata",
+    "Tsurugi-asahimachi",
+    "Ushitsu",
+    "Wajima"
+  ]
+}

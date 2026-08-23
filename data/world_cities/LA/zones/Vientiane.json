@@ -1,0 +1,10 @@
+{
+  "country": "Laos",
+  "code": "LA",
+  "zone": "Vientiane",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Muang Phôn-Hông",
+    "Vang Vieng"
+  ]
+}

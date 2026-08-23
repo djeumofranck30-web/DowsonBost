@@ -1,0 +1,17 @@
+{
+  "country": "Mozambique",
+  "code": "MZ",
+  "zone": "Inhambane Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Homoíne",
+    "Inhambane",
+    "Inharrime",
+    "Inhassoro",
+    "Massinga",
+    "Maxixe",
+    "Morrumbene",
+    "Quissico",
+    "Vilankulo"
+  ]
+}

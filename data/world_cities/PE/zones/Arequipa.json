@@ -1,0 +1,23 @@
+{
+  "country": "Perou",
+  "code": "PE",
+  "zone": "Arequipa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arequipa",
+    "Camaná",
+    "Ciudad Satelite",
+    "Cocachacra",
+    "Cono Norte",
+    "El Pedregal",
+    "El Triunfo ( El Cruce)",
+    "Horacio Zeballos Gamez",
+    "Jacobo Hunter",
+    "Lluta",
+    "Mollendo",
+    "Orcopampa",
+    "Punta de Bombón",
+    "Selva Alegre",
+    "Yura"
+  ]
+}

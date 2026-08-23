@@ -1,0 +1,20 @@
+{
+  "country": "Taiwan",
+  "code": "TW",
+  "zone": "Taipei",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Banqiao",
+    "Danshui",
+    "New Taipei City",
+    "Pinglin",
+    "Sanxia",
+    "Sanzhi",
+    "Shiding",
+    "Shimen",
+    "Shulin",
+    "Wulai",
+    "Xizhi",
+    "Yingge"
+  ]
+}

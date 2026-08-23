@@ -1,0 +1,13 @@
+{
+  "country": "Ouganda",
+  "code": "UG",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Central Region",
+    "Eastern Region",
+    "Northern Region",
+    "Western Region"
+  ],
+  "source": "geonames_admin1"
+}

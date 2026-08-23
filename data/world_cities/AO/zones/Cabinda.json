@@ -1,0 +1,12 @@
+{
+  "country": "Angola",
+  "code": "AO",
+  "zone": "Cabinda",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Belize",
+    "Buco Zau",
+    "Cabinda",
+    "Cacongo"
+  ]
+}

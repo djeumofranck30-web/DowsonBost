@@ -1,0 +1,16 @@
+{
+  "country": "Namibie",
+  "code": "NA",
+  "zone": "Erongo Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arandis",
+    "Henties Bay",
+    "Karibib",
+    "Omaruru",
+    "Otjimbingwe",
+    "Swakopmund",
+    "Usakos",
+    "Walvis Bay"
+  ]
+}

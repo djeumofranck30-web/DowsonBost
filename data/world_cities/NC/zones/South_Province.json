@@ -1,0 +1,17 @@
+{
+  "country": "Nouvelle-Caledonie",
+  "code": "NC",
+  "zone": "South Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bourail",
+    "Dumbéa",
+    "La Foa",
+    "Magenta",
+    "Mont-Dore",
+    "Nouméa",
+    "Païta",
+    "Rivière-Salée",
+    "Vallée des Colons"
+  ]
+}

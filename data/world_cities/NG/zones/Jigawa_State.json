@@ -1,0 +1,23 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Jigawa State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Babura",
+    "Birnin Kudu",
+    "Birniwa",
+    "Chakwama",
+    "Dutse",
+    "Gagarawa",
+    "Gumel",
+    "Gwaram",
+    "Hadejia",
+    "Kafin Hausa",
+    "Kazaure",
+    "Kiyawa",
+    "Mallammaduri",
+    "Ringim",
+    "Samamiya"
+  ]
+}

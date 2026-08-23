@@ -1,0 +1,18 @@
+{
+  "country": "Iran",
+  "code": "IR",
+  "zone": "South Khorasan Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Boshrūyeh",
+    "Bīrjand",
+    "Eslāmīyeh",
+    "Ferdows",
+    "Khūsf",
+    "Nehbandān",
+    "Qā’en",
+    "Sarbīsheh",
+    "Sarāyān",
+    "Āyask"
+  ]
+}

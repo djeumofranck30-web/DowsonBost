@@ -1,0 +1,12 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Aksaray",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aksaray",
+    "Ağaçören",
+    "Ortaköy",
+    "Sarıyahşi"
+  ]
+}

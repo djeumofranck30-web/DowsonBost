@@ -1,0 +1,10 @@
+{
+  "country": "Coree du Sud",
+  "code": "KR",
+  "zone": "Incheon",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ganghwa-gun",
+    "Incheon"
+  ]
+}

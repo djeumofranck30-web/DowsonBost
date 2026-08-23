@@ -1,0 +1,10 @@
+{
+  "country": "Macédoine du Nord",
+  "code": "MK",
+  "zone": "Kichevo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kičevo",
+    "Zajas"
+  ]
+}

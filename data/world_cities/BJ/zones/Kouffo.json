@@ -1,0 +1,14 @@
+{
+  "country": "Benin",
+  "code": "BJ",
+  "zone": "Kouffo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aplahoué",
+    "Djakotomé",
+    "Dogbo",
+    "Klouékanmè",
+    "Lalo",
+    "Toviklin"
+  ]
+}

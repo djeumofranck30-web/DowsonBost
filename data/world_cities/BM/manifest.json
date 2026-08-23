@@ -1,0 +1,19 @@
+{
+  "country": "Bermudes",
+  "code": "BM",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Devonshire",
+    "Hamilton",
+    "Hamilton city",
+    "Paget",
+    "Pembroke",
+    "Saint Georgeʼs",
+    "Sandys",
+    "Smithʼs",
+    "Southampton",
+    "Warwick"
+  ],
+  "source": "geonames_admin1"
+}

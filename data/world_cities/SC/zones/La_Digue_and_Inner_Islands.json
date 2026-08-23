@@ -1,0 +1,9 @@
+{
+  "country": "Seychelles",
+  "code": "SC",
+  "zone": "La Digue and Inner Islands",
+  "source": "geonames_cities5000",
+  "cities": [
+    "La Passe"
+  ]
+}

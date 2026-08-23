@@ -1,0 +1,10 @@
+{
+  "country": "Bahrein",
+  "code": "BH",
+  "zone": "Muharraq",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Muharraq",
+    "Al Ḩadd"
+  ]
+}

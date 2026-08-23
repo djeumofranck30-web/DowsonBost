@@ -1,0 +1,22 @@
+{
+  "country": "Kirghizistan",
+  "code": "KG",
+  "zone": "Batken",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Andarak",
+    "Aydarken",
+    "Batken",
+    "Iradan",
+    "Katran",
+    "Khalmion",
+    "Kulundu",
+    "Kyzyl-Bel’",
+    "Kyzyl-Jol",
+    "Kyzyl-Kyya",
+    "Razzakov",
+    "Samarkandyk",
+    "Suluktu",
+    "Uch-Korgon"
+  ]
+}

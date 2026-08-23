@@ -1,0 +1,13 @@
+{
+  "country": "Eswatini",
+  "code": "SZ",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Hhohho Region",
+    "Lubombo Region",
+    "Manzini Region",
+    "Shiselweni"
+  ],
+  "source": "geonames_admin1"
+}

@@ -1,0 +1,13 @@
+{
+  "country": "Senegal",
+  "code": "SN",
+  "zone": "Sédhiou",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bounkiling",
+    "Goudomp",
+    "Madina Wandifa",
+    "Ndiamakouta",
+    "Sédhiou"
+  ]
+}

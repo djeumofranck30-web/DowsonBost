@@ -1,0 +1,19 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Kano State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bebeji",
+    "Dambatta",
+    "Dan Gora",
+    "Gaya",
+    "Gwarzo",
+    "Kano",
+    "Kibiya",
+    "Kura",
+    "Rano",
+    "Takai",
+    "Wudil"
+  ]
+}

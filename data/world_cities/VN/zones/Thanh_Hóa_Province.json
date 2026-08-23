@@ -1,0 +1,16 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Thanh Hóa Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bỉm Sơn",
+    "Nga Sơn",
+    "Nghi Sơn",
+    "Sầm Sơn",
+    "Thanh Hóa",
+    "Thị Trấn Lam Sơn",
+    "Thị Trấn Sao Vàng",
+    "Thị Trấn Vân Du"
+  ]
+}

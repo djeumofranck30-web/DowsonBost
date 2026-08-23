@@ -1,0 +1,13 @@
+{
+  "country": "Perou",
+  "code": "PE",
+  "zone": "Moquegua Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ilo",
+    "Moquegua",
+    "Pacocha",
+    "San Antonio",
+    "Torata"
+  ]
+}

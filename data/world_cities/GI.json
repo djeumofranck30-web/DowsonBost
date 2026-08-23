@@ -1,0 +1,10 @@
+{
+  "country": "Gibraltar",
+  "code": "GI",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gibraltar",
+    "Reclamation Areas",
+    "South District"
+  ]
+}

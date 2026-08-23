@@ -1,0 +1,15 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Thai Nguyen",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bắc Kạn",
+    "Phổ Yên",
+    "Thành phố Sông Công",
+    "Thái Nguyên",
+    "Thị Trấn Ba Hàng",
+    "Thị Trấn Đại Từ",
+    "Vân Tùng"
+  ]
+}

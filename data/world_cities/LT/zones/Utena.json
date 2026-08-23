@@ -1,0 +1,14 @@
+{
+  "country": "Lituanie",
+  "code": "LT",
+  "zone": "Utena",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anykščiai",
+    "Ignalina",
+    "Molėtai",
+    "Utena",
+    "Visaginas",
+    "Zarasai"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Vichada Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cumaribo",
+    "La Primavera",
+    "Puerto Carreño"
+  ]
+}

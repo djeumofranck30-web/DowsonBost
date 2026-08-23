@@ -1,0 +1,9 @@
+{
+  "country": "Malaisie",
+  "code": "MY",
+  "zone": "Labuan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Labuan"
+  ]
+}

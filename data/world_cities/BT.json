@@ -1,0 +1,30 @@
+{
+  "country": "Bhoutan",
+  "code": "BT",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Daga",
+    "Gasa",
+    "Geylegphug",
+    "Ha",
+    "Jakar",
+    "Lhuentse",
+    "Lungtenzampa",
+    "Mongar",
+    "Paro",
+    "Pemagatshel",
+    "Phuntsholing",
+    "Punākha",
+    "Samdrup Jongkhar",
+    "Samtse",
+    "Sarpang",
+    "Shemgang",
+    "Thimphu",
+    "Trashi Yangtse",
+    "Trashigang",
+    "Trongsa",
+    "Tsimasham",
+    "Tsirang",
+    "Wangdue Phodrang"
+  ]
+}

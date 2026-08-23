@@ -1,0 +1,17 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Tay Ninh",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cần Giuộc",
+    "Cần Đước",
+    "Dương Minh Châu",
+    "Hòa Thành",
+    "Phú Khương",
+    "Trảng Bàng",
+    "Tân An",
+    "Tây Ninh",
+    "Xóm Bến Củi"
+  ]
+}

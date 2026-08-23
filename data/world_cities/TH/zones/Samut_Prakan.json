@@ -1,0 +1,12 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Samut Prakan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Khlong Bang Sao Thong",
+    "Bang Bo District",
+    "Phra Pradaeng",
+    "Samut Prakan"
+  ]
+}

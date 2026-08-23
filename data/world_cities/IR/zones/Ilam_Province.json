@@ -1,0 +1,18 @@
+{
+  "country": "Iran",
+  "code": "IR",
+  "zone": "Ilam Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arkavaz",
+    "Chavār",
+    "Darreh Shahr",
+    "Dehlorān",
+    "Eyvān",
+    "Mehrān",
+    "Sarābleh",
+    "Ābdānān",
+    "Āsmānābād",
+    "Īlām"
+  ]
+}

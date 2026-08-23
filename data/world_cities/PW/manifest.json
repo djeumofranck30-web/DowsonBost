@@ -1,0 +1,25 @@
+{
+  "country": "Palaos",
+  "code": "PW",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Aimeliik",
+    "Airai",
+    "Angaur",
+    "Hatohobei",
+    "Kayangel",
+    "Koror",
+    "Melekeok",
+    "Ngaraard",
+    "Ngarchelong",
+    "Ngardmau",
+    "Ngatpang",
+    "Ngchesar",
+    "Ngeremlengui",
+    "Ngiwal",
+    "Peleliu",
+    "Sonsorol"
+  ],
+  "source": "geonames_admin1"
+}

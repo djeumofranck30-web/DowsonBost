@@ -1,0 +1,9 @@
+{
+  "country": "Benin",
+  "code": "BJ",
+  "zone": "Littoral",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cotonou"
+  ]
+}

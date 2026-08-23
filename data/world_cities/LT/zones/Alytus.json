@@ -1,0 +1,11 @@
+{
+  "country": "Lituanie",
+  "code": "LT",
+  "zone": "Alytus",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alytus",
+    "Druskininkai",
+    "Varėna"
+  ]
+}

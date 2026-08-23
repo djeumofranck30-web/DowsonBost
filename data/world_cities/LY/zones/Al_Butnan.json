@@ -1,0 +1,12 @@
+{
+  "country": "Libye",
+  "code": "LY",
+  "zone": "Al Butnan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Bardīyah",
+    "Kambūt",
+    "Tobruk",
+    "Umm Sā'ad"
+  ]
+}

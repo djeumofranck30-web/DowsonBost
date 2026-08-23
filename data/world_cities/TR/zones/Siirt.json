@@ -1,0 +1,15 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Siirt",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baykan",
+    "Eruh",
+    "Kayabağlar",
+    "Kurtalan",
+    "Pervari",
+    "Siirt",
+    "Şirvan"
+  ]
+}

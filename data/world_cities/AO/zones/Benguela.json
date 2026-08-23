@@ -1,0 +1,24 @@
+{
+  "country": "Angola",
+  "code": "AO",
+  "zone": "Benguela",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Balombo",
+    "Baía Farta",
+    "Benguela",
+    "Bocoio",
+    "Caimbambo",
+    "Camboio",
+    "Catumbela",
+    "Chindumbo",
+    "Chongoroi",
+    "Cubal",
+    "Cubal do Lumbo",
+    "Dombe Grande",
+    "Ganda",
+    "Lobito",
+    "Navegantes",
+    "Praia Bebe"
+  ]
+}

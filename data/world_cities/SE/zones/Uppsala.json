@@ -1,0 +1,18 @@
+{
+  "country": "Suede",
+  "code": "SE",
+  "zone": "Uppsala",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bålsta",
+    "Enköping",
+    "Flogsta",
+    "Gamla Uppsala",
+    "Knivsta",
+    "Skutskär",
+    "Storvreta",
+    "Sävja",
+    "Tierp",
+    "Uppsala"
+  ]
+}

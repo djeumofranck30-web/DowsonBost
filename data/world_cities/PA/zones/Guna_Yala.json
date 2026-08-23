@@ -1,0 +1,9 @@
+{
+  "country": "Panama",
+  "code": "PA",
+  "zone": "Guna Yala",
+  "source": "geonames_cities5000",
+  "cities": [
+    "El Porvenir"
+  ]
+}

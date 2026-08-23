@@ -1,0 +1,11 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Suez",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ain Sukhna",
+    "Al ‘Ayn as Sukhnah",
+    "Suez"
+  ]
+}

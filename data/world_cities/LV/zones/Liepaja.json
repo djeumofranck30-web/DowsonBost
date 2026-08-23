@@ -1,0 +1,10 @@
+{
+  "country": "Lettonie",
+  "code": "LV",
+  "zone": "Liepaja",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Karosta",
+    "Liepāja"
+  ]
+}

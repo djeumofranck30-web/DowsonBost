@@ -1,0 +1,18 @@
+{
+  "country": "Suede",
+  "code": "SE",
+  "zone": "Dalarna",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Avesta",
+    "Borlänge",
+    "Falun",
+    "Hedemora",
+    "Leksand",
+    "Ludvika",
+    "Mora",
+    "Orsa",
+    "Rättvik",
+    "Smedjebacken"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "country": "Perou",
+  "code": "PE",
+  "zone": "Pasco",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cerro de Pasco",
+    "Chaupimarca",
+    "Oxapampa",
+    "Paragsha- San Andres - Jose Carlos Mariategui",
+    "Tinyahuarco",
+    "Villa Rica",
+    "Yanacancha",
+    "Yanahuanca"
+  ]
+}

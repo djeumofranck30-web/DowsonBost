@@ -1,0 +1,12 @@
+{
+  "country": "Arabie saoudite",
+  "code": "SA",
+  "zone": "Al Bahah Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Bahah",
+    "Al Mindak",
+    "Al ‘Aqīq",
+    "Baljurashi"
+  ]
+}

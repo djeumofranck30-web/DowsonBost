@@ -1,0 +1,18 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Tuyen Quang",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bắc Quang",
+    "Hà Giang",
+    "Thị Trấn Mèo Vạc",
+    "Thị Trấn Na Hang",
+    "Thị Trấn Tân Yên",
+    "Thị Trấn Việt Quang",
+    "Thị Trấn Vĩnh Tuy",
+    "Thị Trấn Yên Minh",
+    "Thị Trấn Đồng Văn",
+    "Tuyên Quang"
+  ]
+}

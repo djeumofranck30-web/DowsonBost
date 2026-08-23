@@ -1,0 +1,17 @@
+{
+  "country": "Moldavie",
+  "code": "MD",
+  "zone": "Transnistria",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Blijnii Hutor",
+    "Camenca",
+    "Dnestrovsc",
+    "Dubăsari",
+    "Hryhoriopol",
+    "Pervomaisc",
+    "Rîbniţa",
+    "Slobozia",
+    "Tiraspol"
+  ]
+}

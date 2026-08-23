@@ -1,0 +1,23 @@
+{
+  "country": "Senegal",
+  "code": "SN",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Dakar",
+    "Diourbel Region",
+    "Fatick",
+    "Kaffrine",
+    "Kaolack",
+    "Kedougou",
+    "Kolda",
+    "Louga",
+    "Matam",
+    "Saint-Louis",
+    "Sédhiou",
+    "Tambacounda",
+    "Thies",
+    "Ziguinchor"
+  ],
+  "source": "geonames_admin1"
+}

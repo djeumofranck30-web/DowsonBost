@@ -1,0 +1,12 @@
+{
+  "country": "Paraguay",
+  "code": "PY",
+  "zone": "Alto Paraná Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ciudad del Este",
+    "Doctor Juan León Mallorquín",
+    "Presidente Franco",
+    "Santa Rita"
+  ]
+}

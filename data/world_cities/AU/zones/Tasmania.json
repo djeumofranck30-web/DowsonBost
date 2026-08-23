@@ -1,0 +1,29 @@
+{
+  "country": "Australie",
+  "code": "AU",
+  "zone": "Tasmania",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Blackmans Bay",
+    "Burnie",
+    "Claremont",
+    "Devonport",
+    "Glenorchy",
+    "Hobart",
+    "Howrah",
+    "Kingston",
+    "Launceston",
+    "Lenah Valley",
+    "Lindisfarne",
+    "Moonah",
+    "New Norfolk",
+    "New Town",
+    "Newnham",
+    "Riverside",
+    "Sandy Bay",
+    "South Hobart",
+    "Ulverstone",
+    "West Hobart",
+    "Wynyard"
+  ]
+}

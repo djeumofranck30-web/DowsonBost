@@ -1,0 +1,16 @@
+{
+  "country": "Kazakhstan",
+  "code": "KZ",
+  "zone": "Zhetysu Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Atameken",
+    "Balpyk Bi",
+    "Sarqant",
+    "Saryozek",
+    "Taldykorgan",
+    "Tekeli",
+    "Ushtobe",
+    "Zharkent"
+  ]
+}

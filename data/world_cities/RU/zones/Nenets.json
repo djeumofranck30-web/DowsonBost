@@ -1,0 +1,11 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Nenets",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Iskateley",
+    "Nar'yan-Mar",
+    "Narian-Mar"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "country": "Cameroun",
+  "code": "CM",
+  "zone": "West",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bafang",
+    "Bafoussam",
+    "Bamendjou",
+    "Bana",
+    "Bandjoun",
+    "Bangangté",
+    "Bansoa",
+    "Bazou",
+    "Dschang",
+    "Foumban",
+    "Foumbot",
+    "Kekem",
+    "Magba",
+    "Mbouda",
+    "Ngou",
+    "Tonga"
+  ]
+}

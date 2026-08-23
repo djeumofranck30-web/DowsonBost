@@ -1,0 +1,21 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Sivas",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aksu",
+    "Altınyayla",
+    "Divriği",
+    "Gemerek",
+    "Gürün",
+    "İmranlı",
+    "Kangal",
+    "Koyulhisar",
+    "Sivas",
+    "Suşehri",
+    "Yıldızeli",
+    "Zara",
+    "Şarkışla"
+  ]
+}

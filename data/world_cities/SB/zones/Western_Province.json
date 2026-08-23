@@ -1,0 +1,10 @@
+{
+  "country": "Salomon",
+  "code": "SB",
+  "zone": "Western Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gizo",
+    "Noro"
+  ]
+}

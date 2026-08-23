@@ -1,0 +1,12 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Ouargla",
+  "source": "geonames_cities5000",
+  "cities": [
+    "El Hadjira",
+    "Hassi Messaoud",
+    "Ouargla",
+    "Rouissat"
+  ]
+}

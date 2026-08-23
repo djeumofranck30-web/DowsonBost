@@ -1,0 +1,14 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Covasna County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baraolt",
+    "Covasna",
+    "Sfântu Gheorghe",
+    "Târgu Secuiesc",
+    "Zagon",
+    "Întorsura Buzăului"
+  ]
+}

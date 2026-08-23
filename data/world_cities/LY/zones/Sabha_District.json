@@ -1,0 +1,10 @@
+{
+  "country": "Libye",
+  "code": "LY",
+  "zone": "Sabha District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Jadīd",
+    "Sabha"
+  ]
+}

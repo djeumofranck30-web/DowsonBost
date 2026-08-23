@@ -1,0 +1,17 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "West Nusa Tenggara",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bima",
+    "Dompu",
+    "Labuan Lombok",
+    "Lembar",
+    "Mataram",
+    "Praya",
+    "Selong",
+    "Sumbawa Besar",
+    "Taliwang"
+  ]
+}

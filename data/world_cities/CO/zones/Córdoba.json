@@ -1,0 +1,31 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Córdoba",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ayapel",
+    "Buenavista",
+    "Canalete",
+    "Cereté",
+    "Chimá",
+    "Chinú",
+    "Ciénaga de Oro",
+    "Cotorra",
+    "Lorica",
+    "Momil",
+    "Montelíbano",
+    "Montería",
+    "Moñitos",
+    "Planeta Rica",
+    "Pueblo Nuevo",
+    "Purísima de la Concepción",
+    "Sahagún",
+    "San Antero",
+    "San Bernardo del Viento",
+    "San Carlos",
+    "San Pelayo",
+    "Tierralta",
+    "Valencia"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "country": "Namibie",
+  "code": "NA",
+  "zone": "Karas Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aussenkehr",
+    "Bethanie",
+    "Karasburg",
+    "Keetmanshoop",
+    "Lüderitz",
+    "Oranjemund",
+    "Rosh Pinah",
+    "Warmbad"
+  ]
+}

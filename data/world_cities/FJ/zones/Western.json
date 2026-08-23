@@ -1,0 +1,15 @@
+{
+  "country": "Fidji",
+  "code": "FJ",
+  "zone": "Western",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ba",
+    "Lautoka",
+    "Nadi",
+    "Sigatoka",
+    "Tavua",
+    "Vaileka",
+    "Vatukoula"
+  ]
+}

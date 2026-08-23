@@ -1,0 +1,23 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Enugu State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Adani",
+    "Ake-Eze",
+    "Aku",
+    "Amagunze",
+    "Awgu",
+    "Eha Amufu",
+    "Enugu",
+    "Enugu-Ezike",
+    "Ete",
+    "Ikem",
+    "Mberubu",
+    "Nsukka",
+    "Obolo-Eke (1)",
+    "Opi",
+    "Udi"
+  ]
+}

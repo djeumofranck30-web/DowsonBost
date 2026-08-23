@@ -1,0 +1,10 @@
+{
+  "country": "Guinee-Bissau",
+  "code": "GW",
+  "zone": "Bolama",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bolama",
+    "Bubaque"
+  ]
+}

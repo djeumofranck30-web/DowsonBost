@@ -1,0 +1,22 @@
+{
+  "country": "Coree du Sud",
+  "code": "KR",
+  "zone": "Chungcheongnam-do",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Asan",
+    "Boryeong",
+    "Buyeo",
+    "Cheonan",
+    "Gongju",
+    "Hongseong",
+    "Kinzan",
+    "Nonsan",
+    "Seonghwan",
+    "Seosan",
+    "Taesal-li",
+    "Tangjin",
+    "Yesan",
+    "Yŏnmu"
+  ]
+}

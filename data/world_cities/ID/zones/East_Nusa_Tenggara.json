@@ -1,0 +1,20 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "East Nusa Tenggara",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Atambua",
+    "Ende",
+    "Kalabahi",
+    "Kefamenanu",
+    "Kupang",
+    "Labuan Bajo",
+    "Lewoleba",
+    "Maumere",
+    "Ruteng",
+    "Soe",
+    "Tambolaka",
+    "Waingapu"
+  ]
+}

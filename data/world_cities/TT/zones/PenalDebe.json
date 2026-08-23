@@ -1,0 +1,9 @@
+{
+  "country": "Trinite-et-Tobago",
+  "code": "TT",
+  "zone": "Penal/Debe",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Peñal"
+  ]
+}

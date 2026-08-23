@@ -1,0 +1,16 @@
+{
+  "country": "Angola",
+  "code": "AO",
+  "zone": "Luanda Norte",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cafunfo",
+    "Cassanguidi",
+    "Chitato",
+    "Cuango-Luzamba",
+    "Cuilo",
+    "Dundo",
+    "Lubalo",
+    "Lucapa"
+  ]
+}

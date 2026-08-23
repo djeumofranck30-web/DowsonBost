@@ -1,0 +1,12 @@
+{
+  "country": "Bolivie",
+  "code": "BO",
+  "zone": "Tarija Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bermejo",
+    "Tarija",
+    "Villamontes",
+    "Yacuiba"
+  ]
+}

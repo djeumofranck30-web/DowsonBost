@@ -1,0 +1,21 @@
+{
+  "country": "Ouzbekistan",
+  "code": "UZ",
+  "zone": "Samarqand Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bulung’ur Shahri",
+    "Charxin",
+    "Chelak",
+    "Dahbed",
+    "Ishtixon Shahri",
+    "Jomboy Shahri",
+    "Juma Shahri",
+    "Kattaqo’rg’on Shahri",
+    "Oqtosh",
+    "Payariq Shahri",
+    "Payshamba Shahri",
+    "Samarkand",
+    "Urgut Shahri"
+  ]
+}

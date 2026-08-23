@@ -1,0 +1,16 @@
+{
+  "country": "Cuba",
+  "code": "CU",
+  "zone": "Ciego de Ávila Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baraguá",
+    "Chambas",
+    "Ciego de Ávila",
+    "Ciro Redondo",
+    "Florencia",
+    "Morón",
+    "Primero de Enero",
+    "Venezuela"
+  ]
+}

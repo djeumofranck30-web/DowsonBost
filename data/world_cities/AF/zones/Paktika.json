@@ -1,0 +1,11 @@
+{
+  "country": "Afghanistan",
+  "code": "AF",
+  "zone": "Paktika",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Sharan",
+    "Zarghūn Shahr",
+    "Zaṟah Sharan"
+  ]
+}

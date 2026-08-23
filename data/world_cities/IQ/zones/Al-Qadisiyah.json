@@ -1,0 +1,13 @@
+{
+  "country": "Irak",
+  "code": "IQ",
+  "zone": "Al-Qadisiyah",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Diwaniyah",
+    "Ash Shāmīyah",
+    "Nahiyat Ghammas",
+    "Nāḩiyat ash Shināfīyah",
+    "‘Afak"
+  ]
+}

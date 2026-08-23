@@ -1,0 +1,12 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "Izabal Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "El Estor",
+    "Lívingston",
+    "Morales",
+    "Puerto Barrios"
+  ]
+}

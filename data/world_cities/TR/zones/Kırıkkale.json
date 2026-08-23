@@ -1,0 +1,13 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Kırıkkale",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Delice",
+    "Karakeçili",
+    "Keskin",
+    "Kırıkkale",
+    "Sulakyurt"
+  ]
+}

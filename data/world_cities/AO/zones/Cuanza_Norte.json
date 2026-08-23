@@ -1,0 +1,15 @@
+{
+  "country": "Angola",
+  "code": "AO",
+  "zone": "Cuanza Norte",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Camabatela",
+    "Cazombo",
+    "Dondo",
+    "Golungo Alto",
+    "Lucala",
+    "N'dalatando",
+    "Nzagi"
+  ]
+}

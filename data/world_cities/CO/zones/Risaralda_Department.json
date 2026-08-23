@@ -1,0 +1,20 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Risaralda Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anserma",
+    "Apía",
+    "Belén de Umbría",
+    "Dosquebradas",
+    "La Virginia",
+    "Marsella",
+    "Mistrató",
+    "Pereira",
+    "Pueblo Rico",
+    "Quinchía",
+    "Santa Rosa de Cabal",
+    "Santuario"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Azerbaidjan",
+  "code": "AZ",
+  "zone": "Masally",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Boradigah",
+    "Masally"
+  ]
+}

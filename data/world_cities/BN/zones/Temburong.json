@@ -1,0 +1,9 @@
+{
+  "country": "Brunei",
+  "code": "BN",
+  "zone": "Temburong",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bangar"
+  ]
+}

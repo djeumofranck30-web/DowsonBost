@@ -1,0 +1,10 @@
+{
+  "country": "Guyana",
+  "code": "GY",
+  "zone": "Mahaica-Berbice",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Fort Wellington",
+    "Rosignol"
+  ]
+}

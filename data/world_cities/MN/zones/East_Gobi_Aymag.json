@@ -1,0 +1,10 @@
+{
+  "country": "Mongolie",
+  "code": "MN",
+  "zone": "East Gobi Aymag",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Saynshand",
+    "Zamiin Uud"
+  ]
+}

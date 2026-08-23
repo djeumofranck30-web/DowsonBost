@@ -1,0 +1,11 @@
+{
+  "country": "Haiti",
+  "code": "HT",
+  "zone": "Sud",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aquin",
+    "Les Anglais",
+    "Les Cayes"
+  ]
+}

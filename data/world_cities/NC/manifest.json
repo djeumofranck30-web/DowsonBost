@@ -1,0 +1,12 @@
+{
+  "country": "Nouvelle-Caledonie",
+  "code": "NC",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Loyalty Islands",
+    "North Province",
+    "South Province"
+  ],
+  "source": "geonames_admin1"
+}

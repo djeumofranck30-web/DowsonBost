@@ -1,0 +1,12 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "North Kalimantan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Malinau",
+    "Nunukan",
+    "Tanjung Selor",
+    "Tarakan"
+  ]
+}

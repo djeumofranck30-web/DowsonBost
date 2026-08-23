@@ -1,0 +1,10 @@
+{
+  "country": "Salvador",
+  "code": "SV",
+  "zone": "Chalatenango Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chalatenango",
+    "Nueva Concepción"
+  ]
+}

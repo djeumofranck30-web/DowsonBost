@@ -1,0 +1,11 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Souk Ahras",
+  "source": "geonames_cities5000",
+  "cities": [
+    "M’Daourouch",
+    "Sedrata",
+    "Souk Ahras"
+  ]
+}

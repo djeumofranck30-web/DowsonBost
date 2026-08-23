@@ -1,0 +1,23 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Mariy-El Republic",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Koz’modem’yansk",
+    "Krasnogorskiy",
+    "Kuzhener",
+    "Mari-Turek",
+    "Medvedevo",
+    "Morki",
+    "Novyy Toryal",
+    "Orshanka",
+    "Paran’ga",
+    "Semenovka",
+    "Sernur",
+    "Sovetskiy",
+    "Volzhsk",
+    "Yoshkar-Ola",
+    "Zvenigovo"
+  ]
+}

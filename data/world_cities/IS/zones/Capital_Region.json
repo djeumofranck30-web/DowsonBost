@@ -1,0 +1,13 @@
+{
+  "country": "Islande",
+  "code": "IS",
+  "zone": "Capital Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Garðabær",
+    "Hafnarfjörður",
+    "Kópavogur",
+    "Mosfellsbær",
+    "Reykjavík"
+  ]
+}

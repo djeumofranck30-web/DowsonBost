@@ -1,0 +1,9 @@
+{
+  "country": "Papouasie-Nouvelle-Guinee",
+  "code": "PG",
+  "zone": "Madang Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Madang"
+  ]
+}

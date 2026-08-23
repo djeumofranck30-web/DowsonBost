@@ -1,0 +1,18 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "Quiché",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chajul",
+    "Chichicastenango",
+    "Cunén",
+    "Joyabaj",
+    "Nebaj",
+    "Sacapulas",
+    "San Juan Cotzal",
+    "Santa Cruz del Quiché",
+    "Uspantán",
+    "Zacualpa"
+  ]
+}

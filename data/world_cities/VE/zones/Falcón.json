@@ -1,0 +1,23 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Falcón",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Boca de Aroa",
+    "Chichiriviche",
+    "Coro",
+    "Dabajuro",
+    "Judibana",
+    "La Aguada",
+    "La Vela de Coro",
+    "Mene de Mauroa",
+    "Pueblo Nuevo",
+    "Puerto Cumarebo",
+    "Punta Cardón",
+    "Punto Fijo",
+    "Santa Cruz de los Taques",
+    "Tocuyo de La Costa",
+    "Tucacas"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "country": "Somalie",
+  "code": "SO",
+  "zone": "Bari",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bandarbeyla",
+    "Bargaal",
+    "Bereeda",
+    "Bosaso",
+    "Caluula",
+    "El Dibir",
+    "Iskushuban",
+    "Qandala"
+  ]
+}

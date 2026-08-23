@@ -1,0 +1,13 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Logone Oriental",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baïbokoum",
+    "Béboto",
+    "Bébédja",
+    "Doba",
+    "Goré"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Moldavie",
+  "code": "MD",
+  "zone": "Donduşeni",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Briceni",
+    "Donduşeni"
+  ]
+}

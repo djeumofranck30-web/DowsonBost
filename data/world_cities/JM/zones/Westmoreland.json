@@ -1,0 +1,11 @@
+{
+  "country": "Jamaique",
+  "code": "JM",
+  "zone": "Westmoreland",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Grange Hill",
+    "Negril",
+    "Savanna-la-Mar"
+  ]
+}

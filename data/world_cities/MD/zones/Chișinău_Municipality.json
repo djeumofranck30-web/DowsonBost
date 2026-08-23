@@ -1,0 +1,16 @@
+{
+  "country": "Moldavie",
+  "code": "MD",
+  "zone": "Chișinău Municipality",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chisinau",
+    "Ciorescu",
+    "Codru",
+    "Cricova",
+    "Durleşti",
+    "Stăuceni",
+    "Sîngera",
+    "Vadul lui Vodă"
+  ]
+}

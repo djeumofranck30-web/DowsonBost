@@ -1,0 +1,17 @@
+{
+  "country": "Hong Kong",
+  "code": "HK",
+  "zone": "Tuen Mun",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Butterfly",
+    "Sam Shing",
+    "Siu Hei",
+    "So Kwun Wat",
+    "So Kwun Wat Tsuen",
+    "Tuen Mun",
+    "Tuen Mun San Hui",
+    "Wu King",
+    "Yuet Wu"
+  ]
+}

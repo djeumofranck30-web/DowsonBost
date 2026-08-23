@@ -1,0 +1,23 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Yobe State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Damaturu",
+    "Dankalwa",
+    "Dapchi",
+    "Daura",
+    "Gashua",
+    "Geidam",
+    "Goniri",
+    "Gorgoram",
+    "Gujba",
+    "Gwio Kura",
+    "Kumagunnam",
+    "Lajere",
+    "Machina",
+    "Nguru",
+    "Potiskum"
+  ]
+}

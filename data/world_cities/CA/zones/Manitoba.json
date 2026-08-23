@@ -1,0 +1,32 @@
+{
+  "country": "Canada",
+  "code": "CA",
+  "zone": "Manitoba",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Booth",
+    "Brandon",
+    "Bridgwater Forest",
+    "Dauphin",
+    "Flin Flon",
+    "Fort Garry South",
+    "Fort Richmond",
+    "King Edward",
+    "Montcalm",
+    "Morden",
+    "Norway House",
+    "Portage la Prairie",
+    "Richmond West",
+    "Selkirk",
+    "Silver Heights",
+    "South Pointe",
+    "St. James-Assiniboia East",
+    "Steinbach",
+    "The Pas",
+    "Thompson",
+    "Waverley Heights",
+    "West St. Paul",
+    "Winkler",
+    "Winnipeg"
+  ]
+}

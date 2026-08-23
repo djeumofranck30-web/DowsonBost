@@ -1,0 +1,28 @@
+{
+  "country": "Maldives",
+  "code": "MV",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Baa Atholhu",
+    "Dhaalu Atholhu",
+    "Faadhippolhu Atoll",
+    "Faafu Atholhu",
+    "Gaafu Alif Atoll",
+    "Gaafu Dhaalu Atoll",
+    "Gnyaviyani Atoll",
+    "Haa Alifu Atholhu",
+    "Haa Dhaalu Atholhu",
+    "Kaafu Atoll",
+    "Laamu",
+    "Meemu Atholhu",
+    "Noonu Atoll",
+    "Raa Atoll",
+    "Seenu",
+    "Shaviyani Atholhu",
+    "Southern Ari Atoll",
+    "Thaa Atholhu",
+    "Vaavu Atholhu"
+  ],
+  "source": "geonames_admin1"
+}

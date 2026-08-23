@@ -1,0 +1,13 @@
+{
+  "country": "Mali",
+  "code": "ML",
+  "zone": "Gao",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bamba",
+    "Bourem",
+    "Gao",
+    "I-n-Tillit",
+    "Tessit"
+  ]
+}

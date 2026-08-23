@@ -1,0 +1,14 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Smolyan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chepelare",
+    "Devin",
+    "Madan",
+    "Nedelino",
+    "Smolyan",
+    "Zlatograd"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "country": "Kirghizistan",
+  "code": "KG",
+  "zone": "Osh Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Daroot-Korgon",
+    "Gul’cha",
+    "Kara Suu",
+    "Kara-Kulja",
+    "Nookat",
+    "Osh",
+    "Uzgen"
+  ]
+}

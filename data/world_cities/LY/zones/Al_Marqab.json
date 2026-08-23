@@ -1,0 +1,13 @@
+{
+  "country": "Libye",
+  "code": "LY",
+  "zone": "Al Marqab",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Khaḑrā’",
+    "Al Khums",
+    "Al-'Alūaṣ",
+    "Msalātah",
+    "Tarhuna"
+  ]
+}

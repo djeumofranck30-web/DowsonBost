@@ -1,0 +1,17 @@
+{
+  "country": "Rwanda",
+  "code": "RW",
+  "zone": "Eastern Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bugaragara",
+    "Gahini",
+    "Kayonza",
+    "Kibungo",
+    "Nyagatare",
+    "Nyamata",
+    "Ruhuha",
+    "Rwamagana",
+    "Umutara"
+  ]
+}

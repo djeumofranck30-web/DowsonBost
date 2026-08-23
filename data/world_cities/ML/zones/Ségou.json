@@ -1,0 +1,20 @@
+{
+  "country": "Mali",
+  "code": "ML",
+  "zone": "Ségou",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bla",
+    "Diourou",
+    "Dougabougou",
+    "Kinmparana",
+    "Ké-Macina",
+    "Markala",
+    "Moninnpébougou",
+    "Niono",
+    "Pèlèngana",
+    "San",
+    "Siribala Coro",
+    "Ségou"
+  ]
+}

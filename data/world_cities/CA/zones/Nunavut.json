@@ -1,0 +1,9 @@
+{
+  "country": "Canada",
+  "code": "CA",
+  "zone": "Nunavut",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Iqaluit"
+  ]
+}

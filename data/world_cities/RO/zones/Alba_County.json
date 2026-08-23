@@ -1,0 +1,21 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Alba County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abrud",
+    "Aiud",
+    "Alba Iulia",
+    "Blaj",
+    "Cugir",
+    "Câmpeni",
+    "Ighiu",
+    "Ocna Mureş",
+    "Sebeş",
+    "Săsciori",
+    "Teiuş",
+    "Vurpăr",
+    "Zlatna"
+  ]
+}

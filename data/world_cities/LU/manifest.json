@@ -1,0 +1,18 @@
+{
+  "country": "Luxembourg",
+  "code": "LU",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Capellen",
+    "Diekirch",
+    "Esch-sur-Alzette",
+    "Grevenmacher",
+    "Luxembourg",
+    "Mersch",
+    "Redange",
+    "Remich",
+    "Wiltz"
+  ],
+  "source": "geonames_admin1"
+}

@@ -1,0 +1,9 @@
+{
+  "country": "Guyana",
+  "code": "GY",
+  "zone": "Upper Takutu-Upper Essequibo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Lethem"
+  ]
+}

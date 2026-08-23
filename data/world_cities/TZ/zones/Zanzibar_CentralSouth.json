@@ -1,0 +1,11 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Zanzibar Central/South",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Koani",
+    "Mahonda",
+    "Sokoni"
+  ]
+}

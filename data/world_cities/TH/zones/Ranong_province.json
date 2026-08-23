@@ -1,0 +1,9 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Ranong province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ranong"
+  ]
+}

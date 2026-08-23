@@ -1,0 +1,20 @@
+{
+  "country": "Cuba",
+  "code": "CU",
+  "zone": "Mayabeque",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Batabanó",
+    "Bejucal",
+    "Güines",
+    "Jamaica",
+    "Jaruco",
+    "La Casualidad",
+    "La Salud",
+    "Madruga",
+    "Quivicán",
+    "San José de las Lajas",
+    "San Nicolás de Bari",
+    "Santa Cruz del Norte"
+  ]
+}

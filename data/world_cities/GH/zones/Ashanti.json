@@ -1,0 +1,21 @@
+{
+  "country": "Ghana",
+  "code": "GH",
+  "zone": "Ashanti",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Agogo",
+    "Ahwiaa",
+    "Bekwai",
+    "Effiduase",
+    "Ejura",
+    "Konongo",
+    "Kumasi",
+    "Mampong",
+    "New Tafo",
+    "Obuase",
+    "Sefwi",
+    "Tafo",
+    "Tepa"
+  ]
+}

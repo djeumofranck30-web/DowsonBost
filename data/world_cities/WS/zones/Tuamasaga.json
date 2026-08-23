@@ -1,0 +1,10 @@
+{
+  "country": "Samoa",
+  "code": "WS",
+  "zone": "Tuamasaga",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Afega",
+    "Apia"
+  ]
+}

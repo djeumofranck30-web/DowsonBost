@@ -1,0 +1,31 @@
+{
+  "country": "Pologne",
+  "code": "PL",
+  "zone": "Lubusz",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Drezdenko",
+    "Gorzów Wielkopolski",
+    "Gubin",
+    "Kostrzyn nad Odrą",
+    "Kożuchów",
+    "Krosno Odrzańskie",
+    "Lubsko",
+    "Międzyrzecz",
+    "Nowa Sól",
+    "Nowogród Bobrzański",
+    "Rzepin",
+    "Skwierzyna",
+    "Strzelce Krajeńskie",
+    "Sulechów",
+    "Szprotawa",
+    "Słubice",
+    "Witnica",
+    "Wschowa",
+    "Zbąszynek",
+    "Zielona Góra",
+    "Świebodzin",
+    "Żagań",
+    "Żary"
+  ]
+}

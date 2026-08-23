@@ -1,0 +1,11 @@
+{
+  "country": "Syrie",
+  "code": "SY",
+  "zone": "Latakia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Burj Islām",
+    "Jablah",
+    "Latakia"
+  ]
+}

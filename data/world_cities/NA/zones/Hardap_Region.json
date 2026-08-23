@@ -1,0 +1,10 @@
+{
+  "country": "Namibie",
+  "code": "NA",
+  "zone": "Hardap Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Mariental",
+    "Rehoboth"
+  ]
+}

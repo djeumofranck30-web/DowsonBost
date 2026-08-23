@@ -1,0 +1,13 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Stara Zagora",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chirpan",
+    "Gŭlŭbovo",
+    "Kazanlak",
+    "Radnevo",
+    "Stara Zagora"
+  ]
+}

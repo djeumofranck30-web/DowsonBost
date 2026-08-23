@@ -1,0 +1,11 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Batha",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ati",
+    "Umm Hājar",
+    "Yao"
+  ]
+}

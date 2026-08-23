@@ -1,0 +1,11 @@
+{
+  "country": "Libye",
+  "code": "LY",
+  "zone": "Misratah",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bani Walid",
+    "Misratah",
+    "Zliten"
+  ]
+}

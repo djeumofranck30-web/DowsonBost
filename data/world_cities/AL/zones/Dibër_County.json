@@ -1,0 +1,13 @@
+{
+  "country": "Albanie",
+  "code": "AL",
+  "zone": "Dibër County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bulqizë",
+    "Burrel",
+    "Klos",
+    "Peshkopi",
+    "Shupenzë"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "country": "Argentine",
+  "code": "AR",
+  "zone": "Chubut",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Comodoro Rivadavia",
+    "Esquel",
+    "Gaiman",
+    "Puerto Madryn",
+    "Rada Tilly",
+    "Rawson",
+    "Sarmiento",
+    "Trelew",
+    "Trevelin"
+  ]
+}

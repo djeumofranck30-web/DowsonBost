@@ -1,0 +1,19 @@
+{
+  "country": "Finlande",
+  "code": "FI",
+  "zone": "Satakunta",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Eura",
+    "Eurajoki",
+    "Harjavalta",
+    "Huittinen",
+    "Kankaanpää",
+    "Kokemäki",
+    "Noormarkku",
+    "Pori",
+    "Rauma",
+    "Säkylä",
+    "Ulvila"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Manouba",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Borj el Amri",
+    "Den Den",
+    "Douar Hicher",
+    "El Battan",
+    "Jedeïda",
+    "La Mornaghia",
+    "Manouba",
+    "Oued Lill",
+    "Tebourba"
+  ]
+}

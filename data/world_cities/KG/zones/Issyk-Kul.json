@@ -1,0 +1,16 @@
+{
+  "country": "Kirghizistan",
+  "code": "KG",
+  "zone": "Issyk-Kul",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ak-Suu",
+    "Balykchy",
+    "Bokombayevskoye",
+    "Boz-Beshik",
+    "Cholpon-Ata",
+    "Karakol",
+    "Kyzyl-Suu",
+    "Tyup"
+  ]
+}

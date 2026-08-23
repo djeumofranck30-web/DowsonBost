@@ -1,0 +1,11 @@
+{
+  "country": "Saint-Pierre-et-Miquelon",
+  "code": "PM",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Miquelon-Langlade",
+    "Saint-Pierre"
+  ],
+  "source": "geonames_admin1"
+}

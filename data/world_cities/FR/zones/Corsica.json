@@ -1,0 +1,15 @@
+{
+  "country": "France",
+  "code": "FR",
+  "zone": "Corsica",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ajaccio",
+    "Bastia",
+    "Biguglia",
+    "Borgo",
+    "Calvi",
+    "Corte",
+    "Porto-Vecchio"
+  ]
+}

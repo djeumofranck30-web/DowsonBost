@@ -1,0 +1,23 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Mara",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bunda",
+    "Butiama",
+    "Issenye",
+    "Kibara",
+    "Matongo",
+    "Mugango",
+    "Mugumu",
+    "Muriti",
+    "Musoma",
+    "Nakatunguru",
+    "Nansio",
+    "Nyamuswa",
+    "Shirati",
+    "Sirari",
+    "Tarime"
+  ]
+}

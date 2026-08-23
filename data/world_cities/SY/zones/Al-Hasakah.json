@@ -1,0 +1,13 @@
+{
+  "country": "Syrie",
+  "code": "SY",
+  "zone": "Al-Hasakah",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ad Darbāsīyah",
+    "Al Mālikīyah",
+    "Al Qāmishlī",
+    "Al Ḩasakah",
+    "‘Āmūdā"
+  ]
+}

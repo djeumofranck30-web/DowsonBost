@@ -1,0 +1,23 @@
+{
+  "country": "Syrie",
+  "code": "SY",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Al-Hasakah",
+    "Aleppo",
+    "Damascus Governorate",
+    "Daraa",
+    "Deir ez-Zor",
+    "Hama",
+    "Homs",
+    "Idlib",
+    "Latakia",
+    "Quneitra",
+    "Raqqa",
+    "Rif-dimashq",
+    "Suwayda",
+    "Tartus"
+  ],
+  "source": "geonames_admin1"
+}

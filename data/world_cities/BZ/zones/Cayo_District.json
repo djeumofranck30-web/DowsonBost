@@ -1,0 +1,12 @@
+{
+  "country": "Belize",
+  "code": "BZ",
+  "zone": "Cayo District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Belmopan",
+    "Benque Viejo el Carmen",
+    "San Ignacio",
+    "Santa Elena"
+  ]
+}

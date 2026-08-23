@@ -1,0 +1,17 @@
+{
+  "country": "Guyane francaise",
+  "code": "GF",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Apatou",
+    "Cayenne",
+    "Grand-Santi",
+    "Kourou",
+    "Macouria",
+    "Mana",
+    "Maripasoula",
+    "Matoury",
+    "Rémire-Montjoly",
+    "Saint-Laurent-du-Maroni"
+  ]
+}

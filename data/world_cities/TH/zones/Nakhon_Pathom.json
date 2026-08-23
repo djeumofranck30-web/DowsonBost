@@ -1,0 +1,11 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Nakhon Pathom",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bang Len",
+    "Nakhon Pathom",
+    "Sam Phran"
+  ]
+}

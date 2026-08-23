@@ -1,0 +1,31 @@
+{
+  "country": "Bahamas",
+  "code": "BS",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Acklins",
+    "Bimini",
+    "Black Point",
+    "Cat Island",
+    "Central Abaco",
+    "Central Eleuthera",
+    "Crooked Island and Long Cay",
+    "East Grand Bahama",
+    "Exuma",
+    "Freeport",
+    "Inagua",
+    "Long Island",
+    "Mayaguana",
+    "Moore’s Island",
+    "New Providence",
+    "North Abaco",
+    "North Andros",
+    "Ragged Island",
+    "Rum Cay",
+    "San Salvador",
+    "Spanish Wells",
+    "West Grand Bahama"
+  ],
+  "source": "geonames_admin1"
+}

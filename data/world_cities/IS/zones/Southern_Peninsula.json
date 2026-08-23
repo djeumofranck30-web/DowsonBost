@@ -1,0 +1,10 @@
+{
+  "country": "Islande",
+  "code": "IS",
+  "zone": "Southern Peninsula",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Keflavík",
+    "Reykjanesbær"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "country": "Portugal",
+  "code": "PT",
+  "zone": "Coimbra",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Antanhol",
+    "Arazede",
+    "Arganil",
+    "Assafarge",
+    "Bairro do Loreto",
+    "Buarcos",
+    "Cantanhede",
+    "Castelo Viegas",
+    "Coimbra",
+    "Condeixa-a-Nova",
+    "Eiras",
+    "Figueira da Foz",
+    "Lousã",
+    "Mira",
+    "Miranda do Corvo",
+    "Poiares",
+    "Ribeira de Frades",
+    "Santa Clara",
+    "Santo António dos Olivais",
+    "Soure",
+    "São Martinho do Bispo",
+    "São Paulo de Frades",
+    "Tavarede",
+    "Tábua"
+  ]
+}

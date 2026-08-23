@@ -1,0 +1,22 @@
+{
+  "country": "Argentine",
+  "code": "AR",
+  "zone": "Jujuy",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abra Pampa",
+    "Caimancito",
+    "Calilegua",
+    "Fraile Pintado",
+    "Humahuaca",
+    "La Esperanza",
+    "La Quiaca",
+    "Libertador General San Martín",
+    "Palma Sola",
+    "Palpalá",
+    "San Pedro de Jujuy",
+    "San Salvador de Jujuy",
+    "Tilcara",
+    "Yuto"
+  ]
+}

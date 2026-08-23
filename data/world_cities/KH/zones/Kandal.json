@@ -1,0 +1,12 @@
+{
+  "country": "Cambodge",
+  "code": "KH",
+  "zone": "Kandal",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ampov Prey",
+    "Khpob Ateav",
+    "Kouk Trab",
+    "Ta Khmau"
+  ]
+}

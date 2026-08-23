@@ -1,0 +1,11 @@
+{
+  "country": "Macao",
+  "code": "MO",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Our Lady of Carmo",
+    "Saint Francis Xavier"
+  ],
+  "source": "geonames_admin1"
+}

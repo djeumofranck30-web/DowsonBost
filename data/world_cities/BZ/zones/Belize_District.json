@@ -1,0 +1,11 @@
+{
+  "country": "Belize",
+  "code": "BZ",
+  "zone": "Belize District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Belize City",
+    "Ladyville",
+    "San Pedro"
+  ]
+}

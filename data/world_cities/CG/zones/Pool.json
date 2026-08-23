@@ -1,0 +1,10 @@
+{
+  "country": "Congo",
+  "code": "CG",
+  "zone": "Pool",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kindamba",
+    "Kinkala"
+  ]
+}

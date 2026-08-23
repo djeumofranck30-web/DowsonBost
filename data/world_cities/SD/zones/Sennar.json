@@ -1,0 +1,17 @@
+{
+  "country": "Soudan",
+  "code": "SD",
+  "zone": "Sennar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ad Dindar",
+    "Ad-Dindar",
+    "As Sūkī",
+    "Jalqani",
+    "Kināna",
+    "Maiurno",
+    "Sennar",
+    "Singa",
+    "Umm Shawkah"
+  ]
+}

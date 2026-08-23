@@ -1,0 +1,13 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "East Kalimantan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Balikpapan",
+    "Bontang",
+    "Loa Janan",
+    "Nusantara",
+    "Samarinda"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Qalyubia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Khuşūş",
+    "Al Khānkah",
+    "Al Qanāţir al Khayrīyah",
+    "Al-'Ubūr",
+    "Banhā",
+    "Qahā",
+    "Qalyub",
+    "Shibīn al Qanāţir",
+    "Shubrā al Khaymah",
+    "Ţūkh"
+  ]
+}

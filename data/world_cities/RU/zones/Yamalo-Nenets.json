@@ -1,0 +1,22 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Yamalo-Nenets",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gubkinskiy",
+    "Kharp",
+    "Korotchaevo",
+    "Labytnangi",
+    "Muravlenko",
+    "Nadym",
+    "Novyy Urengoy",
+    "Noyabrsk",
+    "Pangody",
+    "Purpe",
+    "Salekhard",
+    "Tarko-Sale",
+    "Tazovsky",
+    "Urengoy"
+  ]
+}

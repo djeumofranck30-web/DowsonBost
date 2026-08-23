@@ -1,0 +1,11 @@
+{
+  "country": "Liberia",
+  "code": "LR",
+  "zone": "Lofa County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Foya Kamara",
+    "Voinjama",
+    "Zorzor"
+  ]
+}

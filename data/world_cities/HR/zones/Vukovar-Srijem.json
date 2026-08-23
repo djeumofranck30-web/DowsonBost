@@ -1,0 +1,12 @@
+{
+  "country": "Croatie",
+  "code": "HR",
+  "zone": "Vukovar-Srijem",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ivankovo",
+    "Vinkovci",
+    "Vukovar",
+    "Županja"
+  ]
+}

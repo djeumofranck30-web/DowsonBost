@@ -1,0 +1,20 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Zamfara State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anka",
+    "Dan Sadau",
+    "Gummi",
+    "Gusau",
+    "Kaura Namoda",
+    "Kwatarkwashi",
+    "Maru",
+    "Moriki",
+    "Sauri",
+    "Shinkafi",
+    "Talata Mafara",
+    "Tsafe"
+  ]
+}

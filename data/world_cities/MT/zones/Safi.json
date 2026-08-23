@@ -1,0 +1,9 @@
+{
+  "country": "Malte",
+  "code": "MT",
+  "zone": "Safi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Safi"
+  ]
+}

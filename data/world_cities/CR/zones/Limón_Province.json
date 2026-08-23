@@ -1,0 +1,13 @@
+{
+  "country": "Costa Rica",
+  "code": "CR",
+  "zone": "Limón Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Guácimo",
+    "Guápiles",
+    "Limón",
+    "Pocora",
+    "Siquirres"
+  ]
+}

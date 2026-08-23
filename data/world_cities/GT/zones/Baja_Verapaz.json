@@ -1,0 +1,14 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "Baja Verapaz",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cubulco",
+    "Purulhá",
+    "Rabinal",
+    "Salamá",
+    "San Jerónimo",
+    "San Miguel Chicaj"
+  ]
+}

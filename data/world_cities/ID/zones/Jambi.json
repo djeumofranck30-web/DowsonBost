@@ -1,0 +1,15 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "Jambi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bejubang Dua",
+    "Jambi City",
+    "Kuala Tungkal",
+    "Mendaha",
+    "Muara Bungo",
+    "Simpang",
+    "Sungai Penuh"
+  ]
+}

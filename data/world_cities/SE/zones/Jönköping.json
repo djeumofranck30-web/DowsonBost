@@ -1,0 +1,22 @@
+{
+  "country": "Suede",
+  "code": "SE",
+  "zone": "Jönköping",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anderstorp",
+    "Bankeryd",
+    "Eksjö",
+    "Gislaved",
+    "Habo",
+    "Huskvarna",
+    "Jönköping",
+    "Mullsjö",
+    "Nässjö",
+    "Sävsjö",
+    "Tranås",
+    "Vaggeryd",
+    "Vetlanda",
+    "Värnamo"
+  ]
+}

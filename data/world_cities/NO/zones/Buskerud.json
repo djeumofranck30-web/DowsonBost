@@ -1,0 +1,12 @@
+{
+  "country": "Norvege",
+  "code": "NO",
+  "zone": "Buskerud",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Drammen",
+    "Hønefoss",
+    "Kongsberg",
+    "Tranby"
+  ]
+}

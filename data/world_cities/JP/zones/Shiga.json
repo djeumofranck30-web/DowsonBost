@@ -1,0 +1,29 @@
+{
+  "country": "Japon",
+  "code": "JP",
+  "zone": "Shiga",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Echigawa",
+    "Hikone",
+    "Hino",
+    "Kitahama",
+    "Konan",
+    "Kusatsu",
+    "Kōka",
+    "Kōra",
+    "Maibara",
+    "Minakuchichō-matoba",
+    "Moriyama",
+    "Nagahama",
+    "Rittō",
+    "Ryūō",
+    "Taga",
+    "Takashima",
+    "Toyosato",
+    "Yasu",
+    "Youkaichi",
+    "Ōmihachiman",
+    "Ōtsu"
+  ]
+}

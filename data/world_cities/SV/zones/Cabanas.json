@@ -1,0 +1,9 @@
+{
+  "country": "Salvador",
+  "code": "SV",
+  "zone": "Cabanas",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Sensuntepeque"
+  ]
+}

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -93,6 +94,76 @@ def _names_from_elements(elements: list[dict[str, Any]]) -> tuple[str, ...]:
         if item.get("tags", {}).get("name")
     }
     return tuple(sorted(names, key=str.casefold))
+
+
+def _zone_slug(name: str) -> str:
+    cleaned = re.sub(r'[<>:"/\\|?*]+', "", name.strip())
+    cleaned = re.sub(r"\s+", "_", cleaned)
+    return cleaned[:120] or "zone"
+
+
+def _load_bundled_zone_cities(
+    country_code: str,
+    level1: str,
+    level2: str = "",
+) -> tuple[str, ...]:
+    code = country_code.strip().upper()
+    zone = level1.strip()
+    if not code or not zone:
+        return ()
+    slug = _zone_slug(zone)
+    candidates = [
+        _BUNDLED_CITIES_DIR / code / "zones" / f"{slug}.json",
+    ]
+    if level2.strip():
+        candidates.append(
+            _BUNDLED_CITIES_DIR / code / "zones" / f"{slug}__{_zone_slug(level2)}.json"
+        )
+    for path in candidates:
+        if not path.is_file():
+            continue
+        try:
+            with path.open(encoding="utf-8") as handle:
+                payload = json.load(handle)
+            raw = payload.get("cities") if isinstance(payload, dict) else payload
+            if isinstance(raw, list):
+                names = tuple(
+                    sorted({str(name).strip() for name in raw if str(name).strip()}, key=str.casefold)
+                )
+                if names:
+                    return names
+        except (OSError, json.JSONDecodeError, TypeError):
+            continue
+    return ()
+
+
+def _filter_bundled_country_by_zone(
+    country_code: str,
+    level1: str,
+    level2: str = "",
+) -> tuple[str, ...]:
+    """Fallback: filter country city list by zone name appearing in city/admin labels."""
+    bundled = _load_bundled_country_cities(country_code)
+    if not bundled:
+        return ()
+    tokens = [_normalize_zone_token(level1), _normalize_zone_token(level2)]
+    tokens = [token for token in tokens if token and len(token) >= 3]
+    if not tokens:
+        return ()
+    matched = [
+        city
+        for city in bundled
+        if any(token in _normalize_zone_token(city) for token in tokens)
+    ]
+    if len(matched) >= 3:
+        return tuple(sorted(matched, key=str.casefold))
+    return ()
+
+
+def _normalize_zone_token(value: str) -> str:
+    text = unicodedata.normalize("NFKD", value or "")
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    return re.sub(r"\s+", " ", text.strip().casefold())
 
 
 def _load_bundled_country_cities(country_code: str) -> tuple[str, ...]:
@@ -278,17 +349,21 @@ def fetch_cities_for_zone(
             return bundled
 
     if zone1 or zone2:
-        names = _fetch_cities_overpass_zone(code, zone1, zone2)
-        if len(names) < 5:
-            fallback = _fetch_cities_nominatim_zone(code, zone1, zone2)
-            if fallback:
-                names = fallback
+        bundled_zone = _load_bundled_zone_cities(code, zone1, zone2)
+        if bundled_zone:
+            names = bundled_zone
+        else:
+            names = _fetch_cities_overpass_zone(code, zone1, zone2)
+            if len(names) < 5:
+                fallback = _fetch_cities_nominatim_zone(code, zone1, zone2)
+                if fallback:
+                    names = fallback
+            if len(names) < 5:
+                filtered = _filter_bundled_country_by_zone(code, zone1, zone2)
+                if filtered:
+                    names = filtered
     else:
         names = _fetch_cities_overpass_country(code)
-        if len(names) < 5:
-            bundled = _load_bundled_country_cities(code)
-            if bundled:
-                names = bundled
 
     _store_cache(key, names)
     return names

@@ -1,0 +1,14 @@
+{
+  "country": "Honduras",
+  "code": "HN",
+  "zone": "Choluteca Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ciudad Choluteca",
+    "El Triunfo",
+    "Marcovia",
+    "Monjarás",
+    "Morolica",
+    "San Marcos de Colón"
+  ]
+}

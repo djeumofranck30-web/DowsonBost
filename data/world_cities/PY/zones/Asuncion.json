@@ -1,0 +1,9 @@
+{
+  "country": "Paraguay",
+  "code": "PY",
+  "zone": "Asuncion",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Asunción"
+  ]
+}

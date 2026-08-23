@@ -1,0 +1,16 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Kanchanaburi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Khao Nang Sang Hua",
+    "Ban Nong Pradu",
+    "Bo Phloi",
+    "Kanchanaburi",
+    "Phanom Thuan",
+    "Sangkhla Buri",
+    "Tha Maka",
+    "Tha Muang"
+  ]
+}

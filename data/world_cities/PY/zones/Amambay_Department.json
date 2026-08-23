@@ -1,0 +1,11 @@
+{
+  "country": "Paraguay",
+  "code": "PY",
+  "zone": "Amambay Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bella Vista",
+    "Capitán Bado",
+    "Pedro Juan Caballero"
+  ]
+}

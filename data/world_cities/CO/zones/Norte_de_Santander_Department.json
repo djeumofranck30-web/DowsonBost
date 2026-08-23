@@ -1,0 +1,22 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Norte de Santander Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abrego",
+    "Chinácota",
+    "Cúcuta",
+    "El Carmen",
+    "El Zulia",
+    "Hacarí",
+    "Los Patios",
+    "Ocaña",
+    "Pamplona",
+    "Puerto Santander",
+    "Sardinata",
+    "Tibú",
+    "Toledo",
+    "Villa del Rosario"
+  ]
+}

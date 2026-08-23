@@ -1,0 +1,24 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Kostroma Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Buy",
+    "Chistyye Bory",
+    "Chukhloma",
+    "Galich",
+    "Kostroma",
+    "Krasnoye-na-Volge",
+    "Makar’yev",
+    "Manturovo",
+    "Nerekhta",
+    "Neya",
+    "Ostrovskoye",
+    "Shar’ya",
+    "Soligalich",
+    "Sudislavl’",
+    "Vetluzhskiy",
+    "Volgorechensk"
+  ]
+}

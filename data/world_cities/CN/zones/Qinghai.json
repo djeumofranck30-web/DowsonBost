@@ -1,0 +1,31 @@
+{
+  "country": "Chine",
+  "code": "CN",
+  "zone": "Qinghai",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dongchuan",
+    "Duoba",
+    "Guōlèmùdé",
+    "Haomen",
+    "Ha’ergai Dadui",
+    "Huatugou",
+    "Lushar",
+    "Mangnai Zhen",
+    "Maqin County",
+    "Mole",
+    "Nianbo",
+    "Qabqa",
+    "Qiaotou",
+    "Qilian",
+    "Qingshizui",
+    "Quankou",
+    "Sanjiaocheng",
+    "Shaliuhe",
+    "Tongren",
+    "Xihai",
+    "Xihai Town",
+    "Xining",
+    "Yushu"
+  ]
+}

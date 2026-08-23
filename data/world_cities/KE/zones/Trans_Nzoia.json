@@ -1,0 +1,10 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Trans Nzoia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kiminini",
+    "Kitale"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "country": "Equateur",
+  "code": "EC",
+  "zone": "Tungurahua Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ambato",
+    "Baños",
+    "Pelileo",
+    "Píllaro"
+  ]
+}

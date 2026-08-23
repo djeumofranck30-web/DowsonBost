@@ -1,0 +1,10 @@
+{
+  "country": "Congo",
+  "code": "CG",
+  "zone": "Kouilou",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Loango",
+    "Nzassi"
+  ]
+}

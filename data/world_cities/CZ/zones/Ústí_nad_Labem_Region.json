@@ -1,0 +1,33 @@
+{
+  "country": "Tchequie",
+  "code": "CZ",
+  "zone": "Ústí nad Labem Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bílina",
+    "Chomutov",
+    "Dubí",
+    "Duchcov",
+    "Děčín",
+    "Jirkov",
+    "Jílové",
+    "Kadaň",
+    "Klášterec nad Ohří",
+    "Krupka",
+    "Litoměřice",
+    "Litvínov",
+    "Louny",
+    "Lovosice",
+    "Most",
+    "Podbořany",
+    "Roudnice nad Labem",
+    "Rumburk",
+    "Teplice",
+    "Varnsdorf",
+    "Ústí nad Labem",
+    "Česká Kamenice",
+    "Šluknov",
+    "Štětí",
+    "Žatec"
+  ]
+}

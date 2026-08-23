@@ -1,0 +1,9 @@
+{
+  "country": "Coree du Sud",
+  "code": "KR",
+  "zone": "Sejong-si",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Sejong"
+  ]
+}

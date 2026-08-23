@@ -1,0 +1,23 @@
+{
+  "country": "Slovaquie",
+  "code": "SK",
+  "zone": "Košice Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dobšiná",
+    "Gelnica",
+    "Košice",
+    "Krompachy",
+    "Kráľovský Chlmec",
+    "Michalovce",
+    "Moldava nad Bodvou",
+    "Rožňava",
+    "Sečovce",
+    "Smižany",
+    "Sobrance",
+    "Spišská Nová Ves",
+    "Trebišov",
+    "Veľké Kapušany",
+    "Čaňa"
+  ]
+}

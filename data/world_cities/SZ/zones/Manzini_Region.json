@@ -1,0 +1,10 @@
+{
+  "country": "Eswatini",
+  "code": "SZ",
+  "zone": "Manzini Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Malkerns",
+    "Manzini"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Sousse Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akouda",
+    "Bou Ficha",
+    "Enfidha",
+    "Ezzouhour",
+    "Hammam Sousse",
+    "Harqalah",
+    "Kalaa Srira",
+    "Kelaa Kebira",
+    "Ksiba",
+    "Messadine",
+    "Msaken",
+    "Port el Kantaoui",
+    "Sidi Bou Ali",
+    "Sousse",
+    "Zaouiet Sousse"
+  ]
+}

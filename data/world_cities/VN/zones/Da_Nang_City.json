@@ -1,0 +1,31 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Da Nang City",
+  "source": "geonames_cities5000",
+  "cities": [
+    "An Hà",
+    "An Hải",
+    "Bà Nà",
+    "Cẩm Lệ",
+    "Da Nang",
+    "Hiệp Đức",
+    "Hoi An",
+    "Hòa Cường",
+    "Hải Châu",
+    "Núi Thành",
+    "Sơn Trà",
+    "Tam Kỳ",
+    "Thanh Khê",
+    "Tra Que Vegetable Village",
+    "Trà My",
+    "Điện Bàn",
+    "Đông Phú",
+    "Đại Cường",
+    "Đại Lộc",
+    "Đại Nghĩa",
+    "Đại Quang",
+    "Đại Tân",
+    "Đại Đồng"
+  ]
+}

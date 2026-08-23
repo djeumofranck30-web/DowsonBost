@@ -1,0 +1,11 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Anosy",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amboasary",
+    "Betroka",
+    "Tôlanaro"
+  ]
+}

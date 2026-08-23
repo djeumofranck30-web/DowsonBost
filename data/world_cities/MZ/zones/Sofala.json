@@ -1,0 +1,16 @@
+{
+  "country": "Mozambique",
+  "code": "MZ",
+  "zone": "Sofala",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Beira",
+    "Búzi",
+    "Caia",
+    "Dondo",
+    "Gorongosa",
+    "Inhaminga",
+    "Marromeu",
+    "Nhamatanda"
+  ]
+}

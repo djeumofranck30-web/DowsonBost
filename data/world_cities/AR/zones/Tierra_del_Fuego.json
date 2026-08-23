@@ -1,0 +1,10 @@
+{
+  "country": "Argentine",
+  "code": "AR",
+  "zone": "Tierra del Fuego",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Río Grande",
+    "Ushuaia"
+  ]
+}

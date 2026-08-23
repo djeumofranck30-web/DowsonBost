@@ -1,0 +1,21 @@
+{
+  "country": "Maurice",
+  "code": "MU",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Agalega Islands",
+    "Black River",
+    "Cargados Carajos",
+    "Flacq",
+    "Grand Port",
+    "Moka",
+    "Pamplemousses",
+    "Plaines Wilhems",
+    "Port Louis",
+    "Rivière du Rempart",
+    "Rodrigues",
+    "Savanne"
+  ],
+  "source": "geonames_admin1"
+}

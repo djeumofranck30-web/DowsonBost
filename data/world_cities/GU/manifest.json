@@ -1,0 +1,28 @@
+{
+  "country": "Guam",
+  "code": "GU",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Agana Heights",
+    "Agat",
+    "Asan",
+    "Barrigada",
+    "Chalan Pago-Ordot",
+    "Dededo",
+    "Hagatna",
+    "Inarajan",
+    "Mangilao",
+    "Merizo",
+    "Mongmong-Toto-Maite",
+    "Piti",
+    "Santa Rita",
+    "Sinajana",
+    "Talofofo",
+    "Tamuning",
+    "Umatac",
+    "Yigo",
+    "Yona"
+  ],
+  "source": "geonames_admin1"
+}

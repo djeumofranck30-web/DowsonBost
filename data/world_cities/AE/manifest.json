@@ -1,0 +1,16 @@
+{
+  "country": "Emirats arabes unis",
+  "code": "AE",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Abu Dhabi",
+    "Ajman",
+    "Dubai",
+    "Fujairah",
+    "Ras Al Khaimah",
+    "Sharjah",
+    "Umm Al Quwain"
+  ],
+  "source": "geonames_admin1"
+}

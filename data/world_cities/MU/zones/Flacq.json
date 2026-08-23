@@ -1,0 +1,18 @@
+{
+  "country": "Maurice",
+  "code": "MU",
+  "zone": "Flacq",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bel Air Rivière Sèche",
+    "Bon Accueil",
+    "Brisée Verdière",
+    "Centre de Flacq",
+    "Ecroignard",
+    "Lalmatie",
+    "Laventure",
+    "Poste de Flacq",
+    "Quatre Cocos",
+    "Sebastopol"
+  ]
+}

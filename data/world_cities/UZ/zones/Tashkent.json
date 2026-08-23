@@ -1,0 +1,13 @@
+{
+  "country": "Ouzbekistan",
+  "code": "UZ",
+  "zone": "Tashkent",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bektemir",
+    "Chilanzar",
+    "Sergeli",
+    "Tashkent",
+    "Yunusobod"
+  ]
+}

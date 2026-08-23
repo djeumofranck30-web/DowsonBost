@@ -1,0 +1,27 @@
+{
+  "country": "Coree du Nord",
+  "code": "KP",
+  "zone": "South Hwanghae",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ayang-ni",
+    "Chaeryŏng-ŭp",
+    "Changyŏn",
+    "Ch’ŏngdan-ŭp",
+    "Haeju",
+    "Kangnyŏng",
+    "Kwail-ŭp",
+    "Ongjin",
+    "Paech’ŏn-ŭp",
+    "Pongch’ŏn-ŭp",
+    "Pyŏksŏng-ŭp",
+    "Samch’ŏn",
+    "Sinch’ŏn-ŭp",
+    "Sinwŏn-ŭp",
+    "Songhwa",
+    "T’aet’an-ŭp",
+    "Yŏnan-ŭp",
+    "Ŭllyul",
+    "Ŭnch’ŏn-ŭp"
+  ]
+}

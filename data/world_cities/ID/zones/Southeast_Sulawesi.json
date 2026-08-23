@@ -1,0 +1,12 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "Southeast Sulawesi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baubau",
+    "Katobu",
+    "Kendari",
+    "Raha"
+  ]
+}

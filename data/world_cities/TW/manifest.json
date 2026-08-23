@@ -1,0 +1,13 @@
+{
+  "country": "Taiwan",
+  "code": "TW",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Fukien",
+    "Taipei",
+    "Taiwan",
+    "Takao"
+  ],
+  "source": "geonames_admin1"
+}

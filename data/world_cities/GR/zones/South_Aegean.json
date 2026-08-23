@@ -1,0 +1,20 @@
+{
+  "country": "Grece",
+  "code": "GR",
+  "zone": "South Aegean",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Afántou",
+    "Archángelos",
+    "Ermoúpolis",
+    "Faliraki",
+    "Ialysós",
+    "Karpathos",
+    "Kos",
+    "Kálymnos",
+    "Mykonos",
+    "Náxos",
+    "Páros",
+    "Rhodes"
+  ]
+}

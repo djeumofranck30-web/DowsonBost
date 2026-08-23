@@ -1,0 +1,15 @@
+{
+  "country": "Afghanistan",
+  "code": "AF",
+  "zone": "Sar-e Pol Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chīras",
+    "Larkird",
+    "Qal‘ah-ye Shahr",
+    "Sang-e Chārak",
+    "Sar-e Pul",
+    "Tagāw-Bāy",
+    "Tukzār"
+  ]
+}

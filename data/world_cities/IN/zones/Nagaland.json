@@ -1,0 +1,28 @@
+{
+  "country": "Inde",
+  "code": "IN",
+  "zone": "Nagaland",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chantongia",
+    "Chumukedima",
+    "Dimāpur",
+    "Diphupar 'A'",
+    "Jalukie",
+    "Kiphire",
+    "Kohima",
+    "Kuda",
+    "Lakema",
+    "Longleng",
+    "Medziphema",
+    "Mokokchūng",
+    "Mon",
+    "Naginimora",
+    "Pfutsero",
+    "Tseminyu",
+    "Tuensang",
+    "Tuli",
+    "Wokha",
+    "Zunheboto"
+  ]
+}

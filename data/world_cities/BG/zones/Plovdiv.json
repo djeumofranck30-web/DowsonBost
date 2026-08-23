@@ -1,0 +1,18 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Plovdiv",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Asenovgrad",
+    "Hisarya",
+    "Karlovo",
+    "Krichim",
+    "Parvomay",
+    "Perushtitsa",
+    "Plovdiv",
+    "Rakovski",
+    "Saedinenie",
+    "Stamboliyski"
+  ]
+}

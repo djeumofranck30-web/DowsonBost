@@ -1,0 +1,11 @@
+{
+  "country": "Jamaique",
+  "code": "JM",
+  "zone": "Clarendon",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Hayes",
+    "Lionel Town",
+    "May Pen"
+  ]
+}

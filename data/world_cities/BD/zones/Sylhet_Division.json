@@ -1,0 +1,16 @@
+{
+  "country": "Bangladesh",
+  "code": "BD",
+  "zone": "Sylhet Division",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ajmiriganj",
+    "Baniachang",
+    "Chhātak",
+    "Habiganj",
+    "Maulavi Bāzār",
+    "Srimangal",
+    "Sunāmganj",
+    "Sylhet"
+  ]
+}

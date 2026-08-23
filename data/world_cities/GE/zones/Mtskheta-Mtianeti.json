@@ -1,0 +1,12 @@
+{
+  "country": "Georgie",
+  "code": "GE",
+  "zone": "Mtskheta-Mtianeti",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dusheti",
+    "Gudauri",
+    "Mtskheta",
+    "Zahesi"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "Sud-Ubangi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gemena",
+    "Libenge",
+    "Zongo"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Gharbia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Maḩallah al Kubrá",
+    "As Sanţah",
+    "Basyūn",
+    "Kafr az Zayyāt",
+    "Quţūr",
+    "Samannūd",
+    "Tanta",
+    "Zefta"
+  ]
+}

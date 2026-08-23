@@ -1,0 +1,11 @@
+{
+  "country": "Liban",
+  "code": "LB",
+  "zone": "Nabatieh",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Habboûch",
+    "Kfar Kila",
+    "Nabatîyé et Tahta"
+  ]
+}

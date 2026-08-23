@@ -1,0 +1,23 @@
+{
+  "country": "Tchequie",
+  "code": "CZ",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Carlsbad Region",
+    "Central Bohemia",
+    "Hradec Králové Region",
+    "Liberec Region",
+    "Moravian-Silesian Region",
+    "Olomouc Region",
+    "Pardubice Region",
+    "Plzeň Region",
+    "Prague",
+    "South Bohemian Region",
+    "South Moravian",
+    "Vysocina",
+    "Zlín",
+    "Ústí nad Labem Region"
+  ],
+  "source": "geonames_admin1"
+}

@@ -1,0 +1,14 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Abia State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aba",
+    "Amaigbo",
+    "Arochukwu",
+    "Bende",
+    "Ohafia-Ifigh",
+    "Umuahia"
+  ]
+}

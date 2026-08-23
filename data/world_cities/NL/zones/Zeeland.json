@@ -1,0 +1,20 @@
+{
+  "country": "Pays-Bas",
+  "code": "NL",
+  "zone": "Zeeland",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arnemuiden",
+    "Axel",
+    "Borssele",
+    "Dauwendaele",
+    "Goes",
+    "Kapelle",
+    "Middelburg",
+    "Terneuzen",
+    "Tholen",
+    "Vlissingen",
+    "Yerseke",
+    "Zierikzee"
+  ]
+}

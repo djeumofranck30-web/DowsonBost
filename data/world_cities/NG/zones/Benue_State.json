@@ -1,0 +1,20 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Benue State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aliade",
+    "Boju",
+    "Gboko",
+    "Igbor",
+    "Katsina-Ala",
+    "Makurdi",
+    "Ochobo",
+    "Otukpa",
+    "Takum",
+    "Ugbokpo",
+    "Yandev",
+    "Zaki Biam"
+  ]
+}

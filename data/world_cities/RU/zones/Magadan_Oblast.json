@@ -1,0 +1,11 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Magadan Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Magadan",
+    "Ola",
+    "Susuman"
+  ]
+}

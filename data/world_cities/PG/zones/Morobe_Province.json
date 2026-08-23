@@ -1,0 +1,11 @@
+{
+  "country": "Papouasie-Nouvelle-Guinee",
+  "code": "PG",
+  "zone": "Morobe Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bulolo",
+    "Lae",
+    "Wau"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "country": "Afghanistan",
+  "code": "AF",
+  "zone": "Takhar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Farkhār",
+    "Rustāq",
+    "Taloqan",
+    "Yangī Qal‘ah",
+    "Ārt Khwājah"
+  ]
+}

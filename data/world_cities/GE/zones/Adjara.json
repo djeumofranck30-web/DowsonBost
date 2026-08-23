@@ -1,0 +1,12 @@
+{
+  "country": "Georgie",
+  "code": "GE",
+  "zone": "Adjara",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Batumi",
+    "Chakvi",
+    "Diok’nisi",
+    "Kobuleti"
+  ]
+}

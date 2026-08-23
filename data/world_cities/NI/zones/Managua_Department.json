@@ -1,0 +1,16 @@
+{
+  "country": "Nicaragua",
+  "code": "NI",
+  "zone": "Managua Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ciudad Sandino",
+    "El Crucero",
+    "Managua",
+    "Mateare",
+    "San Rafael del Sur",
+    "Ticuantepe",
+    "Tipitapa",
+    "Villa El Carmen"
+  ]
+}

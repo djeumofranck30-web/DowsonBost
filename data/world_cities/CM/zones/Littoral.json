@@ -1,0 +1,23 @@
+{
+  "country": "Cameroun",
+  "code": "CM",
+  "zone": "Littoral",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bonabéri",
+    "Dizangué",
+    "Douala",
+    "Edéa",
+    "Loum",
+    "Manjo",
+    "Mbanga",
+    "Melong",
+    "Ndom",
+    "Ngambé",
+    "Njombé",
+    "Nkongsamba",
+    "Penja",
+    "Souza Gare",
+    "Yabassi"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "country": "Polynesie francaise",
+  "code": "PF",
+  "zone": "Austral Islands",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Vaitoare"
+  ]
+}

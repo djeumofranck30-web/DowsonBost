@@ -1,0 +1,18 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Giresun",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bulancak",
+    "Dereli",
+    "Espiye",
+    "Eynesil",
+    "Giresun",
+    "Görele",
+    "Keşap",
+    "Piraziz",
+    "Tirebolu",
+    "Şebin Karahisar"
+  ]
+}

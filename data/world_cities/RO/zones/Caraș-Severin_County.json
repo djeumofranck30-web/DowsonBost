@@ -1,0 +1,16 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Caraș-Severin County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anina",
+    "Bocşa",
+    "Băile Herculane",
+    "Caransebeş",
+    "Moldova Nouă",
+    "Oraviţa",
+    "Oţelu Roşu",
+    "Reşiţa"
+  ]
+}

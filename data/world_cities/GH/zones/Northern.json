@@ -1,0 +1,13 @@
+{
+  "country": "Ghana",
+  "code": "GH",
+  "zone": "Northern",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bimbila",
+    "Kpandae",
+    "Savelugu",
+    "Tamale",
+    "Yendi"
+  ]
+}

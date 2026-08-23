@@ -1,0 +1,11 @@
+{
+  "country": "Guinee-Bissau",
+  "code": "GW",
+  "zone": "Gabú",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gabú",
+    "Madina do Boé",
+    "Pitche"
+  ]
+}

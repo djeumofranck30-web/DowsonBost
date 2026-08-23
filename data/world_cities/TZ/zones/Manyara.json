@@ -1,0 +1,21 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Manyara",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Babati",
+    "Bashanet",
+    "Basotu",
+    "Dareda",
+    "Dongobesh",
+    "Endasak",
+    "Galappo",
+    "Katesh",
+    "Kibaya",
+    "Magugu",
+    "Mbulu",
+    "Naberera",
+    "Nangwa"
+  ]
+}

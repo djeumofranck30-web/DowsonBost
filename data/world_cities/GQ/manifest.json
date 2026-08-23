@@ -1,0 +1,17 @@
+{
+  "country": "Guinee equatoriale",
+  "code": "GQ",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Annobon",
+    "Bioko Norte",
+    "Bioko Sur",
+    "Centro Sur",
+    "Djibloho",
+    "Kié-Ntem",
+    "Litoral",
+    "Wele-Nzas"
+  ],
+  "source": "geonames_admin1"
+}

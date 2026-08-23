@@ -1,0 +1,18 @@
+{
+  "country": "Argentine",
+  "code": "AR",
+  "zone": "Buenos Aires F.D.",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Balvanera",
+    "Barracas",
+    "Belgrano",
+    "Boedo",
+    "Buenos Aires",
+    "Colegiales",
+    "Retiro",
+    "Villa Lugano",
+    "Villa Ortúzar",
+    "Villa Santa Rita"
+  ]
+}

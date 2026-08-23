@@ -1,0 +1,10 @@
+{
+  "country": "Albanie",
+  "code": "AL",
+  "zone": "Shkodër County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Pukë",
+    "Shkodër"
+  ]
+}

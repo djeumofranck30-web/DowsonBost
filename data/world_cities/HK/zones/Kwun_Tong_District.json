@@ -1,0 +1,15 @@
+{
+  "country": "Hong Kong",
+  "code": "HK",
+  "zone": "Kwun Tong District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kowloon Bay",
+    "Kwun Tong",
+    "Laguna City",
+    "Lam Tin",
+    "Sau Mau Ping",
+    "Tiu Keng Leng",
+    "Yau Tong"
+  ]
+}

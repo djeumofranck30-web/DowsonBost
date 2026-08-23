@@ -1,0 +1,13 @@
+{
+  "country": "Gambie",
+  "code": "GM",
+  "zone": "Central River",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bansang",
+    "Brikama Ba",
+    "Janjanbureh",
+    "Madiana",
+    "Sinchu Balla"
+  ]
+}

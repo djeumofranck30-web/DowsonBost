@@ -1,0 +1,11 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Kırşehir",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kaman",
+    "Kırşehir",
+    "Mucur"
+  ]
+}

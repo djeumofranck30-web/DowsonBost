@@ -1,0 +1,21 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Cluj County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Apahida",
+    "Baciu",
+    "Cluj-Napoca",
+    "Câmpia Turzii",
+    "Dej",
+    "Floreşti",
+    "Gherla",
+    "Gilău",
+    "Huedin",
+    "Mihai Viteazu",
+    "Tritenii de Jos",
+    "Turda",
+    "Viişoara"
+  ]
+}

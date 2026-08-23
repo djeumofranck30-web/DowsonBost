@@ -1,0 +1,29 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Morogoro",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dumila",
+    "Geiro",
+    "Ifakara",
+    "Kidatu",
+    "Kidodi",
+    "Kilosa",
+    "Kimamba",
+    "Kisanga",
+    "Lubata",
+    "Lupiro",
+    "Madizini",
+    "Magole",
+    "Mahenge",
+    "Malinyi",
+    "Mikumi",
+    "Mlimba",
+    "Morogoro",
+    "Msowero",
+    "Mtimbira",
+    "Ngerengere",
+    "Ruaha"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Laos",
+  "code": "LA",
+  "zone": "Bolikhamsai",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Lak Xao",
+    "Borikhan",
+    "Pakxan"
+  ]
+}

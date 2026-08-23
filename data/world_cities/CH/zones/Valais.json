@@ -1,0 +1,22 @@
+{
+  "country": "Suisse",
+  "code": "CH",
+  "zone": "Valais",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bagnes",
+    "Basse-Nendaz",
+    "Collombey",
+    "Conthey",
+    "Crans-Montana",
+    "Fully",
+    "Martigny-Ville",
+    "Monthey",
+    "Naters",
+    "Savièse",
+    "Sierre",
+    "Sitten",
+    "Visp",
+    "Zermatt"
+  ]
+}

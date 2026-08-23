@@ -1,0 +1,10 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Bogota D.C.",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bogotá",
+    "Kennedy"
+  ]
+}

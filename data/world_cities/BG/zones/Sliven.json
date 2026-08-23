@@ -1,0 +1,12 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Sliven",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kotel",
+    "Nova Zagora",
+    "Sliven",
+    "Tvarditsa"
+  ]
+}

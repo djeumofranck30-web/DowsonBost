@@ -1,0 +1,9 @@
+{
+  "country": "Lettonie",
+  "code": "LV",
+  "zone": "Preiļu novads",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Preiļi"
+  ]
+}

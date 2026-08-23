@@ -1,0 +1,15 @@
+{
+  "country": "Tuvalu",
+  "code": "TV",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Funafuti",
+    "Nanumanga",
+    "Niutao",
+    "Nui",
+    "Nukufetau",
+    "Vaitupu"
+  ],
+  "source": "geonames_admin1"
+}

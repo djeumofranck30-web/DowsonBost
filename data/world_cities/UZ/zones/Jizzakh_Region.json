@@ -1,0 +1,16 @@
+{
+  "country": "Ouzbekistan",
+  "code": "UZ",
+  "zone": "Jizzakh Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dashtobod",
+    "Do’stlik Shahri",
+    "Gagarin Shahri",
+    "G’allaorol Shahri",
+    "G’oliblar Qishlog’i",
+    "Jizzax",
+    "Paxtakor Shahri",
+    "Zomin Shaharchasi"
+  ]
+}

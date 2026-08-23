@@ -1,0 +1,13 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Chachoengsao",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bang Khla",
+    "Bang Nam Priao",
+    "Bang Pakong",
+    "Chachoengsao",
+    "Phanom Sarakham"
+  ]
+}

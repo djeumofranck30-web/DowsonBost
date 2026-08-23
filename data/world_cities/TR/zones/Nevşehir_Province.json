@@ -1,0 +1,16 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Nevşehir Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Acıgöl",
+    "Avanos",
+    "Derinkuyu",
+    "Göreme",
+    "Gülşehir",
+    "Hacıbektaş",
+    "Nevşehir",
+    "Ürgüp"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Oman",
+  "code": "OM",
+  "zone": "Northeastern Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Qābil",
+    "Badīyah",
+    "Ibrā’"
+  ]
+}

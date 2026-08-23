@@ -1,0 +1,24 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Prachin Buri",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Dong Phra Ram",
+    "Ban Noen Hom",
+    "Ban Non Hom",
+    "Ban Phra",
+    "Ban Sang",
+    "Dong Khilek",
+    "Kabin Buri",
+    "Khet Rop Mueang",
+    "Mai Khet",
+    "Na Di",
+    "Prachantakham",
+    "Prachin Buri",
+    "Prachin Buri Town",
+    "Si Maha Phot",
+    "Si Mahosot",
+    "Thambon Na Mueang"
+  ]
+}

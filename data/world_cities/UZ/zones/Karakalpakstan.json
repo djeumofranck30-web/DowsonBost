@@ -1,0 +1,18 @@
+{
+  "country": "Ouzbekistan",
+  "code": "UZ",
+  "zone": "Karakalpakstan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Beruniy",
+    "Kegeyli Shahar",
+    "Manghit",
+    "Mŭynoq",
+    "Novyy Turtkul’",
+    "Nukus",
+    "Oltinko‘l",
+    "Qŭnghirot",
+    "Shumanay",
+    "Xo‘jayli Shahri"
+  ]
+}

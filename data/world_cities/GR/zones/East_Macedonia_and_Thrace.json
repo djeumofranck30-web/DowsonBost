@@ -1,0 +1,19 @@
+{
+  "country": "Grece",
+  "code": "GR",
+  "zone": "East Macedonia and Thrace",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alexandroupoli",
+    "Arrianá",
+    "Chrysoúpolis",
+    "Didymóteicho",
+    "Dráma",
+    "Eleftherés",
+    "Féres",
+    "Kavála",
+    "Komotiní",
+    "Orestiáda",
+    "Xánthi"
+  ]
+}

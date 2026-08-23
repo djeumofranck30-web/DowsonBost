@@ -1,0 +1,21 @@
+{
+  "country": "Georgie",
+  "code": "GE",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Abkhazia",
+    "Adjara",
+    "Guria",
+    "Imereti",
+    "Kakheti",
+    "Kvemo Kartli",
+    "Mtskheta-Mtianeti",
+    "Racha-Lechkhumi and Kvemo Svaneti",
+    "Samegrelo and Zemo Svaneti",
+    "Samtskhe-Javakheti",
+    "Shida Kartli",
+    "Tbilisi"
+  ],
+  "source": "geonames_admin1"
+}

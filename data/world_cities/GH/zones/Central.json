@@ -1,0 +1,22 @@
+{
+  "country": "Ghana",
+  "code": "GH",
+  "zone": "Central",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Apam",
+    "Assin Foso",
+    "Buduburam",
+    "Cape Coast",
+    "Dunkwa",
+    "Elmina",
+    "Foso",
+    "Kasoa",
+    "Mankesim",
+    "Mumford",
+    "Saltpond",
+    "Swedru",
+    "Twifu Praso",
+    "Winneba"
+  ]
+}

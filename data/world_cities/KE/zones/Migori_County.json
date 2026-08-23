@@ -1,0 +1,14 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Migori County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Awendo",
+    "Isebania",
+    "Kihancha",
+    "Migori",
+    "Rongo",
+    "Sori"
+  ]
+}

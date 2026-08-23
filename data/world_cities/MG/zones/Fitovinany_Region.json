@@ -1,0 +1,14 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Fitovinany Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amboanjo",
+    "Ifatsy",
+    "Ikongo",
+    "Manakara",
+    "Vohimanitra",
+    "Vohipeno"
+  ]
+}

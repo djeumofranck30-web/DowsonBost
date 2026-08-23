@@ -1,0 +1,16 @@
+{
+  "country": "Salvador",
+  "code": "SV",
+  "zone": "La Libertad Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Antiguo Cuscatlán",
+    "Ciudad Arce",
+    "La Libertad",
+    "Nuevo Cuscatlán",
+    "Quezaltepeque",
+    "San Juan Opico",
+    "Santa Tecla",
+    "Zaragoza"
+  ]
+}

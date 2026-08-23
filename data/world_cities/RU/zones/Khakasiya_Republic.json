@@ -1,0 +1,21 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Khakasiya Republic",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abakan",
+    "Abaza",
+    "Askiz",
+    "Belyy Yar",
+    "Beya",
+    "Chernogorsk",
+    "Cherëmushki",
+    "Mayna",
+    "Sayanogorsk",
+    "Shira",
+    "Sorsk",
+    "Tashtyp",
+    "Ust’-Abakan"
+  ]
+}

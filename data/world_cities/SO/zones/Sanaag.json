@@ -1,0 +1,11 @@
+{
+  "country": "Somalie",
+  "code": "SO",
+  "zone": "Sanaag",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ceerigaabo",
+    "Garadag",
+    "Las Khorey"
+  ]
+}

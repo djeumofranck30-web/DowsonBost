@@ -1,0 +1,12 @@
+{
+  "country": "Lesotho",
+  "code": "LS",
+  "zone": "Berea",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Mabote",
+    "Mapoteng",
+    "Sefikeng",
+    "Teyateyaneng"
+  ]
+}

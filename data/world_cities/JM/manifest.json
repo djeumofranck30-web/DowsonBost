@@ -1,0 +1,23 @@
+{
+  "country": "Jamaique",
+  "code": "JM",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Clarendon",
+    "Hanover",
+    "Kingston",
+    "Manchester",
+    "Portland Parish",
+    "Saint Andrew Parish",
+    "Saint Ann Parish",
+    "Saint Catherine Parish",
+    "Saint James Parish",
+    "Saint Mary Parish",
+    "Saint Thomas Parish",
+    "St. Elizabeth",
+    "Trelawny Parish",
+    "Westmoreland"
+  ],
+  "source": "geonames_admin1"
+}

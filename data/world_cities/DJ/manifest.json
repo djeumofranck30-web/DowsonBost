@@ -1,0 +1,15 @@
+{
+  "country": "Djibouti",
+  "code": "DJ",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Ali Sabieh",
+    "Arta",
+    "Dikhil",
+    "Djibouti",
+    "Obock",
+    "Tadjourah"
+  ],
+  "source": "geonames_admin1"
+}

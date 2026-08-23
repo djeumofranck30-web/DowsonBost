@@ -1,0 +1,12 @@
+{
+  "country": "Burkina Faso",
+  "code": "BF",
+  "zone": "Cascades Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Banfora",
+    "Mangodara",
+    "Niangoloko",
+    "Sindou"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "country": "Albanie",
+  "code": "AL",
+  "zone": "Durrës County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Durrës",
+    "Fushë-Krujë",
+    "Ishëm",
+    "Krujë",
+    "Manzë",
+    "Nikël",
+    "Rrashbull",
+    "Shijak",
+    "Sukth",
+    "Thumanë",
+    "Xhafzotaj"
+  ]
+}

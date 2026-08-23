@@ -1,0 +1,11 @@
+{
+  "country": "Chili",
+  "code": "CL",
+  "zone": "Region of Magallanes",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Porvenir",
+    "Puerto Natales",
+    "Punta Arenas"
+  ]
+}

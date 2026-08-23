@@ -1,0 +1,17 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Chlef",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abou el Hassan",
+    "Boukadir",
+    "Chlef",
+    "Ech Chettia",
+    "Oued Fodda",
+    "Oued Sly",
+    "Sidi Akkacha",
+    "Ténès",
+    "’Aïn Merane"
+  ]
+}

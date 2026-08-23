@@ -1,0 +1,32 @@
+{
+  "country": "Jordanie",
+  "code": "JO",
+  "zone": "Irbid",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ar Ramthā",
+    "Ash Shajarah",
+    "Aydūn",
+    "Aţ Ţayyibah",
+    "Aţ Ţurrah",
+    "Bayt Yāfā",
+    "Dayr Yūsuf",
+    "Irbid",
+    "Judita",
+    "Kafr Abīl",
+    "Kafr Asad",
+    "Kafr Sawm",
+    "Kharjā",
+    "Kitim",
+    "Kurayyimah",
+    "Malkā",
+    "Qumaym",
+    "Saḩam al Kaffārāt",
+    "Sāl",
+    "Tibnah",
+    "Waqqāş",
+    "Şammā",
+    "Ḩakamā",
+    "Ḩātim"
+  ]
+}

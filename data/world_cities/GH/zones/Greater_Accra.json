@@ -1,0 +1,27 @@
+{
+  "country": "Ghana",
+  "code": "GH",
+  "zone": "Greater Accra",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Accra",
+    "Adenta",
+    "Amanfrom",
+    "Ashaiman",
+    "Atsiaman",
+    "Awoshi",
+    "Dome",
+    "Gbawe",
+    "Lashibi",
+    "Mandela",
+    "Medina Estates",
+    "New Achimota",
+    "Nungua",
+    "Osu",
+    "Sakumona",
+    "Taifa",
+    "Tema",
+    "Tema New Town",
+    "Teshi Old Town"
+  ]
+}

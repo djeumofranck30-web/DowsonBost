@@ -1,0 +1,17 @@
+{
+  "country": "Bangladesh",
+  "code": "BD",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Barisal Division",
+    "Chittagong",
+    "Dhaka Division",
+    "Khulna Division",
+    "Mymensingh Division",
+    "Rajshahi Division",
+    "Rangpur Division",
+    "Sylhet Division"
+  ],
+  "source": "geonames_admin1"
+}

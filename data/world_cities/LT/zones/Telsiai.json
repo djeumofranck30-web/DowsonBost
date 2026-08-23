@@ -1,0 +1,11 @@
+{
+  "country": "Lituanie",
+  "code": "LT",
+  "zone": "Telsiai",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Mazeikiai",
+    "Plunge",
+    "Telsiai"
+  ]
+}

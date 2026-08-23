@@ -1,0 +1,9 @@
+{
+  "country": "Trinite-et-Tobago",
+  "code": "TT",
+  "zone": "Port of Spain",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Port of Spain"
+  ]
+}

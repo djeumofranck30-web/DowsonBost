@@ -1,0 +1,21 @@
+{
+  "country": "Mexique",
+  "code": "MX",
+  "zone": "Colima",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cerro de Ortega",
+    "Ciudad de Armería",
+    "Ciudad de Villa de Álvarez",
+    "Cofradía",
+    "Cofradía de Juárez",
+    "Colima",
+    "Comala",
+    "Coquimatlán",
+    "Cuauhtémoc",
+    "El Colomo",
+    "Manzanillo",
+    "Quesería",
+    "Tecomán"
+  ]
+}

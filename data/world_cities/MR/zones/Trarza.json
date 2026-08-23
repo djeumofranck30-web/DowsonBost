@@ -1,0 +1,15 @@
+{
+  "country": "Mauritanie",
+  "code": "MR",
+  "zone": "Trarza",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Boutilimitt",
+    "Mederdra",
+    "Ndiago",
+    "Ouad Naga",
+    "R'kiz",
+    "Rosso",
+    "Tékane"
+  ]
+}

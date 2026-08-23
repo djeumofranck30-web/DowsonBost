@@ -1,0 +1,24 @@
+{
+  "country": "Norvege",
+  "code": "NO",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Agder",
+    "Akershus",
+    "Buskerud",
+    "Finnmark",
+    "Innlandet",
+    "Møre og Romsdal",
+    "Nordland",
+    "Oslo",
+    "Rogaland",
+    "Telemark",
+    "Troms",
+    "Trøndelag",
+    "Vestfold",
+    "Vestland",
+    "Østfold"
+  ],
+  "source": "geonames_admin1"
+}

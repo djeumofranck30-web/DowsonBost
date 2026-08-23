@@ -1,0 +1,14 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Cojedes",
+  "source": "geonames_cities5000",
+  "cities": [
+    "El Baúl",
+    "El Pao",
+    "Las Vegas",
+    "San Carlos",
+    "Tinaco",
+    "Tinaquillo"
+  ]
+}

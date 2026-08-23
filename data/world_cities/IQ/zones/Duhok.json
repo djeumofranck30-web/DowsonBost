@@ -1,0 +1,17 @@
+{
+  "country": "Irak",
+  "code": "IQ",
+  "zone": "Duhok",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Batifa",
+    "Begova",
+    "Dihok",
+    "Dêrelûk Devera Nihêliya",
+    "Shelādiz",
+    "Simele",
+    "Sumayl",
+    "Sīnah",
+    "Zaxo"
+  ]
+}

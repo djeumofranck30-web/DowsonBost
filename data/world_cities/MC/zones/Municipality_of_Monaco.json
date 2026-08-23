@@ -1,0 +1,13 @@
+{
+  "country": "Monaco",
+  "code": "MC",
+  "zone": "Municipality of Monaco",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Jardin Exotique",
+    "La Condamine",
+    "La Rousse",
+    "Monaco",
+    "Monte-Carlo"
+  ]
+}

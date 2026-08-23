@@ -1,0 +1,10 @@
+{
+  "country": "Estonie",
+  "code": "EE",
+  "zone": "Järvamaa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Paide",
+    "Türi"
+  ]
+}

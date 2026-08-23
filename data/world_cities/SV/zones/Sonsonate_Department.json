@@ -1,0 +1,16 @@
+{
+  "country": "Salvador",
+  "code": "SV",
+  "zone": "Sonsonate Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Acajutla",
+    "Armenia",
+    "Izalco",
+    "Juayúa",
+    "Nahuizalco",
+    "San Antonio del Monte",
+    "Sonsonate",
+    "Sonzacate"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Sucre",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Araya",
+    "Arenas",
+    "Aricagua",
+    "Cariaco",
+    "Carúpano",
+    "Casanay",
+    "Cumanacoa",
+    "Cumaná",
+    "Güiria",
+    "San Lorenzo",
+    "Yaguaraparo"
+  ]
+}

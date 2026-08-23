@@ -1,0 +1,24 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Brașov County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bran",
+    "Braşov",
+    "Codlea",
+    "Feldioara",
+    "Făgăraș",
+    "Hălchiu",
+    "Predeal",
+    "Prejmer",
+    "Rupea",
+    "Râşnov",
+    "Sânpetru",
+    "Săcele",
+    "Tărlungeni",
+    "Victoria",
+    "Vulcan",
+    "Zărnești"
+  ]
+}

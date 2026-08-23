@@ -1,0 +1,12 @@
+{
+  "country": "Perou",
+  "code": "PE",
+  "zone": "Apurímac Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abancay",
+    "Andahuaylas",
+    "San Jerónimo",
+    "Talavera"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "country": "Namibie",
+  "code": "NA",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Erongo Region",
+    "Hardap Region",
+    "Karas Region",
+    "Kavango East",
+    "Kavango West",
+    "Khomas Region",
+    "Kunene Region",
+    "Ohangwena Region",
+    "Omaheke Region",
+    "Omusati Region",
+    "Oshana Region",
+    "Oshikoto Region",
+    "Otjozondjupa Region",
+    "Zambezi Region"
+  ],
+  "source": "geonames_admin1"
+}

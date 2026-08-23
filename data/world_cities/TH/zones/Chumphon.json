@@ -1,0 +1,12 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Chumphon",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban I Let",
+    "Ban Nam Yuen",
+    "Chumphon",
+    "Lang Suan"
+  ]
+}

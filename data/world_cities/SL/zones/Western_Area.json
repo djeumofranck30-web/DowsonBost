@@ -1,0 +1,12 @@
+{
+  "country": "Sierra Leone",
+  "code": "SL",
+  "zone": "Western Area",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Freetown",
+    "Goderich",
+    "Hastings",
+    "Waterloo"
+  ]
+}

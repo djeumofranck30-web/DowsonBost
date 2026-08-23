@@ -1,0 +1,9 @@
+{
+  "country": "Moldavie",
+  "code": "MD",
+  "zone": "Bender Municipality",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bender"
+  ]
+}

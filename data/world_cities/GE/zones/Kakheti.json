@@ -1,0 +1,15 @@
+{
+  "country": "Georgie",
+  "code": "GE",
+  "zone": "Kakheti",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akhmeta",
+    "Dedoplistsqaro",
+    "Gurjaani",
+    "Kvareli",
+    "Lagodekhi",
+    "Sagarejo",
+    "Telavi"
+  ]
+}

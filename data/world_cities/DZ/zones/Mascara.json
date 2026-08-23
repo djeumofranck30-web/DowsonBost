@@ -1,0 +1,14 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Mascara",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bou Hanifia el Hamamat",
+    "Mascara",
+    "Mohammadia",
+    "Oued el Abtal",
+    "Sig",
+    "Tighenif"
+  ]
+}

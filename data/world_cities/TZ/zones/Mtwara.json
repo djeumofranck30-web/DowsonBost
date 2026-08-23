@@ -1,0 +1,28 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Mtwara",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chiungutwa",
+    "Kitama",
+    "Kitangari",
+    "Luchingu",
+    "Lukuledi",
+    "Lulindi",
+    "Madimba",
+    "Mahuta",
+    "Masasi",
+    "Masuguru",
+    "Mtwara",
+    "Namalenga",
+    "Namikupa",
+    "Nanganga",
+    "Nangomba",
+    "Nanhyanga",
+    "Nanyamba",
+    "Newala",
+    "Newala Kisimani",
+    "Tandahimba"
+  ]
+}

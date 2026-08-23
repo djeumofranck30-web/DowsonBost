@@ -1,0 +1,9 @@
+{
+  "country": "Equateur",
+  "code": "EC",
+  "zone": "Santo Domingo de los Tsáchilas",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Santo Domingo de los Colorados"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Chiang Mai",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Mae Thalop",
+    "Ban Mae Waen",
+    "Chiang Mai",
+    "Chom Thong",
+    "Fang",
+    "Hang Dong",
+    "Phrao",
+    "San Kamphaeng",
+    "San Pa Tong"
+  ]
+}

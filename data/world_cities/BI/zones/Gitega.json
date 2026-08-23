@@ -1,0 +1,12 @@
+{
+  "country": "Burundi",
+  "code": "BI",
+  "zone": "Gitega",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gitega",
+    "Karusi",
+    "Muramvya",
+    "Zanandore"
+  ]
+}

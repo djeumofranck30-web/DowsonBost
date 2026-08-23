@@ -1,0 +1,11 @@
+{
+  "country": "Somalie",
+  "code": "SO",
+  "zone": "Lower Juba",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Jamaame",
+    "Kaambooni",
+    "Kismayo"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "country": "Japon",
+  "code": "JP",
+  "zone": "Saga",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arita",
+    "Bōjo",
+    "Higashigō",
+    "Imarichō-kō",
+    "Ishinari",
+    "Kanzakimachi-kanzaki",
+    "Karatsu",
+    "Kashima",
+    "Moroura",
+    "Nakatsukuma",
+    "Ogi",
+    "Saga",
+    "Sarushi",
+    "Sonobe",
+    "Takeo",
+    "Taku",
+    "Tara",
+    "Tosu",
+    "Ureshinomachi-shimojuku",
+    "Ōmachi"
+  ]
+}

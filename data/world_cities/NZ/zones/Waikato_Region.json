@@ -1,0 +1,24 @@
+{
+  "country": "Nouvelle-Zelande",
+  "code": "NZ",
+  "zone": "Waikato Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cambridge",
+    "Claudelands",
+    "Frankton Junction",
+    "Hamilton",
+    "Hamilton East",
+    "Huntly",
+    "Matamata",
+    "Morrinsville",
+    "Ngaruawahia",
+    "Pokeno",
+    "Taupo",
+    "Te Awamutu",
+    "Thames",
+    "Tokoroa",
+    "Tuakau",
+    "Whitianga"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "country": "Liechtenstein",
+  "code": "LI",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Balzers",
+    "Eschen",
+    "Gamprin",
+    "Mauren",
+    "Planken",
+    "Ruggell",
+    "Schaan",
+    "Schellenberg",
+    "Triesen",
+    "Triesenberg",
+    "Vaduz"
+  ],
+  "source": "geonames_admin1"
+}

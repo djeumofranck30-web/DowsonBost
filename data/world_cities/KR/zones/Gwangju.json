@@ -1,0 +1,10 @@
+{
+  "country": "Coree du Sud",
+  "code": "KR",
+  "zone": "Gwangju",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gwangju",
+    "Masan"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "country": "Grece",
+  "code": "GR",
+  "zone": "West Greece",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Agrínio",
+    "Aitolikó",
+    "Amaliáda",
+    "Archaía Olympía",
+    "Astakós",
+    "Aígio",
+    "Diakoptó",
+    "Gastoúni",
+    "Káto Achaḯa",
+    "Mesolóngi",
+    "Náfpaktos",
+    "Ovriá",
+    "Paralía",
+    "Pátra",
+    "Pýrgos",
+    "Río",
+    "Vartholomió",
+    "Zacháro",
+    "Áyios Konstandínos"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Faiyum",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Fayyum",
+    "Al Wāsiţah",
+    "Ibshawāy",
+    "Iţsā",
+    "Sinnūris",
+    "Yūsuf aṣ-Ṣiddīq",
+    "Ţāmiyah"
+  ]
+}

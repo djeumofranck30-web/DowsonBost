@@ -1,0 +1,29 @@
+{
+  "country": "Ouganda",
+  "code": "UG",
+  "zone": "Northern Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abim",
+    "Adjumani",
+    "Amudat",
+    "Anaka",
+    "Apac",
+    "Arua",
+    "Dokolo",
+    "Gulu",
+    "Kitgum",
+    "Koboko",
+    "Kotido",
+    "Lira",
+    "Moroto",
+    "Moyo",
+    "Nebbi",
+    "Opit",
+    "Pader",
+    "Pader Palwo",
+    "Paidha",
+    "Pakwach",
+    "Yumbe"
+  ]
+}

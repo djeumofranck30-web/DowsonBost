@@ -1,0 +1,15 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Aïn Témouchent",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aghlal",
+    "Aïn Temouchent",
+    "Beni Saf",
+    "El Amria",
+    "El Malah",
+    "Hammam Bou Hadjar",
+    "Sidi Ben Adda"
+  ]
+}

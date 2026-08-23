@@ -1,0 +1,19 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Adygeya Republic",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Adygeysk",
+    "Dondukovskaya",
+    "Enem",
+    "Giaginskaya",
+    "Kamennomostskiy",
+    "Khanskaya",
+    "Koshekhabl’",
+    "Krasnogvardeyskoye",
+    "Maykop",
+    "Takhtamukay",
+    "Yablonovskiy"
+  ]
+}

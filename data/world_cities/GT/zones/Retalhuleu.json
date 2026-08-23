@@ -1,0 +1,15 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "Retalhuleu",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Champerico",
+    "El Asintal",
+    "Nuevo San Carlos",
+    "Retalhuleu",
+    "San Andrés Villa Seca",
+    "San Felipe",
+    "San Sebastián"
+  ]
+}

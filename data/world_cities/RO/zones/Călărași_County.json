@@ -1,0 +1,28 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Călărași County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Borcea",
+    "Budeşti",
+    "Chirnogi",
+    "Curcani",
+    "Călăraşi",
+    "Dor Mărunt",
+    "Dragalina",
+    "Frumuşani",
+    "Fundeni",
+    "Fundulea",
+    "Grădiştea",
+    "Lehliu-Gară",
+    "Modelu",
+    "Mânăstirea",
+    "Olteniţa",
+    "Perişoru",
+    "Radovanu",
+    "Roseţi",
+    "Ulmeni",
+    "Vasilaţi"
+  ]
+}

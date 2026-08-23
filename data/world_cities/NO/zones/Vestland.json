@@ -1,0 +1,23 @@
+{
+  "country": "Norvege",
+  "code": "NO",
+  "zone": "Vestland",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Austevoll",
+    "Bergen",
+    "Flaktveit",
+    "Florø",
+    "Førde",
+    "Hermansverk",
+    "Indre Arna",
+    "Knarvik",
+    "Leirvik",
+    "Luster",
+    "Nesttun",
+    "Stryn",
+    "Voss",
+    "Ytrebygda",
+    "Åsane"
+  ]
+}

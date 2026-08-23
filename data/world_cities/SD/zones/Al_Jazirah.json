@@ -1,0 +1,16 @@
+{
+  "country": "Soudan",
+  "code": "SD",
+  "zone": "Al Jazirah",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Hasaheisa",
+    "Al Hilāliyya",
+    "Al Kiremit al ‘Arakiyyīn",
+    "Al Manāqil",
+    "Al Masallamiyya",
+    "Rufā‘a",
+    "Wad Medani",
+    "Wad Rāwah"
+  ]
+}

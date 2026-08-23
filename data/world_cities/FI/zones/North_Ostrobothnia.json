@@ -1,0 +1,32 @@
+{
+  "country": "Finlande",
+  "code": "FI",
+  "zone": "North Ostrobothnia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Haapajärvi",
+    "Haapavesi",
+    "Haukipudas",
+    "Ii",
+    "Jääli",
+    "Kaakkuri",
+    "Kalajoki",
+    "Kello",
+    "Kempele",
+    "Kiiminki",
+    "Kuusamo",
+    "Liminka",
+    "Muhos",
+    "Nivala",
+    "Oulainen",
+    "Oulu",
+    "Oulunsalo",
+    "Pudasjärvi",
+    "Raahe",
+    "Toppila",
+    "Tuira",
+    "Tyrnävä",
+    "Vanhatulli",
+    "Ylivieska"
+  ]
+}

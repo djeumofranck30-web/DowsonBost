@@ -1,0 +1,20 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Kafr el-Sheikh",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Burj",
+    "Al Ḩāmūl",
+    "Ar Riyāḑ",
+    "Balţīm",
+    "Biyalā",
+    "Disūq",
+    "Fuwwah",
+    "Kafr ash Shaykh",
+    "Muţūbas",
+    "Qillīn",
+    "Sīdī Ghāzī",
+    "Sīdī Sālim"
+  ]
+}

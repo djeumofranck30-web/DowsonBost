@@ -1,0 +1,13 @@
+{
+  "country": "Nicaragua",
+  "code": "NI",
+  "zone": "Rivas Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Belén",
+    "Potosí",
+    "Rivas",
+    "San Jorge",
+    "San Juan del Sur"
+  ]
+}

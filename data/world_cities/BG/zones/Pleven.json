@@ -1,0 +1,14 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Pleven",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Belene",
+    "Cherven Bryag",
+    "Dolni Dabnik",
+    "Knezha",
+    "Levski",
+    "Pleven"
+  ]
+}

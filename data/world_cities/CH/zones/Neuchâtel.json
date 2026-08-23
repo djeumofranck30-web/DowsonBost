@@ -1,0 +1,12 @@
+{
+  "country": "Suisse",
+  "code": "CH",
+  "zone": "Neuchâtel",
+  "source": "geonames_cities5000",
+  "cities": [
+    "La Chaux-de-Fonds",
+    "Le Locle",
+    "Neuchâtel",
+    "Peseux"
+  ]
+}

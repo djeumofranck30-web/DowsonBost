@@ -1,0 +1,9 @@
+{
+  "country": "Laos",
+  "code": "LA",
+  "zone": "Vientiane Prefecture",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Vientiane"
+  ]
+}

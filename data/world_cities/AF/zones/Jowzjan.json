@@ -1,0 +1,11 @@
+{
+  "country": "Afghanistan",
+  "code": "AF",
+  "zone": "Jowzjan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Darzāb",
+    "Qarqīn",
+    "Shibirghān"
+  ]
+}

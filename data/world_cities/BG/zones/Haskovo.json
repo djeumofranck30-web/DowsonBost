@@ -1,0 +1,15 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Haskovo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dimitrovgrad",
+    "Harmanli",
+    "Haskovo",
+    "Lyubimets",
+    "Simeonovgrad",
+    "Svilengrad",
+    "Topolovgrad"
+  ]
+}

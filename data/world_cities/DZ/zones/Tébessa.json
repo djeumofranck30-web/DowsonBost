@@ -1,0 +1,14 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Tébessa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bir el Ater",
+    "Cheria",
+    "El Aouinet",
+    "Hammamet",
+    "Ouenza",
+    "Tébessa"
+  ]
+}

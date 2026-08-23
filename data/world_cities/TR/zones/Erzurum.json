@@ -1,0 +1,24 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Erzurum",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aşkale",
+    "Erzurum",
+    "Horasan",
+    "Hınıs",
+    "Ilıca",
+    "İspir",
+    "Karayazı",
+    "Karaçoban",
+    "Narman",
+    "Oltu",
+    "Pasinler",
+    "Pazaryolu",
+    "Tekman",
+    "Tortum",
+    "Uzundere",
+    "Çat"
+  ]
+}

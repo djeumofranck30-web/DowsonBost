@@ -1,0 +1,18 @@
+{
+  "country": "Hongrie",
+  "code": "HU",
+  "zone": "Csongrád",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Algyő",
+    "Csongrád",
+    "Hódmezővásárhely",
+    "Kistelek",
+    "Makó",
+    "Mindszent",
+    "Mórahalom",
+    "Szeged",
+    "Szentes",
+    "Sándorfalva"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "country": "Estonie",
+  "code": "EE",
+  "zone": "Viljandimaa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Viljandi"
+  ]
+}

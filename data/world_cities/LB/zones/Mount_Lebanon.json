@@ -1,0 +1,14 @@
+{
+  "country": "Liban",
+  "code": "LB",
+  "zone": "Mount Lebanon",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aajaltoûn",
+    "Aley",
+    "Baabda",
+    "Byblos",
+    "Hrajel",
+    "Jounieh"
+  ]
+}

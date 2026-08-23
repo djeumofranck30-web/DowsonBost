@@ -1,0 +1,11 @@
+{
+  "country": "Soudan",
+  "code": "SD",
+  "zone": "Khartoum",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Khartoum",
+    "Khartoum North",
+    "Omdurman"
+  ]
+}

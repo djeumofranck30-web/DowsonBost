@@ -1,0 +1,15 @@
+{
+  "country": "Liban",
+  "code": "LB",
+  "zone": "Baalbek-Hermel Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aarsâl",
+    "Baalbek",
+    "Boudaï",
+    "Chaat",
+    "Chmistâr",
+    "Deïr el Ahmar",
+    "El Hermel"
+  ]
+}

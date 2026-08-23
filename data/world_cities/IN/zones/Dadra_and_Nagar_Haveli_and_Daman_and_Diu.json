@@ -1,0 +1,24 @@
+{
+  "country": "Inde",
+  "code": "IN",
+  "zone": "Dadra and Nagar Haveli and Daman and Diu",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bhimpur",
+    "Dabhel",
+    "Dadra",
+    "Daman",
+    "Diu",
+    "Dunetha",
+    "Kadaiya",
+    "Khali Kachigam",
+    "Marwad",
+    "Mashāt",
+    "Nani Daman",
+    "Naroli",
+    "Rakholi",
+    "Samarvarni",
+    "Silvassa",
+    "Āmli"
+  ]
+}

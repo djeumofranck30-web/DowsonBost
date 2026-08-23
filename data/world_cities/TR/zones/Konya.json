@@ -1,0 +1,33 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Konya",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akşehir",
+    "Altınekin",
+    "Beyşehir",
+    "Bozkır",
+    "Cihanbeyli",
+    "Derbent",
+    "Derebucak",
+    "Doğanhisar",
+    "Emirgazi",
+    "Ereğli",
+    "Hadim",
+    "Hüyük",
+    "Ilgın",
+    "Kadınhanı",
+    "Karapınar",
+    "Konya",
+    "Kulu",
+    "Sarayönü",
+    "Seydişehir",
+    "Taşkent",
+    "Tuzlukçu",
+    "Yalıhüyük",
+    "Yunak",
+    "Çeltik",
+    "Çumra"
+  ]
+}

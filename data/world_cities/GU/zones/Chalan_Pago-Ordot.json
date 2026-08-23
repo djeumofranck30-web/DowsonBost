@@ -1,0 +1,9 @@
+{
+  "country": "Guam",
+  "code": "GU",
+  "zone": "Chalan Pago-Ordot",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chalan Pago-Ordot Village"
+  ]
+}

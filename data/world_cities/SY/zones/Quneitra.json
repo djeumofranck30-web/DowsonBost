@@ -1,0 +1,12 @@
+{
+  "country": "Syrie",
+  "code": "SY",
+  "zone": "Quneitra",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Qunayţirah",
+    "Buq‘ātā",
+    "Jabā",
+    "Majdal Shams"
+  ]
+}

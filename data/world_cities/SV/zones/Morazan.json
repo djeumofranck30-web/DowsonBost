@@ -1,0 +1,10 @@
+{
+  "country": "Salvador",
+  "code": "SV",
+  "zone": "Morazan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Guatajiagua",
+    "San Francisco"
+  ]
+}

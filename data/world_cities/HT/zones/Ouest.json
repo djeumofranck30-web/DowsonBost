@@ -1,0 +1,24 @@
+{
+  "country": "Haiti",
+  "code": "HT",
+  "zone": "Ouest",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anse à Galets",
+    "Arcahaie",
+    "Carrefour",
+    "Cité Soleil",
+    "Cornillon",
+    "Croix-des-Bouquets",
+    "Delmas",
+    "Fond Parisien",
+    "Grangwav",
+    "Gressier",
+    "Kenscoff",
+    "Léogâne",
+    "Port-au-Prince",
+    "Pétionville",
+    "Thomazeau",
+    "Tigwav"
+  ]
+}

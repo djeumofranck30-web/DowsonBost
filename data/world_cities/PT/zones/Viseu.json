@@ -1,0 +1,22 @@
+{
+  "country": "Portugal",
+  "code": "PT",
+  "zone": "Viseu",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abraveses",
+    "Carregal do Sal",
+    "Lamego",
+    "Mangualde",
+    "Moimenta da Beira",
+    "Rio de Loba",
+    "Santa Comba Dão",
+    "Sernancelhe",
+    "São João da Pesqueira",
+    "São Pedro do Sul",
+    "Tabuaço",
+    "Tondela",
+    "Vila Nova de Paiva",
+    "Viseu"
+  ]
+}

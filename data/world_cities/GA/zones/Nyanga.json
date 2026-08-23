@@ -1,0 +1,11 @@
+{
+  "country": "Gabon",
+  "code": "GA",
+  "zone": "Nyanga",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Mayumba",
+    "Tchibanga",
+    "Tsogni"
+  ]
+}

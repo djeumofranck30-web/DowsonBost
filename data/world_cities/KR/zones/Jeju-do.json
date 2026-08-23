@@ -1,0 +1,18 @@
+{
+  "country": "Coree du Sud",
+  "code": "KR",
+  "zone": "Jeju-do",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ara-dong",
+    "Gaigeturi",
+    "Ido-dong",
+    "Jeju City",
+    "Ora-dong",
+    "Ponggae-dong",
+    "Sanji",
+    "Seodong",
+    "Seogwipo",
+    "Tallang-dong"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Astrakhan Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akhtubinsk",
+    "Astrakhan",
+    "Chyorny Yar",
+    "Ikryanoye",
+    "Il’inka",
+    "Kamyzyak",
+    "Kapustin Yar",
+    "Kharabali",
+    "Krasnyy Yar",
+    "Krasnyye Barrikady",
+    "Liman",
+    "Narimanov",
+    "Starokucherganovka",
+    "Verkhniy Baskunchak",
+    "Volodarskiy",
+    "Yenotayevka",
+    "Znamensk"
+  ]
+}

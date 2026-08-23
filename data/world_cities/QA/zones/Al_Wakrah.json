@@ -1,0 +1,11 @@
+{
+  "country": "Qatar",
+  "code": "QA",
+  "zone": "Al Wakrah",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Wakrah",
+    "Al Wukayr",
+    "Musay‘īd"
+  ]
+}

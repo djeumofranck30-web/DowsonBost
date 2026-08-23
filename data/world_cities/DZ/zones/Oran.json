@@ -1,0 +1,20 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Oran",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arzew",
+    "Assi Bou Nif",
+    "Aïn el Bya",
+    "Bir el Djir",
+    "Bou Tlelis",
+    "En Nedjma",
+    "Es Senia",
+    "Gdyel",
+    "Mers el Kebir",
+    "Oran",
+    "Sidi ech Chahmi",
+    "’Aïn el Turk"
+  ]
+}

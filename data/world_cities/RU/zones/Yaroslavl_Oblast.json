@@ -1,0 +1,24 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Yaroslavl Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Borisoglebskiy",
+    "Danilov",
+    "Gavrilov-Yam",
+    "Konstantinovskiy",
+    "Lyubim",
+    "Myshkin",
+    "Nekrasovskoye",
+    "Pereslavl’-Zalesskiy",
+    "Petrovsk",
+    "Poshekhon’ye",
+    "Rostov Veliky",
+    "Rybinsk",
+    "Semibratovo",
+    "Tutayev",
+    "Uglich",
+    "Yaroslavl"
+  ]
+}

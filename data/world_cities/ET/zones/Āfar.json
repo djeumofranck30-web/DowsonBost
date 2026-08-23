@@ -1,0 +1,18 @@
+{
+  "country": "Ethiopie",
+  "code": "ET",
+  "zone": "Āfar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arerti",
+    "Asaita",
+    "Dubti",
+    "Gawanē",
+    "Logīya",
+    "Mehoni",
+    "Mīlē",
+    "Samara",
+    "Sifra",
+    "Āwash"
+  ]
+}

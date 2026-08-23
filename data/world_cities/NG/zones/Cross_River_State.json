@@ -1,0 +1,17 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Cross River State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akankpa",
+    "Calabar",
+    "Gakem",
+    "Ikang",
+    "Ikom",
+    "Obubra",
+    "Obudu",
+    "Ogoja",
+    "Ugep"
+  ]
+}

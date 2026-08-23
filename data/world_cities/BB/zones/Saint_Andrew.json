@@ -1,0 +1,10 @@
+{
+  "country": "Barbade",
+  "code": "BB",
+  "zone": "Saint Andrew",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Greenland",
+    "White Hill"
+  ]
+}

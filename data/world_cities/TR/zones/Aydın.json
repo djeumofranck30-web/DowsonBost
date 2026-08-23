@@ -1,0 +1,33 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Aydın",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Acarlar",
+    "Altınkum",
+    "Atça",
+    "Aydın",
+    "Bağarası",
+    "Bozdoğan",
+    "Buharkent",
+    "Davutlar",
+    "Didim",
+    "Germencik",
+    "Güzelçamlı",
+    "İncirliova",
+    "Karacasu",
+    "Koçarlı",
+    "Kuyucak",
+    "Kuşadası",
+    "Köşk",
+    "Nazilli",
+    "Savulca",
+    "Sultanhisar",
+    "Söke",
+    "Umurlu",
+    "Yenipazar",
+    "Çeştepe",
+    "Çine"
+  ]
+}

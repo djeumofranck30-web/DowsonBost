@@ -1,0 +1,13 @@
+{
+  "country": "Hongrie",
+  "code": "HU",
+  "zone": "Nógrád",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Balassagyarmat",
+    "Bátonyterenye",
+    "Pásztó",
+    "Salgótarján",
+    "Szécsény"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "country": "Finlande",
+  "code": "FI",
+  "zone": "Kanta-Häme",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Forssa",
+    "Hausjärvi",
+    "Hämeenlinna",
+    "Janakkala",
+    "Lammi",
+    "Loppi",
+    "Riihimäki",
+    "Tammela"
+  ]
+}

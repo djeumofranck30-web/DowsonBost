@@ -1,0 +1,12 @@
+{
+  "country": "Nepal",
+  "code": "NP",
+  "zone": "Karnali Pradesh",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Besisahar",
+    "Birendranagar",
+    "Dailekh",
+    "Jumla"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Kakamega County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Butere",
+    "Kakamega",
+    "Khwisero",
+    "Malava",
+    "Mumias",
+    "Shianda"
+  ]
+}

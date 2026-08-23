@@ -1,0 +1,30 @@
+{
+  "country": "Japon",
+  "code": "JP",
+  "zone": "Ehime",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Haramachi",
+    "Hōjō",
+    "Ikatagoshi",
+    "Imabari",
+    "Iyo",
+    "Kami-yuge",
+    "Kawanoechō",
+    "Kihoku-chō",
+    "Kuma",
+    "Masaki-chō",
+    "Matsuyama",
+    "Mishōhirajō",
+    "Niihama",
+    "Saijō",
+    "Shikokuchūō",
+    "Shinagawa",
+    "Tōon",
+    "Uchiko",
+    "Uwa",
+    "Uwajima",
+    "Yawatahama",
+    "Ōzu"
+  ]
+}

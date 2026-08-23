@@ -1,0 +1,20 @@
+{
+  "country": "Syrie",
+  "code": "SY",
+  "zone": "Daraa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Musayfirah",
+    "Al Ḩirāk",
+    "Aş Şanamayn",
+    "Dar‘ā",
+    "Dā‘il",
+    "Inkhil",
+    "Izra‘",
+    "Jāsim",
+    "Kafr Shams",
+    "Nawá",
+    "Shaykh Miskīn",
+    "Ţafas"
+  ]
+}

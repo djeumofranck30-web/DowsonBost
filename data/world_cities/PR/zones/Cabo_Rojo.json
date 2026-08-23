@@ -1,0 +1,10 @@
+{
+  "country": "Porto Rico",
+  "code": "PR",
+  "zone": "Cabo Rojo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cabo Rojo",
+    "Puerto Real"
+  ]
+}

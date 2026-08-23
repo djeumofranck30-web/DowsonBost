@@ -1,0 +1,11 @@
+{
+  "country": "Cambodge",
+  "code": "KH",
+  "zone": "Pursat",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anlong Reab",
+    "Anlong Thnaot",
+    "Pursat"
+  ]
+}

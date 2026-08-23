@@ -1,0 +1,23 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Dak Lak",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Buôn Hồ",
+    "Buôn Ma Thuột",
+    "Buôn Trấp",
+    "Buôn Tur",
+    "Ea Drăng",
+    "Ea H'Leo",
+    "Ea Hiao",
+    "Ea Kar",
+    "Ea Na",
+    "Ea Súp",
+    "Liên Sơn",
+    "Phước An",
+    "Quảng Phú",
+    "Sông Cầu",
+    "Tuy Hòa"
+  ]
+}

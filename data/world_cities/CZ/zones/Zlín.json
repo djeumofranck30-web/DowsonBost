@@ -1,0 +1,28 @@
+{
+  "country": "Tchequie",
+  "code": "CZ",
+  "zone": "Zlín",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Brumov-Bylnice",
+    "Bystřice pod Hostýnem",
+    "Chropyně",
+    "Holešov",
+    "Hulín",
+    "Kroměříž",
+    "Kunovice",
+    "Luhačovice",
+    "Napajedla",
+    "Otrokovice",
+    "Rožnov pod Radhoštěm",
+    "Slavičín",
+    "Staré Město",
+    "Uherské Hradiště",
+    "Uherský Brod",
+    "Valašské Klobouky",
+    "Valašské Meziříčí",
+    "Vsetín",
+    "Zlín",
+    "Zubří"
+  ]
+}

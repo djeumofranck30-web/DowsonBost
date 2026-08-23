@@ -1,0 +1,26 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Ogun State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abeokuta",
+    "Ado-Odo",
+    "Idiroko",
+    "Ifo",
+    "Igbessa",
+    "Ijebu Ode",
+    "Ijebu-Ife",
+    "Ijebu-Igbo",
+    "Ijoko",
+    "Ilaro",
+    "Imeko",
+    "Iperu",
+    "Isara",
+    "Iyesi",
+    "Ota",
+    "Owode",
+    "River Atuwara",
+    "Shagamu"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "country": "Cote d Ivoire",
+  "code": "CI",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Abidjan Autonomous District",
+    "Bas-Sassandra District",
+    "Comoé District",
+    "Denguélé District",
+    "Goh-Djiboua",
+    "Lacs District",
+    "Lagunes District",
+    "Montagnes",
+    "Sassandra-Marahoue",
+    "Savanes District",
+    "Vallée du Bandama District",
+    "Woroba",
+    "Yamoussoukro",
+    "Zanzan District"
+  ],
+  "source": "geonames_admin1"
+}

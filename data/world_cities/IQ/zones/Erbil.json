@@ -1,0 +1,19 @@
+{
+  "country": "Irak",
+  "code": "IQ",
+  "zone": "Erbil",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baḥarkah",
+    "Erbil",
+    "Khalīfān",
+    "Khasnahzān",
+    "Koysinceq",
+    "Pīrmām",
+    "Shaqlāwah",
+    "Soran",
+    "Xebat",
+    "Ḩarir",
+    "Ṟuwandiz"
+  ]
+}

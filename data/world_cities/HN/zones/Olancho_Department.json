@@ -1,0 +1,20 @@
+{
+  "country": "Honduras",
+  "code": "HN",
+  "zone": "Olancho Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Campamento",
+    "Catacamas",
+    "Dulce Nombre de Culmí",
+    "Esquipulas del Norte",
+    "Gualaco",
+    "Guayape",
+    "Juticalpa",
+    "La Guata",
+    "Manto",
+    "San Francisco de la Paz",
+    "Santa María del Real",
+    "Yocón"
+  ]
+}

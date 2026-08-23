@@ -1,0 +1,14 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "Mai-Ndombe",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bolobo",
+    "Dungu",
+    "Inongo",
+    "Kutu",
+    "Mushie",
+    "Nioki"
+  ]
+}

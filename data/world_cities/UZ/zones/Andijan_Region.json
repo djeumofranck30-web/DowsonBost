@@ -1,0 +1,24 @@
+{
+  "country": "Ouzbekistan",
+  "code": "UZ",
+  "zone": "Andijan Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Andijon",
+    "Asaka",
+    "Chinobod",
+    "Dardoq",
+    "Izboskan",
+    "Jalolquduq",
+    "Marhamat",
+    "Oyim",
+    "Paxtaobod",
+    "Poytug‘",
+    "Qorasuv",
+    "Qo‘rg‘ontepa",
+    "Shahrixon",
+    "Sultonobod",
+    "Xonobod",
+    "Xo‘jaobod"
+  ]
+}

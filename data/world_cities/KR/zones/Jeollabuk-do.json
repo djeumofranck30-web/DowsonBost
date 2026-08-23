@@ -1,0 +1,21 @@
+{
+  "country": "Coree du Sud",
+  "code": "KR",
+  "zone": "Jeollabuk-do",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Buan",
+    "Changsu",
+    "Gunsan",
+    "Iksan",
+    "Imsil",
+    "Jeongeup",
+    "Jeonju",
+    "Jinan-gun",
+    "Kimje",
+    "Koch'ang",
+    "Namsa",
+    "Nangen",
+    "Wanju"
+  ]
+}

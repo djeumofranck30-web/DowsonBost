@@ -1,0 +1,9 @@
+{
+  "country": "Montenegro",
+  "code": "ME",
+  "zone": "Zeta",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Golubovci"
+  ]
+}

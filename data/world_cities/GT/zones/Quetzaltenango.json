@@ -1,0 +1,26 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "Quetzaltenango",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Almolonga",
+    "Cabricán",
+    "Cantel",
+    "Coatepeque",
+    "Colomba",
+    "Concepción Chiquirichapa",
+    "El Palmar",
+    "Flores Costa Cuca",
+    "Huitán",
+    "La Esperanza",
+    "Ostuncalco",
+    "Quetzaltenango",
+    "Salcajá",
+    "Samayac",
+    "San Carlos Sija",
+    "San Mateo",
+    "San Miguel Sigüilá",
+    "Zunil"
+  ]
+}

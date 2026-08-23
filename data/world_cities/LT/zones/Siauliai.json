@@ -1,0 +1,14 @@
+{
+  "country": "Lituanie",
+  "code": "LT",
+  "zone": "Siauliai",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Joniškis",
+    "Kelmė",
+    "Kuršėnai",
+    "Naujoji Akmene",
+    "Radviliskis",
+    "Šiauliai"
+  ]
+}

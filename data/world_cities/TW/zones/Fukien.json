@@ -1,0 +1,12 @@
+{
+  "country": "Taiwan",
+  "code": "TW",
+  "zone": "Fukien",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Jieshoucun",
+    "Jincheng",
+    "Jinhu",
+    "Nangan"
+  ]
+}

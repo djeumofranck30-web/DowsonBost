@@ -1,0 +1,10 @@
+{
+  "country": "Mongolie",
+  "code": "MN",
+  "zone": "Darhan Uul",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Darhan",
+    "Hongor"
+  ]
+}

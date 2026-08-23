@@ -1,0 +1,9 @@
+{
+  "country": "Yemen",
+  "code": "YE",
+  "zone": "Aden",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aden"
+  ]
+}

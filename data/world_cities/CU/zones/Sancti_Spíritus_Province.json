@@ -1,0 +1,19 @@
+{
+  "country": "Cuba",
+  "code": "CU",
+  "zone": "Sancti Spíritus Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cabaiguán",
+    "Condado",
+    "Fomento",
+    "Guayos",
+    "Jatibonico",
+    "La Sierpe",
+    "Sancti Spíritus",
+    "Topes de Collantes",
+    "Trinidad",
+    "Yaguajay",
+    "Zaza del Medio"
+  ]
+}

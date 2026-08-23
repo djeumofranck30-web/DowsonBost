@@ -1,0 +1,12 @@
+{
+  "country": "Somalie",
+  "code": "SO",
+  "zone": "Lower Shabeelle",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Afgooye",
+    "Marka",
+    "Qoryooley",
+    "Wanlaweyn"
+  ]
+}

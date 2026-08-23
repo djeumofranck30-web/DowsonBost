@@ -1,0 +1,24 @@
+{
+  "country": "Ouzbekistan",
+  "code": "UZ",
+  "zone": "Fergana",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Beshariq",
+    "Eskiarab",
+    "Fergana",
+    "Hamza",
+    "Kirguli",
+    "Marg‘ilon",
+    "Oltiariq",
+    "Qo‘qon",
+    "Quva",
+    "Quvasoy",
+    "Rishton",
+    "Shohimardon",
+    "Tinchlik",
+    "Toshloq",
+    "Yangi Marg‘ilon",
+    "Yaypan"
+  ]
+}

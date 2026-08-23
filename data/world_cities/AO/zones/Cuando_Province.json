@@ -1,0 +1,10 @@
+{
+  "country": "Angola",
+  "code": "AO",
+  "zone": "Cuando Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Jamba",
+    "Mavinga"
+  ]
+}

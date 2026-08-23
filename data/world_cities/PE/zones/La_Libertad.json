@@ -1,0 +1,33 @@
+{
+  "country": "Perou",
+  "code": "PE",
+  "zone": "La Libertad",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alto Salaverry",
+    "Ascope",
+    "Chepén",
+    "Chicama",
+    "Chocope",
+    "Guadalupe",
+    "Huamachuco",
+    "Huanchaquito Alto",
+    "Laredo",
+    "Miramar",
+    "Moche",
+    "Otuzco",
+    "Pacanga",
+    "Pacasmayo",
+    "Paiján",
+    "Pueblo Nuevo",
+    "Puente Viru",
+    "Quiruvilca",
+    "Salaverry",
+    "San Pedro de Lloc",
+    "Santiago de Cao",
+    "Santiago de Chuco",
+    "Trujillo",
+    "Victor Raul",
+    "Virú"
+  ]
+}

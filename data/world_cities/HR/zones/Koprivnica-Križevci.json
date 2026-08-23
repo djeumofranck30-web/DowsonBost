@@ -1,0 +1,11 @@
+{
+  "country": "Croatie",
+  "code": "HR",
+  "zone": "Koprivnica-Križevci",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Koprivnica",
+    "Križevci",
+    "Đurđevac"
+  ]
+}

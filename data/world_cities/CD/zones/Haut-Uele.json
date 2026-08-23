@@ -1,0 +1,12 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "Haut-Uele",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bakwa",
+    "Isiro",
+    "Wamba",
+    "Watsa"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Songkhla",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Mai",
+    "Hat Yai",
+    "Na Mom",
+    "Ranot",
+    "Sadao",
+    "Songkhla"
+  ]
+}

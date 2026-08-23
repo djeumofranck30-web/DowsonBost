@@ -1,0 +1,11 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "South Sinai",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dahab",
+    "El-Tor",
+    "Sharm el-Sheikh"
+  ]
+}

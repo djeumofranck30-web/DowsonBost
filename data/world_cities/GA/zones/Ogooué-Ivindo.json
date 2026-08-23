@@ -1,0 +1,11 @@
+{
+  "country": "Gabon",
+  "code": "GA",
+  "zone": "Ogooué-Ivindo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Booué",
+    "Makokou",
+    "Mékambo"
+  ]
+}

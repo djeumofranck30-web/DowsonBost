@@ -1,0 +1,24 @@
+{
+  "country": "Bangladesh",
+  "code": "BD",
+  "zone": "Barisal Division",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ayla Patakata",
+    "Barishal",
+    "Bhola",
+    "Bhāndāria",
+    "Burhānuddin",
+    "Burirchar",
+    "Charāmaddi",
+    "Gaurnadi",
+    "Lālmohan",
+    "Mathba",
+    "Mehendiganj",
+    "Natona",
+    "Nālchiti",
+    "Patuakhali",
+    "Phuljhuri",
+    "Pirojpur"
+  ]
+}

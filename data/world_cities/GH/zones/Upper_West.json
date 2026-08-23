@@ -1,0 +1,10 @@
+{
+  "country": "Ghana",
+  "code": "GH",
+  "zone": "Upper West",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Jirapa",
+    "Wa"
+  ]
+}

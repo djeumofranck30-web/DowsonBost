@@ -1,0 +1,10 @@
+{
+  "country": "Montserrat",
+  "code": "MS",
+  "zone": "Saint Peter",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Brades",
+    "Saint Peters"
+  ]
+}

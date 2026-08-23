@@ -1,0 +1,10 @@
+{
+  "country": "Estonie",
+  "code": "EE",
+  "zone": "Lääne-Virumaa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Rakvere",
+    "Tapa"
+  ]
+}

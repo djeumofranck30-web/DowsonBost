@@ -1,0 +1,18 @@
+{
+  "country": "Niger",
+  "code": "NE",
+  "zone": "Tahoua Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abalak",
+    "Bagaroua",
+    "Birni N Konni",
+    "Bouza",
+    "Illéla",
+    "Keïta",
+    "Madaoua",
+    "Malbaza",
+    "Tahoua",
+    "Tchin Tabaradèn"
+  ]
+}

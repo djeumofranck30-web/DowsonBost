@@ -1,0 +1,15 @@
+{
+  "country": "Portugal",
+  "code": "PT",
+  "zone": "Évora",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Estremoz",
+    "Montemor-o-Novo",
+    "Redondo",
+    "Reguengos de Monsaraz",
+    "Vendas Novas",
+    "Vila Viçosa",
+    "Évora"
+  ]
+}

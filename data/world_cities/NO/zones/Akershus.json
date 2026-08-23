@@ -1,0 +1,22 @@
+{
+  "country": "Norvege",
+  "code": "NO",
+  "zone": "Akershus",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ask",
+    "Asker",
+    "Drøbak",
+    "Fetsund",
+    "Jessheim",
+    "Kløfta",
+    "Lillestrøm",
+    "Nesoddtangen",
+    "Råholt",
+    "Ski",
+    "Strømmen",
+    "Sørumsand",
+    "Vestby",
+    "Ås"
+  ]
+}

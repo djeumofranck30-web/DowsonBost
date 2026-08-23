@@ -1,0 +1,18 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Dong Nai",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Biên Hòa",
+    "Bình Long",
+    "Chơn Thành",
+    "Long Khánh",
+    "Long Thành",
+    "Lộc Ninh",
+    "Phước Hòa",
+    "Trảng Bom",
+    "Xuân Lộc",
+    "Đồng Xoài"
+  ]
+}

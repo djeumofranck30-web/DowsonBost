@@ -1,0 +1,13 @@
+{
+  "country": "Equateur",
+  "code": "EC",
+  "zone": "Esmeraldas",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Esmeraldas",
+    "Muisne",
+    "Rosa Zarate",
+    "San Lorenzo de Esmeraldas",
+    "Valdez"
+  ]
+}

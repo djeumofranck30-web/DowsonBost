@@ -1,0 +1,14 @@
+{
+  "country": "Grece",
+  "code": "GR",
+  "zone": "Ionian Islands",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Argostólion",
+    "Corfu",
+    "Lefkáda",
+    "Lefkímmi",
+    "Lixoúri",
+    "Zakynthos"
+  ]
+}

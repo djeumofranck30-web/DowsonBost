@@ -1,0 +1,17 @@
+{
+  "country": "Dominique",
+  "code": "DM",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Berekua",
+    "Colihaut",
+    "Pointe Michel",
+    "Pont Cassé",
+    "Portsmouth",
+    "Rosalie",
+    "Roseau",
+    "Saint Joseph",
+    "Soufrière",
+    "Wesley"
+  ]
+}

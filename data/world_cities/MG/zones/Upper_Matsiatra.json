@@ -1,0 +1,13 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Upper Matsiatra",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ambalavao",
+    "Ambohimahasoa",
+    "Fandrandava",
+    "Fianarantsoa",
+    "Ikalamavony"
+  ]
+}

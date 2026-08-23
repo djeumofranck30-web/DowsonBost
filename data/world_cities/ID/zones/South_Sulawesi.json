@@ -1,0 +1,18 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "South Sulawesi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Galesong",
+    "Makassar",
+    "Maros",
+    "Masamba",
+    "Palopo",
+    "Parepare",
+    "Rantepao",
+    "Sengkang",
+    "Sinjai",
+    "Watampone"
+  ]
+}

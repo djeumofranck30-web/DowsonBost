@@ -1,0 +1,12 @@
+{
+  "country": "Bosnie-Herzegovine",
+  "code": "BA",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Brčko",
+    "Federation of B&H",
+    "Srpska"
+  ],
+  "source": "geonames_admin1"
+}

@@ -1,0 +1,9 @@
+{
+  "country": "Lettonie",
+  "code": "LV",
+  "zone": "Jelgava",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Jelgava"
+  ]
+}

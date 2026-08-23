@@ -1,0 +1,18 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Kilifi County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gongoni",
+    "Kaloleni",
+    "Kilifi",
+    "Malindi",
+    "Marereni",
+    "Mariakani",
+    "Mtwapa",
+    "Takaungu",
+    "Vipingo",
+    "Watamu"
+  ]
+}

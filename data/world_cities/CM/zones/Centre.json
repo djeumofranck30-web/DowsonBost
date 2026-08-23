@@ -1,0 +1,24 @@
+{
+  "country": "Cameroun",
+  "code": "CM",
+  "zone": "Centre",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akonolinga",
+    "Bafia",
+    "Eséka",
+    "Makak",
+    "Mbalmayo",
+    "Mbandjok",
+    "Nanga Eboko",
+    "Ndikiniméki",
+    "Nkoteng",
+    "Ntui",
+    "Obala",
+    "Okoa",
+    "Okola",
+    "Saa",
+    "Yaoundé",
+    "Yoko"
+  ]
+}

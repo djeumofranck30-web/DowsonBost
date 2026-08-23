@@ -1,0 +1,9 @@
+{
+  "country": "Cap-Vert",
+  "code": "CV",
+  "zone": "Paul",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Pombas"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Zonguldak Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alaplı",
+    "Devrek",
+    "Ereğli",
+    "Gökçebey",
+    "Zonguldak",
+    "Çaycuma"
+  ]
+}

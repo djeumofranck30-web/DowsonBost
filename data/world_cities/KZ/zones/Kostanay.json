@@ -1,0 +1,20 @@
+{
+  "country": "Kazakhstan",
+  "code": "KZ",
+  "zone": "Kostanay",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arkalyk",
+    "Borovskoy",
+    "Fyodorov",
+    "Kostanay",
+    "Lisakovsk",
+    "Qarabalyq",
+    "Qashar",
+    "Qusmuryn",
+    "Rudnyy",
+    "Tobol",
+    "Torghay",
+    "Zhitikara"
+  ]
+}

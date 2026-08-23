@@ -1,0 +1,15 @@
+{
+  "country": "Argentine",
+  "code": "AR",
+  "zone": "San Luis",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Justo Daract",
+    "La Punta",
+    "La Toma",
+    "Merlo",
+    "San Luis",
+    "Tilisarao",
+    "Villa Mercedes"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "country": "Chili",
+  "code": "CL",
+  "zone": "Tarapacá",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alto Hospicio",
+    "Iquique",
+    "Pica",
+    "Pozo Almonte"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Magdalena Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Algarrobo",
+    "Aracataca",
+    "Cerro de San Antonio",
+    "Chivolo",
+    "Ciénaga",
+    "Concordia",
+    "El Banco",
+    "El Piñón",
+    "El Retén",
+    "Fundación",
+    "Guamal",
+    "Nueva Granada",
+    "Pijiño del Carmen",
+    "Pivijay",
+    "Plato",
+    "Puebloviejo",
+    "Remolino",
+    "Salamina",
+    "San Antonio",
+    "San Zenón",
+    "Santa Ana",
+    "Santa Marta",
+    "Sitionuevo"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "country": "Armenie",
+  "code": "AM",
+  "zone": "Aragatsotn",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aparan",
+    "Aragatsavan",
+    "Ashtarak",
+    "Oshakan"
+  ]
+}

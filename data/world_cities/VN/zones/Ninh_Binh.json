@@ -1,0 +1,14 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Ninh Binh",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gôi",
+    "Nam Định",
+    "Ninh Bình",
+    "Phủ Lý",
+    "Thanh Nguyên",
+    "Thị Trấn Bình Minh"
+  ]
+}

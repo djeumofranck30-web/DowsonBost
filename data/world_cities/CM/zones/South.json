@@ -1,0 +1,15 @@
+{
+  "country": "Cameroun",
+  "code": "CM",
+  "zone": "South",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akom II",
+    "Ambam",
+    "Kribi",
+    "Lolodorf",
+    "Olamzé",
+    "Sangmélima",
+    "Ébolowa"
+  ]
+}

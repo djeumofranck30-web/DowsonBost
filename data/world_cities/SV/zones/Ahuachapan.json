@@ -1,0 +1,13 @@
+{
+  "country": "Salvador",
+  "code": "SV",
+  "zone": "Ahuachapan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ahuachapán",
+    "Atiquizaya",
+    "Concepción de Ataco",
+    "Tacuba",
+    "Turín"
+  ]
+}

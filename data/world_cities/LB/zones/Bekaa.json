@@ -1,0 +1,10 @@
+{
+  "country": "Liban",
+  "code": "LB",
+  "zone": "Bekaa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aaïtanît",
+    "Zahlé"
+  ]
+}

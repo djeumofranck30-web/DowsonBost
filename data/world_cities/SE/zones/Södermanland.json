@@ -1,0 +1,17 @@
+{
+  "country": "Suede",
+  "code": "SE",
+  "zone": "Södermanland",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Eskilstuna",
+    "Flen",
+    "Gnesta",
+    "Katrineholm",
+    "Nyköping",
+    "Oxelösund",
+    "Strängnäs",
+    "Torshälla",
+    "Trosa"
+  ]
+}

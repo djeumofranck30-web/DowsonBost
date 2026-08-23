@@ -1,0 +1,27 @@
+{
+  "country": "États-Unis",
+  "code": "US",
+  "zone": "Vermont",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Barre",
+    "Bennington",
+    "Brattleboro",
+    "Burlington",
+    "Colchester",
+    "Essex Junction",
+    "Hartford",
+    "Lyndon",
+    "Middlebury (village)",
+    "Montpelier",
+    "Morristown",
+    "Rockingham",
+    "Rutland",
+    "Saint Albans",
+    "Saint Johnsbury",
+    "South Burlington",
+    "St Johnsbury",
+    "Williston",
+    "Winooski"
+  ]
+}

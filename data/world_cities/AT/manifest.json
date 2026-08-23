@@ -1,0 +1,18 @@
+{
+  "country": "Autriche",
+  "code": "AT",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Burgenland",
+    "Carinthia",
+    "Lower Austria",
+    "Salzburg",
+    "Styria",
+    "Tyrol",
+    "Upper Austria",
+    "Vienna",
+    "Vorarlberg"
+  ],
+  "source": "geonames_admin1"
+}

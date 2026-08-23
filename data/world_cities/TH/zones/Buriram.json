@@ -1,0 +1,13 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Buriram",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Buri Ram",
+    "Nang Rong",
+    "Nong Ki",
+    "Prakhon Chai",
+    "Satuek"
+  ]
+}

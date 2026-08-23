@@ -1,0 +1,13 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Phichit",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bang Mun Nak",
+    "Phichit",
+    "Taphan Hin",
+    "Thap Khlo",
+    "Wang Sai Phun"
+  ]
+}

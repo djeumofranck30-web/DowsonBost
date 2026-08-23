@@ -1,0 +1,24 @@
+{
+  "country": "Sierra Leone",
+  "code": "SL",
+  "zone": "Eastern Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Barma",
+    "Blama",
+    "Boajibu",
+    "Buedu",
+    "Bunumbu",
+    "Daru",
+    "Hangha",
+    "Kailahun",
+    "Kenema",
+    "Koidu",
+    "Motema",
+    "Panguma",
+    "Pendembu",
+    "Segbwema",
+    "Tombodu",
+    "Yengema"
+  ]
+}

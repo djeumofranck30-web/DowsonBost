@@ -1,0 +1,13 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "Zacapa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Estanzuela",
+    "Gualán",
+    "Río Hondo",
+    "Teculután",
+    "Zacapa"
+  ]
+}

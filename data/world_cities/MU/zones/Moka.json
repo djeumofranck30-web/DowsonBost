@@ -1,0 +1,13 @@
+{
+  "country": "Maurice",
+  "code": "MU",
+  "zone": "Moka",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dagotière",
+    "Moka",
+    "Pailles",
+    "Quartier Militaire",
+    "Saint Pierre"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Mersin",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alifakı",
+    "Anamur",
+    "Arpaçbahşiş",
+    "Atakent",
+    "Atayurt",
+    "Aydıncık",
+    "Bozyazı",
+    "Erdemli",
+    "Gülnar",
+    "Kocahasanlı",
+    "Mersin",
+    "Mut",
+    "Pınarbaşı",
+    "Silifke",
+    "Tarsus",
+    "Taşucu",
+    "Çeşmeli"
+  ]
+}

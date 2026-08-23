@@ -1,0 +1,23 @@
+{
+  "country": "Israel",
+  "code": "IL",
+  "zone": "Tel Aviv",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Azor",
+    "Bat Yam",
+    "Bnei Brak",
+    "Giv'at Shmuel",
+    "Givatayim",
+    "Herzliya",
+    "Herzliya Pituah",
+    "H̱olon",
+    "Jaffa",
+    "Kiryat Ono",
+    "Or Yehuda",
+    "Ramat Gan",
+    "Ramat HaSharon",
+    "Tel Aviv",
+    "Yehud-Monosson"
+  ]
+}

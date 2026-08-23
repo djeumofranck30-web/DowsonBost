@@ -1,0 +1,30 @@
+{
+  "country": "Koweit",
+  "code": "KW",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ad Dasmah",
+    "Al Aḩmadī",
+    "Al Farwānīyah",
+    "Al Faḩāḩīl",
+    "Al Finţās",
+    "Al Jahrā’",
+    "Al Mahbūlah",
+    "Al Manqaf",
+    "Al Wafrah",
+    "Ar Riqqah",
+    "Ar Rumaythīyah",
+    "Ar Rābiyah",
+    "As Sālimīyah",
+    "Ash Shāmīyah",
+    "Az Zawr",
+    "Bayān",
+    "Janūb as Surrah",
+    "Kuwait City",
+    "Mazāri‘ al ‘Abdalī",
+    "Mubārak al Kabīr",
+    "Salwá",
+    "Şabāḩ as Sālim",
+    "Ḩawallī"
+  ]
+}

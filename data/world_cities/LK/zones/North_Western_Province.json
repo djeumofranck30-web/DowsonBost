@@ -1,0 +1,12 @@
+{
+  "country": "Sri Lanka",
+  "code": "LK",
+  "zone": "North Western Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chilaw",
+    "Kuliyapitiya",
+    "Kurunegala",
+    "Puttalam"
+  ]
+}

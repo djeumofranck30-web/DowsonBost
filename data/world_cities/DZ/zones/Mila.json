@@ -1,0 +1,16 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Mila",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chelghoum el Aïd",
+    "Fedj M’Zala",
+    "Grarem",
+    "Mila",
+    "Rouached",
+    "Sidi Mérouane",
+    "Tadjenanet",
+    "Telerghma"
+  ]
+}

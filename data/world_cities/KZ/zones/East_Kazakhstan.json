@@ -1,0 +1,22 @@
+{
+  "country": "Kazakhstan",
+  "code": "KZ",
+  "zone": "East Kazakhstan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Altay",
+    "Asubulak",
+    "Belousovka",
+    "Glubokoye",
+    "Kurchum",
+    "Novaya Bukhtarma",
+    "Ridder",
+    "Shemonaikha",
+    "Tughyl",
+    "Ulken Naryn",
+    "Urzhar",
+    "Ust-Kamenogorsk",
+    "Zaysan",
+    "Ūst’-Talovka"
+  ]
+}

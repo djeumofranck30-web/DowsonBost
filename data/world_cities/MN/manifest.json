@@ -1,0 +1,31 @@
+{
+  "country": "Mongolie",
+  "code": "MN",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Arkhangai Province",
+    "Bayan-Ölgii Province",
+    "Bayankhongor",
+    "Bulgan",
+    "Central Aimak",
+    "Darhan Uul",
+    "Dzabkhan",
+    "East Aimak",
+    "East Gobi Aymag",
+    "Govi-Altai Province",
+    "Govĭ-Sumber",
+    "Hentiy",
+    "Hovd",
+    "Khövsgöl Province",
+    "Middle Govĭ",
+    "Orhon",
+    "Selenge Province",
+    "Sühbaatar",
+    "Ulaanbaatar",
+    "Uvs Province",
+    "Ömnögovĭ",
+    "Övörhangay"
+  ],
+  "source": "geonames_admin1"
+}

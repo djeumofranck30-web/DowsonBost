@@ -1,0 +1,9 @@
+{
+  "country": "Equateur",
+  "code": "EC",
+  "zone": "Pastaza Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Puyo"
+  ]
+}

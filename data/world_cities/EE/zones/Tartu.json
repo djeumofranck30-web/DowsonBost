@@ -1,0 +1,10 @@
+{
+  "country": "Estonie",
+  "code": "EE",
+  "zone": "Tartu",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Elva",
+    "Tartu"
+  ]
+}

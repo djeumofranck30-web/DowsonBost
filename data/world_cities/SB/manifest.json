@@ -1,0 +1,18 @@
+{
+  "country": "Salomon",
+  "code": "SB",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Central Province",
+    "Choiseul Province",
+    "Guadalcanal Province",
+    "Honiara",
+    "Isabel Province",
+    "Makira-Ulawa Province",
+    "Malaita Province",
+    "Temotu Province",
+    "Western Province"
+  ],
+  "source": "geonames_admin1"
+}

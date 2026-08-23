@@ -1,0 +1,29 @@
+{
+  "country": "Trinite-et-Tobago",
+  "code": "TT",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arima",
+    "Arouca",
+    "Chaguanas",
+    "Claxton Bay",
+    "Couva",
+    "Diego Martin",
+    "Gasparillo",
+    "Laventille",
+    "Marabella",
+    "Mon Repos",
+    "Paradise",
+    "Petit Valley",
+    "Peñal",
+    "Point Fortin",
+    "Port of Spain",
+    "Princes Town",
+    "Rio Claro",
+    "San Fernando",
+    "Sangre Grande",
+    "Scarborough",
+    "Siparia",
+    "Tunapuna"
+  ]
+}

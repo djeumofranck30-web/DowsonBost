@@ -1,0 +1,9 @@
+{
+  "country": "Azerbaidjan",
+  "code": "AZ",
+  "zone": "Shaki City",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Sheki"
+  ]
+}

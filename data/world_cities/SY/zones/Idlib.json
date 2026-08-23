@@ -1,0 +1,19 @@
+{
+  "country": "Syrie",
+  "code": "SY",
+  "zone": "Idlib",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ad Dānā",
+    "Afis",
+    "Binnish",
+    "Idlib",
+    "Jisr ash Shughūr",
+    "Kafr Takhārīm",
+    "Kafranbel",
+    "Khān Shaykhūn",
+    "Ma‘arratmişrīn",
+    "Salqīn",
+    "Saraqib"
+  ]
+}

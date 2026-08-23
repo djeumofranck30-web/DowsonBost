@@ -1,0 +1,16 @@
+{
+  "country": "Senegal",
+  "code": "SN",
+  "zone": "Kaolack",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gandiaye",
+    "Guinguinéo",
+    "Kahone",
+    "Kaolack",
+    "Keur Madiabel",
+    "Ndofane",
+    "Nioro du Rip",
+    "Sibassor"
+  ]
+}

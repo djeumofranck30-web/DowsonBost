@@ -1,0 +1,14 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Bordj Bou Arréridj",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bordj Bou Arreridj",
+    "Bordj Ghdir",
+    "Bordj Zemoura",
+    "El Achir",
+    "Mansourah",
+    "Râs el Oued"
+  ]
+}

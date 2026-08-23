@@ -1,0 +1,10 @@
+{
+  "country": "Somalie",
+  "code": "SO",
+  "zone": "Nugaal",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Eyl",
+    "Garoowe"
+  ]
+}

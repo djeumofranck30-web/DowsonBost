@@ -1,0 +1,15 @@
+{
+  "country": "Cambodge",
+  "code": "KH",
+  "zone": "Prey Veng",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Angkor Angk",
+    "Angkor Sar",
+    "Kampong Trabaek",
+    "Khŭm Ânsaông",
+    "Phumĭ Koŭk Kóng",
+    "Preaek Khsay Kha",
+    "Prey Veng"
+  ]
+}

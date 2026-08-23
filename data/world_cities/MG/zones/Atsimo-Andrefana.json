@@ -1,0 +1,17 @@
+{
+  "country": "Madagascar",
+  "code": "MG",
+  "zone": "Atsimo-Andrefana",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ampanihy",
+    "Ankazoabo",
+    "Behompy",
+    "Beroroha",
+    "Betioky",
+    "Itampolo",
+    "Morombe",
+    "Sakaraha",
+    "Toliara"
+  ]
+}

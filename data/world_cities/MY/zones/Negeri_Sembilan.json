@@ -1,0 +1,30 @@
+{
+  "country": "Malaisie",
+  "code": "MY",
+  "zone": "Negeri Sembilan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bahau",
+    "Bandar Baru Enstek",
+    "Bandar Springhill",
+    "Bandar Sri Sendayan",
+    "Gemas",
+    "Gemencheh",
+    "Kampung Baharu Nilai",
+    "Kampung Teluk Kemang",
+    "Kuala Pilah",
+    "Lenggeng",
+    "Lukut",
+    "Pasir Panjang",
+    "Port Dickson",
+    "Rembau",
+    "Rompin",
+    "Seremban",
+    "Seremban 2",
+    "Seremban 3",
+    "Taman Senawang Indah",
+    "Taman Seremban Jaya",
+    "Tampin",
+    "Titi"
+  ]
+}

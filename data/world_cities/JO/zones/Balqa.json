@@ -1,0 +1,13 @@
+{
+  "country": "Jordanie",
+  "code": "JO",
+  "zone": "Balqa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Fuḩayş",
+    "Al Karāmah",
+    "As Salţ",
+    "Māḩiş",
+    "Ṣuwayliḥ"
+  ]
+}

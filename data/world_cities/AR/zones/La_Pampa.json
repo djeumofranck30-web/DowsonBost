@@ -1,0 +1,19 @@
+{
+  "country": "Argentine",
+  "code": "AR",
+  "zone": "La Pampa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Eduardo Castex",
+    "General Acha",
+    "General Pico",
+    "Guatraché",
+    "Intendente Alvear",
+    "Macachín",
+    "Realicó",
+    "Santa Rosa",
+    "Toay",
+    "Veinticinco de Mayo",
+    "Victorica"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "Alta Verapaz",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chahal",
+    "Chisec",
+    "Cobán",
+    "Panzos",
+    "San Cristóbal Verapaz",
+    "San Juan Chamelco",
+    "San Pedro Carchá",
+    "Santa Cruz Verapaz",
+    "Senahú",
+    "Tactic"
+  ]
+}

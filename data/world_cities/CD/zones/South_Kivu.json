@@ -1,0 +1,11 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "South Kivu",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bukavu",
+    "Kabare",
+    "Uvira"
+  ]
+}

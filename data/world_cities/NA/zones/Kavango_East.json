@@ -1,0 +1,10 @@
+{
+  "country": "Namibie",
+  "code": "NA",
+  "zone": "Kavango East",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ndiyona",
+    "Rundu"
+  ]
+}

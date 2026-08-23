@@ -1,0 +1,10 @@
+{
+  "country": "Cambodge",
+  "code": "KH",
+  "zone": "Koh Kong",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Koh Kong",
+    "Smach Mean Chey"
+  ]
+}

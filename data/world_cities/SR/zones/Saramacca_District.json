@@ -1,0 +1,10 @@
+{
+  "country": "Suriname",
+  "code": "SR",
+  "zone": "Saramacca District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Groningen",
+    "Jarikaba"
+  ]
+}

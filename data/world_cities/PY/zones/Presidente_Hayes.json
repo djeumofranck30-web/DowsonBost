@@ -1,0 +1,11 @@
+{
+  "country": "Paraguay",
+  "code": "PY",
+  "zone": "Presidente Hayes",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Benjamín Aceval",
+    "Nanawa",
+    "Villa Hayes"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "country": "Somalie",
+  "code": "SO",
+  "zone": "Awdal",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baki",
+    "Borama",
+    "Ruqi",
+    "Saylac"
+  ]
+}

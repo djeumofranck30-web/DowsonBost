@@ -1,0 +1,12 @@
+{
+  "country": "Haiti",
+  "code": "HT",
+  "zone": "Grand'Anse",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dame-Marie",
+    "Jérémie",
+    "Sassier",
+    "Sources Chaudes"
+  ]
+}

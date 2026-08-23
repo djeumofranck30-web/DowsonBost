@@ -1,0 +1,10 @@
+{
+  "country": "Timor oriental",
+  "code": "TL",
+  "zone": "Bobonaro",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bobonaro",
+    "Maliana"
+  ]
+}

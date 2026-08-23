@@ -1,0 +1,19 @@
+{
+  "country": "Zimbabwe",
+  "code": "ZW",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Bulawayo",
+    "Harare",
+    "Manicaland",
+    "Mashonaland Central",
+    "Mashonaland East Province",
+    "Mashonaland West",
+    "Masvingo Province",
+    "Matabeleland North",
+    "Matabeleland South Province",
+    "Midlands Province"
+  ],
+  "source": "geonames_admin1"
+}

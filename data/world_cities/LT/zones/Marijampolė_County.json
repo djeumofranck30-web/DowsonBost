@@ -1,0 +1,12 @@
+{
+  "country": "Lituanie",
+  "code": "LT",
+  "zone": "Marijampolė County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kazlų Rūda",
+    "Kybartai",
+    "Marijampolė",
+    "Vilkaviskis"
+  ]
+}

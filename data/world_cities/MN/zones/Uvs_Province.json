@@ -1,0 +1,9 @@
+{
+  "country": "Mongolie",
+  "code": "MN",
+  "zone": "Uvs Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ulaangom"
+  ]
+}

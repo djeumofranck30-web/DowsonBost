@@ -1,0 +1,14 @@
+{
+  "country": "Zimbabwe",
+  "code": "ZW",
+  "zone": "Mashonaland East Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chivhu",
+    "Marondera",
+    "Mount Hampden",
+    "Murewa",
+    "Mutoko",
+    "Ruwa"
+  ]
+}

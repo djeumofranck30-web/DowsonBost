@@ -1,0 +1,9 @@
+{
+  "country": "Guinee-Bissau",
+  "code": "GW",
+  "zone": "Quinara",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Buba"
+  ]
+}

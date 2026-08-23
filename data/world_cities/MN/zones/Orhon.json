@@ -1,0 +1,9 @@
+{
+  "country": "Mongolie",
+  "code": "MN",
+  "zone": "Orhon",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Erdenet"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "country": "Ukraine",
+  "code": "UA",
+  "zone": "Zhytomyr Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Andrushivka",
+    "Baranivka",
+    "Berdychiv",
+    "Bohuniya",
+    "Cherniakhiv",
+    "Chudniv",
+    "Horodnytsia",
+    "Irshansk",
+    "Khoroshiv",
+    "Korolyov",
+    "Korosten",
+    "Korostyshiv",
+    "Malyn",
+    "Nova Borova",
+    "Novohuivynske",
+    "Olevsk",
+    "Ovruch",
+    "Ozerne",
+    "Popilnia",
+    "Pulyny",
+    "Radomyshl",
+    "Romaniv",
+    "Yemilchyne",
+    "Zhytomyr",
+    "Zvyahel"
+  ]
+}

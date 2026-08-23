@@ -1,0 +1,31 @@
+{
+  "country": "États-Unis",
+  "code": "US",
+  "zone": "Montana",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anaconda",
+    "Belgrade",
+    "Billings",
+    "Bozeman",
+    "Butte",
+    "Columbia Falls",
+    "Evergreen",
+    "Glendive",
+    "Great Falls",
+    "Havre",
+    "Helena",
+    "Helena Valley Southeast",
+    "Helena Valley West Central",
+    "Kalispell",
+    "Laurel",
+    "Lewistown",
+    "Livingston",
+    "Lockwood",
+    "Miles City",
+    "Missoula",
+    "Orchard Homes",
+    "Sidney",
+    "Whitefish"
+  ]
+}

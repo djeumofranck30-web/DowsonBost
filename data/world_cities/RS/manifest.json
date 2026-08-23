@@ -1,0 +1,11 @@
+{
+  "country": "Serbie",
+  "code": "RS",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Central Serbia",
+    "Vojvodina"
+  ],
+  "source": "geonames_admin1"
+}

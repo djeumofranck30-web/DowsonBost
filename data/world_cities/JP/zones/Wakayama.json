@@ -1,0 +1,33 @@
+{
+  "country": "Japon",
+  "code": "JP",
+  "zone": "Wakayama",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arida",
+    "Asso",
+    "Gobō",
+    "Hamanose",
+    "Hashimoto",
+    "Higashinaka",
+    "Inami",
+    "Itogawa",
+    "Iwade",
+    "Kainan",
+    "Katsuura",
+    "Kinokawa",
+    "Kushimoto",
+    "Minabe",
+    "Minato",
+    "Nakaiburi",
+    "Nishino",
+    "Sato",
+    "Shingū",
+    "Shirahama",
+    "Tanabe",
+    "Tōkōji",
+    "Wakayama",
+    "Wasa",
+    "Yuasa"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Akwa Ibom State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abak",
+    "Eket",
+    "Esuk Oron",
+    "Etinan",
+    "Ikot Ekpene",
+    "Itu",
+    "Uyo"
+  ]
+}

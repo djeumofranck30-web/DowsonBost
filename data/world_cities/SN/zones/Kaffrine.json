@@ -1,0 +1,14 @@
+{
+  "country": "Senegal",
+  "code": "SN",
+  "zone": "Kaffrine",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Birkelane",
+    "Kaffrine",
+    "Koungheul",
+    "Koungneul Sossé",
+    "Malèm Hodar",
+    "Nganda"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "country": "Equateur",
+  "code": "EC",
+  "zone": "Manabí",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bahía de Caráquez",
+    "Calceta",
+    "Chone",
+    "Jipijapa",
+    "Junín",
+    "Manta",
+    "Montecristi",
+    "Paján",
+    "Pedernales",
+    "Portoviejo",
+    "Rocafuerte",
+    "Santa Ana de Vuelta Larga",
+    "Sucre",
+    "Tosagua"
+  ]
+}

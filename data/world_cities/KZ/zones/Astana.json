@@ -1,0 +1,9 @@
+{
+  "country": "Kazakhstan",
+  "code": "KZ",
+  "zone": "Astana",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Astana"
+  ]
+}

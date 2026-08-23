@@ -1,0 +1,14 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Skikda",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Azzaba",
+    "Collo",
+    "El Arrouch",
+    "Kerkera",
+    "Skikda",
+    "Tamalous"
+  ]
+}

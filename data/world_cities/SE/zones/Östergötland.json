@@ -1,0 +1,20 @@
+{
+  "country": "Suede",
+  "code": "SE",
+  "zone": "Östergötland",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Finspång",
+    "Krokek",
+    "Linköping",
+    "Ljungsbro",
+    "Malmslätt",
+    "Mjölby",
+    "Motala",
+    "Norrköping",
+    "Söderköping",
+    "Vadstena",
+    "Åby",
+    "Åtvidaberg"
+  ]
+}

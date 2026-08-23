@@ -1,0 +1,20 @@
+{
+  "country": "Norvege",
+  "code": "NO",
+  "zone": "Trøndelag",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Hommelvik",
+    "Levanger",
+    "Malvik",
+    "Melhus",
+    "Namsos",
+    "Orkanger",
+    "Røros",
+    "Steinkjer",
+    "Stjørdal",
+    "Stjørdalshalsen",
+    "Trondheim",
+    "Verdal"
+  ]
+}

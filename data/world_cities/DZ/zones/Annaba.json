@@ -1,0 +1,13 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Annaba",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ahmed Bel Hadj",
+    "Annaba",
+    "Berrahal",
+    "El Hadjar",
+    "Sidi Amar"
+  ]
+}

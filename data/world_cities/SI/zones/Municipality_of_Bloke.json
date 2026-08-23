@@ -1,0 +1,9 @@
+{
+  "country": "Slovenie",
+  "code": "SI",
+  "zone": "Municipality of Bloke",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Nova Vas"
+  ]
+}

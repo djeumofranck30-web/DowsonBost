@@ -1,0 +1,10 @@
+{
+  "country": "Croatie",
+  "code": "HR",
+  "zone": "Virovitica-Podravina",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Slatina",
+    "Virovitica"
+  ]
+}

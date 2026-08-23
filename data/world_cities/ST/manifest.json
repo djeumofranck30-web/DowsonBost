@@ -1,0 +1,11 @@
+{
+  "country": "Sao Tome-et-Principe",
+  "code": "ST",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Príncipe",
+    "São Tomé Island"
+  ],
+  "source": "geonames_admin1"
+}

@@ -1,0 +1,14 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Relizane",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ammi Moussa",
+    "Djidiouia",
+    "Mazouna",
+    "Oued Rhiou",
+    "Relizane",
+    "Zemoura"
+  ]
+}

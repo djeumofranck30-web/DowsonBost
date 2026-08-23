@@ -1,0 +1,12 @@
+{
+  "country": "Moldavie",
+  "code": "MD",
+  "zone": "Gagauzia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ceadîr-Lunga",
+    "Comrat",
+    "Congaz",
+    "Vulcăneşti"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "country": "Myanmar",
+  "code": "MM",
+  "zone": "Ayeyarwady",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bogale",
+    "Dawbon",
+    "Hinthada",
+    "Ingabu",
+    "Kyaiklat",
+    "Kyonpyaw",
+    "Labutta",
+    "Maubin",
+    "Mawlamyinegyunn",
+    "Myanaung",
+    "Myaungmya",
+    "Nyaungdon",
+    "Pathein",
+    "Pyapon",
+    "Wakema",
+    "Zalun"
+  ]
+}

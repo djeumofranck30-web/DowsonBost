@@ -1,0 +1,24 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Tanga",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chanika",
+    "Handeni",
+    "Korogwe",
+    "Lushoto",
+    "Magomeni",
+    "Majengo",
+    "Makuyuni",
+    "Maramba",
+    "Matui",
+    "Mazinde",
+    "Mlalo",
+    "Muheza",
+    "Mwanga",
+    "Pangani",
+    "Soni",
+    "Tanga"
+  ]
+}

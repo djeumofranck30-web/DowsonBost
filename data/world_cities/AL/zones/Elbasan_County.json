@@ -1,0 +1,19 @@
+{
+  "country": "Albanie",
+  "code": "AL",
+  "zone": "Elbasan County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cërrik",
+    "Elbasan",
+    "Gramsh",
+    "Hotolisht",
+    "Librazhd",
+    "Librazhd-Qendër",
+    "Papër",
+    "Peqin",
+    "Përrenjas",
+    "Rajcë",
+    "Shushicë"
+  ]
+}

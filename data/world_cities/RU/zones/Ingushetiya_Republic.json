@@ -1,0 +1,28 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Ingushetiya Republic",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ali-Yurt",
+    "Alkhan-Churt",
+    "Dalakovo",
+    "Ekazhevo",
+    "Galashki",
+    "Kantyshevo",
+    "Karabulak",
+    "Magas",
+    "Malgobek",
+    "Nazran",
+    "Nesterovskaya",
+    "Nizhniye Achaluki",
+    "Psedakh",
+    "Sagopshi",
+    "Staryy Malgobek",
+    "Sunzha",
+    "Surkhakhi",
+    "Troitskaya",
+    "Verkhniye Achaluki",
+    "Voznesenskaya"
+  ]
+}

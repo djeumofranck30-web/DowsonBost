@@ -1,0 +1,19 @@
+{
+  "country": "Turkmenistan",
+  "code": "TM",
+  "zone": "Dasoguz",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akdepe",
+    "Aşyr Kakabaýew",
+    "Boldumsaz",
+    "Daşoguz",
+    "Gubadag",
+    "Gökçäge",
+    "Görogly",
+    "Köneürgenç",
+    "Oýrat",
+    "Saparmurat Turkmenbashy",
+    "Yylanly"
+  ]
+}

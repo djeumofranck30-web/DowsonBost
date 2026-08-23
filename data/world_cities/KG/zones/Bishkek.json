@@ -1,0 +1,9 @@
+{
+  "country": "Kirghizistan",
+  "code": "KG",
+  "zone": "Bishkek",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bishkek"
+  ]
+}

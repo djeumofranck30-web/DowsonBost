@@ -1,0 +1,15 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Vinh Long",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bình Minh",
+    "Bến Tre",
+    "Duyên Hải",
+    "Thạnh Phú",
+    "Trà Vinh",
+    "Vĩnh Long",
+    "Ấp Tân Ngãi"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "country": "Syrie",
+  "code": "SY",
+  "zone": "Hama",
+  "source": "geonames_cities5000",
+  "cities": [
+    "As Salamīyah",
+    "Kafr Buhum",
+    "Kafr Zaytā",
+    "Maharda",
+    "Maşyāf",
+    "Mūrak",
+    "Shaţḩah",
+    "Tremseh",
+    "Şūrān",
+    "Ţayyibat al Imām",
+    "Ḩalfāyā",
+    "Ḩamāh"
+  ]
+}

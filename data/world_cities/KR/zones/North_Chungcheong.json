@@ -1,0 +1,15 @@
+{
+  "country": "Coree du Sud",
+  "code": "KR",
+  "zone": "North Chungcheong",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cheongju-si",
+    "Chinch'ŏn",
+    "Chungju",
+    "Jungpyong",
+    "Koesan",
+    "Okcheon",
+    "Yeongdong"
+  ]
+}

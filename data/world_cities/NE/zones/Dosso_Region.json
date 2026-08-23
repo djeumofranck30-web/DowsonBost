@@ -1,0 +1,16 @@
+{
+  "country": "Niger",
+  "code": "NE",
+  "zone": "Dosso Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Birnin Gaouré",
+    "Dioundiou",
+    "Dogondoutchi",
+    "Dosso",
+    "Falmey",
+    "Gaya",
+    "Loga",
+    "Tibiri"
+  ]
+}

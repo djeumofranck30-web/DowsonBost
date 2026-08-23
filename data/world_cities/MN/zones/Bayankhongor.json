@@ -1,0 +1,9 @@
+{
+  "country": "Mongolie",
+  "code": "MN",
+  "zone": "Bayankhongor",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bayanhongor"
+  ]
+}

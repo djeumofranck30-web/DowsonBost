@@ -1,0 +1,16 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Lara",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Barquisimeto",
+    "Cabudare",
+    "Carora",
+    "Duaca",
+    "El Tocuyo",
+    "Los Rastrojos",
+    "Quíbor",
+    "Sanare"
+  ]
+}

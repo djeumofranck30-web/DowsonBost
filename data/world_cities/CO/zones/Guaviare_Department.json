@@ -1,0 +1,11 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Guaviare Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "El Retorno",
+    "Miraflores",
+    "San José del Guaviare"
+  ]
+}

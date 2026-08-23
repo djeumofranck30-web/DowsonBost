@@ -1,0 +1,16 @@
+{
+  "country": "Malawi",
+  "code": "MW",
+  "zone": "Northern Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chitipa",
+    "Karonga",
+    "Likoma",
+    "Livingstonia",
+    "Mzimba",
+    "Mzuzu",
+    "Nkhata Bay",
+    "Rumphi"
+  ]
+}

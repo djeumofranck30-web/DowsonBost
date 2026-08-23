@@ -1,0 +1,12 @@
+{
+  "country": "Inde",
+  "code": "IN",
+  "zone": "Ladakh",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Choglamsar",
+    "Kargil",
+    "Leh",
+    "Padam"
+  ]
+}

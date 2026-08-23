@@ -1,0 +1,27 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Beheira",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abū al Maţāmīr",
+    "Abū Ḩummuş",
+    "Ad Dilinjāt",
+    "Al Maḩmūdīyah",
+    "Al Yāsīnīyah",
+    "An Nūbārīyah",
+    "Ar Raḩmānīyah",
+    "Badr",
+    "Damanhur",
+    "Idkū",
+    "Kafr ad Dawwār",
+    "Kawm Ḩamādah",
+    "Madīnat as Sādāt",
+    "Madīnat Wādī an Naţrūn",
+    "Rosetta",
+    "Shubrākhīt",
+    "Ītāy al Bārūd",
+    "Ḩawsh ‘Īsá",
+    "‘Izbat ‘Alī as Sayyid"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Giurgiu County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bolintin Deal",
+    "Bolintin Vale",
+    "Băneasa",
+    "Comana",
+    "Călugăreni",
+    "Frăteşti",
+    "Giurgiu",
+    "Găiseni",
+    "Hotarele",
+    "Joiţa",
+    "Mihăileşti",
+    "Novaci",
+    "Roata de Jos",
+    "Ulmi",
+    "Vedea",
+    "Vărăşti"
+  ]
+}

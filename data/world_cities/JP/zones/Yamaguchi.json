@@ -1,0 +1,28 @@
+{
+  "country": "Japon",
+  "code": "JP",
+  "zone": "Yamaguchi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Hagi",
+    "Hikari",
+    "Hirao",
+    "Hōfu",
+    "Iwakuni",
+    "Kudamatsu",
+    "Mine",
+    "Nagato",
+    "Ogōri-shimogō",
+    "Onoda",
+    "Sanyōonoda",
+    "Shimonoseki",
+    "Shūnan",
+    "Tabuse",
+    "Tokuyama",
+    "Ube",
+    "Waki",
+    "Yamaguchi",
+    "Yanai",
+    "Ōshima"
+  ]
+}

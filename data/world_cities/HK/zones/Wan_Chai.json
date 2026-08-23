@@ -1,0 +1,12 @@
+{
+  "country": "Hong Kong",
+  "code": "HK",
+  "zone": "Wan Chai",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Happy Valley",
+    "Jardine's Lookout",
+    "Leighton Hill",
+    "Wan Chai"
+  ]
+}

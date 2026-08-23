@@ -1,0 +1,17 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Portuguesa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Acarigua",
+    "Araure",
+    "Boconoito",
+    "Guanare",
+    "Guanarito",
+    "Ospino",
+    "Píritu",
+    "San Rafael de Onoto",
+    "Villa Bruzual"
+  ]
+}

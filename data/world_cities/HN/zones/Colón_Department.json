@@ -1,0 +1,15 @@
+{
+  "country": "Honduras",
+  "code": "HN",
+  "zone": "Colón Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Iriona",
+    "Limón",
+    "Sabá",
+    "Santa Rosa de Aguán",
+    "Sonaguera",
+    "Tocoa",
+    "Trujillo"
+  ]
+}

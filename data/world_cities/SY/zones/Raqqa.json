@@ -1,0 +1,10 @@
+{
+  "country": "Syrie",
+  "code": "SY",
+  "zone": "Raqqa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al-Tabqa",
+    "Ar Raqqah"
+  ]
+}

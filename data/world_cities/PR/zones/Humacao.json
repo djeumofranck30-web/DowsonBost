@@ -1,0 +1,10 @@
+{
+  "country": "Porto Rico",
+  "code": "PR",
+  "zone": "Humacao",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Humacao",
+    "Punta Santiago"
+  ]
+}

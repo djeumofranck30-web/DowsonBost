@@ -1,0 +1,15 @@
+{
+  "country": "Guinee",
+  "code": "GN",
+  "zone": "Nzérékoré Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Beyla",
+    "Gueckedou",
+    "Lola",
+    "Macenta",
+    "Moussadou",
+    "Nzérékoré",
+    "Yomou"
+  ]
+}

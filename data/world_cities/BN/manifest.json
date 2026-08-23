@@ -1,0 +1,13 @@
+{
+  "country": "Brunei",
+  "code": "BN",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Belait",
+    "Brunei-Muara District",
+    "Temburong",
+    "Tutong"
+  ],
+  "source": "geonames_admin1"
+}

@@ -1,0 +1,14 @@
+{
+  "country": "Hongrie",
+  "code": "HU",
+  "zone": "Baranya",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Komló",
+    "Mohács",
+    "Pécs",
+    "Siklós",
+    "Szentlőrinc",
+    "Szigetvár"
+  ]
+}

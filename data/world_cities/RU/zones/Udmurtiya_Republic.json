@@ -1,0 +1,29 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Udmurtiya Republic",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alnashi",
+    "Balezino",
+    "Debësy",
+    "Glazov",
+    "Igra",
+    "Izhevsk",
+    "Kambarka",
+    "Karakulino",
+    "Kez",
+    "Kizner",
+    "Malaya Purga",
+    "Mozhga",
+    "Sarapul",
+    "Selty",
+    "Sharkan",
+    "Sigayevo",
+    "Syumsi",
+    "Uva",
+    "Vavozh",
+    "Votkinsk",
+    "Yar"
+  ]
+}

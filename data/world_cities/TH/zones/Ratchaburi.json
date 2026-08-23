@@ -1,0 +1,15 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Ratchaburi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban I Chang",
+    "Ban Pong",
+    "Bang Phae",
+    "Chom Bueng",
+    "Damnoen Saduak",
+    "Photharam",
+    "Ratchaburi"
+  ]
+}

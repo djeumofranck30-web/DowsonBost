@@ -1,0 +1,9 @@
+{
+  "country": "Nouvelle-Zelande",
+  "code": "NZ",
+  "zone": "Chatham Islands",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Waitangi"
+  ]
+}

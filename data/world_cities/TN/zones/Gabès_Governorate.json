@@ -1,0 +1,19 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Gabès Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bou Chemma",
+    "Chenini Nahal",
+    "El Hamma",
+    "Gabès",
+    "Mareth",
+    "Métouia",
+    "Nouvelle Matmata",
+    "Rhennouch",
+    "Teboulbou",
+    "Wadhraf",
+    "Zarat"
+  ]
+}

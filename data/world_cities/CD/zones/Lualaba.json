@@ -1,0 +1,13 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "Lualaba",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Fungurume",
+    "Kolwezi",
+    "Malemba",
+    "Mwene",
+    "Tshilenge"
+  ]
+}

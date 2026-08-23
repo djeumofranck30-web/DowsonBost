@@ -1,0 +1,18 @@
+{
+  "country": "Angola",
+  "code": "AO",
+  "zone": "Huambo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alto Hama",
+    "Catchiungo",
+    "Caála",
+    "Chela",
+    "Ecunna",
+    "Huambo",
+    "Londuimbali",
+    "Longonjo",
+    "Mungo",
+    "Ucuma"
+  ]
+}

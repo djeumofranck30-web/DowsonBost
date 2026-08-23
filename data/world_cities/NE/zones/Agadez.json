@@ -1,0 +1,15 @@
+{
+  "country": "Niger",
+  "code": "NE",
+  "zone": "Agadez",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Adérbissinat",
+    "Agadez",
+    "Alaghsas",
+    "Arlit",
+    "Bilma",
+    "I-n-Gall",
+    "Tchirozérine"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "country": "Andorre",
+  "code": "AD",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Andorra la Vella",
+    "Canillo",
+    "Encamp",
+    "la Massana",
+    "les Escaldes",
+    "Ordino",
+    "Sant Julià de Lòria"
+  ]
+}

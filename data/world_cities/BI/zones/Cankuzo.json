@@ -1,0 +1,10 @@
+{
+  "country": "Burundi",
+  "code": "BI",
+  "zone": "Cankuzo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cankuzo",
+    "Cendajuru"
+  ]
+}

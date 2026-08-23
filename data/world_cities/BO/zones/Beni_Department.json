@@ -1,0 +1,16 @@
+{
+  "country": "Bolivie",
+  "code": "BO",
+  "zone": "Beni Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Guayaramerín",
+    "Reyes",
+    "Riberalta",
+    "Rurrenabaque",
+    "San Borja",
+    "San Ignacio de Moxo",
+    "Santa Ana de Yacuma",
+    "Trinidad"
+  ]
+}

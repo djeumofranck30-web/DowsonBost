@@ -1,0 +1,20 @@
+{
+  "country": "Bangladesh",
+  "code": "BD",
+  "zone": "Rangpur Division",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Badarganj",
+    "Chilmāri",
+    "Dinajpur",
+    "Lalmonirhat",
+    "Nageswari",
+    "Panchagarh",
+    "Paotana Hat",
+    "Parbatipur",
+    "Pīrgaaj",
+    "Rangpur",
+    "Saidpur",
+    "Thākurgaon"
+  ]
+}

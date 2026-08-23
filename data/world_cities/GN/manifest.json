@@ -1,0 +1,17 @@
+{
+  "country": "Guinee",
+  "code": "GN",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Boké Region",
+    "Conakry",
+    "Faranah",
+    "Kankan Region",
+    "Kindia",
+    "Labé Region",
+    "Mamou Region",
+    "Nzérékoré Region"
+  ],
+  "source": "geonames_admin1"
+}

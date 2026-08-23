@@ -1,0 +1,9 @@
+{
+  "country": "Mongolie",
+  "code": "MN",
+  "zone": "East Aimak",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Choibalsan"
+  ]
+}

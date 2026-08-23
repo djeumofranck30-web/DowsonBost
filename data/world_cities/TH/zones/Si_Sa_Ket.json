@@ -1,0 +1,11 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Si Sa Ket",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kantharalak",
+    "Phrai Bueng",
+    "Si Sa Ket"
+  ]
+}

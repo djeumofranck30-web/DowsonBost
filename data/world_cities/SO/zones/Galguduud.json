@@ -1,0 +1,14 @@
+{
+  "country": "Somalie",
+  "code": "SO",
+  "zone": "Galguduud",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Balanbale",
+    "Cabudwaaq",
+    "Ceelbuur",
+    "Ceeldheer",
+    "Dhabad",
+    "Dhuusamarreeb"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "country": "Nouvelle-Zelande",
+  "code": "NZ",
+  "zone": "Bay of Plenty",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bethlehem",
+    "Katikati",
+    "Kawerau",
+    "Mount Maunganui",
+    "Ngongotaha",
+    "Omokoroa",
+    "Otumoetai",
+    "Rotorua",
+    "Tauranga",
+    "Te Puke",
+    "Whakatane"
+  ]
+}

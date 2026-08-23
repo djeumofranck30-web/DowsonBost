@@ -1,0 +1,14 @@
+{
+  "country": "Croatie",
+  "code": "HR",
+  "zone": "Zagreb County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dugo Selo",
+    "Ivanić-Grad",
+    "Jastrebarsko",
+    "Samobor",
+    "Velika Gorica",
+    "Zaprešić"
+  ]
+}

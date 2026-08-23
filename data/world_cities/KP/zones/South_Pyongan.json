@@ -1,0 +1,20 @@
+{
+  "country": "Coree du Nord",
+  "code": "KP",
+  "zone": "South Pyongan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anju",
+    "Chaeryŏng-ni",
+    "Ch’ŏsal-li",
+    "Kaech’ŏn",
+    "Kangsŏn",
+    "Paek'ak",
+    "P’yŏngsŏng",
+    "Sangsŏng-ni",
+    "Sil-li",
+    "Sinanju",
+    "Sunch’ŏn",
+    "Tŏkch’ŏn"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "country": "Comores",
+  "code": "KM",
+  "zone": "Grande Comore",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ikoni",
+    "Mbéni",
+    "Moroni",
+    "Nkourani",
+    "Ouellah"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "country": "Sri Lanka",
+  "code": "LK",
+  "zone": "Southern Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ambalangoda",
+    "Ambalantota",
+    "Beliatta",
+    "Bentota",
+    "Devinuwara",
+    "Galle",
+    "Hambantota",
+    "Matara",
+    "Tangalle",
+    "Weligama"
+  ]
+}

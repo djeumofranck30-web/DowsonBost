@@ -1,0 +1,16 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Bucharest",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bucharest",
+    "Odăi",
+    "Sector 1",
+    "Sector 2",
+    "Sector 3",
+    "Sector 4",
+    "Sector 5",
+    "Sector 6"
+  ]
+}

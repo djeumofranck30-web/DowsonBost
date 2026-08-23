@@ -1,0 +1,25 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Muğla",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bitez",
+    "Bodrum",
+    "Dalaman",
+    "Datça",
+    "Düğrek",
+    "Fethiye",
+    "İçmeler",
+    "Konacık",
+    "Marmaris",
+    "Milas",
+    "Muğla",
+    "Ortaca",
+    "Sarigerme",
+    "Turgutreis",
+    "Ula",
+    "Yalıkavak",
+    "Yatağan"
+  ]
+}

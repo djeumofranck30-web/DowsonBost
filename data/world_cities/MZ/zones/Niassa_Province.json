@@ -1,0 +1,14 @@
+{
+  "country": "Mozambique",
+  "code": "MZ",
+  "zone": "Niassa Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cuamba",
+    "Insaca",
+    "Lichinga",
+    "Mandimba",
+    "Marrupa",
+    "Metangula"
+  ]
+}

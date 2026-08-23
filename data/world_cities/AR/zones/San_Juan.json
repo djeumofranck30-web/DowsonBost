@@ -1,0 +1,26 @@
+{
+  "country": "Argentine",
+  "code": "AR",
+  "zone": "San Juan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Albardón",
+    "Barreal",
+    "Caucete",
+    "Chimbas",
+    "Los Berros",
+    "Nueve de Julio",
+    "Pocito",
+    "Rawson",
+    "San José de Jáchal",
+    "San Juan",
+    "Santa Lucía",
+    "Villa Borjas",
+    "Villa El Salvador",
+    "Villa General San Martín",
+    "Villa Media Agua",
+    "Villa Paula de Sarmiento",
+    "Villa San Agustín",
+    "Villa Santa Rosa"
+  ]
+}

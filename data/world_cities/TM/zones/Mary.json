@@ -1,0 +1,20 @@
+{
+  "country": "Turkmenistan",
+  "code": "TM",
+  "zone": "Mary",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bayramaly",
+    "Gökdepe",
+    "Mary",
+    "Murgap",
+    "Oguzhan",
+    "Serhetabat",
+    "Seydi",
+    "Shatlyk",
+    "Tagtabazar",
+    "Türkmengala",
+    "Yolöten",
+    "Çaşgyn"
+  ]
+}

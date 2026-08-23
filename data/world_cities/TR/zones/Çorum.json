@@ -1,0 +1,16 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Çorum",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alaca",
+    "Bayat",
+    "İskilip",
+    "Mecitözü",
+    "Osmancık",
+    "Sungurlu",
+    "Uğurludağ",
+    "Çorum"
+  ]
+}

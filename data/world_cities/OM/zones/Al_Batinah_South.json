@@ -1,0 +1,11 @@
+{
+  "country": "Oman",
+  "code": "OM",
+  "zone": "Al Batinah South",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Barkā’",
+    "Bayt al ‘Awābī",
+    "Rustaq"
+  ]
+}

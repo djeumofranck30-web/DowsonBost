@@ -1,0 +1,10 @@
+{
+  "country": "Lesotho",
+  "code": "LS",
+  "zone": "Quthing",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Mount Moorosi",
+    "Quthing"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "country": "Pays-Bas",
+  "code": "NL",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Drenthe",
+    "Flevoland",
+    "Friesland",
+    "Gelderland",
+    "Groningen",
+    "Limburg",
+    "North Brabant",
+    "North Holland",
+    "Overijssel",
+    "South Holland",
+    "Utrecht",
+    "Zeeland"
+  ],
+  "source": "geonames_admin1"
+}

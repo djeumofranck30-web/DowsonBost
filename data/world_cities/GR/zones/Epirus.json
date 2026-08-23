@@ -1,0 +1,16 @@
+{
+  "country": "Grece",
+  "code": "GR",
+  "zone": "Epirus",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anatolí",
+    "Dodóni",
+    "Igoumenítsa",
+    "Ioánnina",
+    "Katsikás",
+    "Préveza",
+    "Párga",
+    "Árta"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Prachuap Khiri Khan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bang Saphan",
+    "Hua Hin",
+    "Kui Buri",
+    "Prachuap Khiri Khan",
+    "Pran Buri",
+    "Sam Roi Yot"
+  ]
+}

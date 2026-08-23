@@ -1,0 +1,19 @@
+{
+  "country": "Cameroun",
+  "code": "CM",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Adamaoua",
+    "Centre",
+    "East",
+    "Far North",
+    "Littoral",
+    "North",
+    "North-West",
+    "South",
+    "South-West",
+    "West"
+  ],
+  "source": "geonames_admin1"
+}

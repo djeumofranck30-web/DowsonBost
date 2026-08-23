@@ -1,0 +1,9 @@
+{
+  "country": "Bahamas",
+  "code": "BS",
+  "zone": "Rum Cay",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Port Nelson"
+  ]
+}

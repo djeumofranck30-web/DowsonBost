@@ -1,0 +1,18 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "Petén",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dolores",
+    "Flores",
+    "La Libertad",
+    "Melchor de Mencos",
+    "Poptún",
+    "San Andrés",
+    "San Benito",
+    "San Luis",
+    "Santa Ana",
+    "Sayaxché"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Tiaret",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Frenda",
+    "Ksar Chellala",
+    "Mehdia daira de meghila",
+    "Sougueur",
+    "Tiaret",
+    "’Aïn Deheb"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Arges",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Albeştii Pământeni",
+    "Bascov",
+    "Bradu",
+    "Buzoeşti",
+    "Bârla",
+    "Băiculeşti",
+    "Corbeni",
+    "Costeşti",
+    "Coşeşti",
+    "Curtea de Argeş",
+    "Călineşti",
+    "Leordeni",
+    "Mihăeşti",
+    "Mioveni",
+    "Pietroşani",
+    "Piteşti",
+    "Poiana Lacului",
+    "Rucăr",
+    "Slobozia",
+    "Stâlpeni",
+    "Topoloveni",
+    "Ştefăneşti"
+  ]
+}

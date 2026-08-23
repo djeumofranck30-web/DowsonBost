@@ -1,0 +1,13 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Tunceli",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akçapınar",
+    "Hozat",
+    "Ovacık",
+    "Pertek",
+    "Tunceli"
+  ]
+}

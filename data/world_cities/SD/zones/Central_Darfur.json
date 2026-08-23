@@ -1,0 +1,9 @@
+{
+  "country": "Soudan",
+  "code": "SD",
+  "zone": "Central Darfur",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Zalinjay"
+  ]
+}

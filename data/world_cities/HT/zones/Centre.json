@@ -1,0 +1,12 @@
+{
+  "country": "Haiti",
+  "code": "HT",
+  "zone": "Centre",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Hinche",
+    "Lascahobas",
+    "Mayisad",
+    "Mirebalais"
+  ]
+}

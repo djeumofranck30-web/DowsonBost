@@ -1,0 +1,20 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Quang Tri",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ba Đồn",
+    "Cam Lộ",
+    "Gio Linh",
+    "Hoàn Lão",
+    "Hồ Xá",
+    "Khe Sanh",
+    "Lao Bảo",
+    "Quán Hàu",
+    "thị xã Quảng Trị",
+    "Xuân Sơn",
+    "Ðông Hà",
+    "Đồng Hới"
+  ]
+}

@@ -19,6 +19,8 @@ from france_geo import (
 )
 
 _DATA_PATH = Path(__file__).resolve().parent / "data" / "iso3166_countries.json"
+_BUNDLED_GEO_DIR = Path(__file__).resolve().parent / "data" / "world_cities"
+_geo_manifest_cache: dict[str, dict[str, Any] | None] = {}
 
 # level keys: level1 (region/state/province), level2 (dept/county), cities
 COUNTRY_GEO_SCHEMA: dict[str, dict[str, Any]] = {
@@ -223,8 +225,36 @@ def serialize_geo_by_country(data: dict[str, dict[str, Any]]) -> str:
     return json.dumps(data, ensure_ascii=False)
 
 
+def _load_bundled_geo_manifest(country_code: str) -> dict[str, Any] | None:
+    code = country_code.strip().upper()
+    if code in _geo_manifest_cache:
+        cached = _geo_manifest_cache[code]
+        return dict(cached) if cached else None
+    path = _BUNDLED_GEO_DIR / code / "manifest.json"
+    if not path.is_file():
+        _geo_manifest_cache[code] = None
+        return None
+    try:
+        with path.open(encoding="utf-8") as handle:
+            payload = json.load(handle)
+        if isinstance(payload, dict) and payload.get("level1_options"):
+            _geo_manifest_cache[code] = payload
+            return dict(payload)
+    except (OSError, json.JSONDecodeError, TypeError):
+        pass
+    _geo_manifest_cache[code] = None
+    return None
+
+
 def country_geo_schema(country: str) -> dict[str, Any] | None:
-    return COUNTRY_GEO_SCHEMA.get(normalize_country_name(country))
+    country = normalize_country_name(country)
+    hardcoded = COUNTRY_GEO_SCHEMA.get(country)
+    if hardcoded:
+        return hardcoded
+    code = COUNTRY_NAME_TO_CODE.get(country, "")
+    if not code:
+        return None
+    return _load_bundled_geo_manifest(code)
 
 
 def country_has_subdivisions(country: str) -> bool:

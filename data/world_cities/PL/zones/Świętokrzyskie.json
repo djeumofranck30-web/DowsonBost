@@ -1,0 +1,25 @@
+{
+  "country": "Pologne",
+  "code": "PL",
+  "zone": "Świętokrzyskie",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Busko-Zdrój",
+    "Jędrzejów",
+    "Kazimierza Wielka",
+    "Kielce",
+    "Końskie",
+    "Opatów",
+    "Ostrowiec Świętokrzyski",
+    "Pińczów",
+    "Połaniec",
+    "Sandomierz",
+    "Skarżysko-Kamienna",
+    "Starachowice",
+    "Staszów",
+    "Stąporków",
+    "Suchedniów",
+    "Sędziszów",
+    "Włoszczowa"
+  ]
+}

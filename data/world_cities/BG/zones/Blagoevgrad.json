@@ -1,0 +1,16 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Blagoevgrad",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bansko",
+    "Blagoevgrad",
+    "Gotse Delchev",
+    "Petrich",
+    "Razlog",
+    "Sandanski",
+    "Simitli",
+    "Yakoruda"
+  ]
+}

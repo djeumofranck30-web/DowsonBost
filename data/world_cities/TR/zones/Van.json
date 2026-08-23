@@ -1,0 +1,14 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Van",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Başkale",
+    "Edremit",
+    "Erciş",
+    "Gevaş",
+    "Van",
+    "Özalp"
+  ]
+}

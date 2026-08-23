@@ -1,0 +1,17 @@
+{
+  "country": "Gambie",
+  "code": "GM",
+  "zone": "Upper River",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alohungari",
+    "Badja Kunda",
+    "Basse Santa Su",
+    "Farato",
+    "Gambissar",
+    "Garawol",
+    "Koina",
+    "Kulari",
+    "Sabi"
+  ]
+}

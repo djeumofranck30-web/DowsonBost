@@ -1,0 +1,32 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Barh el Gazel",
+    "Batha",
+    "Borkou",
+    "Chari-Baguirmi",
+    "Ennedi-Est",
+    "Ennedi-Ouest",
+    "Guéra",
+    "Hadjer-Lamis",
+    "Kanem",
+    "Lac",
+    "Logone Occidental",
+    "Logone Oriental",
+    "Mandoul",
+    "Mayo-Kebbi Est",
+    "Mayo-Kebbi Ouest",
+    "Moyen-Chari",
+    "N’Djaména",
+    "Ouadaï",
+    "Salamat",
+    "Sila",
+    "Tandjilé",
+    "Tibesti",
+    "Wadi Fira"
+  ],
+  "source": "geonames_admin1"
+}

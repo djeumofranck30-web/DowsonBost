@@ -1,0 +1,10 @@
+{
+  "country": "Belize",
+  "code": "BZ",
+  "zone": "Toledo District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bella Vista",
+    "Punta Gorda"
+  ]
+}

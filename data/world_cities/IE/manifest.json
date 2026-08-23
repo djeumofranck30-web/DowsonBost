@@ -1,0 +1,13 @@
+{
+  "country": "Irlande",
+  "code": "IE",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Connacht",
+    "Leinster",
+    "Munster",
+    "Ulster"
+  ],
+  "source": "geonames_admin1"
+}

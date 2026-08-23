@@ -1,0 +1,10 @@
+{
+  "country": "Yemen",
+  "code": "YE",
+  "zone": "Sanaa Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Sayyān",
+    "Saḩar"
+  ]
+}

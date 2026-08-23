@@ -1,0 +1,9 @@
+{
+  "country": "Sao Tome-et-Principe",
+  "code": "ST",
+  "zone": "Príncipe",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Santo António"
+  ]
+}

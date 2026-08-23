@@ -1,0 +1,26 @@
+{
+  "country": "Inde",
+  "code": "IN",
+  "zone": "Meghalaya",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bāghamāra",
+    "Cherrapunjee",
+    "Jowai",
+    "Laitumkhrah",
+    "Mairang",
+    "Mankāchar",
+    "Mawlai-Mawïong",
+    "Mawpat",
+    "Nongpoh",
+    "Nongstoin",
+    "Nongthymmai",
+    "Nongumlong",
+    "Resubelpara",
+    "Shella",
+    "Shillong",
+    "Tura",
+    "Umsning",
+    "Williamnagar"
+  ]
+}

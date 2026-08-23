@@ -1,0 +1,15 @@
+{
+  "country": "Haiti",
+  "code": "HT",
+  "zone": "Nord",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cap-Haïtien",
+    "Dondon",
+    "Grande Rivière du Nord",
+    "Lenbe",
+    "Milot",
+    "Pignon",
+    "Saint-Raphaël"
+  ]
+}

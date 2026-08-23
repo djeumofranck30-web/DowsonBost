@@ -1,0 +1,10 @@
+{
+  "country": "Laos",
+  "code": "LA",
+  "zone": "Luang Prabang Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Muang-Nan",
+    "Luang Prabang"
+  ]
+}

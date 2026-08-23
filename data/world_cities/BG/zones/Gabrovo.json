@@ -1,0 +1,12 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Gabrovo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dryanovo",
+    "Gabrovo",
+    "Sevlievo",
+    "Tryavna"
+  ]
+}

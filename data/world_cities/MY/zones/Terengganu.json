@@ -1,0 +1,19 @@
+{
+  "country": "Malaisie",
+  "code": "MY",
+  "zone": "Terengganu",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bandar Al-Muktafi Billah Shah",
+    "Cukai",
+    "Dungun",
+    "Jertih",
+    "Kemasik",
+    "Kertih",
+    "Ketengah Jaya",
+    "Kuala Nerus",
+    "Kuala Terengganu",
+    "Marang",
+    "Paka"
+  ]
+}

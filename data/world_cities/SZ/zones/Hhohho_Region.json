@@ -1,0 +1,11 @@
+{
+  "country": "Eswatini",
+  "code": "SZ",
+  "zone": "Hhohho Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Lobamba",
+    "Mbabane",
+    "Piggs Peak"
+  ]
+}

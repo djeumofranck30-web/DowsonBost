@@ -1,0 +1,26 @@
+{
+  "country": "Danemark",
+  "code": "DK",
+  "zone": "North Denmark",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aalborg",
+    "Aars",
+    "Brønderslev",
+    "Frederikshavn",
+    "Hadsund",
+    "Hirtshals",
+    "Hjørring",
+    "Hobro",
+    "Løkken",
+    "Nibe",
+    "Nykøbing Mors",
+    "Nørresundby",
+    "Skagen",
+    "Støvring",
+    "Svenstrup",
+    "Sæby",
+    "Thisted",
+    "Åbybro"
+  ]
+}

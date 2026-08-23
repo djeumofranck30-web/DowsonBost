@@ -1,0 +1,16 @@
+{
+  "country": "Portugal",
+  "code": "PT",
+  "zone": "Beja",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aljustrel",
+    "Almodôvar",
+    "Beja",
+    "Moura",
+    "Mértola",
+    "Odemira",
+    "Serpa",
+    "Vidigueira"
+  ]
+}

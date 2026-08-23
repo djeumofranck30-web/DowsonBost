@@ -1,0 +1,17 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Caquetá",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cartagena del Chairá",
+    "Curillo",
+    "El Doncello",
+    "El Paujíl",
+    "Florencia",
+    "Milán",
+    "Puerto Rico",
+    "Solano",
+    "Valparaíso"
+  ]
+}

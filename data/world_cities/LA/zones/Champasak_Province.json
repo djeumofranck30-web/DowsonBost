@@ -1,0 +1,12 @@
+{
+  "country": "Laos",
+  "code": "LA",
+  "zone": "Champasak Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Bachiang",
+    "Champasak",
+    "Muang Không",
+    "Pakse"
+  ]
+}

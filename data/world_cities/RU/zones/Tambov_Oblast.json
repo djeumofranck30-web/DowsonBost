@@ -1,0 +1,28 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Tambov Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dmitriyevka",
+    "Inzhavino",
+    "Kirsanov",
+    "Kotovsk",
+    "Michurinsk",
+    "Mordovo",
+    "Morshansk",
+    "Muchkapskiy",
+    "Pervomayskiy",
+    "Pokrovo-Prigorodnoye",
+    "Rasskazovo",
+    "Rzhaksa",
+    "Sosnovka",
+    "Staroyur’yevo",
+    "Tambov",
+    "Tokaryovka",
+    "Uvarovo",
+    "Zavoronezhskoye",
+    "Zherdevka",
+    "Znamenka"
+  ]
+}

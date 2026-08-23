@@ -1,0 +1,17 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Quindío Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Armenia",
+    "Calarcá",
+    "Circasia",
+    "Filandia",
+    "Génova",
+    "La Tebaida",
+    "Montenegro",
+    "Pijao",
+    "Quimbaya"
+  ]
+}

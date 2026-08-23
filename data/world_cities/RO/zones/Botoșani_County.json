@@ -1,0 +1,31 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Botoșani County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Albeşti",
+    "Avrămeni",
+    "Botoşani",
+    "Bucecea",
+    "Băluşeni",
+    "Copălău",
+    "Corni",
+    "Coţuşca",
+    "Darabani",
+    "Dersca",
+    "Dorohoi",
+    "Frumuşica",
+    "Havârna",
+    "Hudeşti",
+    "Mihăileni",
+    "Storeşti",
+    "Suharău",
+    "Săveni",
+    "Truşeşti",
+    "Tudora",
+    "Ungureni-Jianu",
+    "Vorona Teodoru",
+    "Ştefăneşti-Sat"
+  ]
+}

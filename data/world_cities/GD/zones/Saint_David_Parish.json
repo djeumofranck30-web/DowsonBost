@@ -1,0 +1,9 @@
+{
+  "country": "Grenade",
+  "code": "GD",
+  "zone": "Saint David Parish",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Saint David’s"
+  ]
+}

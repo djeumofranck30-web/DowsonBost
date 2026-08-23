@@ -1,0 +1,14 @@
+{
+  "country": "Nicaragua",
+  "code": "NI",
+  "zone": "South Caribbean Coast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bluefields",
+    "Bocana de Paiwas",
+    "Nueva Guinea",
+    "Pearl City",
+    "Rama",
+    "South End"
+  ]
+}

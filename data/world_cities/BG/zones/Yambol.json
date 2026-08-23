@@ -1,0 +1,11 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Yambol",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Elhovo",
+    "Straldzha",
+    "Yambol"
+  ]
+}

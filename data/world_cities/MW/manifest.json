@@ -1,0 +1,12 @@
+{
+  "country": "Malawi",
+  "code": "MW",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Central Region",
+    "Northern Region",
+    "Southern Region"
+  ],
+  "source": "geonames_admin1"
+}

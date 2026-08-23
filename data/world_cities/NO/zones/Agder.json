@@ -1,0 +1,18 @@
+{
+  "country": "Norvege",
+  "code": "NO",
+  "zone": "Agder",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arendal",
+    "Flekkefjord",
+    "Grimstad",
+    "Kristiansand",
+    "Kvinesdal",
+    "Lillesand",
+    "Mandal",
+    "Søgne",
+    "Tvedestrand",
+    "Vennesla"
+  ]
+}

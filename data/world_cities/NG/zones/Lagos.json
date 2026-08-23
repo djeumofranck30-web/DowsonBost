@@ -1,0 +1,30 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Lagos",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Agege",
+    "Aiyetoro",
+    "Ajegunle",
+    "Akowonjo",
+    "Alasia",
+    "Aliayabiagba",
+    "Alimosho",
+    "Badagry",
+    "Ebute Ikorodu",
+    "Ejirin",
+    "Epe",
+    "Ikeja",
+    "Imota",
+    "Irewe",
+    "Lagos",
+    "Lekki",
+    "Makoko",
+    "Mushin",
+    "Obalende",
+    "Oshodi",
+    "Shomolu",
+    "Surulere"
+  ]
+}

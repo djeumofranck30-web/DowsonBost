@@ -1,0 +1,15 @@
+{
+  "country": "Grece",
+  "code": "GR",
+  "zone": "North Aegean",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chios",
+    "Kalloní",
+    "Mytilene",
+    "Mýrina",
+    "Néon Karlovásion",
+    "Pythagóreio",
+    "Vrontádos"
+  ]
+}

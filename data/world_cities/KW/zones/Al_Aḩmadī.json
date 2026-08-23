@@ -1,0 +1,15 @@
+{
+  "country": "Koweit",
+  "code": "KW",
+  "zone": "Al Aḩmadī",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Aḩmadī",
+    "Al Faḩāḩīl",
+    "Al Finţās",
+    "Al Mahbūlah",
+    "Al Manqaf",
+    "Al Wafrah",
+    "Ar Riqqah"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "country": "Myanmar",
+  "code": "MM",
+  "zone": "Bago Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bago",
+    "Daik-u",
+    "Letpandan",
+    "Nyaunglebin",
+    "Paungde",
+    "Pyay",
+    "Pyu",
+    "Shwegyin",
+    "Taungoo",
+    "Thanatpin",
+    "Tharyarwady",
+    "Waw",
+    "Yedashe",
+    "Zigon"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "country": "Sri Lanka",
+  "code": "LK",
+  "zone": "Central Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dambulla",
+    "Gampola",
+    "Hatton",
+    "Kandy",
+    "Matale",
+    "Nuwara Eliya"
+  ]
+}

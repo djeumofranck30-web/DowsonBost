@@ -1,0 +1,31 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Hatay",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akbez",
+    "Antakya",
+    "Arsuz",
+    "Avsuyu",
+    "Belen",
+    "Denizciler",
+    "Dursunlu",
+    "Dörtyol",
+    "Erzin",
+    "Hassa",
+    "Hıdırbey",
+    "İskenderun",
+    "Karakise",
+    "Karayılan",
+    "Kastal",
+    "Kırıkhan",
+    "Mahmutlar",
+    "Narlıca",
+    "Reyhanlı",
+    "Samandağ",
+    "Serinyol",
+    "Sutaşı",
+    "Yayladağı"
+  ]
+}

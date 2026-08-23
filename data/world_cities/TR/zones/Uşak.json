@@ -1,0 +1,13 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Uşak",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Banaz",
+    "Eşme",
+    "Sivaslı",
+    "Ulubey",
+    "Uşak"
+  ]
+}

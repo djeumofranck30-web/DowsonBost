@@ -1,0 +1,10 @@
+{
+  "country": "Saint-Marin",
+  "code": "SM",
+  "zone": "Serravalle",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dogana",
+    "Serravalle"
+  ]
+}

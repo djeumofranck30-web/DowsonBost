@@ -1,0 +1,16 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "Jutiapa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Asunción Mita",
+    "Atescatempa",
+    "El Progreso",
+    "Jalpatagua",
+    "Jutiapa",
+    "Moyuta",
+    "San José Acatempa",
+    "Santa Catarina Mita"
+  ]
+}

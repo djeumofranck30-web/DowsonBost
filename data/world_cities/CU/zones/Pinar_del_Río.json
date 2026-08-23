@@ -1,0 +1,16 @@
+{
+  "country": "Cuba",
+  "code": "CU",
+  "zone": "Pinar del Río",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Consolación del Sur",
+    "Guane",
+    "Los Palacios",
+    "Mantua",
+    "Minas de Matahambre",
+    "Pinar del Río",
+    "San Luis",
+    "Viñales"
+  ]
+}

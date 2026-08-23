@@ -1,0 +1,25 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Algiers",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Algiers",
+    "Aïn Taya",
+    "Bab Ezzouar",
+    "Baraki",
+    "Birkhadem",
+    "Bordj el Bahri",
+    "Bordj el Kiffan",
+    "Cheraga",
+    "Dar el Beïda",
+    "Douéra",
+    "Rais Hamidou",
+    "Reghaïa",
+    "Rouiba",
+    "Saoula",
+    "Sidi Moussa",
+    "Zeralda",
+    "’Aïn Benian"
+  ]
+}

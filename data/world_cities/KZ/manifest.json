@@ -1,0 +1,30 @@
+{
+  "country": "Kazakhstan",
+  "code": "KZ",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Abai Region",
+    "Aktobe",
+    "Almaty",
+    "Almaty Region",
+    "Aqmola",
+    "Astana",
+    "Atyrau Oblisi",
+    "Baikonur",
+    "East Kazakhstan",
+    "Karaganda",
+    "Kostanay",
+    "Kyzylorda",
+    "Mangystau",
+    "North Kazakhstan",
+    "Pavlodar Region",
+    "Shymkent",
+    "Turkistan",
+    "Ulytau Region",
+    "West Kazakhstan",
+    "Zhambyl",
+    "Zhetysu Region"
+  ],
+  "source": "geonames_admin1"
+}

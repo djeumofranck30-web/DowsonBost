@@ -1,0 +1,18 @@
+{
+  "country": "Gabon",
+  "code": "GA",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Estuaire",
+    "Haut-Ogooué",
+    "Moyen-Ogooué",
+    "Ngouni",
+    "Nyanga",
+    "Ogooué-Ivindo",
+    "Ogooué-Lolo",
+    "Ogooué-Maritime",
+    "Woleu-Ntem"
+  ],
+  "source": "geonames_admin1"
+}

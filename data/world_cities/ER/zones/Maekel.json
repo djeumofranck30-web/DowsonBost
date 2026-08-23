@@ -1,0 +1,9 @@
+{
+  "country": "Erythree",
+  "code": "ER",
+  "zone": "Maekel",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Asmara"
+  ]
+}

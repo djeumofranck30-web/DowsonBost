@@ -1,0 +1,15 @@
+{
+  "country": "Senegal",
+  "code": "SN",
+  "zone": "Louga",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dara",
+    "Guéoul",
+    "Kébémer",
+    "Linguère",
+    "Louga",
+    "Ndiagne",
+    "Ndibène Dahra"
+  ]
+}

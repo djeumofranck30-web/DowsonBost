@@ -1,0 +1,13 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Turkana County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kainuk",
+    "Kakuma",
+    "Lodwar",
+    "Lokichar",
+    "Lokichokio"
+  ]
+}

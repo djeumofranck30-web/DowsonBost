@@ -1,0 +1,12 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Rayong",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Chang",
+    "Ban Phe",
+    "Klaeng",
+    "Rayong"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Myanmar",
+  "code": "MM",
+  "zone": "Kayah State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dimawso",
+    "Loikaw"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "country": "Bolivie",
+  "code": "BO",
+  "zone": "Cochabamba",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aiquile",
+    "Capinota",
+    "Chimoré",
+    "Cliza",
+    "Cochabamba",
+    "Colcapirhua",
+    "Mizque",
+    "Punata",
+    "Quillacollo",
+    "Sacaba",
+    "Sipe Sipe",
+    "Tarata",
+    "Tiquipaya",
+    "Vinto"
+  ]
+}

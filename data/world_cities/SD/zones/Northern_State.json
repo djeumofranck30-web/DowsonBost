@@ -1,0 +1,14 @@
+{
+  "country": "Soudan",
+  "code": "SD",
+  "zone": "Northern State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ad Dabbah",
+    "Argo",
+    "Dongola",
+    "Kuraymah",
+    "Merowe",
+    "Wadi Halfa"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Albanie",
+  "code": "AL",
+  "zone": "Gjirokastër County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gjirokastër",
+    "Përmet",
+    "Tepelenë"
+  ]
+}

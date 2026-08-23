@@ -1,0 +1,22 @@
+{
+  "country": "Timor oriental",
+  "code": "TL",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Aileu",
+    "Ainaro",
+    "Baucau",
+    "Bobonaro",
+    "Cova Lima",
+    "Dili Municipality",
+    "Ermera",
+    "Lautém",
+    "Liquiçá",
+    "Manatuto",
+    "Manufahi",
+    "Oecusse",
+    "Viqueque"
+  ],
+  "source": "geonames_admin1"
+}

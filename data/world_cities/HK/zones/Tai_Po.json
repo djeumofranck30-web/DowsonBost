@@ -1,0 +1,15 @@
+{
+  "country": "Hong Kong",
+  "code": "HK",
+  "zone": "Tai Po",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Che Ha",
+    "Hong Lok Yuen",
+    "Shuen Wan",
+    "Tai Mei Tuk",
+    "Tai Po",
+    "Tai Wo",
+    "Tai Yuen Estate"
+  ]
+}

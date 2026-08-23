@@ -1,0 +1,12 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Timimoun",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aougrout",
+    "Timimoun",
+    "Tinerkouk",
+    "Zaouiet ed Debarh"
+  ]
+}

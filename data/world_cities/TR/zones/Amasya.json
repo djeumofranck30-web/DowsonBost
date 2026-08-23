@@ -1,0 +1,13 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Amasya",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amasya",
+    "Gümüşhacıköy",
+    "Merzifon",
+    "Suluova",
+    "Taşova"
+  ]
+}

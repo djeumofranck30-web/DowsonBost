@@ -1,0 +1,17 @@
+{
+  "country": "Suede",
+  "code": "SE",
+  "zone": "Kalmar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Färjestaden",
+    "Hultsfred",
+    "Kalmar",
+    "Lindsdal",
+    "Nybro",
+    "Oskarshamn",
+    "Södra Sandby",
+    "Vimmerby",
+    "Västervik"
+  ]
+}

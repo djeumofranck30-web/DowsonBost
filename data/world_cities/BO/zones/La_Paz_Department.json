@@ -1,0 +1,21 @@
+{
+  "country": "Bolivie",
+  "code": "BO",
+  "zone": "La Paz Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Achacachi",
+    "Achocalla",
+    "Caranavi",
+    "Copacabana",
+    "Desaguadero",
+    "Ixiamas",
+    "La Paz",
+    "Laja",
+    "Mecapaca",
+    "Patacamaya",
+    "Pucarani",
+    "San Pedro",
+    "Viacha"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Sidi Bel Abbès",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Sfizef",
+    "Sidi Bel Abbes",
+    "’Aïn el Berd"
+  ]
+}

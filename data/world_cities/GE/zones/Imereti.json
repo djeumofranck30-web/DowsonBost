@@ -1,0 +1,16 @@
+{
+  "country": "Georgie",
+  "code": "GE",
+  "zone": "Imereti",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chiatura",
+    "Khoni",
+    "Kutaisi",
+    "Sachkhere",
+    "Samtredia",
+    "Tqibuli",
+    "Tsqaltubo",
+    "Zestaponi"
+  ]
+}

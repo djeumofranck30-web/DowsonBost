@@ -1,0 +1,12 @@
+{
+  "country": "Soudan",
+  "code": "SD",
+  "zone": "Kassala",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aroma",
+    "Kassala",
+    "New Halfa",
+    "Wagar"
+  ]
+}

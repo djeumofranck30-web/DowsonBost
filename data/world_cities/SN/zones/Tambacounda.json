@@ -1,0 +1,13 @@
+{
+  "country": "Senegal",
+  "code": "SN",
+  "zone": "Tambacounda",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bakel",
+    "Goudiry",
+    "Kidira",
+    "Koumpentoum",
+    "Tambacounda"
+  ]
+}

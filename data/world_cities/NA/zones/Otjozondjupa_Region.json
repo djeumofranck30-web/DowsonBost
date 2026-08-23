@@ -1,0 +1,14 @@
+{
+  "country": "Namibie",
+  "code": "NA",
+  "zone": "Otjozondjupa Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Grootfontein",
+    "Okahandja",
+    "Okakarara",
+    "Osire",
+    "Otavi",
+    "Otjiwarongo"
+  ]
+}

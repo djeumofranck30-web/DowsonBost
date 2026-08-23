@@ -1,0 +1,11 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Yalova",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Yalova",
+    "Çiftlikköy",
+    "Çınarcık"
+  ]
+}

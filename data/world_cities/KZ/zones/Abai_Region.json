@@ -1,0 +1,17 @@
+{
+  "country": "Kazakhstan",
+  "code": "KZ",
+  "zone": "Abai Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ayagoz",
+    "Borodulikha",
+    "Kalbatau",
+    "Karaaul",
+    "Kurchatov",
+    "Maqanshy",
+    "Semey",
+    "Shar",
+    "Zhezkent"
+  ]
+}

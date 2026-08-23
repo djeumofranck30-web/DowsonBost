@@ -1,0 +1,12 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Katavi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Inyonga",
+    "Karema",
+    "Mpanda",
+    "Usevia"
+  ]
+}

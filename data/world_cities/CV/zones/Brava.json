@@ -1,0 +1,9 @@
+{
+  "country": "Cap-Vert",
+  "code": "CV",
+  "zone": "Brava",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Nova Sintra"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Atlántico",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baranoa",
+    "Barranquilla",
+    "Campo de la Cruz",
+    "Candelaria",
+    "Galapa",
+    "Juan de Acosta",
+    "Luruaco",
+    "Malambo",
+    "Manatí",
+    "Palmar de Varela",
+    "Polonuevo",
+    "Ponedera",
+    "Puerto Colombia",
+    "Repelón",
+    "Sabanagrande",
+    "Sabanalarga",
+    "Santa Lucía",
+    "Santo Tomás",
+    "Soledad",
+    "Suan",
+    "Tubará",
+    "Usiacurí"
+  ]
+}

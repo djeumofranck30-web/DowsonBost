@@ -1,0 +1,32 @@
+{
+  "country": "Argentine",
+  "code": "AR",
+  "zone": "Corrientes",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alvear",
+    "Corrientes",
+    "Curuzú Cuatiá",
+    "Esquina",
+    "Gobernador Virasora",
+    "Goya",
+    "Itatí",
+    "Ituzaingó",
+    "La Cruz",
+    "Mburucuyá",
+    "Mercedes",
+    "Mocoretá",
+    "Monte Caseros",
+    "Nuestra Señora del Rosario de Caá Catí",
+    "Paso de la Patria",
+    "Paso de los Libres",
+    "Perugorría",
+    "Saladas",
+    "San Lorenzo",
+    "San Luis del Palmar",
+    "San Miguel",
+    "Santa Lucía",
+    "Santa Rosa",
+    "Santo Tomé"
+  ]
+}

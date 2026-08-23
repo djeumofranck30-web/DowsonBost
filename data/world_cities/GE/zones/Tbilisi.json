@@ -1,0 +1,10 @@
+{
+  "country": "Georgie",
+  "code": "GE",
+  "zone": "Tbilisi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dighomi",
+    "Tbilisi"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "El Tarf",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ben Mehidi",
+    "Besbes",
+    "Drean",
+    "El Kala",
+    "El Tarf"
+  ]
+}

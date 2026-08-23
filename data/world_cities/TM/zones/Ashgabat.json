@@ -1,0 +1,10 @@
+{
+  "country": "Turkmenistan",
+  "code": "TM",
+  "zone": "Ashgabat",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ashgabat",
+    "Gämi"
+  ]
+}

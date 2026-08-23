@@ -1,0 +1,16 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Kasserine Governorate",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Borj Mejen Bel Abbès",
+    "Dar Ouled Khalifa",
+    "Feriana",
+    "Kasserine",
+    "Sbeitla",
+    "Sbiba",
+    "Thala",
+    "Thelepte"
+  ]
+}

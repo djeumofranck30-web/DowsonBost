@@ -1,0 +1,12 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "El Progreso",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Guastatoya",
+    "San Agustín Acasaguastlán",
+    "San Antonio La Paz",
+    "Sanarate"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Tataouine",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bir Lahmar",
+    "Ghomrassen",
+    "Remada",
+    "Tataouine"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Trabzon",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akçaabat",
+    "Araklı",
+    "Arsin",
+    "Beşikdüzü",
+    "Dernekpazarı",
+    "Düzköy",
+    "Hayrat",
+    "Köprübaşı",
+    "Maçka",
+    "Of",
+    "Sürmene",
+    "Tonya",
+    "Trabzon",
+    "Vakfıkebir",
+    "Yomra",
+    "Yıldızlı",
+    "Çaykara",
+    "Şalpazarı"
+  ]
+}

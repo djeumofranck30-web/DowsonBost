@@ -1,0 +1,23 @@
+{
+  "country": "Turkmenistan",
+  "code": "TM",
+  "zone": "Lebap",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Astanababa",
+    "Birata",
+    "Dostluk",
+    "Farap",
+    "Galkynyş",
+    "Gazojak",
+    "Halaç",
+    "Hojambaz",
+    "Karabekaul",
+    "Kerki",
+    "Kerkiçi",
+    "Köýtendag",
+    "Magdanly",
+    "Saýat",
+    "Türkmenabat"
+  ]
+}

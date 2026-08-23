@@ -1,0 +1,20 @@
+{
+  "country": "Guatemala",
+  "code": "GT",
+  "zone": "Suchitepeque",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chicacao",
+    "Cuyotenango",
+    "Mazatenango",
+    "Patulul",
+    "Río Bravo",
+    "San Antonio Suchitepéquez",
+    "San Bernardino",
+    "San Francisco Zapotitlán",
+    "San Pablo Jocopilas",
+    "Santa Bárbara",
+    "Santo Domingo Suchitepéquez",
+    "Santo Tomás La Unión"
+  ]
+}

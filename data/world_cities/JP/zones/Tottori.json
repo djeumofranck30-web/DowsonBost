@@ -1,0 +1,22 @@
+{
+  "country": "Japon",
+  "code": "JP",
+  "zone": "Tottori",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chizu",
+    "Iwai",
+    "Kishimoto",
+    "Kurayoshi",
+    "Kōge",
+    "Matsuzaki",
+    "Mikuriya",
+    "Misasa",
+    "Sakaiminato",
+    "Tenman",
+    "Tottori-shi",
+    "Yabase",
+    "Yonago",
+    "Yura"
+  ]
+}

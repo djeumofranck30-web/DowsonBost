@@ -1,0 +1,29 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Cauca Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Balboa",
+    "Belalcázar",
+    "Caloto",
+    "Corinto",
+    "El Bordo",
+    "El Tambo",
+    "Guapí",
+    "La Sierra",
+    "Mercaderes",
+    "Miranda",
+    "Morales",
+    "Patía",
+    "Piendamo",
+    "Popayán",
+    "Puerto Tejada",
+    "Rosas",
+    "Santander de Quilichao",
+    "Silvia",
+    "Suárez",
+    "Timbiquí",
+    "Villa Rica"
+  ]
+}

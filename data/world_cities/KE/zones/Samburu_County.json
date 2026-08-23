@@ -1,0 +1,9 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Samburu County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Maralal"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Phitsanulok",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Aranyik",
+    "Bang Krathum",
+    "Bang Rakam",
+    "Nakhon Thai",
+    "Phitsanulok"
+  ]
+}

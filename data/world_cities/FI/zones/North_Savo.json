@@ -1,0 +1,18 @@
+{
+  "country": "Finlande",
+  "code": "FI",
+  "zone": "North Savo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Iisalmi",
+    "Juankoski",
+    "Kiuruvesi",
+    "Kuopio",
+    "Lapinlahti",
+    "Leppävirta",
+    "Nilsiä",
+    "Siilinjärvi",
+    "Suonenjoki",
+    "Varkaus"
+  ]
+}

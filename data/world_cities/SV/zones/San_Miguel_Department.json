@@ -1,0 +1,15 @@
+{
+  "country": "Salvador",
+  "code": "SV",
+  "zone": "San Miguel Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chinameca",
+    "Chirilagua",
+    "Ciudad Barrios",
+    "El Tránsito",
+    "Nueva Guadalupe",
+    "San Miguel",
+    "San Rafael Oriente"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "country": "Antigua-et-Barbuda",
+  "code": "AG",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bolands",
+    "Codrington",
+    "Falmouth",
+    "Parham",
+    "Piggotts",
+    "Saint John’s",
+    "St. George Parish",
+    "St. Mary Parish",
+    "St. Paul Parish",
+    "St. Peter Parish"
+  ]
+}

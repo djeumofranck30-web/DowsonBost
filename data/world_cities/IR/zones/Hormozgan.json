@@ -1,0 +1,29 @@
+{
+  "country": "Iran",
+  "code": "IR",
+  "zone": "Hormozgan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bandar Abbas",
+    "Bandar-e Khamīr",
+    "Bandar-e Kong",
+    "Bandar-e Lengeh",
+    "Bastak",
+    "Berenţīn",
+    "Bī Kāh",
+    "Dargahān",
+    "Eslāmābād",
+    "Halor",
+    "Hormoz",
+    "Jask",
+    "Jenāḩ",
+    "Kīsh",
+    "Mīnāb",
+    "Pārsiān",
+    "Qeshm",
+    "Rūdān",
+    "Sūzā",
+    "Ţūlā",
+    "Ḩājjīābād"
+  ]
+}

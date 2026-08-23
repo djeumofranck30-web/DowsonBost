@@ -1,0 +1,22 @@
+{
+  "country": "Perou",
+  "code": "PE",
+  "zone": "Loreto",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Barranca",
+    "Belen",
+    "Caballococha",
+    "Contamana",
+    "Iquitos",
+    "Lagunas",
+    "Monte Israel",
+    "Nauta",
+    "Ramón Castilla",
+    "Requena",
+    "San Antonio del Estrecho",
+    "San Juan",
+    "San Lorenzo",
+    "Yurimaguas"
+  ]
+}

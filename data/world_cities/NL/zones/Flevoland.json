@@ -1,0 +1,16 @@
+{
+  "country": "Pays-Bas",
+  "code": "NL",
+  "zone": "Flevoland",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Almere Stad",
+    "Biddinghuizen",
+    "Dronten",
+    "Emmeloord",
+    "Lelystad",
+    "Swifterbant",
+    "Urk",
+    "Zeewolde"
+  ]
+}

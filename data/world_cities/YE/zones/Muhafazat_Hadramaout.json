@@ -1,0 +1,12 @@
+{
+  "country": "Yemen",
+  "code": "YE",
+  "zone": "Muhafazat Hadramaout",
+  "source": "geonames_cities5000",
+  "cities": [
+    "CPF",
+    "Ghayl Bā Wazīr",
+    "Mukalla",
+    "Shibām"
+  ]
+}

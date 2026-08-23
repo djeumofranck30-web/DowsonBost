@@ -1,0 +1,13 @@
+{
+  "country": "Bulgarie",
+  "code": "BG",
+  "zone": "Montana",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Berkovitsa",
+    "Lom",
+    "Montana",
+    "Valchedram",
+    "Varshets"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "country": "Coree du Nord",
+  "code": "KP",
+  "zone": "South Hamgyong",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Changam-ch’on",
+    "Hamhŭng",
+    "Hongwŏn",
+    "Hŭngnam",
+    "Iwŏn-ŭp",
+    "Kowŏn-ŭp",
+    "Samho-rodongjagu",
+    "Sinp’o",
+    "Sinsang-ni",
+    "Yuktae-dong",
+    "Yŏnggwang-ŭp"
+  ]
+}

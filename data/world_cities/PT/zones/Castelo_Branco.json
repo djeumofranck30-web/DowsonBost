@@ -1,0 +1,13 @@
+{
+  "country": "Portugal",
+  "code": "PT",
+  "zone": "Castelo Branco",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Castelo Branco",
+    "Covilhã",
+    "Fundão",
+    "Oleiros",
+    "Sertã"
+  ]
+}

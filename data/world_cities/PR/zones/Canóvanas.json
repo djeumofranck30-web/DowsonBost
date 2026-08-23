@@ -1,0 +1,11 @@
+{
+  "country": "Porto Rico",
+  "code": "PR",
+  "zone": "Canóvanas",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Canovanas",
+    "San Isidro",
+    "Santa Barbara"
+  ]
+}

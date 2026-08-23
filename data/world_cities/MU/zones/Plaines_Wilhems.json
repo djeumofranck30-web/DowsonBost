@@ -1,0 +1,12 @@
+{
+  "country": "Maurice",
+  "code": "MU",
+  "zone": "Plaines Wilhems",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Beau Bassin-Rose Hill",
+    "Curepipe",
+    "Quatre Bornes",
+    "Vacoas"
+  ]
+}

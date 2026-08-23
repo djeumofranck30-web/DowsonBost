@@ -1,0 +1,17 @@
+{
+  "country": "Venezuela",
+  "code": "VE",
+  "zone": "Aragua",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cagua",
+    "El Limón",
+    "La Victoria",
+    "Las Tejerías",
+    "Maracay",
+    "Palo Negro",
+    "San Mateo",
+    "Turmero",
+    "Villa de Cura"
+  ]
+}

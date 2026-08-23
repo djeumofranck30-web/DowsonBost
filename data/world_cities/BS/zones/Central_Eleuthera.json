@@ -1,0 +1,9 @@
+{
+  "country": "Bahamas",
+  "code": "BS",
+  "zone": "Central Eleuthera",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Governor’s Harbour"
+  ]
+}

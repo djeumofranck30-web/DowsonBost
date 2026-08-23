@@ -1,0 +1,18 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Vâlcea County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Berbeşti",
+    "Brezoi",
+    "Budeşti",
+    "Băbeni",
+    "Bălceşti",
+    "Călimăneşti",
+    "Drăgăşani",
+    "Horezu",
+    "Mihăeşti",
+    "Râmnicu Vâlcea"
+  ]
+}

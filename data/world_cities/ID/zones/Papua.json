@@ -1,0 +1,15 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "Papua",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abepura",
+    "Biak",
+    "Fakfak",
+    "Jayapura",
+    "Sarmi",
+    "Sentani",
+    "Serui"
+  ]
+}

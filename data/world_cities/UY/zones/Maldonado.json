@@ -1,0 +1,13 @@
+{
+  "country": "Uruguay",
+  "code": "UY",
+  "zone": "Maldonado",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Maldonado",
+    "Pan de Azúcar",
+    "Piriápolis",
+    "Punta del Este",
+    "San Carlos"
+  ]
+}

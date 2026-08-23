@@ -1,0 +1,16 @@
+{
+  "country": "Cote d Ivoire",
+  "code": "CI",
+  "zone": "Denguélé District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gbeya",
+    "Gbonkaha",
+    "Madinani",
+    "Minignan",
+    "Odienné",
+    "Ouellé",
+    "Samatiguila",
+    "Tiéme"
+  ]
+}

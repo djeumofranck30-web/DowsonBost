@@ -1,0 +1,9 @@
+{
+  "country": "Porto Rico",
+  "code": "PR",
+  "zone": "Camuy",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Camuy"
+  ]
+}

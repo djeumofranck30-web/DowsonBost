@@ -1,0 +1,9 @@
+{
+  "country": "Croatie",
+  "code": "HR",
+  "zone": "Požega-Slavonia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Požega"
+  ]
+}

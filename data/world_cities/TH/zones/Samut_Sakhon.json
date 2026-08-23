@@ -1,0 +1,11 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Samut Sakhon",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Phaeo",
+    "Krathum Baen",
+    "Samut Sakhon"
+  ]
+}

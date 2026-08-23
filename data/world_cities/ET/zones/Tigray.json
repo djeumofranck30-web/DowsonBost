@@ -1,0 +1,26 @@
+{
+  "country": "Ethiopie",
+  "code": "ET",
+  "zone": "Tigray",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abala",
+    "Adebaye",
+    "Adwa",
+    "Aksum",
+    "Alamata",
+    "Dolo",
+    "Idaga Hamus",
+    "Inda Silasē",
+    "Indabaguna",
+    "Intich’o",
+    "Korem",
+    "May Cadera",
+    "Maych’ew",
+    "Mek'ele",
+    "Sheraro",
+    "Wik’ro",
+    "Ābīy Ādī",
+    "Ādīgrat"
+  ]
+}

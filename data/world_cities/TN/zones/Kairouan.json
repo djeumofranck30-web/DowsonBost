@@ -1,0 +1,15 @@
+{
+  "country": "Tunisie",
+  "code": "TN",
+  "zone": "Kairouan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Haffouz",
+    "Hajeb el Aïoun",
+    "Kairouan",
+    "Nasrallah",
+    "Ousseltia",
+    "Sbikha",
+    "Sidi Amor Bou Hajela"
+  ]
+}

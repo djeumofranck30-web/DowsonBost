@@ -1,0 +1,11 @@
+{
+  "country": "Laos",
+  "code": "LA",
+  "zone": "Bokeo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Houakhoua",
+    "Ban Houayxay",
+    "Ban Khoan"
+  ]
+}

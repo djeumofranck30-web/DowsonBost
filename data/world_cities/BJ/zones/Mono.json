@@ -1,0 +1,13 @@
+{
+  "country": "Benin",
+  "code": "BJ",
+  "zone": "Mono",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Agoué",
+    "Athiémé",
+    "Grand-Popo",
+    "Lokossa",
+    "Sé"
+  ]
+}

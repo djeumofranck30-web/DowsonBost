@@ -1,0 +1,17 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "Tanganyika",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baudhuinville",
+    "Kabalo",
+    "Kalemie",
+    "Kalima",
+    "Kituku",
+    "Kongolo",
+    "Manono",
+    "Nyunzu",
+    "Pepa"
+  ]
+}

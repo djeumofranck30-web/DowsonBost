@@ -1,0 +1,19 @@
+{
+  "country": "Cote d Ivoire",
+  "code": "CI",
+  "zone": "Abidjan Autonomous District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abidjan",
+    "Abobo",
+    "Anonkoua",
+    "Anyama",
+    "Attinguié",
+    "Bingerville",
+    "Ebimpe",
+    "Koumassi",
+    "Marcory",
+    "Ndjemin",
+    "Songon"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "country": "Kazakhstan",
+  "code": "KZ",
+  "zone": "Aqmola",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akkol’",
+    "Aksu",
+    "Astrakhanka",
+    "Atbasar",
+    "Balkashino",
+    "Bestobe",
+    "Būrabay",
+    "Derzhavinsk",
+    "Esil",
+    "Kokshetau",
+    "Makinsk",
+    "Shantobe",
+    "Shchuchinsk",
+    "Shortandy",
+    "Stepnogorsk",
+    "Yereymentau",
+    "Zavodskoy",
+    "Zhaksy",
+    "Zholymbet"
+  ]
+}

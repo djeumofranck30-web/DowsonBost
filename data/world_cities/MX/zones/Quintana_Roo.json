@@ -1,0 +1,22 @@
+{
+  "country": "Mexique",
+  "code": "MX",
+  "zone": "Quintana Roo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alfredo V. Bonfil",
+    "Bacalar",
+    "Calderitas",
+    "Cancún",
+    "Chetumal",
+    "Cozumel",
+    "Felipe Carrillo Puerto",
+    "Isla Mujeres",
+    "José María Morelos",
+    "Kantunilkín",
+    "Leona Vicario",
+    "Playa del Carmen",
+    "Puerto Aventuras",
+    "Tulum"
+  ]
+}

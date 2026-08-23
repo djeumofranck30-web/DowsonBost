@@ -1,0 +1,18 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Chon Buri",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Ang Sila",
+    "Ban Bueng",
+    "Ban Talat Bueng",
+    "Bang Lamung",
+    "Chon Buri",
+    "Pattaya",
+    "Phan Thong",
+    "Phanat Nikhom",
+    "Sattahip",
+    "Si Racha"
+  ]
+}

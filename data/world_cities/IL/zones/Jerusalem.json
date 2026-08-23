@@ -1,0 +1,17 @@
+{
+  "country": "Israel",
+  "code": "IL",
+  "zone": "Jerusalem",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abū Ghaush",
+    "Bet Shemesh",
+    "Giv`at H̱ananya",
+    "Jerusalem",
+    "Mevasseret Tsiyyon",
+    "Modiin Ilit",
+    "Qiryat HaYovel",
+    "Qiryat Ye‘arim",
+    "West Jerusalem"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Chukotka",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Anadyr",
+    "Bilibino"
+  ]
+}

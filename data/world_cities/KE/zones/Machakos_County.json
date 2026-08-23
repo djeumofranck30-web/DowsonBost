@@ -1,0 +1,18 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Machakos County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Athi River",
+    "Githunguri",
+    "Kangundo",
+    "Kinoi",
+    "Machakos",
+    "Makutano",
+    "Matuu",
+    "Mlolongo",
+    "Mwala",
+    "Tala"
+  ]
+}

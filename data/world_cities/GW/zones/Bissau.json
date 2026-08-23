@@ -1,0 +1,22 @@
+{
+  "country": "Guinee-Bissau",
+  "code": "GW",
+  "zone": "Bissau",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ajuda",
+    "Bairro Militar",
+    "Belem",
+    "Bissau",
+    "CIM",
+    "Contumo",
+    "Luanda",
+    "Missira",
+    "Plaque",
+    "Quelele",
+    "Reino de Antula",
+    "Reino de Bandim",
+    "Santa-Luzia",
+    "Sintra-Nema"
+  ]
+}

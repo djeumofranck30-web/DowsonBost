@@ -1,0 +1,13 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "El Oued",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Debila",
+    "El Oued",
+    "Guemar",
+    "Reguiba",
+    "Robbah"
+  ]
+}

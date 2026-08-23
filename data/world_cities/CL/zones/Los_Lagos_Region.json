@@ -1,0 +1,24 @@
+{
+  "country": "Chili",
+  "code": "CL",
+  "zone": "Los Lagos Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ancud",
+    "Calbuco",
+    "Castro",
+    "Chonchi",
+    "Dalcahue",
+    "Fresia",
+    "Frutillar",
+    "Llanquihue",
+    "Los Muermos",
+    "Maullín",
+    "Osorno",
+    "Puerto Montt",
+    "Puerto Varas",
+    "Purranque",
+    "Quellón",
+    "San Pablo"
+  ]
+}

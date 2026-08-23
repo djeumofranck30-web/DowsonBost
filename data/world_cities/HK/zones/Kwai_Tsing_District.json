@@ -1,0 +1,13 @@
+{
+  "country": "Hong Kong",
+  "code": "HK",
+  "zone": "Kwai Tsing District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kau Wa Keng",
+    "Kwai Chung",
+    "Shek Lei",
+    "Tai Wo Hau",
+    "Tsing Yi Town"
+  ]
+}

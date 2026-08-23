@@ -1,0 +1,13 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Bouira",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aïn Bessem",
+    "Bouïra",
+    "Chorfa",
+    "Lakhdaria",
+    "Sour el Ghozlane"
+  ]
+}

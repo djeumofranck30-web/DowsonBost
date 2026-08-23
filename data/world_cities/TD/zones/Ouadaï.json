@@ -1,0 +1,11 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Ouadaï",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abdi",
+    "Abéché",
+    "Adré"
+  ]
+}

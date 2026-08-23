@@ -1,0 +1,28 @@
+{
+  "country": "Japon",
+  "code": "JP",
+  "zone": "Miyazaki",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aya",
+    "Ebino",
+    "Honjō",
+    "Hyūga",
+    "Kadogawa",
+    "Kawaminami",
+    "Kobayashi",
+    "Kushima",
+    "Mitai",
+    "Miyakonojō",
+    "Miyazaki",
+    "Mochibaru",
+    "Nichinan",
+    "Nobeoka",
+    "Saito",
+    "Shintomi",
+    "Takaharu",
+    "Takanabe",
+    "Tsuma",
+    "Tsunō"
+  ]
+}

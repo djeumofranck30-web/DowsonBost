@@ -1,0 +1,10 @@
+{
+  "country": "Mauritanie",
+  "code": "MR",
+  "zone": "Nouakchott West",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ksar",
+    "Tevragh Zeina"
+  ]
+}

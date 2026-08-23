@@ -1,0 +1,18 @@
+{
+  "country": "Zimbabwe",
+  "code": "ZW",
+  "zone": "Mashonaland West",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Banket",
+    "Chakari",
+    "Chegutu",
+    "Chinhoyi",
+    "Harare Western Suburbs",
+    "Kadoma",
+    "Kariba",
+    "Karoi",
+    "Mhangura",
+    "Norton"
+  ]
+}

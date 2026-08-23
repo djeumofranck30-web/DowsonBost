@@ -1,0 +1,15 @@
+{
+  "country": "Benin",
+  "code": "BJ",
+  "zone": "Collines",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Banté",
+    "Comé",
+    "Dassa-Zoumè",
+    "Glazoué",
+    "Ouessé",
+    "Savalou",
+    "Savé"
+  ]
+}

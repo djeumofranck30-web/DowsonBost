@@ -1,0 +1,13 @@
+{
+  "country": "Mozambique",
+  "code": "MZ",
+  "zone": "Tete",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Moatize",
+    "Nhamayabué",
+    "Songo",
+    "Tete",
+    "Ulongué"
+  ]
+}

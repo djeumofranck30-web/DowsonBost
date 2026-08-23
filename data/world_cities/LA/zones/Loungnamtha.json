@@ -1,0 +1,10 @@
+{
+  "country": "Laos",
+  "code": "LA",
+  "zone": "Loungnamtha",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Luang Namtha",
+    "Muang Sing"
+  ]
+}

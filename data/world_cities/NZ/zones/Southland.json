@@ -1,0 +1,12 @@
+{
+  "country": "Nouvelle-Zelande",
+  "code": "NZ",
+  "zone": "Southland",
+  "source": "geonames_cities5000",
+  "cities": [
+    "East Gore",
+    "Gore",
+    "Invercargill",
+    "Rosedale"
+  ]
+}

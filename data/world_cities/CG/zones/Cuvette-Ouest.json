@@ -1,0 +1,10 @@
+{
+  "country": "Congo",
+  "code": "CG",
+  "zone": "Cuvette-Ouest",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ewo",
+    "Kellé"
+  ]
+}

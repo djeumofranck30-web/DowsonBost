@@ -1,0 +1,15 @@
+{
+  "country": "Portugal",
+  "code": "PT",
+  "zone": "Bragança",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bragança",
+    "Carrazeda de Anciães",
+    "Macedo de Cavaleiros",
+    "Miranda do Douro",
+    "Mirandela",
+    "Torre de Moncorvo",
+    "Vinhais"
+  ]
+}

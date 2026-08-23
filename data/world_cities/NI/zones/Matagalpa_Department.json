@@ -1,0 +1,12 @@
+{
+  "country": "Nicaragua",
+  "code": "NI",
+  "zone": "Matagalpa Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ciudad Darío",
+    "Matagalpa",
+    "Matiguás",
+    "Río Blanco"
+  ]
+}

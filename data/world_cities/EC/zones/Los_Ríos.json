@@ -1,0 +1,18 @@
+{
+  "country": "Equateur",
+  "code": "EC",
+  "zone": "Los Ríos",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baba",
+    "Babahoyo",
+    "Catarama",
+    "Montalvo",
+    "Palenque",
+    "Quevedo",
+    "San Juan",
+    "Valencia",
+    "Ventanas",
+    "Vinces"
+  ]
+}

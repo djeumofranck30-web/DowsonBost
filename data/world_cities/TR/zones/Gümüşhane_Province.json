@@ -1,0 +1,12 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Gümüşhane Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gümüşhane",
+    "Kelkit",
+    "Köse",
+    "Şiran"
+  ]
+}

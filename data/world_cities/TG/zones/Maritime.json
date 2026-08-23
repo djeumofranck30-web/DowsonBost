@@ -1,0 +1,14 @@
+{
+  "country": "Togo",
+  "code": "TG",
+  "zone": "Maritime",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Afanyangan",
+    "Aného",
+    "Lomé",
+    "Tabligbo",
+    "Tsévié",
+    "Vogan"
+  ]
+}

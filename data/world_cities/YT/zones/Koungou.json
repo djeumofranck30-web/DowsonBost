@@ -1,0 +1,10 @@
+{
+  "country": "Mayotte",
+  "code": "YT",
+  "zone": "Koungou",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Koungou",
+    "Majikavo Koropa"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Rivers State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ahoada",
+    "Bonny",
+    "Bori",
+    "Buguma",
+    "Degema Hulk",
+    "Elele",
+    "Obonoma",
+    "Okrika",
+    "Omoku",
+    "Port Harcourt"
+  ]
+}

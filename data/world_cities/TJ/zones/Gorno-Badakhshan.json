@@ -1,0 +1,11 @@
+{
+  "country": "Tadjikistan",
+  "code": "TJ",
+  "zone": "Gorno-Badakhshan",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ishqoshim",
+    "Khorugh",
+    "Murghob"
+  ]
+}

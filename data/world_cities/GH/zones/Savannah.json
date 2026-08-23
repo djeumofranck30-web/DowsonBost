@@ -1,0 +1,11 @@
+{
+  "country": "Ghana",
+  "code": "GH",
+  "zone": "Savannah",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Damongo",
+    "Salaga",
+    "Sawla"
+  ]
+}

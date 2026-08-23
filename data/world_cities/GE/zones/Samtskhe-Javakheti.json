@@ -1,0 +1,11 @@
+{
+  "country": "Georgie",
+  "code": "GE",
+  "zone": "Samtskhe-Javakheti",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akhalkalaki",
+    "Akhaltsikhe",
+    "Borjomi"
+  ]
+}

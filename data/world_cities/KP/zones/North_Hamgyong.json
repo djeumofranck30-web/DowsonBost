@@ -1,0 +1,32 @@
+{
+  "country": "Coree du Nord",
+  "code": "KP",
+  "zone": "North Hamgyong",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aoji-ri",
+    "Chongjin",
+    "Hau-ri",
+    "Hoemul-li",
+    "Hoeryŏng",
+    "Hwadae",
+    "Hwasŏng",
+    "Kilju",
+    "Komusan Il-tong",
+    "Kyŏngsŏng",
+    "Musan-ŭp",
+    "Myŏngch’ŏn",
+    "Myŏnggan-dong",
+    "Namyang",
+    "Namyang-nodongjagu",
+    "Onsŏng",
+    "Puryŏng-ŭp",
+    "Ranam",
+    "Satan",
+    "Sŏngnae-ri",
+    "Sŭngam-nodongjagu",
+    "Yŏnsa-ŭp",
+    "Ŏrang",
+    "Ŭndŏk"
+  ]
+}

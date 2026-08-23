@@ -1,0 +1,15 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Udon Thani",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ban Dung",
+    "Ban Nong Wua So",
+    "Ban Phan Don",
+    "Kut Chap",
+    "Nam Som",
+    "Nong Wua So",
+    "Udon Thani"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "country": "Liberia",
+  "code": "LR",
+  "zone": "Gbarpolu County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bopolu"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "country": "Iran",
+  "code": "IR",
+  "zone": "Kurdistan Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bāneh",
+    "Bījār",
+    "Dīvāndarreh",
+    "Kāmyārān",
+    "Marīvān",
+    "Qorveh",
+    "Sanandaj",
+    "Saqqez",
+    "Sarvābād"
+  ]
+}

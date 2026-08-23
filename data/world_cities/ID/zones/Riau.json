@@ -1,0 +1,13 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "Riau",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Balai Pungut",
+    "Batam",
+    "Dumai",
+    "Kuala Cenaku",
+    "Pekanbaru"
+  ]
+}

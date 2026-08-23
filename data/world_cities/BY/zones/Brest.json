@@ -1,0 +1,27 @@
+{
+  "country": "Bielorussie",
+  "code": "BY",
+  "zone": "Brest",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baranovichi",
+    "Brest",
+    "Byaroza",
+    "Byelaazyorsk",
+    "Davyd-Haradok",
+    "Drogichin",
+    "Hantsavichy",
+    "Ivanovo",
+    "Ivatsevichi",
+    "Kamenets",
+    "Kobryn",
+    "Luninyets",
+    "Lyakhovichi",
+    "Malorita",
+    "Mikashevichy",
+    "Pinsk",
+    "Pruzhany",
+    "Stolin",
+    "Zhabinka"
+  ]
+}

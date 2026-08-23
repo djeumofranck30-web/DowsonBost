@@ -1,0 +1,19 @@
+{
+  "country": "Kazakhstan",
+  "code": "KZ",
+  "zone": "Kyzylorda",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aral",
+    "Kazalinsk",
+    "Kyzylorda",
+    "Novokazalinsk",
+    "Saksaul’skiy",
+    "Shiyeli",
+    "Tasbuget",
+    "Terenozek",
+    "Zhalagash",
+    "Zhangaqorghan",
+    "Zhosaly"
+  ]
+}

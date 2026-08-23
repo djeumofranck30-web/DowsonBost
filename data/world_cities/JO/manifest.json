@@ -1,0 +1,21 @@
+{
+  "country": "Jordanie",
+  "code": "JO",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Ajloun",
+    "Amman",
+    "Aqaba",
+    "Balqa",
+    "Irbid",
+    "Jerash",
+    "Karak",
+    "Madaba",
+    "Mafraq",
+    "Ma’an",
+    "Tafielah",
+    "Zarqa"
+  ],
+  "source": "geonames_admin1"
+}

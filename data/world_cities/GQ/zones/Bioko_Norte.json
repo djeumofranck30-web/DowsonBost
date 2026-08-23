@@ -1,0 +1,10 @@
+{
+  "country": "Guinee equatoriale",
+  "code": "GQ",
+  "zone": "Bioko Norte",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Malabo",
+    "Rebola"
+  ]
+}

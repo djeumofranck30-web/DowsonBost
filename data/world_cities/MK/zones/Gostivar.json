@@ -1,0 +1,12 @@
+{
+  "country": "Macédoine du Nord",
+  "code": "MK",
+  "zone": "Gostivar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cegrane",
+    "Dolna Banjica",
+    "Gostivar",
+    "Vrutok"
+  ]
+}

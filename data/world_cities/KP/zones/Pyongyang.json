@@ -1,0 +1,15 @@
+{
+  "country": "Coree du Nord",
+  "code": "KP",
+  "zone": "Pyongyang",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chunghwa",
+    "Kangdong-ŭp",
+    "Man’gyŏngdae-ri",
+    "Pyongyang",
+    "Sunan",
+    "Sŭngho 1-tong",
+    "Twimoraet’ŏ"
+  ]
+}

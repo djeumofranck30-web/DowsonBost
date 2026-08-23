@@ -1,0 +1,12 @@
+{
+  "country": "Senegal",
+  "code": "SN",
+  "zone": "Ziguinchor",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bignona",
+    "Diouloulou",
+    "Tionk Essil",
+    "Ziguinchor"
+  ]
+}

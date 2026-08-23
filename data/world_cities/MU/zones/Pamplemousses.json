@@ -1,0 +1,21 @@
+{
+  "country": "Maurice",
+  "code": "MU",
+  "zone": "Pamplemousses",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Baie du Tombeau",
+    "Belle Vue Harel",
+    "Fond du Sac",
+    "Le Hochet",
+    "Long Mountain",
+    "Morcellement Saint André",
+    "Pamplemousses",
+    "Plaine des Papayes",
+    "Pointe aux Piments",
+    "Rouge Terre",
+    "Terre Rouge",
+    "Triolet",
+    "Trou aux Biches"
+  ]
+}

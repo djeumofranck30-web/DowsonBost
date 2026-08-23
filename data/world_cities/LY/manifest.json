@@ -1,0 +1,31 @@
+{
+  "country": "Libye",
+  "code": "LY",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Al Butnan",
+    "Al Jabal al Akhdar",
+    "Al Jafarah",
+    "Al Jufrah",
+    "Al Kufrah",
+    "Al Marj",
+    "Al Marqab",
+    "Al Wahat",
+    "An Nuqat al Khams",
+    "Az Zawiyah",
+    "Banghazi",
+    "Darnah",
+    "Ghat",
+    "Jabal al Gharbi",
+    "Misratah",
+    "Murzuq District",
+    "Nalut",
+    "Sabha District",
+    "Surt",
+    "Tripoli",
+    "Wadi al Hayat",
+    "Wadi ash Shati'"
+  ],
+  "source": "geonames_admin1"
+}

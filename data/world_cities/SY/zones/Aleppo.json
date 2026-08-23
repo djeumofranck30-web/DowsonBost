@@ -1,0 +1,24 @@
+{
+  "country": "Syrie",
+  "code": "SY",
+  "zone": "Aleppo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Bāb",
+    "Aleppo",
+    "As Safīrah",
+    "Batabo",
+    "Dayr Ḩāfir",
+    "I‘zāz",
+    "Jarābulus",
+    "Jindayris",
+    "Kabbasin",
+    "Manbij",
+    "Nubl",
+    "Qabbāsīn",
+    "Tall Rif‘at",
+    "Tādif",
+    "‘Afrīn",
+    "‘Ayn al ‘Arab"
+  ]
+}

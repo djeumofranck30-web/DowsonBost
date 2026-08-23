@@ -1,0 +1,13 @@
+{
+  "country": "Burkina Faso",
+  "code": "BF",
+  "zone": "Centre",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Nioko I",
+    "Ouagadougou",
+    "Saaba",
+    "Saonré",
+    "Zinguédéssé"
+  ]
+}

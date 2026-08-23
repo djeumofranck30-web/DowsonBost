@@ -1,0 +1,16 @@
+{
+  "country": "Mozambique",
+  "code": "MZ",
+  "zone": "Cabo Delgado Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chiúre",
+    "Ibo",
+    "Macomia",
+    "Mocímboa",
+    "Mocímboa da Praia",
+    "Montepuez",
+    "Mueda",
+    "Pemba"
+  ]
+}

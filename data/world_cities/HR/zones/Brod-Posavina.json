@@ -1,0 +1,10 @@
+{
+  "country": "Croatie",
+  "code": "HR",
+  "zone": "Brod-Posavina",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Nova Gradiška",
+    "Slavonski Brod"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Bahamas",
+  "code": "BS",
+  "zone": "New Providence",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Killarney",
+    "Nassau"
+  ]
+}

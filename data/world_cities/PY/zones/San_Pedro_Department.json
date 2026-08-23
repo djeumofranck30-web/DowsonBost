@@ -1,0 +1,11 @@
+{
+  "country": "Paraguay",
+  "code": "PY",
+  "zone": "San Pedro Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Lima",
+    "Puerto Rosario",
+    "San Pedro de Ycuamandyyú"
+  ]
+}

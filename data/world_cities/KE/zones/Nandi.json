@@ -1,0 +1,10 @@
+{
+  "country": "Kenya",
+  "code": "KE",
+  "zone": "Nandi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kapsabet",
+    "Nandi Hills"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "country": "Somalie",
+  "code": "SO",
+  "zone": "Mudug",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gaalkacyo",
+    "Hobyo",
+    "Saaxo"
+  ]
+}

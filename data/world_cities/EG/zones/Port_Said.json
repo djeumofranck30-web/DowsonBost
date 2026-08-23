@@ -1,0 +1,13 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Port Said",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al-Manākh",
+    "Az-Zuhūr",
+    "Aḍ-Ḍawāḥy",
+    "Būr Fu’ād",
+    "Port Said"
+  ]
+}

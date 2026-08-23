@@ -1,0 +1,16 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Chocó",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bahía Solano",
+    "Condoto",
+    "Istmina",
+    "Pizarro",
+    "Quibdó",
+    "Riosucio",
+    "Tadó",
+    "Unguía"
+  ]
+}

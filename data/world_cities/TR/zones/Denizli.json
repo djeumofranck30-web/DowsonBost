@@ -1,0 +1,22 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Denizli",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Acıpayam",
+    "Baklan",
+    "Buldan",
+    "Denizli",
+    "Honaz",
+    "Kale",
+    "Merkezefendi",
+    "Nikfer",
+    "Pamukkale",
+    "Pınarkent",
+    "Sarayköy",
+    "Serinhisar",
+    "Tavas",
+    "Çivril"
+  ]
+}

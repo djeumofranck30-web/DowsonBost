@@ -1,0 +1,10 @@
+{
+  "country": "Finlande",
+  "code": "FI",
+  "zone": "Central Ostrobothnia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kannus",
+    "Kokkola"
+  ]
+}

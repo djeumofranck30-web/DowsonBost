@@ -1,0 +1,22 @@
+{
+  "country": "Tanzanie",
+  "code": "TZ",
+  "zone": "Arusha",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arusha",
+    "Kingori",
+    "Kiratu",
+    "Longido",
+    "Makuyuni",
+    "Mbuguni",
+    "Merelani",
+    "Monduli",
+    "Mto wa Mbu",
+    "Namanga",
+    "Ngorongoro",
+    "Nkoaranga",
+    "Poli",
+    "Usa River"
+  ]
+}

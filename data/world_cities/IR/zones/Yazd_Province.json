@@ -1,0 +1,20 @@
+{
+  "country": "Iran",
+  "code": "IR",
+  "zone": "Yazd Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abarkūh",
+    "Ardakān",
+    "Ashkez̄ar",
+    "Bāfq",
+    "Herāt",
+    "Mahrīz",
+    "Marvast",
+    "Meybod",
+    "Tabas",
+    "Taft",
+    "Yazd",
+    "Zārach"
+  ]
+}

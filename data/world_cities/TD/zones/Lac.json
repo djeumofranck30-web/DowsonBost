@@ -1,0 +1,9 @@
+{
+  "country": "Tchad",
+  "code": "TD",
+  "zone": "Lac",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bol"
+  ]
+}

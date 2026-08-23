@@ -1,0 +1,19 @@
+{
+  "country": "Mexique",
+  "code": "MX",
+  "zone": "Aguascalientes",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aguascalientes",
+    "Calvillo",
+    "Jesús Gómez Portugal",
+    "Jesús Gómez Portugal (Margaritas)",
+    "Jesús María",
+    "Ojocaliente",
+    "Pabellón de Arteaga",
+    "Palo Alto",
+    "Pocitos",
+    "Rincón de Romos",
+    "San Francisco de los Romo"
+  ]
+}

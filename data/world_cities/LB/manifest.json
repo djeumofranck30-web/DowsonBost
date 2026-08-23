@@ -1,0 +1,17 @@
+{
+  "country": "Liban",
+  "code": "LB",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Akkar",
+    "Baalbek-Hermel Governorate",
+    "Beirut",
+    "Bekaa",
+    "Mount Lebanon",
+    "Nabatieh",
+    "North Lebanon",
+    "South Governorate"
+  ],
+  "source": "geonames_admin1"
+}

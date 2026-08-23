@@ -1,0 +1,11 @@
+{
+  "country": "Botswana",
+  "code": "BW",
+  "zone": "Kgalagadi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Hukuntsi",
+    "Kang",
+    "Tshabong"
+  ]
+}

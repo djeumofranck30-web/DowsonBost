@@ -1,0 +1,31 @@
+{
+  "country": "Japon",
+  "code": "JP",
+  "zone": "Akita",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Akita",
+    "Daisen",
+    "Gojōnome",
+    "Hachirougata",
+    "Hanawa",
+    "Kakunodatemachi",
+    "Katagami",
+    "Kita-Akita",
+    "Minehama-menagata",
+    "Moritake",
+    "Nikaho",
+    "Nishimonai",
+    "Noshiro",
+    "Oga",
+    "Rokugō",
+    "Semboku",
+    "Takanosu",
+    "Tennō",
+    "Yokote",
+    "Yurihonjō",
+    "Yuzawa",
+    "Ōdate",
+    "Ōmagari"
+  ]
+}

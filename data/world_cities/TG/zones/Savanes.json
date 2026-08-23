@@ -1,0 +1,12 @@
+{
+  "country": "Togo",
+  "code": "TG",
+  "zone": "Savanes",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dapaong",
+    "Mandouri",
+    "Mango",
+    "Sinkassé"
+  ]
+}

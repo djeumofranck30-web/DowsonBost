@@ -1,0 +1,18 @@
+{
+  "country": "Botswana",
+  "code": "BW",
+  "zone": "Kweneng",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Gabane",
+    "Kumakwane",
+    "Lentsweletau",
+    "Letlhakeng",
+    "Metsemotlhaba",
+    "Mmankgodi",
+    "Mmopone",
+    "Mogoditshane",
+    "Molepolole",
+    "Thamaga"
+  ]
+}

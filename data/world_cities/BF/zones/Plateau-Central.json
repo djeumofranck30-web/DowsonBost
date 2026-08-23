@@ -1,0 +1,13 @@
+{
+  "country": "Burkina Faso",
+  "code": "BF",
+  "zone": "Plateau-Central",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Barogo",
+    "Boussé",
+    "Mogtédo",
+    "Ziniaré",
+    "Zorgo"
+  ]
+}

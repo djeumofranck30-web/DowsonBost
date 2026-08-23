@@ -1,0 +1,23 @@
+{
+  "country": "Tchequie",
+  "code": "CZ",
+  "zone": "Plzeň Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dobřany",
+    "Domažlice",
+    "Horažďovice",
+    "Klatovy",
+    "Nýrsko",
+    "Nýřany",
+    "Pilsen",
+    "Planá",
+    "Přeštice",
+    "Rokycany",
+    "Starý Plzenec",
+    "Stříbro",
+    "Sušice",
+    "Tachov",
+    "Třemošná"
+  ]
+}

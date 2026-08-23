@@ -1,0 +1,28 @@
+{
+  "country": "Ukraine",
+  "code": "UA",
+  "zone": "Ternopil",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Berezhany",
+    "Borshchiv",
+    "Buchach",
+    "Chortkiv",
+    "Husiatyn",
+    "Khorostkiv",
+    "Kopychyntsi",
+    "Kozova",
+    "Kremenets",
+    "Lanivtsi",
+    "Monastyryska",
+    "Pidvolochysk",
+    "Pochayiv",
+    "Shumsk",
+    "Terebovlia",
+    "Ternopil",
+    "Velyka Berezovytsya",
+    "Zalishchyky",
+    "Zbarazh",
+    "Zboriv"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "country": "Niger",
+  "code": "NE",
+  "zone": "Diffa",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bosso",
+    "Diffa",
+    "Goudoumaria",
+    "Maïné Soroa",
+    "Nguigmi"
+  ]
+}

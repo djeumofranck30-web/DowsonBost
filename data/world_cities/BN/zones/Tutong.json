@@ -1,0 +1,13 @@
+{
+  "country": "Brunei",
+  "code": "BN",
+  "zone": "Tutong",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Keriam",
+    "Kiudang",
+    "Telamba",
+    "Telisai",
+    "Tutong"
+  ]
+}

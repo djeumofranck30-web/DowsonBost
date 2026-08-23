@@ -1,0 +1,14 @@
+{
+  "country": "Cambodge",
+  "code": "KH",
+  "zone": "Tboung Khmum",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dar",
+    "Mémót",
+    "Phumĭ Ânhchaeum",
+    "Roka Khnaor",
+    "Rung",
+    "Suong"
+  ]
+}

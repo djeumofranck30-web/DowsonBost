@@ -1,0 +1,15 @@
+{
+  "country": "Lesotho",
+  "code": "LS",
+  "zone": "Maseru District",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kolo",
+    "Maseru",
+    "Mazenod",
+    "Morija",
+    "Nako",
+    "Roma",
+    "Semonkong"
+  ]
+}

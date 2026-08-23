@@ -1,0 +1,29 @@
+{
+  "country": "Bhoutan",
+  "code": "BT",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Bumthang District",
+    "Chukha",
+    "Dagana",
+    "Gasa",
+    "Haa",
+    "Lhuntse",
+    "Mongar",
+    "Paro",
+    "Pemagatshel",
+    "Punakha",
+    "Samdrup Jongkhar",
+    "Samtse District",
+    "Sarpang District",
+    "Thimphu District",
+    "Tongsa",
+    "Trashi Yangste",
+    "Trashigang District",
+    "Tsirang District",
+    "Wangdi Phodrang",
+    "Zhemgang District"
+  ],
+  "source": "geonames_admin1"
+}

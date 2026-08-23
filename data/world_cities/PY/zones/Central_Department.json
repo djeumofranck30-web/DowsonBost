@@ -1,0 +1,23 @@
+{
+  "country": "Paraguay",
+  "code": "PY",
+  "zone": "Central Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Areguá",
+    "Capiatá",
+    "Fernando de la Mora",
+    "Guarambaré",
+    "Itauguá",
+    "Itá",
+    "Lambaré",
+    "Limpio",
+    "Mariano Roque Alonso",
+    "Nemby",
+    "San Antonio",
+    "San Lorenzo",
+    "Villa Elisa",
+    "Villeta",
+    "Ypacarai"
+  ]
+}

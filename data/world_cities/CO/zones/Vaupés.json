@@ -1,0 +1,9 @@
+{
+  "country": "Colombie",
+  "code": "CO",
+  "zone": "Vaupés",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Mitú"
+  ]
+}

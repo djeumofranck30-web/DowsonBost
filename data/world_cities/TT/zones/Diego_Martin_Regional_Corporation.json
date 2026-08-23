@@ -1,0 +1,10 @@
+{
+  "country": "Trinite-et-Tobago",
+  "code": "TT",
+  "zone": "Diego Martin Regional Corporation",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Diego Martin",
+    "Petit Valley"
+  ]
+}

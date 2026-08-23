@@ -1,0 +1,25 @@
+{
+  "country": "Pologne",
+  "code": "PL",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Greater Poland",
+    "Kujawsko-Pomorskie",
+    "Lesser Poland",
+    "Lower Silesia",
+    "Lublin",
+    "Lubusz",
+    "Mazovia",
+    "Opole Voivodeship",
+    "Podlasie",
+    "Pomerania",
+    "Silesia",
+    "Subcarpathia",
+    "Warmia-Masuria",
+    "West Pomerania",
+    "Łódź Voivodeship",
+    "Świętokrzyskie"
+  ],
+  "source": "geonames_admin1"
+}

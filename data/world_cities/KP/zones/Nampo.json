@@ -1,0 +1,10 @@
+{
+  "country": "Coree du Nord",
+  "code": "KP",
+  "zone": "Nampo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Namp’o",
+    "Ryonggang-ŭp"
+  ]
+}

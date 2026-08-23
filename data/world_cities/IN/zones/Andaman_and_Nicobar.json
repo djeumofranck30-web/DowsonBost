@@ -1,0 +1,16 @@
+{
+  "country": "Inde",
+  "code": "IN",
+  "zone": "Andaman and Nicobar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bamboo Flat",
+    "Campbell Bay",
+    "Diglipur",
+    "Garacharma",
+    "Māyābandar",
+    "Port Blair",
+    "Prothrapur",
+    "Rangat"
+  ]
+}

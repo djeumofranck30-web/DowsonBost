@@ -1,0 +1,33 @@
+{
+  "country": "Espagne",
+  "code": "ES",
+  "zone": "Aragon",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alagón",
+    "Alcañiz",
+    "Almozara",
+    "Andorra",
+    "Barbastro",
+    "Binéfar",
+    "Calatayud",
+    "Caspe",
+    "Delicias",
+    "Ejea de los Caballeros",
+    "Fraga",
+    "Huesca",
+    "Jaca",
+    "La Almunia de Doña Godina",
+    "La Muela",
+    "Montecanal",
+    "Monzón",
+    "Oliver-Valdefierro",
+    "Sabiñánigo",
+    "Tarazona",
+    "Tauste",
+    "Teruel",
+    "Utebo",
+    "Zaragoza",
+    "Zuera"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Yemen",
+  "code": "YE",
+  "zone": "Ta‘izz",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Mocha",
+    "Taiz"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "country": "Nouvelle-Zelande",
+  "code": "NZ",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Auckland",
+    "Bay of Plenty",
+    "Canterbury",
+    "Chatham Islands",
+    "Gisborne",
+    "Hawke's Bay Region",
+    "Manawatu-Wanganui",
+    "Marlborough",
+    "Nelson Region",
+    "Northland",
+    "Otago",
+    "Southland",
+    "Taranaki Region",
+    "Tasman District",
+    "Waikato Region",
+    "Wellington Region",
+    "West Coast"
+  ],
+  "source": "geonames_admin1"
+}

@@ -1,0 +1,26 @@
+{
+  "country": "Japon",
+  "code": "JP",
+  "zone": "Kochi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aki",
+    "Fudaba",
+    "Ino",
+    "Irino",
+    "Kochi",
+    "Muroto-misakicho",
+    "Nakamura",
+    "Nankoku",
+    "Ochi",
+    "Sakawa",
+    "Shimoda",
+    "Sukumo",
+    "Susaki",
+    "Tosa",
+    "Tosashimizu",
+    "Tosayamadachō-nakano",
+    "Yamashita",
+    "Yoshino"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Uruguay",
+  "code": "UY",
+  "zone": "Durazno Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Durazno",
+    "Sarandí del Yi"
+  ]
+}

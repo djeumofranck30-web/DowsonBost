@@ -1,0 +1,17 @@
+{
+  "country": "Burkina Faso",
+  "code": "BF",
+  "zone": "Est",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bogandé",
+    "Diapaga",
+    "Fada N'gourma",
+    "Gayéri",
+    "Kompienga",
+    "Mani",
+    "Namponkoré",
+    "Natiaboani",
+    "Pama"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "country": "Mexique",
+  "code": "MX",
+  "zone": "Baja California Sur",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cabo San Lucas",
+    "Ciudad Constitución",
+    "Ciudad Insurgentes",
+    "Colonia del Sol",
+    "Guerrero Negro",
+    "La Paz",
+    "Las Palmas",
+    "Las Veredas",
+    "Loreto",
+    "Puerto San Carlos",
+    "San José del Cabo",
+    "Santa Rosalía",
+    "Todos Santos",
+    "Villa Alberto Andrés Alvarado Arámburo"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Kalasin",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Huai Mek",
+    "Kalasin",
+    "Kamalasai",
+    "Khao Wong",
+    "Kuchinarai",
+    "Nong Kung Si",
+    "Yang Talat"
+  ]
+}

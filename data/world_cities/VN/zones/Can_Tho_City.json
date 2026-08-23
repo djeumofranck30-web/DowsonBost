@@ -1,0 +1,25 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Can Tho City",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bình Thủy",
+    "Cái Răng",
+    "Cần Thơ",
+    "Cờ Đỏ",
+    "Long Mỹ",
+    "Ngã Bảy",
+    "Ngã Năm",
+    "Phong Điền",
+    "Phú Lộc",
+    "Sóc Trăng",
+    "Thốt Nốt",
+    "Thới Lai",
+    "Vĩnh Châu",
+    "Vĩnh Thạnh",
+    "Vị Thanh",
+    "Ô Môn",
+    "Ấp Một"
+  ]
+}

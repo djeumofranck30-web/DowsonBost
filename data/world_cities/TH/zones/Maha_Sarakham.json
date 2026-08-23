@@ -1,0 +1,12 @@
+{
+  "country": "Thailande",
+  "code": "TH",
+  "zone": "Maha Sarakham",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kosum Phisai",
+    "Maha Sarakham",
+    "Phayakkhaphum Phisai",
+    "Wapi Pathum"
+  ]
+}

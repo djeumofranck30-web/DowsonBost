@@ -1,0 +1,15 @@
+{
+  "country": "Senegal",
+  "code": "SN",
+  "zone": "Kolda",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Dabo",
+    "Diaoubé",
+    "Kolda",
+    "Kounkané",
+    "Marsassoum",
+    "Médina Gounas",
+    "Vélingara"
+  ]
+}

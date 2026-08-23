@@ -1,0 +1,29 @@
+{
+  "country": "Japon",
+  "code": "JP",
+  "zone": "Nagasaki",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Fukuechō",
+    "Furukawamen",
+    "Gotō",
+    "Hirado",
+    "Iki",
+    "Isahaya",
+    "Kamigotō",
+    "Kawatana",
+    "Matsuura",
+    "Minamishimabara",
+    "Nagasaki",
+    "Obita",
+    "Saikai",
+    "Sasebo",
+    "Shimabara",
+    "Shukugō",
+    "Sonogishukugō",
+    "Togitsu",
+    "Tsushima",
+    "Unzen",
+    "Ōmura"
+  ]
+}

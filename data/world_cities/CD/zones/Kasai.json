@@ -1,0 +1,13 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "Kasai",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ilebo",
+    "Isamba",
+    "Luebo",
+    "Mweka",
+    "Tshikapa"
+  ]
+}

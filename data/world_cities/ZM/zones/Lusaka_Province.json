@@ -1,0 +1,23 @@
+{
+  "country": "Zambie",
+  "code": "ZM",
+  "zone": "Lusaka Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Chalimbana",
+    "Chilanga Township",
+    "Chilongolo",
+    "Chinkuli",
+    "Chisankane",
+    "Chongwe",
+    "Chunga",
+    "Kafue",
+    "Luangwa",
+    "Lusaka",
+    "Lusaka West",
+    "Madido",
+    "Namalombwe",
+    "Ntandabale",
+    "Palabana"
+  ]
+}

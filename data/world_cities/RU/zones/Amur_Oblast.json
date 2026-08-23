@@ -1,0 +1,32 @@
+{
+  "country": "Russie",
+  "code": "RU",
+  "zone": "Amur Oblast",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arkhara",
+    "Belogorsk",
+    "Blagoveshchensk",
+    "Bureya",
+    "Chigiri",
+    "Konstantinovka",
+    "Magdagachi",
+    "Novobureyskiy",
+    "Poyarkovo",
+    "Progress",
+    "Raychikhinsk",
+    "Seryshevo",
+    "Shimanovsk",
+    "Skovorodino",
+    "Srednebelaya",
+    "Svobodnyy",
+    "Talakan",
+    "Tambovka",
+    "Tsiolkovskiy",
+    "Tynda",
+    "Yekaterinoslavka",
+    "Yerofey Pavlovich",
+    "Zavitinsk",
+    "Zeya"
+  ]
+}

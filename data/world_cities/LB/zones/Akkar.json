@@ -1,0 +1,9 @@
+{
+  "country": "Liban",
+  "code": "LB",
+  "zone": "Akkar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Halba"
+  ]
+}

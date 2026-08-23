@@ -1,0 +1,22 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "Yogyakarta",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bambanglipuro",
+    "Bantul",
+    "Depok",
+    "Gamping Lor",
+    "Godean",
+    "Kasihan",
+    "Melati",
+    "Pandak",
+    "Pundong",
+    "Sewon",
+    "Sleman",
+    "Srandakan",
+    "Wonosari",
+    "Yogyakarta"
+  ]
+}

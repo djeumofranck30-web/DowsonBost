@@ -1,0 +1,20 @@
+{
+  "country": "Ouzbekistan",
+  "code": "UZ",
+  "zone": "Bukhara",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bukhara",
+    "Galaosiyo Shahri",
+    "Gazli",
+    "G’ijduvon Shahri",
+    "Karakul’",
+    "Kogon Shahri",
+    "Olot Shahri",
+    "Qorovulbozor",
+    "Romitan Shahri",
+    "Shofirkon Shahri",
+    "Uchkuduk",
+    "Vobkent Shahri"
+  ]
+}

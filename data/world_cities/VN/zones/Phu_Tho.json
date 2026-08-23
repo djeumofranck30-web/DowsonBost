@@ -1,0 +1,22 @@
+{
+  "country": "Vietnam",
+  "code": "VN",
+  "zone": "Phu Tho",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bo",
+    "Bích Chu",
+    "Hàng Trạm",
+    "Hòa Bình",
+    "Phú Thọ",
+    "Phúc Yên",
+    "Thị Trấn Thanh Hà",
+    "Thổ Tăng",
+    "Tú Trưng",
+    "Việt Trì",
+    "Vĩnh Tường",
+    "Vĩnh Yên",
+    "Vụ Bản",
+    "Xuân Trùng"
+  ]
+}

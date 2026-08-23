@@ -1,0 +1,14 @@
+{
+  "country": "Ethiopie",
+  "code": "ET",
+  "zone": "Sidama Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Awasa",
+    "Ch’iko",
+    "Hāgere Selam",
+    "Leku",
+    "Wendo",
+    "Yirga ‘Alem"
+  ]
+}

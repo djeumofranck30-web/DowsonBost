@@ -1,0 +1,12 @@
+{
+  "country": "Croatie",
+  "code": "HR",
+  "zone": "Sisak-Moslavina",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kutina",
+    "Novska",
+    "Petrinja",
+    "Sisak"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "country": "Nigeria",
+  "code": "NG",
+  "zone": "Plateau State",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Amper",
+    "Bokkos",
+    "Bukuru",
+    "Dengi",
+    "Jos",
+    "Kwolla",
+    "Langtang",
+    "Pankshin",
+    "Panyam",
+    "Vom",
+    "Yelwa"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "country": "Sierra Leone",
+  "code": "SL",
+  "zone": "North West",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Port Loko"
+  ]
+}

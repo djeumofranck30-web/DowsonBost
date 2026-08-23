@@ -1,0 +1,24 @@
+{
+  "country": "Ghana",
+  "code": "GH",
+  "zone": "Eastern",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aburi",
+    "Akim Oda",
+    "Akim Swedru",
+    "Akropong",
+    "Akwatia",
+    "Anyinam",
+    "Asamankese",
+    "Begoro",
+    "Kade",
+    "Kibi",
+    "Koforidua",
+    "Mpraeso",
+    "Nkawkaw",
+    "Nsawam",
+    "Saman",
+    "Suhum"
+  ]
+}

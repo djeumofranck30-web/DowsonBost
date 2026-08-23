@@ -1,0 +1,28 @@
+{
+  "country": "Portugal",
+  "code": "PT",
+  "zone": "Leiria",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alcobaça",
+    "Aljubarrota",
+    "Atouguia da Baleia",
+    "Batalha",
+    "Benedita",
+    "Bombarral",
+    "Caldas da Rainha",
+    "Caranguejeira",
+    "Leiria",
+    "Louriçal",
+    "Maceira",
+    "Marinha Grande",
+    "Monte Real",
+    "Nazaré",
+    "Pataias",
+    "Peniche",
+    "Pombal",
+    "Porto de Mós",
+    "Vieira de Leiria",
+    "Óbidos"
+  ]
+}

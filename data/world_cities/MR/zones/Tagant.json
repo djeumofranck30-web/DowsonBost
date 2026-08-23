@@ -1,0 +1,10 @@
+{
+  "country": "Mauritanie",
+  "code": "MR",
+  "zone": "Tagant",
+  "source": "geonames_cities5000",
+  "cities": [
+    "El Ghayra",
+    "Tidjikja"
+  ]
+}

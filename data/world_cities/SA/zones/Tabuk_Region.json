@@ -1,0 +1,13 @@
+{
+  "country": "Arabie saoudite",
+  "code": "SA",
+  "zone": "Tabuk Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Wajh",
+    "Duba",
+    "Tabuk",
+    "Taymā’",
+    "Umluj"
+  ]
+}

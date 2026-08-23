@@ -1,0 +1,12 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Touggourt",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Megarine",
+    "Taïbet",
+    "Tebesbest",
+    "Touggourt"
+  ]
+}

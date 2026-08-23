@@ -1,0 +1,12 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "Équateur",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Basankusu",
+    "Bolenge",
+    "Lukolela",
+    "Mbandaka"
+  ]
+}

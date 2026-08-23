@@ -1,0 +1,18 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Tokat Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Almus",
+    "Artova",
+    "Başçiftlik",
+    "Erbaa",
+    "Niksar",
+    "Pazar",
+    "Tokat",
+    "Turhal",
+    "Yeşilyurt",
+    "Zile"
+  ]
+}

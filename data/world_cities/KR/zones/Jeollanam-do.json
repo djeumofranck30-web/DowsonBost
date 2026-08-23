@@ -1,0 +1,26 @@
+{
+  "country": "Coree du Sud",
+  "code": "KR",
+  "zone": "Jeollanam-do",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Beolgyo",
+    "Boseong",
+    "Damyang",
+    "Gwangyang",
+    "Haenam",
+    "Hwasun",
+    "Jangheung",
+    "Jangseong",
+    "Kurye",
+    "Kwangyang",
+    "Mokpo",
+    "Muan",
+    "Naju",
+    "Sinan",
+    "Suncheon",
+    "Yeongam",
+    "Yeonggwang",
+    "Yeosu"
+  ]
+}

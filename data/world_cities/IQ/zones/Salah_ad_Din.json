@@ -1,0 +1,17 @@
+{
+  "country": "Irak",
+  "code": "IQ",
+  "zone": "Salah ad Din",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ad Dujayl",
+    "Al-'Alam",
+    "AlZwya",
+    "Ash Sharqāt",
+    "Balad",
+    "Bayjī",
+    "Sāmarrā’",
+    "Tikrīt",
+    "Ţūz Khūrmātū"
+  ]
+}

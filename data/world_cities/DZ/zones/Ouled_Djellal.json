@@ -1,0 +1,10 @@
+{
+  "country": "Algerie",
+  "code": "DZ",
+  "zone": "Ouled Djellal",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ouled Djellal",
+    "Sidi Khaled"
+  ]
+}

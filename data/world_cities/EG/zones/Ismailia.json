@@ -1,0 +1,11 @@
+{
+  "country": "Egypte",
+  "code": "EG",
+  "zone": "Ismailia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Qanţarah",
+    "Fāyīd",
+    "Ismailia"
+  ]
+}

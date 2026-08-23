@@ -1,0 +1,23 @@
+{
+  "country": "Roumanie",
+  "code": "RO",
+  "zone": "Gorj County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bumbeşti-Jiu",
+    "Băleşti",
+    "Crasna",
+    "Drăguţeşti",
+    "Motru",
+    "Mătăsari",
+    "Padeş",
+    "Plopşoru",
+    "Rovinari",
+    "Runcu",
+    "Tismana",
+    "Turceni",
+    "Târgu Cărbuneşti",
+    "Târgu Jiu",
+    "Ţicleni"
+  ]
+}

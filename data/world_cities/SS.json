@@ -1,0 +1,29 @@
+{
+  "country": "Soudan du Sud",
+  "code": "SS",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aweil",
+    "Bentiu",
+    "Bor",
+    "Gogrial",
+    "Juba",
+    "Kafia Kingi",
+    "Kapoeta",
+    "Kodok",
+    "Kuacjok",
+    "Leer",
+    "Malakal",
+    "Maridi",
+    "Pajok",
+    "Rumbek",
+    "Tambura",
+    "Tonj",
+    "Torit",
+    "Wau",
+    "Winejok",
+    "Yambio",
+    "Yei",
+    "Yirol"
+  ]
+}

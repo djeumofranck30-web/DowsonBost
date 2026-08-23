@@ -1,0 +1,22 @@
+{
+  "country": "Gambie",
+  "code": "GM",
+  "zone": "Banjul",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bakau",
+    "Bakau New Town",
+    "Banjul",
+    "Bununka Kunda",
+    "Dippa Kunda",
+    "Ibo Town",
+    "Kanifing",
+    "Kotu",
+    "Latri Kunda",
+    "Manjai Kunda",
+    "New Jeshwang",
+    "Old Jeswang",
+    "Serekunda",
+    "Talinding"
+  ]
+}

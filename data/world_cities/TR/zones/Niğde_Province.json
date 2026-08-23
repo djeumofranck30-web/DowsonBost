@@ -1,0 +1,10 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Niğde Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bor",
+    "Niğde"
+  ]
+}

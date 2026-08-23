@@ -1,0 +1,17 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Canakkale",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ayvacık",
+    "Biga",
+    "Eceabat",
+    "Ezine",
+    "Gelibolu",
+    "Gökçeada",
+    "Lapseki",
+    "Çan",
+    "Çanakkale"
+  ]
+}

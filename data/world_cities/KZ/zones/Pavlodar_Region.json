@@ -1,0 +1,18 @@
+{
+  "country": "Kazakhstan",
+  "code": "KZ",
+  "zone": "Pavlodar Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aksu",
+    "Bayanaul",
+    "Ekibastuz",
+    "Irtyshsk",
+    "Kalkaman",
+    "Leninskiy",
+    "Mayqayyng",
+    "Pavlodar",
+    "Terengköl",
+    "Zhelezinka"
+  ]
+}

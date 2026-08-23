@@ -1,0 +1,29 @@
+{
+  "country": "Portugal",
+  "code": "PT",
+  "zone": "Santarém",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Abrantes",
+    "Alcanede",
+    "Almeirim",
+    "Alpiarça",
+    "Benavente",
+    "Cartaxo",
+    "Coruche",
+    "Entroncamento",
+    "Fazendas de Almeirim",
+    "Fátima",
+    "Marinhais",
+    "Monsanto",
+    "Ourém",
+    "Riachos",
+    "Rio Maior",
+    "Salvaterra de Magos",
+    "Samora Correia",
+    "Santarém",
+    "Tomar",
+    "Torres Novas",
+    "Vila Nova da Barquinha"
+  ]
+}

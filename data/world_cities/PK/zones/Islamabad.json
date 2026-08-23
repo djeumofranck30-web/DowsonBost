@@ -1,0 +1,11 @@
+{
+  "country": "Pakistan",
+  "code": "PK",
+  "zone": "Islamabad",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alipur",
+    "Islamabad",
+    "Saidpur"
+  ]
+}

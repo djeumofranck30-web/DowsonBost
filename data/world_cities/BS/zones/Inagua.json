@@ -1,0 +1,9 @@
+{
+  "country": "Bahamas",
+  "code": "BS",
+  "zone": "Inagua",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Matthew Town"
+  ]
+}

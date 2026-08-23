@@ -1,0 +1,20 @@
+{
+  "country": "Armenie",
+  "code": "AM",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Aragatsotn",
+    "Ararat",
+    "Armavir",
+    "Gegharkunik",
+    "Kotayk",
+    "Lori",
+    "Shirak",
+    "Syunik",
+    "Tavush",
+    "Vayots Dzor",
+    "Yerevan"
+  ],
+  "source": "geonames_admin1"
+}

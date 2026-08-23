@@ -1,0 +1,20 @@
+{
+  "country": "Equateur",
+  "code": "EC",
+  "zone": "El Oro",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Arenillas",
+    "Balsas",
+    "Guabo",
+    "Huaquillas",
+    "Machala",
+    "Marcabelí",
+    "Pasaje",
+    "Piñas",
+    "Portovelo",
+    "Puerto Bolívar",
+    "Santa Rosa",
+    "Zaruma"
+  ]
+}

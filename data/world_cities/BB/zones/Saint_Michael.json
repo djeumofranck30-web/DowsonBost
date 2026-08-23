@@ -1,0 +1,9 @@
+{
+  "country": "Barbade",
+  "code": "BB",
+  "zone": "Saint Michael",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bridgetown"
+  ]
+}

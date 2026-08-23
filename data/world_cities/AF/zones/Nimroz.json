@@ -1,0 +1,12 @@
+{
+  "country": "Afghanistan",
+  "code": "AF",
+  "zone": "Nimroz",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Khāsh",
+    "Mīrābād",
+    "Rūdbār",
+    "Zaranj"
+  ]
+}

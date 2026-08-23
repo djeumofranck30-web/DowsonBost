@@ -1,0 +1,14 @@
+{
+  "country": "Croatie",
+  "code": "HR",
+  "zone": "Primorje-Gorski Kotar",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Crikvenica",
+    "Drenova",
+    "Kastav",
+    "Mali Lošinj",
+    "Opatija",
+    "Rijeka"
+  ]
+}

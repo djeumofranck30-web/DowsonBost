@@ -1,0 +1,16 @@
+{
+  "country": "Guinee",
+  "code": "GN",
+  "zone": "Kindia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Coyah",
+    "Dubréka",
+    "Forécariah",
+    "Kindia",
+    "Kolenté",
+    "Manéah",
+    "Tondon",
+    "Télimélé"
+  ]
+}

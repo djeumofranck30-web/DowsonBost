@@ -1,0 +1,16 @@
+{
+  "country": "Espagne",
+  "code": "ES",
+  "zone": "La Rioja",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alfaro",
+    "Arnedo",
+    "Calahorra",
+    "Haro",
+    "Lardero",
+    "Logroño",
+    "Nájera",
+    "Santo Domingo de la Calzada"
+  ]
+}

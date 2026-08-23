@@ -1,0 +1,31 @@
+{
+  "country": "Chili",
+  "code": "CL",
+  "zone": "Maule Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cauquenes",
+    "Chanco",
+    "Colbún",
+    "Constitución",
+    "Curicó",
+    "Hualañe",
+    "Linares",
+    "Longaví",
+    "Maule",
+    "Molina",
+    "Parral",
+    "Pelarco",
+    "Pencahue",
+    "Rauco",
+    "Retiro",
+    "Romeral",
+    "Sagrada Familia",
+    "San Clemente",
+    "San Javier",
+    "San Rafael",
+    "Talca",
+    "Teno",
+    "Villa Alegre"
+  ]
+}

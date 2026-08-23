@@ -1,0 +1,23 @@
+{
+  "country": "Salvador",
+  "code": "SV",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Ahuachapan",
+    "Cabanas",
+    "Chalatenango Department",
+    "Cuscatlan",
+    "La Libertad Department",
+    "La Paz Department",
+    "La Union",
+    "Morazan",
+    "San Miguel Department",
+    "San Salvador Department",
+    "San Vicente Department",
+    "Santa Ana Department",
+    "Sonsonate Department",
+    "Usulutan"
+  ],
+  "source": "geonames_admin1"
+}

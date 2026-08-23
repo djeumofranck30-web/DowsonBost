@@ -1,0 +1,23 @@
+{
+  "country": "Inde",
+  "code": "IN",
+  "zone": "Mizoram",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aizawl",
+    "Hnahthial",
+    "Kawnpur",
+    "Khawzawl",
+    "Kolasib",
+    "Lawngtlai",
+    "Lunglei",
+    "Mamit",
+    "Ngūr",
+    "Saiha",
+    "Sairang",
+    "Saitual",
+    "Serchhīp",
+    "Sāitlaw",
+    "Thenzawl"
+  ]
+}

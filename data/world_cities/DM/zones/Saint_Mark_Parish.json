@@ -1,0 +1,9 @@
+{
+  "country": "Dominique",
+  "code": "DM",
+  "zone": "Saint Mark Parish",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Soufrière"
+  ]
+}

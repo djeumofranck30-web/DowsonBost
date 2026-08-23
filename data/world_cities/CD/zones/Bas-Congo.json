@@ -1,0 +1,17 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "Bas-Congo",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Boma",
+    "Inkisi",
+    "Kasangulu",
+    "Kenge",
+    "Kimpese",
+    "Matadi",
+    "Mbanza-Ngungu",
+    "Moanda",
+    "Tshela"
+  ]
+}

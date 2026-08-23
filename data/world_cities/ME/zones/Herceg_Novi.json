@@ -1,0 +1,9 @@
+{
+  "country": "Montenegro",
+  "code": "ME",
+  "zone": "Herceg Novi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Herceg Novi"
+  ]
+}

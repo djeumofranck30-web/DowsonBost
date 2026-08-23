@@ -1,0 +1,9 @@
+{
+  "country": "Saint-Marin",
+  "code": "SM",
+  "zone": "San Marino",
+  "source": "geonames_cities5000",
+  "cities": [
+    "San Marino"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "country": "Republique democratique du Congo",
+  "code": "CD",
+  "zone": "Haut-Katanga",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Kambove",
+    "Kipushi",
+    "Likasi",
+    "Lubumbashi",
+    "Mokambo",
+    "Pweto"
+  ]
+}

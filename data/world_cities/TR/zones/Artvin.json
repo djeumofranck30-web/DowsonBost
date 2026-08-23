@@ -1,0 +1,16 @@
+{
+  "country": "Turquie",
+  "code": "TR",
+  "zone": "Artvin",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ardanuç",
+    "Arhavi",
+    "Artvin",
+    "Borçka",
+    "Hopa",
+    "Kemalpaşa",
+    "Yusufeli",
+    "Şavşat"
+  ]
+}

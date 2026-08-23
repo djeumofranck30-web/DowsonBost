@@ -1,0 +1,17 @@
+{
+  "country": "Jamaique",
+  "code": "JM",
+  "zone": "Saint Catherine Parish",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Above Rocks",
+    "Bog Walk",
+    "Ewarton",
+    "Linstead",
+    "Old Harbour",
+    "Old Harbour Bay",
+    "Point Hill",
+    "Portmore",
+    "Spanish Town"
+  ]
+}

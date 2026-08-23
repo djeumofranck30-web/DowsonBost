@@ -1,0 +1,10 @@
+{
+  "country": "Timor oriental",
+  "code": "TL",
+  "zone": "Liquiçá",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Likisá",
+    "Maubara"
+  ]
+}

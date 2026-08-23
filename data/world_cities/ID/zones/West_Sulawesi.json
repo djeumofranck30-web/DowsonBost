@@ -1,0 +1,11 @@
+{
+  "country": "Indonesie",
+  "code": "ID",
+  "zone": "West Sulawesi",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Majene",
+    "Mamuju",
+    "Polewali"
+  ]
+}

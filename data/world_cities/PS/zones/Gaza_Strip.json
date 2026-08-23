@@ -1,0 +1,28 @@
+{
+  "country": "Palestine",
+  "code": "PS",
+  "zone": "Gaza Strip",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Burayj",
+    "Al Fukhkhārī",
+    "Al Mughrāqah",
+    "Al Qarārah",
+    "An Naşr",
+    "An Nuşayrāt",
+    "Az Zuwāydah",
+    "Banī Suhaylā",
+    "Bayt Lāhyā",
+    "Bayt Ḩānūn",
+    "Dayr al Balaḩ",
+    "Gaza",
+    "Jabālyā",
+    "Khuzā‘ah",
+    "Khān Yūnis",
+    "Rafaḩ",
+    "Shokat as-Sufi",
+    "Shūkat aş Şūfī",
+    "‘Abasān al Jadīdah",
+    "‘Abasān al Kabīrah"
+  ]
+}

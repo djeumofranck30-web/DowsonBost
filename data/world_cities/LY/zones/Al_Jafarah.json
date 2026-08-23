@@ -1,0 +1,14 @@
+{
+  "country": "Libye",
+  "code": "LY",
+  "zone": "Al Jafarah",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Al Māyah",
+    "Al ‘Azīzīyah",
+    "An Nāşirīyah",
+    "As Sawānī",
+    "Az Zahrā’",
+    "Janzūr"
+  ]
+}

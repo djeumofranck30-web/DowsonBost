@@ -1,0 +1,9 @@
+{
+  "country": "Yemen",
+  "code": "YE",
+  "zone": "Shabwah",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ataq"
+  ]
+}

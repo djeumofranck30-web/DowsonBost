@@ -1,0 +1,21 @@
+{
+  "country": "Benin",
+  "code": "BJ",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Alibori",
+    "Atakora",
+    "Atlantique",
+    "Borgou",
+    "Collines",
+    "Donga",
+    "Kouffo",
+    "Littoral",
+    "Mono",
+    "Ouémé",
+    "Plateau",
+    "Zou"
+  ],
+  "source": "geonames_admin1"
+}

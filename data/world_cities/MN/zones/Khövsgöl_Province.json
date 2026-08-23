@@ -1,0 +1,10 @@
+{
+  "country": "Mongolie",
+  "code": "MN",
+  "zone": "Khövsgöl Province",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Mörön",
+    "Tsengel"
+  ]
+}

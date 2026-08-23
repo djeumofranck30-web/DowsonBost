@@ -1,0 +1,13 @@
+{
+  "country": "Albanie",
+  "code": "AL",
+  "zone": "Vlorë County",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Delvinë",
+    "Novoselë",
+    "Sarandë",
+    "Selenicë",
+    "Vlorë"
+  ]
+}

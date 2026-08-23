@@ -1,0 +1,14 @@
+{
+  "country": "Nicaragua",
+  "code": "NI",
+  "zone": "León Department",
+  "source": "geonames_cities5000",
+  "cities": [
+    "El Sauce",
+    "La Paz Centro",
+    "Larreynaga",
+    "León",
+    "Nagarote",
+    "Telica"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "country": "Niger",
+  "code": "NE",
+  "zone": "Maradi Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Aguié",
+    "Dakoro",
+    "Gazaoua",
+    "Guidan Roumdji",
+    "Madarounfa",
+    "Maradi",
+    "Mayahi",
+    "Tessaoua",
+    "Tibiri"
+  ]
+}

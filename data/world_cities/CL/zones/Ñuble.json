@@ -1,0 +1,22 @@
+{
+  "country": "Chili",
+  "code": "CL",
+  "zone": "Ñuble",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Bulnes",
+    "Chillán",
+    "Chillán Viejo",
+    "Cobquecura",
+    "Coelemu",
+    "Coihueco",
+    "El Carmen",
+    "Ninhue",
+    "Pemuco",
+    "Pinto",
+    "Quillón",
+    "Quirihue",
+    "San Carlos",
+    "Yungay"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "country": "Hong Kong",
+  "code": "HK",
+  "zone": "Yuen Long",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Fairview Park",
+    "Ha Tsuen",
+    "Hung Shui Kiu",
+    "Kam Tin",
+    "Pat Heung",
+    "Ping Shan",
+    "San Tin",
+    "Shap Pat Heung",
+    "Tin Shui Wai",
+    "Tung Tau Tsuen",
+    "Yuen Long",
+    "Yuen Long Kau Hui",
+    "Yuen Long San Hui"
+  ]
+}

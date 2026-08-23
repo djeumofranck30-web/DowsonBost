@@ -1,0 +1,13 @@
+{
+  "country": "Panama",
+  "code": "PA",
+  "zone": "Colón",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Cativá",
+    "Colón",
+    "Puerto Escondido",
+    "Puerto Pilón",
+    "Sabanitas"
+  ]
+}

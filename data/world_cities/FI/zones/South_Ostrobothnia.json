@@ -1,0 +1,19 @@
+{
+  "country": "Finlande",
+  "code": "FI",
+  "zone": "South Ostrobothnia",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alajärvi",
+    "Alavus",
+    "Ilmajoki",
+    "Jalasjärvi",
+    "Kauhajoki",
+    "Kauhava",
+    "Kurikka",
+    "Lapua",
+    "Seinäjoki",
+    "Ähtäri",
+    "Älajärvi"
+  ]
+}

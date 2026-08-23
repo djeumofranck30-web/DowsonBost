@@ -1,0 +1,31 @@
+{
+  "country": "Equateur",
+  "code": "EC",
+  "zone": "Guayas",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Alfredo Baquerizo Moreno",
+    "Balao",
+    "Balzar",
+    "Colimes",
+    "Coronel Marcelino Maridueña",
+    "Daule",
+    "El Empalme",
+    "El Triunfo",
+    "Eloy Alfaro",
+    "Guayaquil",
+    "La Libertad",
+    "Lomas de Sargentillo",
+    "Milagro",
+    "Naranjal",
+    "Naranjito",
+    "Palestina",
+    "Pedro Carbo",
+    "Playas",
+    "Posorja",
+    "Samborondón",
+    "Santa Lucía",
+    "Tres Postes",
+    "Yaguachi Nuevo"
+  ]
+}

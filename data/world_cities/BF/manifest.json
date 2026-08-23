@@ -1,0 +1,22 @@
+{
+  "country": "Burkina Faso",
+  "code": "BF",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Boucle du Mouhoun",
+    "Cascades Region",
+    "Centre",
+    "Centre-Est",
+    "Centre-Nord",
+    "Centre-Ouest",
+    "Centre-Sud",
+    "Est",
+    "Hauts-Bassins",
+    "Nord",
+    "Plateau-Central",
+    "Sahel",
+    "Sud-Ouest"
+  ],
+  "source": "geonames_admin1"
+}

@@ -1,0 +1,17 @@
+{
+  "country": "Niger",
+  "code": "NE",
+  "level1_label": "Régions",
+  "city_label": "Villes",
+  "level1_options": [
+    "Agadez",
+    "Diffa",
+    "Dosso Region",
+    "Maradi Region",
+    "Niamey",
+    "Tahoua Region",
+    "Tillabéri Region",
+    "Zinder Region"
+  ],
+  "source": "geonames_admin1"
+}

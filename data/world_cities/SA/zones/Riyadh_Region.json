@@ -1,0 +1,28 @@
+{
+  "country": "Arabie saoudite",
+  "code": "SA",
+  "zone": "Riyadh Region",
+  "source": "geonames_cities5000",
+  "cities": [
+    "Ad Dawādimī",
+    "Ad Dilam",
+    "Ad Dir‘īyah",
+    "Afif",
+    "Al Arţāwīyah",
+    "Al Hayāthim",
+    "Al Jubaylah",
+    "Al Kharj",
+    "Al ‘Uyaynah",
+    "As Sulayyil",
+    "Az Zulfī",
+    "Laylá",
+    "Marāt",
+    "Riyadh",
+    "Rumāḩ",
+    "Shaqra",
+    "Sājir",
+    "Tumayr",
+    "Ḥawṭah Banī Tamīm",
+    "‘Irqah"
+  ]
+}
