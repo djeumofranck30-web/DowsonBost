@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-import functools
+import json
 import re
+from pathlib import Path
 from typing import Any
 
 import requests
@@ -11,10 +12,17 @@ import requests
 from world_geo import COUNTRY_NAME_TO_CODE, normalize_country_name
 
 _HTTP_HEADERS = {"User-Agent": "DowsonBost/1.0 (job-matching)"}
-_OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+_OVERPASS_URLS = (
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+)
 _NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
 _MAX_CITIES = 600
 _PLACE_TYPES = ("city", "town", "village")
+_BUNDLED_CITIES_DIR = Path(__file__).resolve().parent / "data" / "world_cities"
+
+# In-memory cache — only successful (non-empty) lookups are stored.
+_city_cache: dict[tuple[str, str, str], tuple[str, ...]] = {}
 
 # French UI labels -> OSM area name variants
 LEVEL1_OSM_ALIASES: dict[str, tuple[str, ...]] = {
@@ -58,20 +66,24 @@ def _area_name_variants(name: str) -> tuple[str, ...]:
     return tuple(variants)
 
 
-def _run_overpass(query: str) -> list[dict[str, Any]]:
-    try:
-        response = requests.post(
-            _OVERPASS_URL,
-            data={"data": query},
-            headers=_HTTP_HEADERS,
-            timeout=120,
-        )
-        if not response.ok:
-            return []
-        payload = response.json()
-        return payload.get("elements") or []
-    except (requests.RequestException, ValueError, TypeError):
-        return []
+def _run_overpass(query: str, *, timeout: int = 90) -> list[dict[str, Any]]:
+    for url in _OVERPASS_URLS:
+        try:
+            response = requests.post(
+                url,
+                data={"data": query},
+                headers=_HTTP_HEADERS,
+                timeout=timeout,
+            )
+            if not response.ok:
+                continue
+            payload = response.json()
+            elements = payload.get("elements") or []
+            if elements:
+                return elements
+        except (requests.RequestException, ValueError, TypeError):
+            continue
+    return []
 
 
 def _names_from_elements(elements: list[dict[str, Any]]) -> tuple[str, ...]:
@@ -83,23 +95,39 @@ def _names_from_elements(elements: list[dict[str, Any]]) -> tuple[str, ...]:
     return tuple(sorted(names, key=str.casefold))
 
 
-@functools.lru_cache(maxsize=512)
+def _load_bundled_country_cities(country_code: str) -> tuple[str, ...]:
+    path = _BUNDLED_CITIES_DIR / f"{country_code.upper()}.json"
+    if not path.is_file():
+        return ()
+    try:
+        with path.open(encoding="utf-8") as handle:
+            payload = json.load(handle)
+        raw = payload.get("cities") if isinstance(payload, dict) else payload
+        if not isinstance(raw, list):
+            return ()
+        names = tuple(
+            sorted({str(name).strip() for name in raw if str(name).strip()}, key=str.casefold)
+        )
+        return names
+    except (OSError, json.JSONDecodeError, TypeError):
+        return ()
+
+
 def _fetch_cities_overpass_country(country_code: str, limit: int = _MAX_CITIES) -> tuple[str, ...]:
     code = country_code.strip().upper()
     if not code:
         return ()
     query = f"""
-[out:json][timeout:90];
+[out:json][timeout:60];
 area["ISO3166-1"="{code}"][admin_level=2]->.country;
 (
   node["place"~"city|town|village"](area.country);
 );
 out tags {limit};
 """
-    return _names_from_elements(_run_overpass(query))
+    return _names_from_elements(_run_overpass(query, timeout=75))
 
 
-@functools.lru_cache(maxsize=512)
 def _fetch_cities_overpass_zone(
     country_code: str,
     zone_name: str,
@@ -117,7 +145,7 @@ def _fetch_cities_overpass_zone(
         for tag in ("name", "name:fr", "name:en", "name:nl", "name:de", "name:es", "name:it"):
             if level2:
                 query = f"""
-[out:json][timeout:90];
+[out:json][timeout:60];
 area["ISO3166-1"="{code}"][admin_level=2]->.country;
 (
   area["{tag}"="{variant}"](area.country)->.parent;
@@ -130,7 +158,7 @@ out tags {limit};
 """
             else:
                 query = f"""
-[out:json][timeout:90];
+[out:json][timeout:60];
 area["ISO3166-1"="{code}"][admin_level=2]->.country;
 (
   area["{tag}"="{variant}"](area.country);
@@ -140,7 +168,7 @@ area["ISO3166-1"="{code}"][admin_level=2]->.country;
 );
 out tags {limit};
 """
-            names = _names_from_elements(_run_overpass(query))
+            names = _names_from_elements(_run_overpass(query, timeout=75))
             if len(names) > len(best):
                 best = names
             if len(best) >= 20:
@@ -148,13 +176,12 @@ out tags {limit};
     return best[:limit]
 
 
-@functools.lru_cache(maxsize=512)
 def _fetch_cities_nominatim_zone(
     country_code: str,
     zone_name: str,
     level2: str = "",
 ) -> tuple[str, ...]:
-    """Fallback when Overpass returns few results."""
+    """Fallback when Overpass returns few results (zone-level only)."""
     code = country_code.strip().lower()
     parts = [part.strip() for part in (level2, zone_name) if part.strip()]
     if not parts:
@@ -175,7 +202,7 @@ def _fetch_cities_nominatim_zone(
         if not response.ok:
             return ()
         geocode = response.json()
-        if not geocode:
+        if not isinstance(geocode, list) or not geocode:
             return ()
         bbox = geocode[0].get("boundingbox")
         if not bbox or len(bbox) != 4:
@@ -186,6 +213,7 @@ def _fetch_cities_nominatim_zone(
             place_response = requests.get(
                 _NOMINATIM_URL,
                 params={
+                    "q": query,
                     "format": "json",
                     "limit": 50,
                     "featuretype": feature,
@@ -211,6 +239,19 @@ def _fetch_cities_nominatim_zone(
         return ()
 
 
+def _cache_key(country_code: str, level1: str, level2: str) -> tuple[str, str, str]:
+    return (
+        country_code.upper(),
+        level1.strip().casefold(),
+        level2.strip().casefold(),
+    )
+
+
+def _store_cache(key: tuple[str, str, str], names: tuple[str, ...]) -> None:
+    if names:
+        _city_cache[key] = names
+
+
 def fetch_cities_for_zone(
     country: str,
     level1: str = "",
@@ -222,15 +263,34 @@ def fetch_cities_for_zone(
     if not code:
         return ()
 
-    if level1.strip() or level2.strip():
-        names = _fetch_cities_overpass_zone(code, level1, level2)
-        if len(names) < 5:
-            names = _fetch_cities_nominatim_zone(code, level1, level2) or names
-        return names
+    key = _cache_key(code, level1, level2)
+    cached = _city_cache.get(key)
+    if cached:
+        return cached
 
-    names = _fetch_cities_overpass_country(code)
-    if len(names) < 5:
-        names = _fetch_cities_nominatim_zone(code, country, "")
+    zone1 = level1.strip()
+    zone2 = level2.strip()
+
+    if not zone1 and not zone2:
+        bundled = _load_bundled_country_cities(code)
+        if bundled:
+            _store_cache(key, bundled)
+            return bundled
+
+    if zone1 or zone2:
+        names = _fetch_cities_overpass_zone(code, zone1, zone2)
+        if len(names) < 5:
+            fallback = _fetch_cities_nominatim_zone(code, zone1, zone2)
+            if fallback:
+                names = fallback
+    else:
+        names = _fetch_cities_overpass_country(code)
+        if len(names) < 5:
+            bundled = _load_bundled_country_cities(code)
+            if bundled:
+                names = bundled
+
+    _store_cache(key, names)
     return names
 
 

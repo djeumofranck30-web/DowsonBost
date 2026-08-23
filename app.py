@@ -5134,10 +5134,7 @@ def render_international_city_selector(
     )
 
     if not available:
-        st.warning(
-            "Impossible de charger les villes pour cette zone. "
-            "Réessayez dans un instant ou élargissez la sélection."
-        )
+        st.warning(t("geo.cities_unavailable"))
         return initial_cities, all_cities
 
     if all_cities:
