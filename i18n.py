@@ -10,8 +10,17 @@ from typing import Any
 _LOCALES_DIR = Path(__file__).resolve().parent / "locales"
 _MANIFEST_PATH = _LOCALES_DIR / "manifest.json"
 
-with _MANIFEST_PATH.open(encoding="utf-8") as _manifest_file:
-    _MANIFEST = json.load(_manifest_file)
+_DEFAULT_MANIFEST: dict[str, Any] = {
+    "default": "fr",
+    "fallback": "en",
+    "locales": {"fr": "Français", "en": "English"},
+}
+
+try:
+    with _MANIFEST_PATH.open(encoding="utf-8") as _manifest_file:
+        _MANIFEST = json.load(_manifest_file)
+except (FileNotFoundError, json.JSONDecodeError, OSError):
+    _MANIFEST = _DEFAULT_MANIFEST
 
 DEFAULT_LOCALE: str = _MANIFEST.get("default", "fr")
 FALLBACK_LOCALE: str = _MANIFEST.get("fallback", "en")
