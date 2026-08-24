@@ -224,8 +224,10 @@ from auth import (
     format_member_since,
     get_user_by_id,
     init_db,
+    join_full_name,
     register_user,
     reset_password,
+    split_full_name,
     update_user_preferred_language,
     update_user_profile,
 )
@@ -4390,7 +4392,12 @@ def init_session_state() -> None:
         st.session_state.main_navigation = NAV_PAGE_KEYS[0]
 
 
-def render_language_selector(*, key_prefix: str = "locale", persist_user: bool = False) -> None:
+def render_language_selector(
+    *,
+    key_prefix: str = "locale",
+    persist_user: bool = False,
+    label_visibility: str = "visible",
+) -> None:
     """Language picker — visible on login page and in the sidebar."""
     current = get_locale()
     try:
@@ -4403,6 +4410,7 @@ def render_language_selector(*, key_prefix: str = "locale", persist_user: bool =
         index=current_index,
         format_func=lambda code: LOCALE_LABELS.get(code, code),
         key=f"{key_prefix}_select",
+        label_visibility=label_visibility,
     )
     if selected != st.session_state.get("locale"):
         set_locale(selected)
@@ -5146,9 +5154,26 @@ def _auth_left_panel_html() -> str:
 """
 
 
+def _render_auth_language_bar() -> None:
+    """Top-left language selector with animated hint."""
+    st.markdown(
+        f"""
+        <div class="auth-lang-hint-badge">
+            <span class="auth-lang-hint-icon">🌐</span>
+            <span class="auth-lang-hint-text">{html.escape(t("auth.language.hint"))}</span>
+            <span class="auth-lang-arrow" aria-hidden="true">→</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    render_language_selector(
+        key_prefix="auth_top_locale",
+        label_visibility="collapsed",
+    )
+
+
 def _render_auth_login_form() -> None:
     """Login form in the right panel."""
-    render_language_selector(key_prefix="auth_locale")
     headline, sub = _auth_time_greeting()
     st.markdown(f'<p class="auth-greeting-main">{headline}</p>', unsafe_allow_html=True)
     st.markdown(f'<p class="auth-greeting-sub">{sub}</p>', unsafe_allow_html=True)
@@ -5208,7 +5233,6 @@ def _render_auth_login_form() -> None:
 
 def _render_auth_reset_form() -> None:
     """Password reset form."""
-    render_language_selector(key_prefix="auth_locale_reset")
     st.markdown(f'<p class="auth-greeting-main">{html.escape(t("auth.reset.title"))}</p>', unsafe_allow_html=True)
     st.markdown(
         f'<p class="auth-greeting-sub">{html.escape(t("auth.reset.subtitle"))}</p>',
@@ -5600,6 +5624,8 @@ def render_auth_page() -> None:
 
     _spacer_left, card_col, _spacer_right = st.columns([0.15, 1.7, 0.15])
     with card_col:
+        if view != "register":
+            _render_auth_language_bar()
         st.markdown('<div class="auth-card-row">', unsafe_allow_html=True)
         panel_left, panel_right = st.columns(2, gap="small")
 
@@ -5621,21 +5647,20 @@ def render_auth_page() -> None:
                     st.rerun()
                 st.markdown("</div>", unsafe_allow_html=True)
 
-            if view == "login":
-                st.markdown(
-                    '<div class="auth-footer-link auth-create-centered">',
-                    unsafe_allow_html=True,
-                )
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        if view == "login":
+            st.markdown('<div class="auth-create-between">', unsafe_allow_html=True)
+            _, create_col, _ = st.columns([1, 1.35, 1])
+            with create_col:
                 if st.button(
                     t("auth.footer.create"),
                     key="auth_go_register",
-                    use_container_width=False,
+                    use_container_width=True,
                 ):
                     st.session_state.auth_view = "register"
                     _reset_register_wizard()
                     st.rerun()
-                st.markdown("</div>", unsafe_allow_html=True)
-
             st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("</div>", unsafe_allow_html=True)
@@ -5714,6 +5739,8 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
     current_age = normalize_job_max_age_days(profile.get("job_max_age_days"))
     member_since = profile.get("created_at", "")
     full_name = profile.get("full_name", "Utilisateur")
+    profile_first, profile_last = split_full_name(full_name)
+    profile_phone = profile.get("phone", "") or ""
     initials = "".join(word[0].upper() for word in full_name.split()[:2]) or "?"
 
     st.markdown(
@@ -5723,7 +5750,8 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
             <div class="profile-header-text">
                 <h2>{html.escape(full_name)}</h2>
                 <p>{html.escape(profile.get("email", "—"))}</p>
-                <span class="profile-badge">Membre depuis {html.escape(format_member_since(member_since) if member_since else "—")}</span>
+                {f'<p>{html.escape(profile_phone)}</p>' if profile_phone else ''}
+                <span class="profile-badge">{html.escape(t("profile.member_since", date=format_member_since(member_since) if member_since else "—"))}</span>
             </div>
         </div>
         """,
@@ -5733,13 +5761,11 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
     with st.container(border=True):
         st.markdown('<div class="profile-section-card">', unsafe_allow_html=True)
         st.markdown(
-            '<p class="section-title">Profil de recherche</p>',
+            f'<p class="section-title">{html.escape(t("profile.search_section"))}</p>',
             unsafe_allow_html=True,
         )
         st.markdown(
-            '<p class="profile-section-hint">'
-            "Ces réglages sont utilisés pour filtrer les offres et lancer vos analyses CV."
-            "</p>",
+            f'<p class="profile-section-hint">{html.escape(t("profile.search_hint"))}</p>',
             unsafe_allow_html=True,
         )
 
@@ -5781,12 +5807,41 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                 )
 
         with st.form("profile_form"):
+            st.markdown(f"**{t('profile.identity_section')}**")
+            st.caption(t("profile.identity_hint"))
+            name_col1, name_col2 = st.columns(2)
+            with name_col1:
+                profile_first_name = st.text_input(
+                    t("common.first_name"),
+                    value=profile_first,
+                    key=f"profile_first_name_{user['id']}",
+                )
+            with name_col2:
+                profile_last_name = st.text_input(
+                    t("common.last_name"),
+                    value=profile_last,
+                    key=f"profile_last_name_{user['id']}",
+                )
+            contact_col1, contact_col2 = st.columns(2)
+            with contact_col1:
+                profile_phone_input = st.text_input(
+                    t("common.phone"),
+                    value=profile_phone,
+                    placeholder="+33 6 12 34 56 78",
+                    key=f"profile_phone_{user['id']}",
+                )
+            with contact_col2:
+                st.text_input(
+                    t("common.email"),
+                    value=profile.get("email", ""),
+                    disabled=True,
+                    help=t("profile.email_readonly"),
+                    key=f"profile_email_{user['id']}",
+                )
+
+            st.markdown(f"**{t('profile.search_section')}**")
             id_col1, id_col2 = st.columns(2)
             with id_col1:
-                new_name = st.text_input(
-                    t("common.full_name"),
-                    value=profile.get("full_name", ""),
-                )
                 target_job_title = st.text_input(
                     t("profile.target_job"),
                     value=profile.get("target_job_title", ""),
@@ -5865,44 +5920,53 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                 use_container_width=True,
                 type="primary",
             ):
-                ok, message, updated = update_user_profile(
-                    user["id"],
-                    new_name,
-                    profile.get("home_city", ""),
-                    profile.get("postal_code", ""),
-                    admin_regions,
-                    selected_departments,
-                    profile_cities,
-                    profile_all_cities,
-                    selected_countries[0],
-                    contract_type,
-                    geo_mode,
-                    search_radius,
-                    experience_level,
-                    target_sectors,
-                    target_job_title,
-                    job_max_age_days,
-                    selected_countries=selected_countries,
-                    geo_by_country=geo_by_country,
-                )
-                if ok and updated:
-                    st.session_state.user = updated
-                    st.session_state.pop(sectors_key, None)
-                    prefix = f"profile_{user['id']}"
-                    for suffix in (
-                        "admin_regions",
-                        "department_labels",
-                        "last_admin_regions",
-                        "selected_cities",
-                        "last_departments_for_cities",
-                        "all_cities",
-                    ):
-                        st.session_state.pop(f"{prefix}_{suffix}", None)
-                    st.session_state.analysis_notices = [
-                        {"level": "success", "text": message}
-                    ]
-                    st.rerun()
-                st.error(message)
+                first_name = profile_first_name.strip()
+                last_name = profile_last_name.strip()
+                if len(first_name) < 2:
+                    st.error(t("auth.register.first_name_required"))
+                elif len(last_name) < 2:
+                    st.error(t("auth.register.last_name_required"))
+                else:
+                    new_name = join_full_name(first_name, last_name)
+                    ok, message, updated = update_user_profile(
+                        user["id"],
+                        new_name,
+                        profile.get("home_city", ""),
+                        profile.get("postal_code", ""),
+                        admin_regions,
+                        selected_departments,
+                        profile_cities,
+                        profile_all_cities,
+                        selected_countries[0],
+                        contract_type,
+                        geo_mode,
+                        search_radius,
+                        experience_level,
+                        target_sectors,
+                        target_job_title,
+                        job_max_age_days,
+                        selected_countries=selected_countries,
+                        geo_by_country=geo_by_country,
+                        phone=profile_phone_input.strip(),
+                    )
+                    if ok and updated:
+                        st.session_state.user = updated
+                        st.session_state.pop(sectors_key, None)
+                        prefix = f"profile_{user['id']}"
+                        for suffix in (
+                            "admin_regions",
+                            "department_labels",
+                            "last_admin_regions",
+                            "selected_cities",
+                            "last_departments_for_cities",
+                            "all_cities",
+                        ):
+                            st.session_state.pop(f"{prefix}_{suffix}", None)
+                        st.session_state.analysis_notices = [
+                            {"level": "success", "text": message}
+                        ]
+                        st.rerun()
+                    st.error(message)
         st.markdown("</div>", unsafe_allow_html=True)
 
     sec_col1, sec_col2 = st.columns(2)

@@ -76,6 +76,22 @@ _USER_COLUMNS = [
 ]
 
 
+def split_full_name(full_name: str) -> tuple[str, str]:
+    """Split stored full name into first and last name."""
+    normalized = " ".join((full_name or "").split())
+    if not normalized:
+        return "", ""
+    parts = normalized.split(" ", 1)
+    if len(parts) == 1:
+        return parts[0], ""
+    return parts[0], parts[1]
+
+
+def join_full_name(first_name: str, last_name: str) -> str:
+    """Combine first and last name for storage."""
+    return " ".join(f"{first_name} {last_name}".split())
+
+
 @contextmanager
 def _connect() -> Iterator[Any]:
     with connect() as conn:
@@ -669,9 +685,11 @@ def update_user_profile(
     job_max_age_days: int = 7,
     selected_countries: list[str] | None = None,
     geo_by_country: dict[str, dict[str, Any]] | None = None,
+    phone: str | None = None,
 ) -> tuple[bool, str, dict | None]:
     """Update user profile and job-matching preferences."""
     full_name = " ".join(full_name.strip().split())
+    phone_clean = " ".join(phone.strip().split()) if phone is not None else None
     home_city = " ".join(home_city.strip().split())
     regions = [r.strip() for r in (admin_regions or []) if r.strip()]
     departments = selected_departments or []
@@ -732,9 +750,45 @@ def update_user_profile(
 
     init_db()
     with _connect() as conn:
-        cursor = conn.execute(
-            adapt_sql(
+        if phone_clean is not None:
+            sql = """
+                UPDATE users
+                SET full_name = ?, home_city = ?, postal_code = ?, region = ?,
+                    admin_region = ?, department_code = ?, department_name = ?,
+                    contract_type = ?, search_radius_km = ?, geo_filter_mode = ?,
+                    experience_level = ?, target_sectors = ?, country = ?,
+                    admin_regions = ?, selected_departments = ?, selected_cities = ?,
+                    all_cities = ?, selected_countries = ?, geo_by_country = ?,
+                    target_job_title = ?, job_max_age_days = ?, phone = ?
+                WHERE id = ?
                 """
+            params = (
+                full_name,
+                home_city,
+                postal_code.strip(),
+                admin_region,
+                admin_region,
+                department_code,
+                department_name,
+                contract_type,
+                search_radius_km,
+                geo_filter_mode,
+                experience_level,
+                serialize_target_sectors(sectors),
+                country,
+                serialize_admin_regions(regions),
+                serialize_selected_departments(departments),
+                serialize_selected_cities(cities),
+                1 if all_cities else 0,
+                serialize_selected_countries(countries),
+                serialize_geo_by_country(geo_map),
+                job_title,
+                publication_days,
+                phone_clean,
+                user_id,
+            )
+        else:
+            sql = """
                 UPDATE users
                 SET full_name = ?, home_city = ?, postal_code = ?, region = ?,
                     admin_region = ?, department_code = ?, department_name = ?,
@@ -745,8 +799,7 @@ def update_user_profile(
                     target_job_title = ?, job_max_age_days = ?
                 WHERE id = ?
                 """
-            ),
-            (
+            params = (
                 full_name,
                 home_city,
                 postal_code.strip(),
@@ -769,7 +822,10 @@ def update_user_profile(
                 job_title,
                 publication_days,
                 user_id,
-            ),
+            )
+        cursor = conn.execute(
+            adapt_sql(sql),
+            params,
         )
         if cursor.rowcount == 0:
             return False, t("auth.profile.not_found"), None

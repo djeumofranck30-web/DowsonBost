@@ -1,5 +1,6 @@
 {
   "language.label": "Langue",
+  "auth.language.hint": "Changez la langue ici",
   "nav.analysis": "Analyse CV",
   "nav.dashboard": "Tableau de bord",
   "nav.history": "Historique",
@@ -164,6 +165,9 @@
   "hero.profile.subtitle": "Gérez votre identité, vos critères de recherche, la sécurité du compte et les alertes.",
   "hero.profile.badge": "Compte",
   "profile.member_since": "Membre depuis {date}",
+  "profile.identity_section": "Identité",
+  "profile.identity_hint": "Vos coordonnées personnelles (comme à l'inscription).",
+  "profile.email_readonly": "L'e-mail ne peut pas être modifié ici.",
   "profile.search_section": "Profil de recherche",
   "profile.search_hint": "Ces réglages sont utilisés pour filtrer les offres et lancer vos analyses CV.",
   "profile.countries": "Pays de recherche",

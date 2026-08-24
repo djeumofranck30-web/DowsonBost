@@ -481,6 +481,47 @@ def render_auth_styles() -> None:
             padding-bottom: 2rem;
             max-width: 960px;
         }}
+        .auth-lang-hint-badge {{
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.32rem 0.7rem;
+            margin: 0 0 0.35rem 0;
+            max-width: 14rem;
+            border-radius: 999px;
+            background: rgba(124, 58, 237, 0.1);
+            border: 1px solid rgba(124, 58, 237, 0.28);
+            color: {t["primary_dark"]};
+            font-size: 0.76rem;
+            font-weight: 700;
+            animation: auth-lang-pulse 2.2s ease-in-out infinite;
+        }}
+        .auth-lang-hint-icon {{
+            font-size: 0.95rem;
+            line-height: 1;
+        }}
+        .auth-lang-arrow {{
+            display: inline-block;
+            animation: auth-lang-nudge 1.3s ease-in-out infinite;
+        }}
+        @keyframes auth-lang-pulse {{
+            0%, 100% {{
+                box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.35);
+                transform: scale(1);
+            }}
+            50% {{
+                box-shadow: 0 0 0 7px rgba(124, 58, 237, 0);
+                transform: scale(1.02);
+            }}
+        }}
+        @keyframes auth-lang-nudge {{
+            0%, 100% {{ transform: translateX(0); opacity: 0.85; }}
+            50% {{ transform: translateX(4px); opacity: 1; }}
+        }}
+        .auth-card-row {{
+            position: relative;
+            padding-bottom: 3.25rem;
+        }}
         .auth-card-row [data-testid="column"] {{
             padding: 0 !important;
         }}
@@ -532,29 +573,29 @@ def render_auth_styles() -> None:
             color: {t["primary"]} !important;
             text-decoration: underline;
         }}
-        .auth-footer-link.auth-create-centered {{
-            margin-top: auto;
-            padding-top: 2rem;
-            text-align: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .auth-create-between {{
+            margin-top: -2.75rem;
+            position: relative;
+            z-index: 6;
+            pointer-events: none;
         }}
-        .auth-footer-link.auth-create-centered button {{
-            background: {t["surface_soft"]} !important;
-            border: 1.5px solid rgba(124, 58, 237, 0.2) !important;
+        .auth-create-between [data-testid="column"] {{
+            pointer-events: auto;
+        }}
+        .auth-create-between button {{
+            background: {t["surface"]} !important;
+            border: 2px solid rgba(124, 58, 237, 0.28) !important;
             color: {t["primary_deep"]} !important;
-            font-weight: 600 !important;
+            font-weight: 700 !important;
             font-size: 0.92rem !important;
             border-radius: 999px !important;
-            padding: 0.62rem 1.75rem !important;
-            min-width: 11rem;
-            box-shadow: {t["shadow_sm"]} !important;
+            padding: 0.65rem 1.25rem !important;
+            box-shadow: 0 10px 28px rgba(76, 29, 149, 0.18) !important;
         }}
-        .auth-footer-link.auth-create-centered button:hover {{
+        .auth-create-between button:hover {{
             border-color: {t["primary"]} !important;
             color: {t["primary"]} !important;
-            background: {t["surface"]} !important;
+            transform: translateY(-1px);
         }}
         .auth-left-panel {{
             color: #fff;
@@ -628,10 +669,10 @@ def render_auth_styles() -> None:
             color: {t["accent"]} !important;
             font-size: 0.82rem !important;
         }}
-        .auth-footer-link:not(.auth-create-centered) button {{
+        .auth-footer-link button {{
             color: {t["muted"]} !important;
         }}
-        .auth-footer-link:not(.auth-create-centered) button:hover {{
+        .auth-footer-link button:hover {{
             color: {t["primary"]} !important;
         }}
         .auth-back-link button {{
