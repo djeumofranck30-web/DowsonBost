@@ -1,4 +1,4 @@
-name: Scheduled job search
+name: DowsonBost scheduled search
 
 on:
   schedule:

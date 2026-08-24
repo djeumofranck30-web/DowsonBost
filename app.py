@@ -1,6 +1,6 @@
 """
-DowsonBost — Job Finder & CV Matcher
-Upload CV (PDF) → AI extraction → Job search → CV matching report
+DowsonBost
+Plateforme de recherche d'emploi et matching CV par IA.
 """
 
 from __future__ import annotations

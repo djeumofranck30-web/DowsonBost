@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 APP_NAME = "DowsonBost"
+PROJECT_SLUG = "DowsonBost"
 
 MIN_CV_TEXT_LENGTH = 50
 MAX_OCR_PAGES = 5
