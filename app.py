@@ -3787,7 +3787,12 @@ def _format_history_datetime(value: str | None) -> str:
     return str(value)[:16].replace("T", " ")
 
 
-def _render_application_entry(entry: dict[str, Any], user_id: int) -> None:
+def _render_application_entry(
+    entry: dict[str, Any],
+    user_id: int,
+    *,
+    key_prefix: str,
+) -> None:
     """Render one application with expandable offer and dossier details."""
     job = entry.get("job") or {}
     match = entry.get("match") or {}
@@ -3799,6 +3804,7 @@ def _render_application_entry(entry: dict[str, Any], user_id: int) -> None:
     status = application_status_label(entry.get("application_status", "new"))
     score = int(entry.get("score") or 0)
     result_id = int(entry["result_id"])
+    widget_key = f"{key_prefix}_{result_id}"
     analysis_date = _format_history_datetime(entry.get("analysis_created_at"))
 
     with st.container(border=True):
@@ -3820,9 +3826,14 @@ def _render_application_entry(entry: dict[str, Any], user_id: int) -> None:
                     t("history.application_open"),
                     job["url"],
                     use_container_width=True,
+                    key=f"{widget_key}_header_link",
                 )
 
-        with st.expander(t("applications.view_offer"), expanded=False):
+        with st.expander(
+            t("applications.view_offer"),
+            expanded=False,
+            key=f"{widget_key}_expander",
+        ):
             st.caption(
                 t(
                     "applications.analysis_context",
@@ -3855,13 +3866,14 @@ def _render_application_entry(entry: dict[str, Any], user_id: int) -> None:
                     t("job.letter_field"),
                     letter,
                     height=180,
-                    key=f"app_letter_{result_id}",
+                    key=f"{widget_key}_letter",
+                    disabled=True,
                 )
                 st.download_button(
                     t("job.download_letter"),
                     letter,
                     file_name=f"lettre_{result_id}.txt",
-                    key=f"app_dl_letter_{result_id}",
+                    key=f"{widget_key}_dl_letter",
                 )
             else:
                 st.caption(t("applications.no_letter"))
@@ -3872,13 +3884,14 @@ def _render_application_entry(entry: dict[str, Any], user_id: int) -> None:
                     t("job.adapted_field"),
                     adapted,
                     height=220,
-                    key=f"app_cv_{result_id}",
+                    key=f"{widget_key}_cv",
+                    disabled=True,
                 )
                 st.download_button(
                     t("job.download_adapted"),
                     adapted,
                     file_name=f"cv_adapte_{result_id}.txt",
-                    key=f"app_dl_cv_{result_id}",
+                    key=f"{widget_key}_dl_cv",
                 )
             else:
                 st.caption(t("applications.no_cv"))
@@ -3890,11 +3903,12 @@ def _render_application_entry(entry: dict[str, Any], user_id: int) -> None:
                         t("history.application_open"),
                         job["url"],
                         use_container_width=True,
+                        key=f"{widget_key}_body_link",
                     )
             with action_col2:
                 if st.button(
                     t("history.application_view_dashboard"),
-                    key=f"app_dash_{result_id}",
+                    key=f"{widget_key}_dash",
                     use_container_width=True,
                 ):
                     st.session_state.dashboard_analysis_select = int(entry["analysis_id"])
@@ -3902,12 +3916,17 @@ def _render_application_entry(entry: dict[str, Any], user_id: int) -> None:
                     st.rerun()
 
 
-def _render_applications_list(entries: list[dict[str, Any]], user_id: int) -> None:
+def _render_applications_list(
+    entries: list[dict[str, Any]],
+    user_id: int,
+    *,
+    key_prefix: str,
+) -> None:
     if not entries:
         st.info(t("applications.empty"))
         return
     for entry in entries:
-        _render_application_entry(entry, user_id)
+        _render_application_entry(entry, user_id, key_prefix=key_prefix)
 
 
 def render_applications_page(user: dict[str, Any]) -> None:
@@ -3926,11 +3945,11 @@ def render_applications_page(user: dict[str, Any]) -> None:
         ]
     )
     with tab_all:
-        _render_applications_list(applications, user_id)
+        _render_applications_list(applications, user_id, key_prefix="app_all")
     with tab_auto:
-        _render_applications_list(auto_apps, user_id)
+        _render_applications_list(auto_apps, user_id, key_prefix="app_auto")
     with tab_manual:
-        _render_applications_list(manual_apps, user_id)
+        _render_applications_list(manual_apps, user_id, key_prefix="app_manual")
 
 
 def render_history_page(user: dict[str, Any]) -> None:
