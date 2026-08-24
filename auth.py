@@ -72,6 +72,7 @@ _USER_COLUMNS = [
     ("target_job_title", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
     ("job_max_age_days", "INTEGER NOT NULL DEFAULT 7", "INTEGER NOT NULL DEFAULT 7"),
     ("preferred_language", "TEXT NOT NULL DEFAULT 'fr'", "TEXT NOT NULL DEFAULT 'fr'"),
+    ("phone", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
 ]
 
 
@@ -349,7 +350,7 @@ _USER_SELECT_SQL = """
     experience_level, target_sectors, country,
     admin_regions, selected_departments, selected_cities, all_cities,
     selected_countries, geo_by_country,
-    target_job_title, job_max_age_days, preferred_language
+    target_job_title, job_max_age_days, preferred_language, phone
 """
 
 
@@ -435,6 +436,7 @@ def _row_to_user(row: Any, include_created: bool = False) -> dict:
         "preferred_language": normalize_locale(
             row["preferred_language"] if "preferred_language" in row.keys() else "fr"
         ),
+        "phone": (row["phone"] or "").strip() if "phone" in row.keys() else "",
     }
     if include_created:
         user["created_at"] = row["created_at"]
@@ -483,6 +485,7 @@ def register_user(
     selected_countries: list[str] | None = None,
     geo_by_country: dict[str, dict[str, Any]] | None = None,
     preferred_language: str = "fr",
+    phone: str = "",
 ) -> tuple[bool, str]:
     """Register a new user. Returns (success, message)."""
     full_name = " ".join(full_name.strip().split())
@@ -534,6 +537,7 @@ def register_user(
     job_title = " ".join(target_job_title.strip().split())
     publication_days = normalize_job_max_age_days(job_max_age_days)
     language = normalize_locale(preferred_language)
+    phone_clean = " ".join(phone.strip().split())
 
     if len(full_name) < 2:
         return False, t("auth.name.min")
@@ -576,9 +580,9 @@ def register_user(
                         search_radius_km, geo_filter_mode, experience_level, target_sectors,
                         country, admin_regions, selected_departments, selected_cities, all_cities,
                         selected_countries, geo_by_country,
-                        target_job_title, job_max_age_days, preferred_language
+                        target_job_title, job_max_age_days, preferred_language, phone
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """
                 ),
                 (
@@ -607,6 +611,7 @@ def register_user(
                     job_title,
                     publication_days,
                     language,
+                    phone_clean,
                 ),
             )
     except Exception as exc:  # noqa: BLE001

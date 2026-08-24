@@ -578,6 +578,57 @@ def render_auth_styles() -> None:
         .auth-back-link button {{
             color: {t["primary"]} !important;
         }}
+        .reg-wizard-track {{
+            display: flex;
+            gap: 0.35rem;
+            margin: 0 0 1.35rem 0;
+            overflow-x: auto;
+            padding-bottom: 0.25rem;
+        }}
+        .reg-wizard-step {{
+            flex: 1;
+            min-width: 0;
+            text-align: center;
+            opacity: 0.45;
+        }}
+        .reg-wizard-step.active,
+        .reg-wizard-step.done {{
+            opacity: 1;
+        }}
+        .reg-wizard-dot {{
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.65rem;
+            height: 1.65rem;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            background: #e2e8f0;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }}
+        .reg-wizard-step.active .reg-wizard-dot {{
+            background: linear-gradient(135deg, {t["primary"]}, {t["primary_dark"]});
+            color: #fff;
+        }}
+        .reg-wizard-step.done .reg-wizard-dot {{
+            background: #c4b5fd;
+            color: {t["primary_deep"]};
+        }}
+        .reg-wizard-label {{
+            display: block;
+            font-size: 0.62rem;
+            font-weight: 600;
+            color: {t["muted"]};
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }}
+        .reg-wizard-nav {{
+            margin-top: 1.25rem;
+        }}
         {_shared_components_css(t)}
         @media (max-width: 768px) {{
             .auth-card-row [data-testid="column"]:first-child > div {{
@@ -587,6 +638,13 @@ def render_auth_styles() -> None:
             .auth-card-row [data-testid="column"]:last-child > div {{
                 border-radius: 0 0 {t["radius_xl"]} {t["radius_xl"]};
                 min-height: auto;
+            }}
+            .reg-wizard-track {{
+                flex-wrap: wrap;
+                gap: 0.35rem;
+            }}
+            .reg-wizard-label {{
+                display: none;
             }}
         }}
         </style>
