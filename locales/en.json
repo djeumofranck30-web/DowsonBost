@@ -44,7 +44,7 @@
   "auth.greeting.evening": "Good evening !",
   "auth.greeting.evening_sub": "Good evening",
   "auth.greeting.night_sub": "Good night",
-  "auth.left.title": "Log in to access\nthe complete experience {app_name}",
+  "auth.left.title": "Log in to access the complete experience {app_name}",
   "auth.left.tip": "Tip: complete your profile for more precise matching of offers.",
   "auth.login.title": "Log in to your account",
   "auth.login.success": "Connection successful.",

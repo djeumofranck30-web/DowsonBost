@@ -467,6 +467,7 @@ def render_auth_styles() -> None:
     split_left = f'{split} > div[data-testid="column"]:first-child'
     split_right = f'{split} > div[data-testid="column"]:last-child'
     create_row = '#auth-create-between-marker + div[data-testid="stHorizontalBlock"]'
+    forgot_row = '.auth-forgot-row-marker + div[data-testid="stHorizontalBlock"]'
     st.markdown(
         f"""
         <style>
@@ -490,25 +491,30 @@ def render_auth_styles() -> None:
             display: none;
         }}
         {split} {{
-            gap: 0 !important;
+            gap: 1.25rem !important;
             position: relative;
-            border-radius: {t["radius_xl"]};
-            overflow: hidden;
-            box-shadow: {t["shadow_lg"]};
+            align-items: stretch !important;
+            border-radius: 0;
+            overflow: visible;
+            box-shadow: none;
             padding-bottom: 3.25rem;
+            background: transparent !important;
         }}
         {split} > div[data-testid="column"] {{
             padding: 0 !important;
         }}
         {split_left} > div {{
-            background: linear-gradient(160deg, {t["primary"]} 0%, {t["primary_dark"]} 55%, #5b21b6 100%);
-            border-radius: {t["radius_xl"]} 0 0 {t["radius_xl"]};
+            background: transparent !important;
+            border-radius: 0;
             min-height: 580px;
             height: 100%;
+            padding: 0.75rem 0 !important;
         }}
         {split_right} > div {{
             background: {t["surface"]};
-            border-radius: 0 {t["radius_xl"]} {t["radius_xl"]} 0;
+            border-radius: 20px;
+            box-shadow: 0 22px 50px rgba(76, 29, 149, 0.12), 0 8px 20px rgba(15, 23, 42, 0.06);
+            border: 1px solid rgba(124, 58, 237, 0.08);
             min-height: 580px;
             height: 100%;
             padding: 2.25rem 2.5rem 1.75rem !important;
@@ -547,8 +553,9 @@ def render_auth_styles() -> None:
             margin: 0 0 0.35rem 0;
             max-width: 14rem;
             border-radius: 999px;
-            background: rgba(124, 58, 237, 0.1);
-            border: 1px solid rgba(124, 58, 237, 0.28);
+            background: {t["surface"]};
+            border: 1px solid rgba(124, 58, 237, 0.15);
+            box-shadow: 0 4px 14px rgba(76, 29, 149, 0.08);
             color: {t["primary_dark"]};
             font-size: 0.76rem;
             font-weight: 700;
@@ -582,6 +589,29 @@ def render_auth_styles() -> None:
             flex: 1;
             min-height: 100%;
         }}
+        .auth-forgot-row-marker {{
+            display: none;
+        }}
+        {forgot_row} {{
+            margin-top: 0.65rem;
+        }}
+        {forgot_row} .stButton > button {{
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: {t["accent"]} !important;
+            font-size: 0.84rem !important;
+            font-weight: 600 !important;
+            padding: 0 !important;
+            min-height: 0 !important;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            width: 100%;
+        }}
+        {forgot_row} .stButton > button:hover {{
+            color: {t["primary"]} !important;
+            transform: none !important;
+        }}
         .auth-login-forgot-centered {{
             display: flex;
             justify-content: center;
@@ -607,45 +637,55 @@ def render_auth_styles() -> None:
             transform: none !important;
         }}
         .auth-left-panel {{
-            color: #fff;
+            color: {t["primary_deep"]};
             text-align: center;
-            padding: 2.5rem 2rem;
+            padding: 1.5rem 1.25rem 2rem;
             height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
         }}
+        .auth-illustration-wrap {{
+            background: linear-gradient(165deg, #ede9fe 0%, #ddd6fe 45%, #c4b5fd 100%);
+            border-radius: 20px;
+            padding: 1.35rem 1.1rem 1.5rem;
+            margin-bottom: 1.35rem;
+            width: min(100%, 300px);
+            box-shadow: 0 16px 36px rgba(91, 33, 182, 0.14);
+        }}
         .auth-illustration {{
             width: min(100%, 260px);
-            margin-bottom: 1.5rem;
-            border-radius: 16px;
-            filter: drop-shadow(0 12px 24px rgba(0,0,0,0.15));
+            margin: 0 auto;
+            display: block;
+            border-radius: 12px;
         }}
         .auth-left-title {{
-            font-size: 1.1rem;
-            line-height: 1.55;
-            font-weight: 600;
+            font-size: 1.05rem;
+            line-height: 1.5;
+            font-weight: 700;
             margin: 0 0 0.65rem;
-            color: rgba(255,255,255,0.98);
+            color: {t["primary_deep"]};
+            max-width: 18rem;
         }}
         .auth-left-tip {{
             font-size: 0.84rem;
             line-height: 1.5;
-            color: rgba(255,255,255,0.75);
+            color: {t["muted"]};
+            max-width: 16rem;
         }}
         .auth-greeting-main {{
+            font-size: 0.92rem;
+            font-weight: 500;
+            color: {t["muted"]};
+            margin: 0 0 0.15rem;
+        }}
+        .auth-greeting-sub {{
             font-size: 2rem;
             font-weight: 800;
             color: {t["primary_deep"]};
-            margin: 0 0 0.1rem;
-            letter-spacing: -0.03em;
-        }}
-        .auth-greeting-sub {{
-            font-size: 1.45rem;
-            font-weight: 700;
-            color: {t["primary_deep"]};
             margin: 0 0 1.25rem;
+            letter-spacing: -0.03em;
         }}
         .auth-form-title {{
             font-size: 0.92rem;
@@ -653,8 +693,8 @@ def render_auth_styles() -> None:
             margin: 0 0 1.25rem;
         }}
         {split_right} div[data-testid="stTextInput"] input {{
-            background: {t["surface_soft"]} !important;
-            border: 1.5px solid rgba(124, 58, 237, 0.12) !important;
+            background: {t["surface"]} !important;
+            border: 1.5px solid rgba(124, 58, 237, 0.18) !important;
             border-radius: 12px !important;
             padding: 0.65rem 0.85rem !important;
             color: {t["primary_deep"]} !important;
@@ -757,13 +797,18 @@ def render_auth_styles() -> None:
         }}
         {_shared_components_css(t)}
         @media (max-width: 768px) {{
+            {split} {{
+                gap: 1rem !important;
+            }}
             {split_left} > div {{
-                border-radius: {t["radius_xl"]} {t["radius_xl"]} 0 0;
-                min-height: 260px;
+                min-height: auto;
             }}
             {split_right} > div {{
-                border-radius: 0 0 {t["radius_xl"]} {t["radius_xl"]};
+                border-radius: 20px;
                 min-height: auto;
+            }}
+            .auth-illustration-wrap {{
+                width: min(100%, 260px);
             }}
             .reg-wizard-track {{
                 flex-wrap: wrap;

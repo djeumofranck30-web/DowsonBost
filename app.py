@@ -5143,9 +5143,11 @@ def _auth_left_panel_html() -> str:
     """Decorative left column for the auth card."""
     return f"""
 <div class="auth-left-panel">
-  {_auth_illustration_svg()}
+  <div class="auth-illustration-wrap">
+    {_auth_illustration_svg()}
+  </div>
   <p class="auth-left-title">
-    {html.escape(t("auth.left.title", app_name=APP_NAME)).replace(chr(10), "<br/>")}
+    {html.escape(t("auth.left.title", app_name=APP_NAME))}
   </p>
   <p class="auth-left-tip">
     {html.escape(t("auth.left.tip"))}
@@ -5216,14 +5218,15 @@ def _render_auth_login_form() -> None:
         else:
             st.error(message)
 
-    st.markdown('<div class="auth-login-forgot-centered">', unsafe_allow_html=True)
-    if st.button(
-        t("auth.login.forgot"),
-        key="auth_go_reset",
-    ):
-        st.session_state.auth_view = "reset"
-        st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown('<div class="auth-forgot-row-marker"></div>', unsafe_allow_html=True)
+    _forgot_spacer, _forgot_col, _forgot_spacer2 = st.columns([1, 1.2, 1])
+    with _forgot_col:
+        if st.button(
+            t("auth.login.forgot"),
+            key="auth_go_reset",
+        ):
+            st.session_state.auth_view = "reset"
+            st.rerun()
 
 
 def _render_auth_reset_form() -> None:
@@ -5631,7 +5634,7 @@ def render_auth_page() -> None:
         if view != "register":
             _render_auth_language_bar()
         st.markdown('<div id="auth-split-screen"></div>', unsafe_allow_html=True)
-        panel_left, panel_right = st.columns(2, gap="small")
+        panel_left, panel_right = st.columns(2, gap="medium")
 
         with panel_left:
             st.markdown(_auth_left_panel_html(), unsafe_allow_html=True)
