@@ -5747,18 +5747,26 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
     profile_phone = profile.get("phone", "") or ""
     initials = "".join(word[0].upper() for word in full_name.split()[:2]) or "?"
 
+    phone_line = (
+        f"<p>{html.escape(profile_phone)}</p>" if profile_phone else ""
+    )
+    member_label = html.escape(
+        t(
+            "profile.member_since",
+            date=format_member_since(member_since) if member_since else "—",
+        )
+    )
     st.markdown(
-        f"""
-        <div class="profile-header-card">
-            <div class="profile-avatar">{html.escape(initials)}</div>
-            <div class="profile-header-text">
-                <h2>{html.escape(full_name)}</h2>
-                <p>{html.escape(profile.get("email", "—"))}</p>
-                {f'<p>{html.escape(profile_phone)}</p>' if profile_phone else ''}
-                <span class="profile-badge">{html.escape(t("profile.member_since", date=format_member_since(member_since) if member_since else "—"))}</span>
-            </div>
-        </div>
-        """,
+        (
+            '<div class="profile-header-card">'
+            f'<div class="profile-avatar">{html.escape(initials)}</div>'
+            '<div class="profile-header-text">'
+            f"<h2>{html.escape(full_name)}</h2>"
+            f"<p>{html.escape(profile.get('email', '—'))}</p>"
+            f"{phone_line}"
+            f'<span class="profile-badge">{member_label}</span>'
+            "</div></div>"
+        ),
         unsafe_allow_html=True,
     )
 
