@@ -254,3 +254,28 @@ def send_password_reset_email(user_email: str, reset_url: str, *, locale: str | 
     </body></html>
     """
     return send_alert_email(user_email, subject, html, locale=lang)
+
+
+def send_welcome_email(
+    user_email: str,
+    user_name: str,
+    login_url: str,
+    *,
+    locale: str | None = None,
+) -> tuple[bool, str]:
+    """Send account creation confirmation e-mail."""
+    lang = locale or get_locale()
+    if not email_configured():
+        return False, t("email.service_not_configured", locale=lang)
+    subject = t("email.welcome_subject", locale=lang)
+    greeting = t("email.greeting", locale=lang, name=user_name)
+    html = f"""
+    <html><body style="font-family:sans-serif;line-height:1.5">
+      <p>{greeting}</p>
+      <p>{t("email.welcome_intro", locale=lang)}</p>
+      <p>{t("email.welcome_body", locale=lang)}</p>
+      <p><a href="{login_url}">{t("email.welcome_button", locale=lang)}</a></p>
+      <p style="color:#64748b;font-size:12px">{t("email.welcome_footer", locale=lang)}</p>
+    </body></html>
+    """
+    return send_alert_email(user_email, subject, html, locale=lang)

@@ -782,7 +782,14 @@ def register_user(
             return False, t("auth.register.email_exists")
         raise
 
-    return True, t("auth.register.success")
+    from config import get_app_base_url
+    from email_service import send_welcome_email
+
+    login_url = f"{get_app_base_url()}/"
+    sent, _ = send_welcome_email(email, full_name, login_url, locale=language)
+    if sent:
+        return True, t("auth.register.success_email_sent", locale=language)
+    return True, t("auth.register.success", locale=language)
 
 
 def authenticate_user(email: str, password: str) -> tuple[bool, str, dict | None]:

@@ -86,6 +86,7 @@
   "auth.register.countries_required": "Sélectionnez au moins un pays.",
   "auth.register.job_required": "Indiquez le poste que vous visez.",
   "auth.register.success": "Compte créé avec succès. Vous pouvez vous connecter.",
+  "auth.register.success_email_sent": "Compte créé avec succès. Un e-mail de confirmation vous a été envoyé.",
   "auth.register.email_exists": "Un compte existe déjà avec cet e-mail.",
   "auth.footer.create": "Créer un compte",
   "auth.footer.back_login": "← Retour à la connexion",
@@ -537,5 +538,10 @@
   "email.reset_subject": "[DowsonBost] Réinitialisation de votre mot de passe",
   "email.reset_intro": "Vous avez demandé à réinitialiser votre mot de passe DowsonBost.",
   "email.reset_button": "Réinitialiser mon mot de passe",
-  "email.reset_footer": "Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail."
+  "email.reset_footer": "Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.",
+  "email.welcome_subject": "[DowsonBost] Bienvenue — votre compte est créé",
+  "email.welcome_intro": "Votre compte DowsonBost a bien été créé avec succès.",
+  "email.welcome_body": "Vous pouvez dès maintenant vous connecter pour lancer vos analyses de CV et trouver les offres qui vous correspondent.",
+  "email.welcome_button": "Accéder à DowsonBost",
+  "email.welcome_footer": "Si vous n'êtes pas à l'origine de cette inscription, vous pouvez ignorer cet e-mail."
 }
