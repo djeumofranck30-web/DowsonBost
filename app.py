@@ -229,6 +229,7 @@ GROQ_SKIP_MODEL_SUBSTRINGS = (
     "canopylabs",
 )
 from auth import (
+    EMAIL_PATTERN,
     authenticate_user,
     change_password,
     delete_user_account,
@@ -5613,6 +5614,64 @@ def render_auth_styles() -> None:
                 border-radius: 0 0 28px 28px;
                 min-height: auto;
             }
+            .reg-wizard-track {
+                flex-wrap: wrap;
+                gap: 0.35rem;
+            }
+            .reg-wizard-label {
+                display: none;
+            }
+        }
+        .reg-wizard-track {
+            display: flex;
+            gap: 0.35rem;
+            margin: 0 0 1.35rem 0;
+            overflow-x: auto;
+            padding-bottom: 0.25rem;
+        }
+        .reg-wizard-step {
+            flex: 1;
+            min-width: 0;
+            text-align: center;
+            opacity: 0.45;
+        }
+        .reg-wizard-step.active,
+        .reg-wizard-step.done {
+            opacity: 1;
+        }
+        .reg-wizard-dot {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.65rem;
+            height: 1.65rem;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            background: #e2e8f0;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+        .reg-wizard-step.active .reg-wizard-dot {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: #fff;
+        }
+        .reg-wizard-step.done .reg-wizard-dot {
+            background: #c4b5fd;
+            color: #312e81;
+        }
+        .reg-wizard-label {
+            display: block;
+            font-size: 0.62rem;
+            font-weight: 600;
+            color: #64748b;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .reg-wizard-nav {
+            margin-top: 1.25rem;
         }
         </style>
         """,
@@ -5696,128 +5755,356 @@ def _render_auth_reset_form() -> None:
                     st.error(message)
 
 
-def _render_auth_register_form() -> None:
-    """Registration form."""
-    render_language_selector(key_prefix="auth_locale_register")
-    st.markdown(f'<p class="auth-greeting-main">{html.escape(t("auth.register.welcome"))}</p>', unsafe_allow_html=True)
-    st.markdown(
-        f'<p class="auth-greeting-sub">{html.escape(t("auth.register.subtitle"))}</p>',
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        f'<p class="auth-form-title">{html.escape(t("auth.register.step1"))}</p>',
-        unsafe_allow_html=True,
-    )
-    reg_target_job = st.text_input(
-        t("auth.register.job_title"),
-        placeholder=t("auth.register.job_title_ph"),
-        help=t("auth.register.job_title_help"),
-        key="register_target_job_title",
-    )
-    st.markdown(
-        f'<p class="auth-form-title">{html.escape(t("auth.register.step2"))}</p>',
-        unsafe_allow_html=True,
-    )
-    st.markdown(f"**{html.escape(t('auth.register.location'))}**")
-    reg_selected_countries = render_countries_multiselect({}, key_prefix="register")
-    reg_admin_regions: list[str] = []
-    reg_departments: list[dict[str, str]] = []
-    reg_cities: list[str] = []
-    reg_all_cities = False
-    reg_geo_by_country: dict[str, dict[str, Any]] = {}
+REGISTER_WIZARD_STEPS = (
+    "auth.register.wizard.language",
+    "auth.register.wizard.countries",
+    "auth.register.wizard.identity",
+    "auth.register.wizard.job",
+    "auth.register.wizard.location",
+    "auth.register.wizard.preferences",
+)
 
-    if "France" in reg_selected_countries:
+
+def _reset_register_wizard() -> None:
+    st.session_state.register_wizard_step = 0
+    st.session_state.pop("register_draft", None)
+    st.session_state.pop("register_geo_snapshot", None)
+
+
+def _render_register_wizard_progress(step: int) -> None:
+    parts = []
+    for index, label_key in enumerate(REGISTER_WIZARD_STEPS):
+        state = "done" if index < step else ("active" if index == step else "")
+        parts.append(
+            f'<div class="reg-wizard-step {state}">'
+            f'<span class="reg-wizard-dot">{index + 1}</span>'
+            f'<span class="reg-wizard-label">{html.escape(t(label_key))}</span>'
+            f"</div>"
+        )
+    st.markdown(
+        f'<div class="reg-wizard-track">{"".join(parts)}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _validate_register_wizard_step(step: int) -> tuple[bool, str]:
+    if step == 1:
+        countries = st.session_state.get("register_selected_countries") or []
+        if not countries:
+            return False, t("auth.register.countries_required")
+    elif step == 2:
+        first = (st.session_state.get("register_wiz_first_name") or "").strip()
+        last = (st.session_state.get("register_wiz_last_name") or "").strip()
+        email = (st.session_state.get("register_wiz_email") or "").strip().lower()
+        password = st.session_state.get("register_wiz_password") or ""
+        password2 = st.session_state.get("register_wiz_password2") or ""
+        if len(first) < 2:
+            return False, t("auth.register.first_name_required")
+        if len(last) < 2:
+            return False, t("auth.register.last_name_required")
+        if not EMAIL_PATTERN.match(email):
+            return False, t("auth.email.invalid")
+        if password != password2:
+            return False, t("auth.register.password_mismatch")
+        if len(password.strip()) < 8:
+            return False, t("placeholder.password_min")
+    elif step == 3:
+        job = (st.session_state.get("register_wiz_target_job") or "").strip()
+        if len(job) < 2:
+            return False, t("auth.register.job_required")
+    return True, ""
+
+
+def _persist_register_wizard_step(step: int, draft: dict[str, Any]) -> None:
+    if step == 0:
+        locale = st.session_state.get("register_wiz_locale") or get_locale()
+        draft["locale"] = locale
+        set_locale(locale)
+    elif step == 1:
+        draft["countries"] = list(
+            st.session_state.get("register_selected_countries") or ["France"]
+        )
+    elif step == 2:
+        draft["first_name"] = (st.session_state.get("register_wiz_first_name") or "").strip()
+        draft["last_name"] = (st.session_state.get("register_wiz_last_name") or "").strip()
+        draft["email"] = (st.session_state.get("register_wiz_email") or "").strip().lower()
+        draft["phone"] = (st.session_state.get("register_wiz_phone") or "").strip()
+        draft["password"] = st.session_state.get("register_wiz_password") or ""
+    elif step == 3:
+        draft["target_job"] = (st.session_state.get("register_wiz_target_job") or "").strip()
+
+
+def _render_register_location_step(countries: list[str]) -> dict[str, Any]:
+    admin_regions: list[str] = []
+    departments: list[dict[str, str]] = []
+    cities: list[str] = []
+    all_cities = False
+    geo_by_country: dict[str, dict[str, Any]] = {}
+
+    if "France" in countries:
         with st.expander("France — régions, départements & villes", expanded=True):
-            reg_admin_regions, reg_departments = render_region_department_selectors(
+            admin_regions, departments = render_region_department_selectors(
                 {},
                 key_prefix="register",
             )
-            reg_cities, reg_all_cities = render_city_selector(
+            cities, all_cities = render_city_selector(
                 {},
                 key_prefix="register",
-                selected_departments=reg_departments,
+                selected_departments=departments,
                 country="France",
             )
 
-    for country in reg_selected_countries:
+    for country in countries:
         if country == "France":
             continue
         with st.expander(
             f"{country} — {country_geo_schema(country).get('level1_label', 'zones') if country_has_subdivisions(country) else 'villes'}",
-            expanded=len(reg_selected_countries) <= 2,
+            expanded=len(countries) <= 2,
         ):
-            reg_geo_by_country[country] = render_international_geo_selectors(
+            geo_by_country[country] = render_international_geo_selectors(
                 country,
                 {},
                 key_prefix="register",
             )
 
-    with st.form("register_form", clear_on_submit=False):
-        reg_name = st.text_input(t("common.full_name"), placeholder=t("placeholder.name"))
-        reg_email = st.text_input(t("common.email"), placeholder=t("placeholder.email"))
-        reg_password = st.text_input(
-            t("common.password"), type="password", placeholder=t("placeholder.password_min")
+    return {
+        "admin_regions": admin_regions,
+        "departments": departments,
+        "cities": cities,
+        "all_cities": all_cities,
+        "geo_by_country": geo_by_country,
+    }
+
+
+def _submit_register_wizard(draft: dict[str, Any]) -> None:
+    geo = st.session_state.get("register_geo_snapshot") or {}
+    countries = draft.get("countries") or ["France"]
+    geo_mode = st.session_state.get("register_wiz_geo_mode", GEO_FILTER_MODES[1])
+    full_name = f"{draft.get('first_name', '')} {draft.get('last_name', '')}".strip()
+
+    ok, message = register_user(
+        full_name,
+        draft.get("email", ""),
+        draft.get("password", ""),
+        admin_regions=geo.get("admin_regions", []),
+        selected_departments=geo.get("departments", []),
+        selected_cities=geo.get("cities", []),
+        all_cities=bool(geo.get("all_cities")),
+        country=countries[0],
+        contract_type=st.session_state.get("register_wiz_contract", CONTRACT_TYPES[0]),
+        geo_filter_mode=geo_mode,
+        search_radius_km=int(st.session_state.get("register_wiz_radius", 20)),
+        experience_level=st.session_state.get("register_wiz_experience", EXPERIENCE_LEVELS[1]),
+        target_sectors=st.session_state.get("register_target_sectors", ["Informatique"]),
+        target_job_title=draft.get("target_job", ""),
+        job_max_age_days=st.session_state.get("register_wiz_publication_age", 7),
+        selected_countries=countries,
+        geo_by_country=geo.get("geo_by_country", {}),
+        preferred_language=draft.get("locale", get_locale()),
+        phone=draft.get("phone", ""),
+    )
+    if ok:
+        st.success(message)
+        st.session_state.auth_view = "login"
+        _reset_register_wizard()
+    else:
+        st.error(message)
+
+
+def _render_auth_register_form() -> None:
+    """Multi-step registration wizard."""
+    step = int(st.session_state.get("register_wizard_step", 0))
+    total = len(REGISTER_WIZARD_STEPS)
+    draft = st.session_state.setdefault("register_draft", {})
+    pending_geo: dict[str, Any] | None = None
+
+    st.markdown(
+        f'<p class="auth-greeting-main">{html.escape(t("auth.register.welcome"))}</p>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f'<p class="auth-greeting-sub">{html.escape(t("auth.register.subtitle"))}</p>',
+        unsafe_allow_html=True,
+    )
+    _render_register_wizard_progress(step)
+
+    if step == 0:
+        st.markdown(
+            f'<p class="auth-form-title">{html.escape(t("auth.register.wizard.language"))}</p>',
+            unsafe_allow_html=True,
         )
-        reg_password2 = st.text_input(t("auth.register.password_confirm"), type="password")
-        st.markdown(f"**{html.escape(t('auth.register.prefs'))}**")
-        reg_contract = st.selectbox(
-            t("auth.register.contract"), CONTRACT_TYPES, index=0
+        current = draft.get("locale") or get_locale()
+        try:
+            locale_index = SUPPORTED_LOCALES.index(current)
+        except ValueError:
+            locale_index = 0
+        st.selectbox(
+            t("language.label"),
+            SUPPORTED_LOCALES,
+            index=locale_index,
+            format_func=lambda code: LOCALE_LABELS.get(code, code),
+            key="register_wiz_locale",
         )
-        reg_geo = st.selectbox(
-            t("auth.register.geo_mode"),
-            GEO_FILTER_MODES,
-            index=1,
-            format_func=lambda x: geo_mode_label(x, register=True),
+    elif step == 1:
+        st.markdown(
+            f'<p class="auth-form-title">{html.escape(t("auth.register.wizard.countries"))}</p>',
+            unsafe_allow_html=True,
         )
-        reg_radius = st.slider(t("auth.register.radius"), 5, 100, 20, disabled=(reg_geo != "rayon"))
-        reg_experience = st.selectbox(
-            t("auth.register.experience"),
-            EXPERIENCE_LEVELS,
-            index=1,
-            format_func=experience_label,
+        render_countries_multiselect({}, key_prefix="register")
+    elif step == 2:
+        st.markdown(
+            f'<p class="auth-form-title">{html.escape(t("auth.register.wizard.identity"))}</p>',
+            unsafe_allow_html=True,
         )
-        reg_sectors = st.multiselect(
+        st.caption(t("auth.register.wizard.identity_hint"))
+        name_col1, name_col2 = st.columns(2)
+        with name_col1:
+            st.text_input(
+                t("common.first_name"),
+                key="register_wiz_first_name",
+                placeholder="Jean",
+            )
+        with name_col2:
+            st.text_input(
+                t("common.last_name"),
+                key="register_wiz_last_name",
+                placeholder="Dupont",
+            )
+        contact_col1, contact_col2 = st.columns(2)
+        with contact_col1:
+            st.text_input(
+                t("common.email"),
+                key="register_wiz_email",
+                placeholder=t("placeholder.email"),
+            )
+        with contact_col2:
+            st.text_input(
+                t("common.phone"),
+                key="register_wiz_phone",
+                placeholder="+33 6 12 34 56 78",
+            )
+        pass_col1, pass_col2 = st.columns(2)
+        with pass_col1:
+            st.text_input(
+                t("common.password"),
+                type="password",
+                key="register_wiz_password",
+                placeholder=t("placeholder.password_min"),
+            )
+        with pass_col2:
+            st.text_input(
+                t("auth.register.password_confirm"),
+                type="password",
+                key="register_wiz_password2",
+            )
+    elif step == 3:
+        st.markdown(
+            f'<p class="auth-form-title">{html.escape(t("auth.register.step1"))}</p>',
+            unsafe_allow_html=True,
+        )
+        st.text_input(
+            t("auth.register.job_title"),
+            key="register_wiz_target_job",
+            placeholder=t("auth.register.job_title_ph"),
+            help=t("auth.register.job_title_help"),
+        )
+    elif step == 4:
+        st.markdown(
+            f'<p class="auth-form-title">{html.escape(t("auth.register.step2"))}</p>',
+            unsafe_allow_html=True,
+        )
+        countries = draft.get("countries") or st.session_state.get("register_selected_countries") or ["France"]
+        st.markdown(
+            f"**{html.escape(t('auth.register.location'))}** — {html.escape(', '.join(countries))}"
+        )
+        pending_geo = _render_register_location_step(countries)
+    elif step == 5:
+        st.markdown(
+            f'<p class="auth-form-title">{html.escape(t("auth.register.prefs"))}</p>',
+            unsafe_allow_html=True,
+        )
+        pref_col1, pref_col2 = st.columns(2)
+        with pref_col1:
+            st.selectbox(
+                t("auth.register.contract"),
+                CONTRACT_TYPES,
+                index=0,
+                key="register_wiz_contract",
+            )
+            st.selectbox(
+                t("auth.register.experience"),
+                EXPERIENCE_LEVELS,
+                index=1,
+                format_func=experience_label,
+                key="register_wiz_experience",
+            )
+        with pref_col2:
+            geo_mode = st.selectbox(
+                t("auth.register.geo_mode"),
+                GEO_FILTER_MODES,
+                index=1,
+                format_func=lambda value: geo_mode_label(value, register=True),
+                key="register_wiz_geo_mode",
+            )
+            st.slider(
+                t("auth.register.radius"),
+                5,
+                100,
+                20,
+                disabled=(geo_mode != "rayon"),
+                key="register_wiz_radius",
+            )
+        st.multiselect(
             t("auth.register.sectors"),
             SECTOR_OPTIONS,
             default=["Informatique"],
             key="register_target_sectors",
         )
-        reg_publication_age = st.radio(
+        st.radio(
             t("auth.register.publication"),
             JOB_MAX_AGE_DAYS_OPTIONS,
             index=JOB_MAX_AGE_DAYS_OPTIONS.index(7),
             format_func=job_age_label,
             help=t("auth.register.publication_help"),
+            key="register_wiz_publication_age",
+            horizontal=True,
         )
-        if st.form_submit_button(t("auth.register.submit"), use_container_width=True):
-            if reg_password != reg_password2:
-                st.error(t("auth.register.password_mismatch"))
-            else:
-                ok, message = register_user(
-                    reg_name,
-                    reg_email,
-                    reg_password,
-                    admin_regions=reg_admin_regions,
-                    selected_departments=reg_departments,
-                    selected_cities=reg_cities,
-                    all_cities=reg_all_cities,
-                    country=reg_selected_countries[0],
-                    contract_type=reg_contract,
-                    geo_filter_mode=reg_geo,
-                    search_radius_km=reg_radius,
-                    experience_level=reg_experience,
-                    target_sectors=reg_sectors,
-                    target_job_title=reg_target_job,
-                    job_max_age_days=reg_publication_age,
-                    selected_countries=reg_selected_countries,
-                    geo_by_country=reg_geo_by_country,
-                    preferred_language=get_locale(),
-                )
-                if ok:
-                    st.success(message)
-                    st.session_state.auth_view = "login"
+
+    st.markdown('<div class="reg-wizard-nav">', unsafe_allow_html=True)
+    nav_back, nav_next = st.columns(2)
+    with nav_back:
+        if step > 0 and st.button(
+            t("auth.register.back"),
+            use_container_width=True,
+            key="register_wizard_back",
+        ):
+            st.session_state.register_wizard_step = step - 1
+            st.rerun()
+    with nav_next:
+        if step < total - 1:
+            if st.button(
+                t("auth.register.next"),
+                type="primary",
+                use_container_width=True,
+                key="register_wizard_next",
+            ):
+                valid, error = _validate_register_wizard_step(step)
+                if not valid:
+                    st.error(error)
                 else:
-                    st.error(message)
+                    _persist_register_wizard_step(step, draft)
+                    if step == 4 and pending_geo is not None:
+                        st.session_state.register_geo_snapshot = pending_geo
+                    st.session_state.register_wizard_step = step + 1
+                    st.rerun()
+        elif st.button(
+            t("auth.register.submit"),
+            type="primary",
+            use_container_width=True,
+            key="register_wizard_submit",
+        ):
+            _submit_register_wizard(draft)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def render_auth_page() -> None:
@@ -5845,11 +6132,13 @@ def render_auth_page() -> None:
             if view == "login":
                 if st.button(t("auth.footer.create"), key="auth_go_register", use_container_width=True):
                     st.session_state.auth_view = "register"
+                    _reset_register_wizard()
                     st.rerun()
             else:
                 st.markdown('<div class="auth-back-link">', unsafe_allow_html=True)
                 if st.button(t("auth.footer.back_login"), key="auth_go_login"):
                     st.session_state.auth_view = "login"
+                    _reset_register_wizard()
                     st.rerun()
                 st.markdown("</div>", unsafe_allow_html=True)
             st.markdown("</div>", unsafe_allow_html=True)
