@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html
 import re
 from typing import Any, Callable, TypedDict
 
@@ -9,6 +10,11 @@ from document_generation import generate_adapted_cv, generate_cover_letter
 from email_service import email_configured, send_application_email
 
 _EMAIL_RE = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
+_MAILTO_RE = re.compile(r"mailto:([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})", re.I)
+_OBFUSCATED_EMAIL_RE = re.compile(
+    r"([a-zA-Z0-9._%+-]+)\s*(?:\[at\]|\(at\)|@|\s+at\s+)\s*([a-zA-Z0-9.-]+)\s*(?:\[dot\]|\(dot\)|\.|\s+dot\s+)\s*([a-zA-Z]{2,})",
+    re.I,
+)
 _IGNORE_LOCAL_PARTS = ("noreply", "no-reply", "donotreply", "mailer-daemon", "postmaster")
 _PRIORITY_LOCAL_HINTS = (
     "recrutement",
@@ -22,6 +28,7 @@ _PRIORITY_LOCAL_HINTS = (
     "candidature",
     "candidatures",
     "talent",
+    "contact",
 )
 
 
@@ -34,23 +41,46 @@ class ApplicationResult(TypedDict):
     apply_email: str | None
     job_url: str
     profile_text: str
+    user_notified: bool
 
 
-def extract_apply_email(job: dict[str, Any]) -> str | None:
-    """Find a recruiter e-mail in the job description or URL."""
-    text = f"{job.get('description', '')}\n{job.get('url', '')}"
+def _normalize_job_text(job: dict[str, Any]) -> str:
+    chunks = [
+        str(job.get("description") or ""),
+        str(job.get("url") or ""),
+        str(job.get("apply_url") or ""),
+        str(job.get("company") or ""),
+    ]
+    return html.unescape("\n".join(chunks))
+
+
+def _collect_email_candidates(text: str) -> list[str]:
     candidates: list[str] = []
     seen: set[str] = set()
-    for match in _EMAIL_RE.finditer(text):
-        email = match.group(0).lower().strip(".")
+
+    def _add(raw: str) -> None:
+        email = raw.lower().strip().strip(".;,)")
         local = email.split("@", 1)[0]
-        if email in seen:
-            continue
+        if not email or "@" not in email or email in seen:
+            return
         if any(local.startswith(prefix) for prefix in _IGNORE_LOCAL_PARTS):
-            continue
+            return
         seen.add(email)
         candidates.append(email)
 
+    for match in _MAILTO_RE.finditer(text):
+        _add(match.group(1))
+    for match in _OBFUSCATED_EMAIL_RE.finditer(text):
+        _add(f"{match.group(1)}@{match.group(2)}.{match.group(3)}")
+    for match in _EMAIL_RE.finditer(text):
+        _add(match.group(0))
+
+    return candidates
+
+
+def extract_apply_email(job: dict[str, Any]) -> str | None:
+    """Find a recruiter e-mail in the job description, apply URL, or listing URL."""
+    candidates = _collect_email_candidates(_normalize_job_text(job))
     if not candidates:
         return None
 
@@ -138,6 +168,82 @@ def _application_subject(job: dict[str, Any], profile: dict[str, str]) -> str:
     return f"Candidature — {title} — {name}"
 
 
+def _send_user_application_copy(
+    profile: dict[str, str],
+    job: dict[str, Any],
+    letter: str,
+    adapted: str,
+    profile_text: str,
+    job_url: str,
+    *,
+    locale: str,
+) -> bool:
+    """E-mail the prepared dossier to the candidate when no recruiter address exists."""
+    from i18n import t
+
+    user_email = profile.get("email") or ""
+    if not user_email or not email_configured():
+        return False
+    title = str(job.get("title") or "Offre").strip()
+    body = (
+        f"{t('job.apply_user_copy_intro', locale=locale, title=title)}\n\n"
+        f"{t('job.apply_user_copy_next', locale=locale)}\n"
+        f"{job_url or '—'}\n\n"
+        f"{profile_text}\n\n"
+        f"---\n{letter}\n"
+    )
+    ok, _detail = send_application_email(
+        to_email=user_email,
+        subject=t("job.apply_user_copy_subject", locale=locale, title=title),
+        body_text=body,
+        attachments=[
+            ("cv_adapte.txt", adapted, "text/plain; charset=utf-8"),
+            ("lettre_motivation.txt", letter, "text/plain; charset=utf-8"),
+        ],
+    )
+    return ok
+
+
+def _external_prepared_message(
+    profile: dict[str, str],
+    job: dict[str, Any],
+    *,
+    apply_email: str | None,
+    user_notified: bool,
+    locale: str,
+) -> str:
+    from i18n import t
+
+    parts = [t("job.apply_auto_prepared_success", locale=locale)]
+    if apply_email and not email_configured():
+        parts.append(
+            t("job.apply_auto_external_prepared", locale=locale, email=apply_email)
+        )
+    elif not apply_email:
+        parts.append(t("job.apply_auto_prepared_next", locale=locale))
+    if user_notified:
+        parts.append(
+            t("job.apply_auto_prepared_user_email", locale=locale, email=profile.get("email", ""))
+        )
+    return " ".join(parts)
+
+
+def _empty_result(**overrides: Any) -> ApplicationResult:
+    base: ApplicationResult = {
+        "success": False,
+        "method": "",
+        "message": "",
+        "cover_letter": "",
+        "adapted_cv": "",
+        "apply_email": None,
+        "job_url": "",
+        "profile_text": "",
+        "user_notified": False,
+    }
+    base.update(overrides)
+    return base
+
+
 def submit_application_automatically(
     cv_text: str,
     job: dict[str, Any],
@@ -162,15 +268,11 @@ def submit_application_automatically(
     profile_text = format_application_profile_text(profile)
 
     if not profile.get("email"):
-        return ApplicationResult(
-            success=False,
+        return _empty_result(
             method="missing_profile",
             message=t("job.apply_auto_missing_email", locale=locale),
-            cover_letter="",
-            adapted_cv="",
-            apply_email=None,
-            job_url=job_url,
             profile_text=profile_text,
+            job_url=job_url,
         )
 
     try:
@@ -184,13 +286,11 @@ def submit_application_automatically(
             adapted_cv_text=adapted_cv_text,
         )
     except Exception as exc:
-        return ApplicationResult(
-            success=False,
+        return _empty_result(
             method="generation_error",
             message=t("job.apply_auto_generation_error", locale=locale, error=str(exc)),
             cover_letter=cover_letter_text or "",
             adapted_cv=adapted_cv_text or "",
-            apply_email=None,
             job_url=job_url,
             profile_text=profile_text,
         )
@@ -214,7 +314,7 @@ def submit_application_automatically(
             reply_to=profile.get("email") or None,
         )
         if ok:
-            return ApplicationResult(
+            return _empty_result(
                 success=True,
                 method="email",
                 message=t(
@@ -228,8 +328,7 @@ def submit_application_automatically(
                 job_url=job_url,
                 profile_text=profile_text,
             )
-        return ApplicationResult(
-            success=False,
+        return _empty_result(
             method="email_failed",
             message=t("job.apply_auto_email_failed", locale=locale, error=detail),
             cover_letter=letter,
@@ -239,31 +338,31 @@ def submit_application_automatically(
             profile_text=profile_text,
         )
 
-    if apply_email and not email_configured():
-        return ApplicationResult(
-            success=True,
-            method="external_prepared",
-            message=t(
-                "job.apply_auto_external_prepared",
-                locale=locale,
-                email=apply_email,
-            ),
-            cover_letter=letter,
-            adapted_cv=adapted,
-            apply_email=apply_email,
-            job_url=job_url,
-            profile_text=profile_text,
-        )
-
-    return ApplicationResult(
+    user_notified = _send_user_application_copy(
+        profile,
+        job,
+        letter,
+        adapted,
+        profile_text,
+        job_url,
+        locale=locale,
+    )
+    return _empty_result(
         success=True,
         method="external_prepared",
-        message=t("job.apply_auto_external_prepared_no_email", locale=locale),
+        message=_external_prepared_message(
+            profile,
+            job,
+            apply_email=apply_email,
+            user_notified=user_notified,
+            locale=locale,
+        ),
         cover_letter=letter,
         adapted_cv=adapted,
-        apply_email=None,
+        apply_email=apply_email,
         job_url=job_url,
         profile_text=profile_text,
+        user_notified=user_notified,
     )
 
 
@@ -300,8 +399,7 @@ def prepare_manual_application(
                 adapted_cv_text=adapted or None,
             )
         except Exception as exc:
-            return ApplicationResult(
-                success=False,
+            return _empty_result(
                 method="generation_error",
                 message=t("job.apply_auto_generation_error", locale=locale, error=str(exc)),
                 cover_letter=letter,
@@ -312,8 +410,7 @@ def prepare_manual_application(
             )
 
     if not job_url:
-        return ApplicationResult(
-            success=False,
+        return _empty_result(
             method="missing_url",
             message=t("job.apply_manual_missing_url", locale=locale),
             cover_letter=letter,
@@ -323,7 +420,7 @@ def prepare_manual_application(
             profile_text=profile_text,
         )
 
-    return ApplicationResult(
+    return _empty_result(
         success=True,
         method="manual",
         message=t("job.apply_manual_ready", locale=locale),

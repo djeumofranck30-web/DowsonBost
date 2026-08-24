@@ -26,6 +26,19 @@ def test_extract_apply_email_ignores_noreply():
     assert extract_apply_email(job) == "jobs@company.com"
 
 
+def test_extract_apply_email_from_mailto():
+    job = {
+        "description": '<a href="mailto:recrutement@acme.fr">Postuler</a>',
+        "url": "",
+    }
+    assert extract_apply_email(job) == "recrutement@acme.fr"
+
+
+def test_extract_apply_email_from_obfuscated():
+    job = {"description": "Contact: candidats [at] acme [dot] fr", "url": ""}
+    assert extract_apply_email(job) == "candidats@acme.fr"
+
+
 def test_build_application_profile_formats_core_fields():
     profile = build_application_profile(
         {
@@ -45,7 +58,10 @@ def test_build_application_profile_formats_core_fields():
     assert "Lyon" in text
 
 
-def test_submit_application_automatically_generates_and_prepares_external():
+@patch("services.application._send_user_application_copy", return_value=True)
+def test_submit_application_automatically_generates_and_prepares_external(
+    _user_copy: object,
+):
     job = {
         "title": "Dev Python",
         "company": "Acme",
@@ -72,11 +88,14 @@ def test_submit_application_automatically_generates_and_prepares_external():
         match,
         user,
         llm_call=fake_llm,
+        locale="fr",
     )
     assert result["success"] is True
     assert result["method"] == "external_prepared"
     assert "Lettre" in result["cover_letter"]
     assert "CV adapté" in result["adapted_cv"]
+    assert result["user_notified"] is True
+    assert "préparée" in result["message"].lower()
 
 
 @patch("services.application.send_application_email", return_value=(True, "ok"))
