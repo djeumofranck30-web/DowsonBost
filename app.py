@@ -64,6 +64,7 @@ from i18n import (
     SUPPORTED_LOCALES,
     analysis_depth_label,
     application_status_label,
+    application_method_label,
     contract_label,
     experience_label,
     geo_mode_label,
@@ -261,9 +262,11 @@ from persistence import (
     is_auto_search_due,
     list_analyses,
     list_dashboard_results,
+    list_user_applications,
     log_scheduled_run,
     mark_alert_sent,
     mark_auto_search_completed,
+    record_application,
     save_analysis,
     save_generated_documents,
     save_notification_settings,
@@ -3501,17 +3504,19 @@ def render_job_card(
                     st.session_state[f"adapted_{result_id}"] = auto_result["adapted_cv"]
                     st.session_state[f"apply_pack_{result_id}"] = auto_result
                     if auto_result["method"] == "email":
-                        update_application_status(
+                        record_application(
                             user_id,
                             result_id,
-                            "applied",
+                            "auto_email",
+                            status="applied",
                             notes=auto_result["message"],
                         )
                     else:
-                        update_application_status(
+                        record_application(
                             user_id,
                             result_id,
-                            "saved",
+                            "auto_prepared",
+                            status="saved",
                             notes=auto_result["message"],
                         )
                     st.success(auto_result["message"])
@@ -3520,6 +3525,22 @@ def render_job_card(
                     st.error(auto_result["message"])
         else:
             st.button(t("job.apply_auto"), disabled=True, use_container_width=True)
+
+    if can_apply and job.get("url"):
+        if st.button(
+            t("job.apply_manual_confirm"),
+            key=f"apply_manual_confirm_{result_id}",
+            use_container_width=True,
+        ):
+            record_application(
+                user_id,
+                result_id,
+                "manual",
+                status="applied",
+                notes=t("job.apply_manual_confirmed"),
+            )
+            st.success(t("job.apply_manual_confirmed"))
+            st.rerun()
 
     if can_apply:
         if st.button(
@@ -3675,7 +3696,22 @@ def render_job_card(
                 key=f"track_notes_{result_id}",
             )
         if st.button(t("job.tracking_save"), key=f"save_track_{result_id}"):
-            if update_application_status(user_id, result_id, new_status, notes=note_text):
+            if new_status in ("applied", "interview", "offer"):
+                saved = record_application(
+                    user_id,
+                    result_id,
+                    "manual",
+                    status=new_status,
+                    notes=note_text,
+                )
+            else:
+                saved = update_application_status(
+                    user_id,
+                    result_id,
+                    new_status,
+                    notes=note_text,
+                )
+            if saved:
                 st.success(t("job.tracking_saved"))
                 st.rerun()
 
@@ -3745,18 +3781,87 @@ def persist_completed_analysis(
     return None
 
 
+def _format_history_datetime(value: str | None) -> str:
+    if not value:
+        return "—"
+    return str(value)[:16].replace("T", " ")
+
+
+def _render_application_history_card(entry: dict[str, Any], user_id: int) -> None:
+    job = entry.get("job") or {}
+    title = job.get("title") or entry.get("target_job_title") or "—"
+    company = job.get("company") or "—"
+    location = job.get("location") or "—"
+    applied_at = _format_history_datetime(entry.get("status_updated_at"))
+    method = application_method_label(entry.get("application_method"))
+    status = application_status_label(entry.get("application_status", "new"))
+    score = int(entry.get("score") or 0)
+
+    with st.container(border=True):
+        st.markdown(f"**{title}** — {company}")
+        st.caption(f"{location} · {t('history.application_score', score=score)}")
+        st.caption(t("history.application_date", date=applied_at))
+        st.caption(t("history.application_method", method=method))
+        st.caption(t("history.application_status", status=status))
+        if entry.get("notes"):
+            st.caption(entry["notes"])
+        action_col1, action_col2 = st.columns(2)
+        with action_col1:
+            if job.get("url"):
+                st.link_button(
+                    t("history.application_open"),
+                    job["url"],
+                    use_container_width=True,
+                )
+        with action_col2:
+            if st.button(
+                t("history.application_view_dashboard"),
+                key=f"history_dash_{entry['result_id']}",
+                use_container_width=True,
+            ):
+                st.session_state.dashboard_analysis_select = int(entry["analysis_id"])
+                st.session_state.main_navigation = "dashboard"
+                st.rerun()
+
+
 def render_history_page(user: dict[str, Any]) -> None:
-    """List past analyses and reload one into the session."""
+    """List past analyses, applications, and reload one into the session."""
     _flush_analysis_notices()
-    rows = list_analyses(int(user["id"]))
+    user_id = int(user["id"])
+    applications = list_user_applications(user_id)
+    auto_apps = [entry for entry in applications if entry.get("channel") == "automatic"]
+    manual_apps = [entry for entry in applications if entry.get("channel") == "manual"]
+
+    st.markdown(
+        f'<p class="section-title">{t("history.applications_title")}</p>',
+        unsafe_allow_html=True,
+    )
+    if not applications:
+        st.info(t("history.applications_empty"))
+    else:
+        st.markdown(f"#### {t('history.applications_auto', count=len(auto_apps))}")
+        if auto_apps:
+            for entry in auto_apps:
+                _render_application_history_card(entry, user_id)
+        else:
+            st.caption(t("history.applications_auto_empty"))
+
+        st.markdown(f"#### {t('history.applications_manual', count=len(manual_apps))}")
+        if manual_apps:
+            for entry in manual_apps:
+                _render_application_history_card(entry, user_id)
+        else:
+            st.caption(t("history.applications_manual_empty"))
+
+    st.markdown("---")
+    rows = list_analyses(user_id)
+    st.markdown(
+        f'<p class="section-title">{t("history.analyses_title")}</p>',
+        unsafe_allow_html=True,
+    )
     if not rows:
         st.info(t("history.empty_start"))
         return
-
-    st.markdown(
-        f'<p class="section-title">{t("history.title")}</p>',
-        unsafe_allow_html=True,
-    )
     for row in rows:
         created = row.get("created_at", "")[:16].replace("T", " ")
         label = t(

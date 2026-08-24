@@ -156,6 +156,12 @@ def application_status_label(status: str) -> str:
     return t(f"status.{status}")
 
 
+def application_method_label(method: str | None) -> str:
+    if not method:
+        return t("apply_method.unknown")
+    return t(f"apply_method.{method}")
+
+
 def weekday_label(day: str) -> str:
     return t(f"weekday.{day}")
 

@@ -19,6 +19,14 @@ APPLICATION_STATUSES = (
     "archived",
 )
 
+APPLICATION_METHODS = (
+    "manual",
+    "auto_email",
+    "auto_prepared",
+)
+
+_APPLIED_HISTORY_STATUSES = ("applied", "interview", "offer")
+
 AUTO_SEARCH_WEEKDAYS = (
     "monday",
     "tuesday",
@@ -299,6 +307,18 @@ def _create_cv_documents_table(conn: Any) -> None:
     )
 
 
+def _migrate_analysis_results_columns(conn: Any) -> None:
+    cols = existing_columns(conn, "analysis_results")
+    if "application_method" in cols:
+        return
+    if database_backend() == "postgres":
+        conn.execute(
+            "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS application_method TEXT"
+        )
+    else:
+        conn.execute("ALTER TABLE analysis_results ADD COLUMN application_method TEXT")
+
+
 def init_persistence_tables() -> None:
     """Create persistence tables once per process."""
     global _persistence_initialized_for
@@ -307,6 +327,7 @@ def init_persistence_tables() -> None:
     with connect() as conn:
         _create_analyses_table(conn)
         _create_analysis_results_table(conn)
+        _migrate_analysis_results_columns(conn)
         _create_user_notification_settings_table(conn)
         _create_scheduled_runs_table(conn)
         _create_cv_documents_table(conn)
@@ -692,6 +713,103 @@ def update_application_status(
                 (status, updated_at, notes, result_id, user_id),
             )
         return bool(getattr(cur, "rowcount", 0))
+
+
+def record_application(
+    user_id: int,
+    result_id: int,
+    method: str,
+    *,
+    status: str = "applied",
+    notes: str | None = None,
+) -> bool:
+    """Persist how the user applied (manual vs automatic)."""
+    if method not in APPLICATION_METHODS:
+        return False
+    if status not in APPLICATION_STATUSES:
+        return False
+    init_persistence_tables()
+    updated_at = utc_now_iso()
+    with connect() as conn:
+        if notes is None:
+            cur = conn.execute(
+                adapt_sql(
+                    """
+                    UPDATE analysis_results
+                    SET application_status = ?, status_updated_at = ?, application_method = ?
+                    WHERE id = ? AND user_id = ?
+                    """
+                ),
+                (status, updated_at, method, result_id, user_id),
+            )
+        else:
+            cur = conn.execute(
+                adapt_sql(
+                    """
+                    UPDATE analysis_results
+                    SET application_status = ?, status_updated_at = ?, notes = ?,
+                        application_method = ?
+                    WHERE id = ? AND user_id = ?
+                    """
+                ),
+                (status, updated_at, notes, method, result_id, user_id),
+            )
+        return bool(getattr(cur, "rowcount", 0))
+
+
+def list_user_applications(user_id: int) -> list[dict[str, Any]]:
+    """List job offers the user applied to (manual or automatic)."""
+    init_persistence_tables()
+    with connect() as conn:
+        rows = conn.execute(
+            adapt_sql(
+                """
+                SELECT ar.id AS result_id, ar.analysis_id, ar.application_status,
+                       ar.application_method, ar.status_updated_at, ar.notes,
+                       ar.score, ar.job_json, ar.match_json,
+                       a.target_job_title, a.created_at AS analysis_created_at
+                FROM analysis_results ar
+                INNER JOIN analyses a ON a.id = ar.analysis_id
+                WHERE ar.user_id = ?
+                  AND (
+                    ar.application_method IS NOT NULL
+                    OR ar.application_status IN (?, ?, ?)
+                  )
+                ORDER BY COALESCE(ar.status_updated_at, a.created_at) DESC
+                """
+            ),
+            (user_id, *_APPLIED_HISTORY_STATUSES),
+        ).fetchall()
+
+    results: list[dict[str, Any]] = []
+    for row in rows:
+        job = _json_loads(row["job_json"], {})
+        match = _json_loads(row["match_json"], {})
+        method = row["application_method"]
+        status = row["application_status"]
+        if method in ("auto_email", "auto_prepared"):
+            channel = "automatic"
+        elif method == "manual" or status in _APPLIED_HISTORY_STATUSES:
+            channel = "manual"
+        else:
+            continue
+        results.append(
+            {
+                "result_id": row["result_id"],
+                "analysis_id": row["analysis_id"],
+                "application_status": status,
+                "application_method": method,
+                "channel": channel,
+                "status_updated_at": row["status_updated_at"],
+                "notes": row["notes"] or "",
+                "score": row["score"],
+                "job": job,
+                "match": match,
+                "target_job_title": row["target_job_title"],
+                "analysis_created_at": row["analysis_created_at"],
+            }
+        )
+    return results
 
 
 def save_generated_documents(
