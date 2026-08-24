@@ -13,16 +13,11 @@ import requests
 from i18n import get_locale, t
 
 
-def _get_secret(name: str) -> str:
-    value = os.environ.get(name, "").strip()
-    if value:
-        return value
-    try:
-        import streamlit as st
+from config import get_secret
 
-        return str(st.secrets.get(name, "") or "").strip()
-    except Exception:  # noqa: BLE001
-        return ""
+
+def _get_secret(name: str) -> str:
+    return get_secret(name, "")
 
 
 def email_configured() -> bool:
@@ -158,4 +153,20 @@ def maybe_send_analysis_alert(
         title=target_title,
     )
     html = build_alert_html(user_name, target_title, filtered, locale=lang)
+    return send_alert_email(user_email, subject, html, locale=lang)
+
+
+def send_password_reset_email(user_email: str, reset_url: str, *, locale: str | None = None) -> tuple[bool, str]:
+    """Send password reset link."""
+    lang = locale or get_locale()
+    if not email_configured():
+        return False, t("email.service_not_configured", locale=lang)
+    subject = t("email.reset_subject", locale=lang)
+    html = f"""
+    <html><body style="font-family:sans-serif;line-height:1.5">
+      <p>{t("email.reset_intro", locale=lang)}</p>
+      <p><a href="{reset_url}">{t("email.reset_button", locale=lang)}</a></p>
+      <p style="color:#64748b;font-size:12px">{t("email.reset_footer", locale=lang)}</p>
+    </body></html>
+    """
     return send_alert_email(user_email, subject, html, locale=lang)

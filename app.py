@@ -93,8 +93,36 @@ from world_geo import (
     profile_countries,
     profile_primary_country,
 )
-
-APP_NAME = "DowsonBost"
+from config import get_secret, get_secret_raw, normalize_secret
+from constants import (
+    ANALYSIS_DEPTH_OPTIONS,
+    ANALYSIS_DEPTH_POOL,
+    ANALYSIS_DEPTH_TOP,
+    APP_NAME,
+    ATS_MATCH_MAX_TOKENS,
+    CACHE_TTL_SECONDS,
+    CV_MATCH_TEXT_LIMIT_WITH_PROFILE,
+    GROQ_INTER_CALL_DELAY_SEC,
+    GROQ_MATCH_BATCH_SIZE,
+    GROQ_RATE_LIMIT_RETRY_SEC,
+    MATCHING_CANDIDATE_POOL,
+    MAX_OCR_PAGES,
+    MIN_CV_TEXT_LENGTH,
+    NAV_PAGE_KEYS,
+    PARALLEL_MATCH_KEYS_PER_PROVIDER,
+    PARALLEL_MATCH_MAX_WORKERS,
+    SEARCH_LOCATION_MAX_WORKERS,
+    TOP_MATCHING_JOBS,
+)
+from services.matching import (
+    as_str_list as _as_str_list,
+    compute_ats_score as _compute_ats_score,
+    fallback_match_result,
+    normalize_experience_analysis as _normalize_experience_analysis,
+    normalize_match_result as _normalize_match_result,
+    normalize_score as _normalize_score,
+    normalize_skills_analysis as _normalize_skills_analysis,
+)
 
 
 class GroqRateLimitError(RuntimeError):
@@ -142,25 +170,6 @@ from job_providers import (
     test_wttj_connection,
     is_public_routable_ip,
 )
-MIN_CV_TEXT_LENGTH = 50
-MAX_OCR_PAGES = 5
-CACHE_TTL_SECONDS = 86_400  # 24 h
-TOP_MATCHING_JOBS = 30
-MATCHING_CANDIDATE_POOL = 30
-GROQ_MATCH_BATCH_SIZE = 1
-GROQ_INTER_CALL_DELAY_SEC = 1.2
-GROQ_RATE_LIMIT_RETRY_SEC = 3.0
-PARALLEL_MATCH_MAX_WORKERS = 6
-PARALLEL_MATCH_KEYS_PER_PROVIDER = 3
-SEARCH_LOCATION_MAX_WORKERS = 4
-CV_MATCH_TEXT_LIMIT_WITH_PROFILE = 4500
-ATS_MATCH_MAX_TOKENS = 3500
-
-ANALYSIS_DEPTH_OPTIONS = ("rapide", "standard", "complet")
-ANALYSIS_DEPTH_POOL = {"rapide": 18, "standard": 30, "complet": 45}
-ANALYSIS_DEPTH_TOP = {"rapide": 15, "standard": 30, "complet": 30}
-NAV_PAGE_KEYS = ("analysis", "dashboard", "history", "profile")
-
 ADZUNA_COUNTRY_CODES = {
     "France": "fr",
     "Royaume-Uni": "gb",
@@ -298,25 +307,6 @@ GEMINI_KEY_PLACEHOLDERS = {
 }
 
 
-def normalize_secret(value: Any) -> str:
-    """Strip whitespace and surrounding quotes from secret values."""
-    if value is None:
-        return ""
-    return str(value).strip().strip('"').strip("'").strip()
-
-
-def get_secret(key: str, default: str = "") -> str:
-    """Read from Streamlit secrets first, then environment variables."""
-    raw = default
-    try:
-        raw = st.secrets[key]
-    except (KeyError, FileNotFoundError, AttributeError):
-        raw = os.getenv(key, default)
-    if isinstance(raw, list):
-        return normalize_secret(str(raw[0])) if raw else default
-    return normalize_secret(raw)
-
-
 def resolve_streamlit_client_ip() -> str:
     """Best-effort visitor IP from Streamlit / reverse-proxy headers."""
     try:
@@ -359,14 +349,6 @@ def resolve_careerjet_referer(configured: str) -> str:
     except Exception:  # noqa: BLE001
         pass
     return cleaned
-
-
-def get_secret_raw(key: str, default: Any = "") -> Any:
-    """Read secret without forcing to a single string (supports TOML arrays)."""
-    try:
-        return st.secrets[key]
-    except (KeyError, FileNotFoundError, AttributeError):
-        return os.getenv(key, default)
 
 
 def _split_api_keys(raw: Any) -> list[str]:
@@ -1572,191 +1554,6 @@ def _parse_json_response(raw: str) -> dict[str, Any]:
                 continue
 
     raise last_error or json.JSONDecodeError("JSON introuvable", raw, 0)
-
-
-def _as_str_list(value: Any, *, max_items: int = 20) -> list[str]:
-    """Coerce LLM output to a clean string list."""
-    if isinstance(value, str):
-        items = [part.strip() for part in re.split(r"[,;\n]", value) if part.strip()]
-    elif isinstance(value, list):
-        items = [str(item).strip() for item in value if str(item).strip()]
-    else:
-        items = []
-    seen: set[str] = set()
-    unique: list[str] = []
-    for item in items:
-        key = item.lower()
-        if key not in seen:
-            seen.add(key)
-            unique.append(item)
-    return unique[:max_items]
-
-
-def _normalize_score(value: Any, default: int = 50) -> int:
-    try:
-        return max(0, min(100, int(value)))
-    except (TypeError, ValueError):
-        return default
-
-
-def _normalize_skills_analysis(raw: Any) -> dict[str, list[str]]:
-    data = raw if isinstance(raw, dict) else {}
-    return {
-        "cv_techniques": _as_str_list(data.get("cv_techniques")),
-        "cv_transversales": _as_str_list(data.get("cv_transversales")),
-        "cv_outils": _as_str_list(data.get("cv_outils")),
-        "cv_certifications": _as_str_list(data.get("cv_certifications")),
-        "cv_langages": _as_str_list(data.get("cv_langages")),
-        "offre_obligatoires": _as_str_list(data.get("offre_obligatoires")),
-        "offre_souhaitees": _as_str_list(data.get("offre_souhaitees")),
-        "offre_technos": _as_str_list(data.get("offre_technos")),
-        "presentes": _as_str_list(data.get("presentes")),
-        "partielles": _as_str_list(data.get("partielles")),
-        "manquantes": _as_str_list(data.get("manquantes")),
-    }
-
-
-def _normalize_experience_analysis(raw: Any) -> dict[str, Any]:
-    data = raw if isinstance(raw, dict) else {}
-    relevant: list[dict[str, str]] = []
-    for item in (data.get("experiences_pertinentes") or [])[:6]:
-        if isinstance(item, dict):
-            relevant.append(
-                {
-                    "poste": str(item.get("poste", "")).strip(),
-                    "duree": str(item.get("duree", "")).strip(),
-                    "missions_liees": str(item.get("missions_liees", "")).strip(),
-                    "secteur": str(item.get("secteur", "")).strip(),
-                }
-            )
-        elif isinstance(item, str) and item.strip():
-            relevant.append(
-                {"poste": item.strip(), "duree": "", "missions_liees": "", "secteur": ""}
-            )
-    return {
-        "niveau_offre": str(data.get("niveau_offre", "")).strip(),
-        "niveau_cv": str(data.get("niveau_cv", "")).strip(),
-        "alignement_niveau": str(data.get("alignement_niveau", "")).strip(),
-        "experiences_pertinentes": relevant,
-        "ecarts": _as_str_list(data.get("ecarts"), max_items=8),
-    }
-
-
-def _compute_ats_score(data: dict[str, Any]) -> int:
-    """Weighted ATS score from sub-scores when provided."""
-    components = (
-        ("score_competences", 0.40),
-        ("score_experiences", 0.25),
-        ("score_titre", 0.20),
-        ("score_localisation", 0.15),
-    )
-    weighted_parts: list[tuple[int, float]] = []
-    for key, weight in components:
-        if data.get(key) is not None:
-            weighted_parts.append((_normalize_score(data.get(key)), weight))
-    if len(weighted_parts) == len(components):
-        return round(sum(score * weight for score, weight in weighted_parts))
-    return _normalize_score(data.get("score_correspondance"))
-
-
-def _normalize_match_result(
-    data: dict[str, Any],
-    job: dict[str, Any] | None = None,
-    *,
-    fallback: bool = False,
-) -> dict[str, Any]:
-    """Ensure a job-match payload has the expected ATS shape."""
-    score = _compute_ats_score(data)
-
-    conseils_raw = data.get("conseils", [])
-    if isinstance(conseils_raw, str):
-        conseils = [conseils_raw]
-    elif isinstance(conseils_raw, list):
-        conseils = [str(c).strip() for c in conseils_raw if str(c).strip()]
-    else:
-        conseils = []
-    while len(conseils) < 3:
-        conseils.append(
-            "Relancez l'analyse pour obtenir des conseils personnalisés sur cette offre."
-        )
-    conseils = conseils[:5]
-
-    mods_raw = data.get("modifications_cv") or data.get("modifications") or []
-    if isinstance(mods_raw, str):
-        modifications = [mods_raw]
-    elif isinstance(mods_raw, list):
-        modifications = [str(m).strip() for m in mods_raw if str(m).strip()]
-    else:
-        modifications = []
-    if not modifications:
-        modifications = conseils[:5]
-    modifications = modifications[:8]
-
-    mots_raw = data.get("mots_cles_manquants", [])
-    skills = _normalize_skills_analysis(data.get("analyse_competences"))
-    if not mots_raw and skills["manquantes"]:
-        mots = skills["manquantes"][:8]
-    else:
-        mots = _as_str_list(mots_raw, max_items=8)
-
-    default_title = job.get("title", "Profil candidat") if job else "Profil candidat"
-    titre = str(data.get("titre_cv_recommande") or default_title).strip()
-    synthese = str(data.get("synthese_ats", "") or data.get("resume_ats", "")).strip()
-
-    result: dict[str, Any] = {
-        "score_correspondance": score,
-        "score_competences": _normalize_score(data.get("score_competences"), score),
-        "score_experiences": _normalize_score(data.get("score_experiences"), score),
-        "score_titre": _normalize_score(data.get("score_titre"), score),
-        "score_localisation": _normalize_score(data.get("score_localisation"), score),
-        "titre_cv_recommande": titre,
-        "synthese_ats": synthese,
-        "analyse_competences": skills,
-        "analyse_experiences": _normalize_experience_analysis(data.get("analyse_experiences")),
-        "mots_cles_manquants": mots,
-        "modifications_cv": modifications,
-        "conseils": conseils,
-    }
-    if fallback:
-        result["_fallback"] = True
-    return result
-
-
-def fallback_match_result(job: dict[str, Any]) -> dict[str, Any]:
-    """Minimal ATS match report when the LLM response cannot be parsed."""
-    return _normalize_match_result(
-        {
-            "score_correspondance": 50,
-            "score_competences": 50,
-            "score_experiences": 50,
-            "score_titre": 50,
-            "score_localisation": 50,
-            "titre_cv_recommande": job.get("title", "Profil candidat"),
-            "synthese_ats": "Analyse partielle — relancez l'analyse pour un rapport ATS complet.",
-            "analyse_competences": {
-                "manquantes": [],
-                "presentes": [],
-                "partielles": [],
-            },
-            "analyse_experiences": {
-                "alignement_niveau": "indéterminé",
-                "ecarts": ["Analyse expérience non disponible"],
-            },
-            "mots_cles_manquants": [],
-            "modifications_cv": [
-                "Relancez l'analyse après avoir vidé le cache pour un matching ATS détaillé.",
-                "Alignez le titre de votre CV sur l'intitulé exact de l'offre.",
-                "Reprenez les compétences techniques listées dans la description de l'offre.",
-            ],
-            "conseils": [
-                "Analyse partielle — relancez l'analyse pour des conseils détaillés.",
-                "Alignez le titre de votre CV sur l'intitulé exact de l'offre.",
-                "Reprenez les compétences techniques listées dans la description.",
-            ],
-        },
-        job,
-        fallback=True,
-    )
 
 
 ATS_MATCH_SYSTEM_PROMPT = """Tu es un expert ATS (Applicant Tracking System) et recruteur senior.

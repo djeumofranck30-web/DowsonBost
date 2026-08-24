@@ -97,6 +97,11 @@
   "auth.reset.success": "Mot de passe réinitialisé. Vous pouvez vous connecter.",
   "auth.reset.not_found": "Aucun compte trouvé avec cet e-mail.",
   "auth.reset.name_mismatch": "Le nom complet ne correspond pas à ce compte.",
+  "auth.reset.token_created": "Lien de réinitialisation généré.",
+  "auth.reset.token_invalid": "Lien de réinitialisation invalide.",
+  "auth.reset.token_used": "Ce lien a déjà été utilisé.",
+  "auth.reset.token_expired": "Ce lien a expiré.",
+  "auth.reset.email_sent": "Un e-mail de réinitialisation a été envoyé si le compte existe.",
   "auth.password.min": "Le mot de passe doit contenir au moins {min} caractères.",
   "auth.password.same": "Le nouveau mot de passe doit être différent de l'actuel.",
   "auth.password.changed": "Mot de passe modifié avec succès.",
@@ -466,5 +471,9 @@
   "email.alerts_disabled": "Alertes désactivées.",
   "email.service_not_configured": "Service e-mail non configuré.",
   "email.below_threshold": "Aucune offre au-dessus du seuil d'alerte.",
-  "email.default_job": "Offre"
+  "email.default_job": "Offre",
+  "email.reset_subject": "[DowsonBost] Réinitialisation de votre mot de passe",
+  "email.reset_intro": "Vous avez demandé à réinitialiser votre mot de passe DowsonBost.",
+  "email.reset_button": "Réinitialiser mon mot de passe",
+  "email.reset_footer": "Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail."
 }

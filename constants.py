@@ -1,0 +1,26 @@
+"""Shared application constants."""
+
+from __future__ import annotations
+
+APP_NAME = "DowsonBost"
+
+MIN_CV_TEXT_LENGTH = 50
+MAX_OCR_PAGES = 5
+CACHE_TTL_SECONDS = 86_400  # 24 h
+TOP_MATCHING_JOBS = 30
+MATCHING_CANDIDATE_POOL = 30
+GROQ_MATCH_BATCH_SIZE = 1
+GROQ_INTER_CALL_DELAY_SEC = 1.2
+GROQ_RATE_LIMIT_RETRY_SEC = 3.0
+PARALLEL_MATCH_MAX_WORKERS = 6
+PARALLEL_MATCH_KEYS_PER_PROVIDER = 3
+SEARCH_LOCATION_MAX_WORKERS = 4
+CV_MATCH_TEXT_LIMIT_WITH_PROFILE = 4500
+ATS_MATCH_MAX_TOKENS = 3500
+
+ANALYSIS_DEPTH_OPTIONS = ("rapide", "standard", "complet")
+ANALYSIS_DEPTH_POOL = {"rapide": 18, "standard": 30, "complet": 45}
+ANALYSIS_DEPTH_TOP = {"rapide": 15, "standard": 30, "complet": 30}
+NAV_PAGE_KEYS = ("analysis", "dashboard", "history", "profile")
+
+PASSWORD_RESET_TOKEN_TTL_HOURS = 24

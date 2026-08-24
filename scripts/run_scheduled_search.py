@@ -30,28 +30,30 @@ def _load_secrets_from_toml() -> None:
 def main() -> int:
     _load_secrets_from_toml()
     from auth import get_user_by_id, init_db
+    from constants import ANALYSIS_DEPTH_POOL, ANALYSIS_DEPTH_TOP
     from database import configure_database
     from email_service import maybe_send_analysis_alert
+    from observability import get_logger, setup_logging
     from persistence import (
-        ANALYSIS_DEPTH_POOL,
-        ANALYSIS_DEPTH_TOP,
         get_active_cv_document,
         get_notification_settings,
         get_users_due_for_auto_search,
-    log_scheduled_run,
-    mark_alert_sent,
-    mark_auto_search_completed,
-    save_analysis,
-    upsert_active_cv_document,
-)
+        log_scheduled_run,
+        mark_alert_sent,
+        mark_auto_search_completed,
+        save_analysis,
+        upsert_active_cv_document,
+    )
+    from services.pipeline import run_cv_analysis_pipeline
+
+    setup_logging()
+    logger = get_logger(__name__)
 
     configure_database(
         os.environ.get("DATABASE_URL", ""),
         password=os.environ.get("DATABASE_PASSWORD", ""),
     )
     init_db()
-
-    from app import run_cv_analysis_pipeline  # noqa: WPS433 — shared pipeline
 
     due_users = get_users_due_for_auto_search()
     if not due_users:

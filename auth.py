@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import hashlib
 import re
+import secrets
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Iterator
 
 import bcrypt
 
+from constants import PASSWORD_RESET_TOKEN_TTL_HOURS
 from database import adapt_sql, connect, database_backend, existing_columns, is_unique_violation
 from i18n import normalize_locale, t
 from france_geo import (
@@ -254,6 +257,143 @@ _DB_SCHEMA_KEY: tuple[str, ...] = tuple(col[0] for col in _USER_COLUMNS)
 _db_initialized_for: tuple[str, ...] | None = None
 
 
+def _create_password_reset_tokens_table(conn: Any) -> None:
+    if database_backend() == "postgres":
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                token_hash TEXT NOT NULL UNIQUE,
+                expires_at TEXT NOT NULL,
+                used_at TEXT,
+                created_at TEXT NOT NULL
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS password_reset_tokens_user_idx
+            ON password_reset_tokens (user_id)
+            """
+        )
+        return
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS password_reset_tokens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            token_hash TEXT NOT NULL UNIQUE,
+            expires_at TEXT NOT NULL,
+            used_at TEXT,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE INDEX IF NOT EXISTS password_reset_tokens_user_idx
+        ON password_reset_tokens (user_id)
+        """
+    )
+
+
+def _hash_reset_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def create_password_reset_token(email: str) -> tuple[bool, str, str]:
+    """Create a single-use password reset token for a registered e-mail."""
+    email = email.strip().lower()
+    if not EMAIL_PATTERN.match(email):
+        return False, t("auth.email.invalid"), ""
+    init_db()
+    with _connect() as conn:
+        row = conn.execute(
+            adapt_sql("SELECT id FROM users WHERE email = ?"),
+            (email,),
+        ).fetchone()
+    if not row:
+        return False, t("auth.reset.not_found"), ""
+
+    token = secrets.token_urlsafe(32)
+    now = datetime.now(timezone.utc)
+    expires = now + timedelta(hours=PASSWORD_RESET_TOKEN_TTL_HOURS)
+    with _connect() as conn:
+        conn.execute(
+            adapt_sql(
+                """
+                INSERT INTO password_reset_tokens (user_id, token_hash, expires_at, created_at)
+                VALUES (?, ?, ?, ?)
+                """
+            ),
+            (
+                int(row["id"]),
+                _hash_reset_token(token),
+                expires.isoformat(),
+                now.isoformat(),
+            ),
+        )
+    return True, t("auth.reset.token_created"), token
+
+
+def reset_password_with_token(token: str, new_password: str) -> tuple[bool, str]:
+    """Reset password using a valid e-mail token."""
+    token = token.strip()
+    new_password = new_password.strip()
+    valid_pw, pw_msg = _validate_password(new_password)
+    if not valid_pw:
+        return False, pw_msg
+    if not token:
+        return False, t("auth.reset.token_invalid")
+
+    init_db()
+    token_hash = _hash_reset_token(token)
+    now = datetime.now(timezone.utc).isoformat()
+    with _connect() as conn:
+        row = conn.execute(
+            adapt_sql(
+                """
+                SELECT id, user_id, expires_at, used_at
+                FROM password_reset_tokens
+                WHERE token_hash = ?
+                """
+            ),
+            (token_hash,),
+        ).fetchone()
+        if not row:
+            return False, t("auth.reset.token_invalid")
+        if row["used_at"]:
+            return False, t("auth.reset.token_used")
+        if str(row["expires_at"]) < now:
+            return False, t("auth.reset.token_expired")
+        conn.execute(
+            adapt_sql("UPDATE users SET password_hash = ? WHERE id = ?"),
+            (_hash_password(new_password), int(row["user_id"])),
+        )
+        conn.execute(
+            adapt_sql("UPDATE password_reset_tokens SET used_at = ? WHERE id = ?"),
+            (now, int(row["id"])),
+        )
+    return True, t("auth.reset.success")
+
+
+def request_password_reset_email(email: str) -> tuple[bool, str]:
+    """Create a reset token and send the recovery link by e-mail when configured."""
+    ok, message, token = create_password_reset_token(email)
+    if not ok or not token:
+        return ok, message
+
+    from config import get_app_base_url
+    from email_service import send_password_reset_email
+
+    reset_url = f"{get_app_base_url()}/?reset_token={token}"
+    sent, send_msg = send_password_reset_email(email, reset_url)
+    if sent:
+        return True, t("auth.reset.email_sent")
+    return True, message
+
+
 def init_db() -> None:
     """Create users table if it does not exist (once per process / schema version)."""
     global _db_initialized_for
@@ -262,9 +402,16 @@ def init_db() -> None:
     with _connect() as conn:
         _create_users_table(conn)
         _migrate_users(conn)
+        _create_password_reset_tokens_table(conn)
     from persistence import init_persistence_tables
 
     init_persistence_tables()
+    try:
+        from migrations.runner import run_migrations
+
+        run_migrations()
+    except Exception:  # noqa: BLE001 — migrations optional on first boot
+        pass
     _db_initialized_for = _DB_SCHEMA_KEY
 
 

@@ -98,6 +98,11 @@
   "auth.reset.not_found": "No accounts found with this email.",
   "auth.password.min": "The password must contain at least {min} characters.",
   "auth.reset.name_mismatch": "The full name does not match this account.",
+  "auth.reset.token_created": "Password reset link generated.",
+  "auth.reset.token_invalid": "Invalid password reset link.",
+  "auth.reset.token_used": "This reset link has already been used.",
+  "auth.reset.token_expired": "This reset link has expired.",
+  "auth.reset.email_sent": "If the account exists, a reset e-mail was sent.",
   "auth.password.changed": "Password changed successfully.",
   "auth.password.same": "The new password must be different from the current one.",
   "auth.password.current_wrong": "Invalid current password.",
@@ -466,5 +471,9 @@
   "email.alerts_disabled": "Alerts disabled.",
   "email.below_threshold": "No offers above the alert threshold.",
   "email.service_not_configured": "Email service not configured.",
-  "email.default_job": "Offer"
+  "email.default_job": "Offer",
+  "email.reset_subject": "[DowsonBost] Reset your password",
+  "email.reset_intro": "You requested to reset your DowsonBost password.",
+  "email.reset_button": "Reset my password",
+  "email.reset_footer": "If you did not request this, you can ignore this e-mail."
 }
