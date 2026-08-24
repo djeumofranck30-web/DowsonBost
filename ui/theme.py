@@ -496,6 +496,65 @@ def render_auth_styles() -> None:
             min-height: 580px;
             box-shadow: {t["shadow_lg"]};
             padding: 2.25rem 2.5rem 1.75rem !important;
+            display: flex;
+            flex-direction: column;
+        }}
+        .auth-panel-right-inner {{
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 100%;
+        }}
+        .auth-login-actions {{
+            margin-top: 0.35rem;
+        }}
+        .auth-login-actions [data-testid="column"] {{
+            display: flex;
+            align-items: stretch;
+        }}
+        .auth-login-forgot {{
+            display: flex;
+            align-items: center;
+            height: 100%;
+            justify-content: flex-end;
+        }}
+        .auth-login-forgot button {{
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: {t["accent"]} !important;
+            font-size: 0.82rem !important;
+            font-weight: 600 !important;
+            white-space: nowrap;
+            padding: 0.65rem 0.25rem !important;
+        }}
+        .auth-login-forgot button:hover {{
+            color: {t["primary"]} !important;
+            text-decoration: underline;
+        }}
+        .auth-footer-link.auth-create-centered {{
+            margin-top: auto;
+            padding-top: 2rem;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }}
+        .auth-footer-link.auth-create-centered button {{
+            background: {t["surface_soft"]} !important;
+            border: 1.5px solid rgba(124, 58, 237, 0.2) !important;
+            color: {t["primary_deep"]} !important;
+            font-weight: 600 !important;
+            font-size: 0.92rem !important;
+            border-radius: 999px !important;
+            padding: 0.62rem 1.75rem !important;
+            min-width: 11rem;
+            box-shadow: {t["shadow_sm"]} !important;
+        }}
+        .auth-footer-link.auth-create-centered button:hover {{
+            border-color: {t["primary"]} !important;
+            color: {t["primary"]} !important;
+            background: {t["surface"]} !important;
         }}
         .auth-left-panel {{
             color: #fff;
@@ -569,10 +628,10 @@ def render_auth_styles() -> None:
             color: {t["accent"]} !important;
             font-size: 0.82rem !important;
         }}
-        .auth-footer-link button {{
+        .auth-footer-link:not(.auth-create-centered) button {{
             color: {t["muted"]} !important;
         }}
-        .auth-footer-link button:hover {{
+        .auth-footer-link:not(.auth-create-centered) button:hover {{
             color: {t["primary"]} !important;
         }}
         .auth-back-link button {{

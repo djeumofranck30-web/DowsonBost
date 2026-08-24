@@ -5156,13 +5156,26 @@ def _render_auth_login_form() -> None:
         f'<p class="auth-form-title">{html.escape(t("auth.login.title"))}</p>',
         unsafe_allow_html=True,
     )
-    with st.form("login_form", clear_on_submit=False):
-        login_email = st.text_input(t("common.email"), placeholder=t("placeholder.email"))
-        login_password = st.text_input(
-            t("common.password"), type="password", placeholder=t("placeholder.password")
-        )
-        if st.form_submit_button(t("auth.login.submit"), use_container_width=True):
-            ok, message, user = authenticate_user(login_email, login_password)
+    st.text_input(t("common.email"), placeholder=t("placeholder.email"), key="login_email")
+    st.text_input(
+        t("common.password"),
+        type="password",
+        placeholder=t("placeholder.password"),
+        key="login_password",
+    )
+    st.markdown('<div class="auth-login-actions">', unsafe_allow_html=True)
+    login_col, forgot_col = st.columns([1.45, 1], gap="small")
+    with login_col:
+        if st.button(
+            t("auth.login.submit"),
+            type="primary",
+            use_container_width=True,
+            key="auth_login_submit",
+        ):
+            ok, message, user = authenticate_user(
+                st.session_state.get("login_email", ""),
+                st.session_state.get("login_password", ""),
+            )
             if ok and user:
                 login_locale = get_locale()
                 ok_lang, _, updated = update_user_preferred_language(
@@ -5180,10 +5193,16 @@ def _render_auth_login_form() -> None:
                 st.rerun()
             else:
                 st.error(message)
-    st.markdown('<div class="auth-link-row">', unsafe_allow_html=True)
-    if st.button(t("auth.login.forgot"), key="auth_go_reset"):
-        st.session_state.auth_view = "reset"
-        st.rerun()
+    with forgot_col:
+        st.markdown('<div class="auth-login-forgot">', unsafe_allow_html=True)
+        if st.button(
+            t("auth.login.forgot"),
+            use_container_width=True,
+            key="auth_go_reset",
+        ):
+            st.session_state.auth_view = "reset"
+            st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
 
@@ -5588,26 +5607,35 @@ def render_auth_page() -> None:
             st.markdown(_auth_left_panel_html(), unsafe_allow_html=True)
 
         with panel_right:
+            st.markdown('<div class="auth-panel-right-inner">', unsafe_allow_html=True)
             if view == "login":
                 _render_auth_login_form()
             elif view == "register":
                 _render_auth_register_form()
             else:
                 _render_auth_reset_form()
-
-            st.markdown('<div class="auth-footer-link">', unsafe_allow_html=True)
-            if view == "login":
-                if st.button(t("auth.footer.create"), key="auth_go_register", use_container_width=True):
-                    st.session_state.auth_view = "register"
-                    _reset_register_wizard()
-                    st.rerun()
-            else:
                 st.markdown('<div class="auth-back-link">', unsafe_allow_html=True)
                 if st.button(t("auth.footer.back_login"), key="auth_go_login"):
                     st.session_state.auth_view = "login"
                     _reset_register_wizard()
                     st.rerun()
                 st.markdown("</div>", unsafe_allow_html=True)
+
+            if view == "login":
+                st.markdown(
+                    '<div class="auth-footer-link auth-create-centered">',
+                    unsafe_allow_html=True,
+                )
+                if st.button(
+                    t("auth.footer.create"),
+                    key="auth_go_register",
+                    use_container_width=False,
+                ):
+                    st.session_state.auth_view = "register"
+                    _reset_register_wizard()
+                    st.rerun()
+                st.markdown("</div>", unsafe_allow_html=True)
+
             st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("</div>", unsafe_allow_html=True)
