@@ -3912,8 +3912,7 @@ def _render_application_entry(
                     use_container_width=True,
                 ):
                     st.session_state.dashboard_analysis_select = int(entry["analysis_id"])
-                    st.session_state.main_navigation = "dashboard"
-                    st.rerun()
+                    _request_navigation("dashboard")
 
 
 def _render_applications_list(
@@ -3963,8 +3962,7 @@ def render_history_page(user: dict[str, Any]) -> None:
             st.info(t("history.applications_banner", count=application_count))
         with info_col2:
             if st.button(t("applications.go_to_applications"), use_container_width=True):
-                st.session_state.main_navigation = "applications"
-                st.rerun()
+                _request_navigation("applications")
 
     rows = list_analyses(user_id)
     st.markdown(
@@ -4540,6 +4538,20 @@ def init_session_state() -> None:
     init_locale()
     if st.session_state.get("main_navigation") not in NAV_PAGE_KEYS:
         st.session_state.main_navigation = NAV_PAGE_KEYS[0]
+
+
+def _apply_pending_navigation() -> None:
+    """Apply programmatic navigation before the sidebar radio is rendered."""
+    pending = st.session_state.pop("_pending_navigation", None)
+    if pending in NAV_PAGE_KEYS:
+        st.session_state.main_navigation = pending
+
+
+def _request_navigation(page: str) -> None:
+    """Navigate to another main page on the next rerun."""
+    if page in NAV_PAGE_KEYS:
+        st.session_state["_pending_navigation"] = page
+        st.rerun()
 
 
 def render_language_selector(
@@ -6365,6 +6377,7 @@ def render_cv_analysis(
 def render_app() -> None:
     """Main application shell with navigation."""
     render_app_styles()
+    _apply_pending_navigation()
     user = st.session_state.user or {}
     user_name = user.get("full_name") or t("common.user")
 
