@@ -3787,8 +3787,10 @@ def _format_history_datetime(value: str | None) -> str:
     return str(value)[:16].replace("T", " ")
 
 
-def _render_application_history_card(entry: dict[str, Any], user_id: int) -> None:
+def _render_application_entry(entry: dict[str, Any], user_id: int) -> None:
+    """Render one application with expandable offer and dossier details."""
     job = entry.get("job") or {}
+    match = entry.get("match") or {}
     title = job.get("title") or entry.get("target_job_title") or "—"
     company = job.get("company") or "—"
     location = job.get("location") or "—"
@@ -3796,64 +3798,155 @@ def _render_application_history_card(entry: dict[str, Any], user_id: int) -> Non
     method = application_method_label(entry.get("application_method"))
     status = application_status_label(entry.get("application_status", "new"))
     score = int(entry.get("score") or 0)
+    result_id = int(entry["result_id"])
+    analysis_date = _format_history_datetime(entry.get("analysis_created_at"))
 
     with st.container(border=True):
-        st.markdown(f"**{title}** — {company}")
-        st.caption(f"{location} · {t('history.application_score', score=score)}")
-        st.caption(t("history.application_date", date=applied_at))
-        st.caption(t("history.application_method", method=method))
-        st.caption(t("history.application_status", status=status))
-        if entry.get("notes"):
-            st.caption(entry["notes"])
-        action_col1, action_col2 = st.columns(2)
-        with action_col1:
+        header_col1, header_col2 = st.columns([3, 1])
+        with header_col1:
+            st.markdown(f"### {title}")
+            st.markdown(f"**{company}** · {location}")
+            st.caption(
+                f"{t('history.application_score', score=score)} · "
+                f"{t('history.application_date', date=applied_at)}"
+            )
+            st.caption(t("history.application_method", method=method))
+            st.caption(t("history.application_status", status=status))
+            if entry.get("notes"):
+                st.caption(entry["notes"])
+        with header_col2:
             if job.get("url"):
                 st.link_button(
                     t("history.application_open"),
                     job["url"],
                     use_container_width=True,
                 )
-        with action_col2:
-            if st.button(
-                t("history.application_view_dashboard"),
-                key=f"history_dash_{entry['result_id']}",
-                use_container_width=True,
-            ):
-                st.session_state.dashboard_analysis_select = int(entry["analysis_id"])
-                st.session_state.main_navigation = "dashboard"
-                st.rerun()
+
+        with st.expander(t("applications.view_offer"), expanded=False):
+            st.caption(
+                t(
+                    "applications.analysis_context",
+                    title=entry.get("target_job_title") or "—",
+                    date=analysis_date,
+                )
+            )
+            if job.get("contract_type") or job.get("inferred_contract"):
+                contract = job.get("inferred_contract") or job.get("contract_type")
+                st.markdown(f"**{t('job.contract_label')}** {contract}")
+            if job.get("source"):
+                st.markdown(f"**{t('job.source_label')}** {job.get('source', '')}")
+            st.markdown(f"**{t('job.publication_label')}** {format_job_published_label(job)}")
+
+            if match.get("synthese_ats"):
+                st.info(match["synthese_ats"])
+
+            description = str(job.get("description") or "").strip()
+            st.markdown(f"**{t('applications.description')}**")
+            if description:
+                st.markdown(description[:6000])
+            else:
+                st.caption(t("applications.no_description"))
+
+            letter = (entry.get("cover_letter_text") or "").strip()
+            adapted = (entry.get("adapted_cv_text") or "").strip()
+            if letter:
+                st.markdown(f"**{t('job.cover_expander')}**")
+                st.text_area(
+                    t("job.letter_field"),
+                    letter,
+                    height=180,
+                    key=f"app_letter_{result_id}",
+                )
+                st.download_button(
+                    t("job.download_letter"),
+                    letter,
+                    file_name=f"lettre_{result_id}.txt",
+                    key=f"app_dl_letter_{result_id}",
+                )
+            else:
+                st.caption(t("applications.no_letter"))
+
+            if adapted:
+                st.markdown(f"**{t('job.adapted_expander')}**")
+                st.text_area(
+                    t("job.adapted_field"),
+                    adapted,
+                    height=220,
+                    key=f"app_cv_{result_id}",
+                )
+                st.download_button(
+                    t("job.download_adapted"),
+                    adapted,
+                    file_name=f"cv_adapte_{result_id}.txt",
+                    key=f"app_dl_cv_{result_id}",
+                )
+            else:
+                st.caption(t("applications.no_cv"))
+
+            action_col1, action_col2 = st.columns(2)
+            with action_col1:
+                if job.get("url"):
+                    st.link_button(
+                        t("history.application_open"),
+                        job["url"],
+                        use_container_width=True,
+                    )
+            with action_col2:
+                if st.button(
+                    t("history.application_view_dashboard"),
+                    key=f"app_dash_{result_id}",
+                    use_container_width=True,
+                ):
+                    st.session_state.dashboard_analysis_select = int(entry["analysis_id"])
+                    st.session_state.main_navigation = "dashboard"
+                    st.rerun()
 
 
-def render_history_page(user: dict[str, Any]) -> None:
-    """List past analyses, applications, and reload one into the session."""
+def _render_applications_list(entries: list[dict[str, Any]], user_id: int) -> None:
+    if not entries:
+        st.info(t("applications.empty"))
+        return
+    for entry in entries:
+        _render_application_entry(entry, user_id)
+
+
+def render_applications_page(user: dict[str, Any]) -> None:
+    """Dedicated page to consult manual and automatic applications."""
     _flush_analysis_notices()
     user_id = int(user["id"])
     applications = list_user_applications(user_id)
     auto_apps = [entry for entry in applications if entry.get("channel") == "automatic"]
     manual_apps = [entry for entry in applications if entry.get("channel") == "manual"]
 
-    st.markdown(
-        f'<p class="section-title">{t("history.applications_title")}</p>',
-        unsafe_allow_html=True,
+    tab_all, tab_auto, tab_manual = st.tabs(
+        [
+            t("applications.tab_all", count=len(applications)),
+            t("applications.tab_auto", count=len(auto_apps)),
+            t("applications.tab_manual", count=len(manual_apps)),
+        ]
     )
-    if not applications:
-        st.info(t("history.applications_empty"))
-    else:
-        st.markdown(f"#### {t('history.applications_auto', count=len(auto_apps))}")
-        if auto_apps:
-            for entry in auto_apps:
-                _render_application_history_card(entry, user_id)
-        else:
-            st.caption(t("history.applications_auto_empty"))
+    with tab_all:
+        _render_applications_list(applications, user_id)
+    with tab_auto:
+        _render_applications_list(auto_apps, user_id)
+    with tab_manual:
+        _render_applications_list(manual_apps, user_id)
 
-        st.markdown(f"#### {t('history.applications_manual', count=len(manual_apps))}")
-        if manual_apps:
-            for entry in manual_apps:
-                _render_application_history_card(entry, user_id)
-        else:
-            st.caption(t("history.applications_manual_empty"))
 
-    st.markdown("---")
+def render_history_page(user: dict[str, Any]) -> None:
+    """List past analyses and reload one into the session."""
+    _flush_analysis_notices()
+    user_id = int(user["id"])
+    application_count = len(list_user_applications(user_id))
+    if application_count:
+        info_col1, info_col2 = st.columns([3, 1])
+        with info_col1:
+            st.info(t("history.applications_banner", count=application_count))
+        with info_col2:
+            if st.button(t("applications.go_to_applications"), use_container_width=True):
+                st.session_state.main_navigation = "applications"
+                st.rerun()
+
     rows = list_analyses(user_id)
     st.markdown(
         f'<p class="section-title">{t("history.analyses_title")}</p>',
@@ -6588,6 +6681,15 @@ def render_app() -> None:
             badge=t("hero.profile.badge"),
         )
         render_profile_page(user, job_provider)
+        return
+
+    if page == "applications":
+        render_page_hero(
+            t("hero.applications.title"),
+            t("hero.applications.subtitle"),
+            badge=t("hero.applications.badge"),
+        )
+        render_applications_page(user)
         return
 
     if page == "history":

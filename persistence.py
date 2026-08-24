@@ -767,6 +767,7 @@ def list_user_applications(user_id: int) -> list[dict[str, Any]]:
                 SELECT ar.id AS result_id, ar.analysis_id, ar.application_status,
                        ar.application_method, ar.status_updated_at, ar.notes,
                        ar.score, ar.job_json, ar.match_json,
+                       ar.cover_letter_text, ar.adapted_cv_text,
                        a.target_job_title, a.created_at AS analysis_created_at
                 FROM analysis_results ar
                 INNER JOIN analyses a ON a.id = ar.analysis_id
@@ -807,9 +808,58 @@ def list_user_applications(user_id: int) -> list[dict[str, Any]]:
                 "match": match,
                 "target_job_title": row["target_job_title"],
                 "analysis_created_at": row["analysis_created_at"],
+                "cover_letter_text": row["cover_letter_text"],
+                "adapted_cv_text": row["adapted_cv_text"],
             }
         )
     return results
+
+
+def get_application_result(user_id: int, result_id: int) -> dict[str, Any] | None:
+    """Fetch one application entry with job, match, and generated documents."""
+    init_persistence_tables()
+    with connect() as conn:
+        row = conn.execute(
+            adapt_sql(
+                """
+                SELECT ar.id AS result_id, ar.analysis_id, ar.application_status,
+                       ar.application_method, ar.status_updated_at, ar.notes,
+                       ar.score, ar.job_json, ar.match_json,
+                       ar.cover_letter_text, ar.adapted_cv_text,
+                       a.target_job_title, a.created_at AS analysis_created_at
+                FROM analysis_results ar
+                INNER JOIN analyses a ON a.id = ar.analysis_id
+                WHERE ar.user_id = ? AND ar.id = ?
+                """
+            ),
+            (user_id, result_id),
+        ).fetchone()
+    if not row:
+        return None
+    method = row["application_method"]
+    status = row["application_status"]
+    if method in ("auto_email", "auto_prepared"):
+        channel = "automatic"
+    elif method == "manual" or status in _APPLIED_HISTORY_STATUSES:
+        channel = "manual"
+    else:
+        return None
+    return {
+        "result_id": row["result_id"],
+        "analysis_id": row["analysis_id"],
+        "application_status": status,
+        "application_method": method,
+        "channel": channel,
+        "status_updated_at": row["status_updated_at"],
+        "notes": row["notes"] or "",
+        "score": row["score"],
+        "job": _json_loads(row["job_json"], {}),
+        "match": _json_loads(row["match_json"], {}),
+        "target_job_title": row["target_job_title"],
+        "analysis_created_at": row["analysis_created_at"],
+        "cover_letter_text": row["cover_letter_text"],
+        "adapted_cv_text": row["adapted_cv_text"],
+    }
 
 
 def save_generated_documents(

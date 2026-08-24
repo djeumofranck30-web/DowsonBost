@@ -35,6 +35,7 @@ THEME = {
 NAV_ICONS: dict[str, str] = {
     "analysis": "🎯",
     "dashboard": "📊",
+    "applications": "📨",
     "history": "🕘",
     "profile": "👤",
 }

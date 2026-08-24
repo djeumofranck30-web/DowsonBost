@@ -22,6 +22,6 @@ ATS_MATCH_MAX_TOKENS = 3500
 ANALYSIS_DEPTH_OPTIONS = ("rapide", "standard", "complet")
 ANALYSIS_DEPTH_POOL = {"rapide": 18, "standard": 30, "complet": 45}
 ANALYSIS_DEPTH_TOP = {"rapide": 15, "standard": 30, "complet": 30}
-NAV_PAGE_KEYS = ("analysis", "dashboard", "history", "profile")
+NAV_PAGE_KEYS = ("analysis", "dashboard", "applications", "history", "profile")
 
 PASSWORD_RESET_TOKEN_TTL_HOURS = 24
