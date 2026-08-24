@@ -15,6 +15,7 @@ import os
 import re
 import time
 import unicodedata
+import zipfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import Any, Callable
@@ -113,6 +114,12 @@ from constants import (
     PARALLEL_MATCH_MAX_WORKERS,
     SEARCH_LOCATION_MAX_WORKERS,
     TOP_MATCHING_JOBS,
+)
+from services.application import (
+    build_application_profile,
+    format_application_profile_text,
+    prepare_manual_application,
+    submit_application_automatically,
 )
 from services.matching import (
     as_str_list as _as_str_list,
@@ -3447,55 +3454,184 @@ def render_job_card(
         st.markdown(f"**{t('job.missing_keywords')}**")
         st.write(", ".join(f"`{kw}`" for kw in missing))
 
-    action_col1, action_col2 = st.columns([1, 1])
-    with action_col1:
-        if job.get("url"):
-            st.link_button(t("job.apply_link"), job["url"], use_container_width=True)
-    with action_col2:
-        if enable_tracking and result_id and user_id and cv_text and user_profile:
-            gen_col1, gen_col2 = st.columns(2)
-            with gen_col1:
-                if st.button(t("job.cover_letter"), key=f"gen_cover_{result_id}", use_container_width=True):
-                    with st.spinner(t("job.writing_letter")):
-                        letter = generate_cover_letter(
-                            cv_text,
-                            job,
-                            match,
-                            user_profile,
-                            llm_call=call_llm,
-                        )
-                        save_generated_documents(
-                            user_id,
-                            result_id,
-                            cover_letter_text=letter,
-                        )
-                        st.session_state[f"cover_{result_id}"] = letter
-                        st.success(t("job.cover_ready"))
-            with gen_col2:
-                if st.button(
-                    t("job.adapted_cv"),
-                    key=f"gen_cv_{result_id}",
-                    use_container_width=True,
-                    help=t("job.adapted_cv_help"),
-                ):
-                    with st.spinner(t("job.adapting_cv")):
-                        adapted = generate_adapted_cv(
-                            cv_text,
-                            job,
-                            match,
-                            user_profile,
-                            llm_call=call_llm,
-                        )
-                        save_generated_documents(
-                            user_id,
-                            result_id,
-                            adapted_cv_text=adapted,
-                        )
-                        st.session_state[f"adapted_{result_id}"] = adapted
-                        st.success(t("job.cv_ready"))
+    st.write(", ".join(f"`{kw}`" for kw in missing))
 
+    can_apply = bool(enable_tracking and result_id and user_id and cv_text and user_profile)
+    st.markdown(f"**{t('job.application_section')}**")
+    apply_col1, apply_col2 = st.columns(2)
+    with apply_col1:
+        if job.get("url"):
+            st.link_button(
+                t("job.apply_manual"),
+                job["url"],
+                use_container_width=True,
+                help=t("job.apply_manual_help"),
+            )
+        else:
+            st.button(t("job.apply_manual"), disabled=True, use_container_width=True)
+    with apply_col2:
+        if can_apply:
+            if st.button(
+                t("job.apply_auto"),
+                key=f"apply_auto_{result_id}",
+                use_container_width=True,
+                help=t("job.apply_auto_help"),
+            ):
+                with st.spinner(t("job.apply_auto_running")):
+                    current_letter = st.session_state.get(f"cover_{result_id}") or cover_letter_text
+                    current_cv = st.session_state.get(f"adapted_{result_id}") or adapted_cv_text
+                    auto_result = submit_application_automatically(
+                        cv_text,
+                        job,
+                        match,
+                        user_profile,
+                        llm_call=call_llm,
+                        cover_letter_text=current_letter,
+                        adapted_cv_text=current_cv,
+                        locale=get_locale(),
+                    )
+                if auto_result["success"]:
+                    save_generated_documents(
+                        user_id,
+                        result_id,
+                        cover_letter_text=auto_result["cover_letter"],
+                        adapted_cv_text=auto_result["adapted_cv"],
+                    )
+                    st.session_state[f"cover_{result_id}"] = auto_result["cover_letter"]
+                    st.session_state[f"adapted_{result_id}"] = auto_result["adapted_cv"]
+                    st.session_state[f"apply_pack_{result_id}"] = auto_result
+                    if auto_result["method"] == "email":
+                        update_application_status(
+                            user_id,
+                            result_id,
+                            "applied",
+                            notes=auto_result["message"],
+                        )
+                    else:
+                        update_application_status(
+                            user_id,
+                            result_id,
+                            "saved",
+                            notes=auto_result["message"],
+                        )
+                    st.success(auto_result["message"])
+                    st.rerun()
+                else:
+                    st.error(auto_result["message"])
+        else:
+            st.button(t("job.apply_auto"), disabled=True, use_container_width=True)
+
+    if can_apply:
+        if st.button(
+            t("job.apply_manual_prepare"),
+            key=f"apply_manual_prepare_{result_id}",
+            use_container_width=True,
+            help=t("job.apply_manual_prepare_help"),
+        ):
+            with st.spinner(t("job.apply_auto_running")):
+                current_letter = st.session_state.get(f"cover_{result_id}") or cover_letter_text
+                current_cv = st.session_state.get(f"adapted_{result_id}") or adapted_cv_text
+                manual_result = prepare_manual_application(
+                    cv_text,
+                    job,
+                    match,
+                    user_profile,
+                    llm_call=call_llm,
+                    cover_letter_text=current_letter,
+                    adapted_cv_text=current_cv,
+                    generate_documents=True,
+                    locale=get_locale(),
+                )
+            if manual_result["success"]:
+                save_generated_documents(
+                    user_id,
+                    result_id,
+                    cover_letter_text=manual_result["cover_letter"],
+                    adapted_cv_text=manual_result["adapted_cv"],
+                )
+                st.session_state[f"cover_{result_id}"] = manual_result["cover_letter"]
+                st.session_state[f"adapted_{result_id}"] = manual_result["adapted_cv"]
+                st.session_state[f"apply_pack_{result_id}"] = manual_result
+                st.success(manual_result["message"])
+                st.rerun()
+            else:
+                st.error(manual_result["message"])
+
+    if can_apply:
+        gen_col1, gen_col2 = st.columns(2)
+        with gen_col1:
+            if st.button(t("job.cover_letter"), key=f"gen_cover_{result_id}", use_container_width=True):
+                with st.spinner(t("job.writing_letter")):
+                    letter = generate_cover_letter(
+                        cv_text,
+                        job,
+                        match,
+                        user_profile,
+                        llm_call=call_llm,
+                    )
+                    save_generated_documents(
+                        user_id,
+                        result_id,
+                        cover_letter_text=letter,
+                    )
+                    st.session_state[f"cover_{result_id}"] = letter
+                    st.success(t("job.cover_ready"))
+        with gen_col2:
+            if st.button(
+                t("job.adapted_cv"),
+                key=f"gen_cv_{result_id}",
+                use_container_width=True,
+                help=t("job.adapted_cv_help"),
+            ):
+                with st.spinner(t("job.adapting_cv")):
+                    adapted = generate_adapted_cv(
+                        cv_text,
+                        job,
+                        match,
+                        user_profile,
+                        llm_call=call_llm,
+                    )
+                    save_generated_documents(
+                        user_id,
+                        result_id,
+                        adapted_cv_text=adapted,
+                    )
+                    st.session_state[f"adapted_{result_id}"] = adapted
+                    st.success(t("job.cv_ready"))
+
+    apply_pack = st.session_state.get(f"apply_pack_{result_id}")
     letter_text = st.session_state.get(f"cover_{result_id}") or cover_letter_text
     adapted_text = st.session_state.get(f"adapted_{result_id}") or adapted_cv_text
+    if apply_pack or letter_text or adapted_text:
+        profile_text = (apply_pack or {}).get("profile_text") or ""
+        if not profile_text and user_profile:
+            profile_text = format_application_profile_text(build_application_profile(user_profile))
+        if profile_text:
+            with st.expander(t("job.apply_profile_expander"), expanded=False):
+                st.text_area(
+                    t("job.apply_profile_expander"),
+                    profile_text,
+                    height=140,
+                    key=f"apply_profile_{result_id}",
+                )
+        if letter_text or adapted_text:
+            bundle_buf = io.BytesIO()
+            with zipfile.ZipFile(bundle_buf, "w", zipfile.ZIP_DEFLATED) as archive:
+                if profile_text:
+                    archive.writestr("profil_candidat.txt", profile_text)
+                if letter_text:
+                    archive.writestr("lettre_motivation.txt", letter_text)
+                if adapted_text:
+                    archive.writestr("cv_adapte.txt", adapted_text)
+            st.download_button(
+                t("job.apply_bundle_download"),
+                bundle_buf.getvalue(),
+                file_name="dossier_candidature.zip",
+                mime="application/zip",
+                key=f"dl_bundle_{result_id}",
+                use_container_width=True,
+            )
+
     if letter_text:
         with st.expander(t("job.cover_expander"), expanded=False):
             st.text_area(t("job.letter_field"), letter_text, height=220, key=f"view_cover_{result_id}")

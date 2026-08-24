@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import os
+import base64
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -154,6 +154,90 @@ def maybe_send_analysis_alert(
     )
     html = build_alert_html(user_name, target_title, filtered, locale=lang)
     return send_alert_email(user_email, subject, html, locale=lang)
+
+
+def send_application_email(
+    to_email: str,
+    subject: str,
+    body_text: str,
+    *,
+    attachments: list[tuple[str, str, str]] | None = None,
+    reply_to: str | None = None,
+    locale: str | None = None,
+) -> tuple[bool, str]:
+    """Send a job application e-mail with optional text attachments."""
+    lang = locale or get_locale()
+    resend_key = _get_secret("RESEND_API_KEY")
+    from_resend = _get_secret("EMAIL_FROM") or "DowsonBost <onboarding@resend.dev>"
+    attachment_items = attachments or []
+
+    if resend_key:
+        try:
+            payload: dict[str, Any] = {
+                "from": from_resend,
+                "to": [to_email],
+                "subject": subject,
+                "text": body_text,
+            }
+            if reply_to:
+                payload["reply_to"] = reply_to
+            if attachment_items:
+                payload["attachments"] = [
+                    {
+                        "filename": filename,
+                        "content": base64.b64encode(content.encode("utf-8")).decode("ascii"),
+                    }
+                    for filename, content, _mime in attachment_items
+                ]
+            response = requests.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {resend_key}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+                timeout=30,
+            )
+            if response.status_code >= 400:
+                return False, f"Resend {response.status_code}: {response.text[:200]}"
+            return True, t("email.application_sent", locale=lang)
+        except requests.RequestException as exc:
+            return False, str(exc)
+
+    smtp_host = _get_secret("SMTP_HOST")
+    smtp_port = int(_get_secret("SMTP_PORT") or "587")
+    smtp_user = _get_secret("SMTP_USER")
+    smtp_password = _get_secret("SMTP_PASSWORD")
+    smtp_from = _get_secret("SMTP_FROM") or smtp_user
+
+    if not smtp_host or not smtp_user:
+        return False, t("email.not_configured", locale=lang)
+
+    message = MIMEMultipart("mixed")
+    message["Subject"] = subject
+    message["From"] = smtp_from
+    message["To"] = to_email
+    if reply_to:
+        message["Reply-To"] = reply_to
+
+    body_part = MIMEMultipart("alternative")
+    body_part.attach(MIMEText(body_text, "plain", "utf-8"))
+    message.attach(body_part)
+
+    for filename, content, _mime in attachment_items:
+        part = MIMEText(content, "plain", "utf-8")
+        part.add_header("Content-Disposition", f'attachment; filename="{filename}"')
+        message.attach(part)
+
+    try:
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as server:
+            server.starttls()
+            if smtp_password:
+                server.login(smtp_user, smtp_password)
+            server.sendmail(smtp_from, [to_email], message.as_string())
+        return True, t("email.application_sent", locale=lang)
+    except smtplib.SMTPException as exc:
+        return False, str(exc)
 
 
 def send_password_reset_email(user_email: str, reset_url: str, *, locale: str | None = None) -> tuple[bool, str]:
