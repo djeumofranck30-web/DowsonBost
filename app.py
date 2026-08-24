@@ -5188,46 +5188,41 @@ def _render_auth_login_form() -> None:
         placeholder=t("placeholder.password"),
         key="login_password",
     )
-    st.markdown('<div class="auth-login-actions">', unsafe_allow_html=True)
-    login_col, forgot_col = st.columns([1.45, 1], gap="small")
-    with login_col:
-        if st.button(
-            t("auth.login.submit"),
-            type="primary",
-            use_container_width=True,
-            key="auth_login_submit",
-        ):
-            ok, message, user = authenticate_user(
-                st.session_state.get("login_email", ""),
-                st.session_state.get("login_password", ""),
+    if st.button(
+        t("auth.login.submit"),
+        type="primary",
+        use_container_width=True,
+        key="auth_login_submit",
+    ):
+        ok, message, user = authenticate_user(
+            st.session_state.get("login_email", ""),
+            st.session_state.get("login_password", ""),
+        )
+        if ok and user:
+            login_locale = get_locale()
+            ok_lang, _, updated = update_user_preferred_language(
+                int(user["id"]), login_locale
             )
-            if ok and user:
-                login_locale = get_locale()
-                ok_lang, _, updated = update_user_preferred_language(
-                    int(user["id"]), login_locale
-                )
-                st.session_state.authenticated = True
-                st.session_state.user = (
-                    updated
-                    if ok_lang and updated
-                    else {**user, "preferred_language": login_locale}
-                )
-                set_locale(login_locale)
-                st.session_state.auth_view = "login"
-                st.success(message)
-                st.rerun()
-            else:
-                st.error(message)
-    with forgot_col:
-        st.markdown('<div class="auth-login-forgot">', unsafe_allow_html=True)
-        if st.button(
-            t("auth.login.forgot"),
-            use_container_width=True,
-            key="auth_go_reset",
-        ):
-            st.session_state.auth_view = "reset"
+            st.session_state.authenticated = True
+            st.session_state.user = (
+                updated
+                if ok_lang and updated
+                else {**user, "preferred_language": login_locale}
+            )
+            set_locale(login_locale)
+            st.session_state.auth_view = "login"
+            st.success(message)
             st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
+        else:
+            st.error(message)
+
+    st.markdown('<div class="auth-login-forgot-centered">', unsafe_allow_html=True)
+    if st.button(
+        t("auth.login.forgot"),
+        key="auth_go_reset",
+    ):
+        st.session_state.auth_view = "reset"
+        st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
 
@@ -5635,7 +5630,7 @@ def render_auth_page() -> None:
     with card_col:
         if view != "register":
             _render_auth_language_bar()
-        st.markdown('<div class="auth-card-row">', unsafe_allow_html=True)
+        st.markdown('<div id="auth-split-screen"></div>', unsafe_allow_html=True)
         panel_left, panel_right = st.columns(2, gap="small")
 
         with panel_left:
@@ -5659,7 +5654,7 @@ def render_auth_page() -> None:
             st.markdown("</div>", unsafe_allow_html=True)
 
         if view == "login":
-            st.markdown('<div class="auth-create-between">', unsafe_allow_html=True)
+            st.markdown('<div id="auth-create-between-marker"></div>', unsafe_allow_html=True)
             _, create_col, _ = st.columns([1, 1.35, 1])
             with create_col:
                 if st.button(
@@ -5670,9 +5665,6 @@ def render_auth_page() -> None:
                     st.session_state.auth_view = "register"
                     _reset_register_wizard()
                     st.rerun()
-            st.markdown("</div>", unsafe_allow_html=True)
-
-        st.markdown("</div>", unsafe_allow_html=True)
 
 
 def render_delete_account_section(user: dict[str, Any]) -> None:

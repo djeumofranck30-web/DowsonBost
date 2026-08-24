@@ -463,6 +463,10 @@ def render_app_styles() -> None:
 def render_auth_styles() -> None:
     """Split-screen login / register styles."""
     t = THEME
+    split = '#auth-split-screen + div[data-testid="stHorizontalBlock"]'
+    split_left = f'{split} > div[data-testid="column"]:first-child'
+    split_right = f'{split} > div[data-testid="column"]:last-child'
+    create_row = '#auth-create-between-marker + div[data-testid="stHorizontalBlock"]'
     st.markdown(
         f"""
         <style>
@@ -480,6 +484,60 @@ def render_auth_styles() -> None:
             padding-top: 2rem;
             padding-bottom: 2rem;
             max-width: 960px;
+        }}
+        #auth-split-screen,
+        #auth-create-between-marker {{
+            display: none;
+        }}
+        {split} {{
+            gap: 0 !important;
+            position: relative;
+            border-radius: {t["radius_xl"]};
+            overflow: hidden;
+            box-shadow: {t["shadow_lg"]};
+            padding-bottom: 3.25rem;
+        }}
+        {split} > div[data-testid="column"] {{
+            padding: 0 !important;
+        }}
+        {split_left} > div {{
+            background: linear-gradient(160deg, {t["primary"]} 0%, {t["primary_dark"]} 55%, #5b21b6 100%);
+            border-radius: {t["radius_xl"]} 0 0 {t["radius_xl"]};
+            min-height: 580px;
+            height: 100%;
+        }}
+        {split_right} > div {{
+            background: {t["surface"]};
+            border-radius: 0 {t["radius_xl"]} {t["radius_xl"]} 0;
+            min-height: 580px;
+            height: 100%;
+            padding: 2.25rem 2.5rem 1.75rem !important;
+            display: flex;
+            flex-direction: column;
+        }}
+        {create_row} {{
+            margin-top: -2.75rem;
+            position: relative;
+            z-index: 6;
+            pointer-events: none;
+        }}
+        {create_row} [data-testid="column"] {{
+            pointer-events: auto;
+        }}
+        {create_row} button {{
+            background: {t["surface"]} !important;
+            border: 2px solid rgba(124, 58, 237, 0.28) !important;
+            color: {t["primary_deep"]} !important;
+            font-weight: 700 !important;
+            font-size: 0.92rem !important;
+            border-radius: 999px !important;
+            padding: 0.65rem 1.25rem !important;
+            box-shadow: 0 10px 28px rgba(76, 29, 149, 0.18) !important;
+        }}
+        {create_row} button:hover {{
+            border-color: {t["primary"]} !important;
+            color: {t["primary"]} !important;
+            transform: translateY(-1px);
         }}
         .auth-lang-hint-badge {{
             display: inline-flex;
@@ -518,84 +576,35 @@ def render_auth_styles() -> None:
             0%, 100% {{ transform: translateX(0); opacity: 0.85; }}
             50% {{ transform: translateX(4px); opacity: 1; }}
         }}
-        .auth-card-row {{
-            position: relative;
-            padding-bottom: 3.25rem;
-        }}
-        .auth-card-row [data-testid="column"] {{
-            padding: 0 !important;
-        }}
-        .auth-card-row [data-testid="column"]:first-child > div {{
-            background: linear-gradient(160deg, {t["primary"]} 0%, {t["primary_dark"]} 55%, #5b21b6 100%);
-            border-radius: {t["radius_xl"]} 0 0 {t["radius_xl"]};
-            min-height: 580px;
-            box-shadow: {t["shadow_lg"]};
-        }}
-        .auth-card-row [data-testid="column"]:last-child > div {{
-            background: {t["surface"]};
-            border-radius: 0 {t["radius_xl"]} {t["radius_xl"]} 0;
-            min-height: 580px;
-            box-shadow: {t["shadow_lg"]};
-            padding: 2.25rem 2.5rem 1.75rem !important;
-            display: flex;
-            flex-direction: column;
-        }}
         .auth-panel-right-inner {{
             display: flex;
             flex-direction: column;
             flex: 1;
             min-height: 100%;
         }}
-        .auth-login-actions {{
-            margin-top: 0.35rem;
-        }}
-        .auth-login-actions [data-testid="column"] {{
+        .auth-login-forgot-centered {{
             display: flex;
-            align-items: stretch;
+            justify-content: center;
+            margin-top: 0.65rem;
         }}
-        .auth-login-forgot {{
-            display: flex;
-            align-items: center;
-            height: 100%;
-            justify-content: flex-end;
+        .auth-login-forgot-centered .stButton {{
+            margin: 0 !important;
         }}
-        .auth-login-forgot button {{
+        .auth-login-forgot-centered .stButton > button {{
             background: transparent !important;
             border: none !important;
             box-shadow: none !important;
             color: {t["accent"]} !important;
-            font-size: 0.82rem !important;
+            font-size: 0.84rem !important;
             font-weight: 600 !important;
-            white-space: nowrap;
-            padding: 0.65rem 0.25rem !important;
-        }}
-        .auth-login-forgot button:hover {{
-            color: {t["primary"]} !important;
+            padding: 0 !important;
+            min-height: 0 !important;
             text-decoration: underline;
+            text-underline-offset: 2px;
         }}
-        .auth-create-between {{
-            margin-top: -2.75rem;
-            position: relative;
-            z-index: 6;
-            pointer-events: none;
-        }}
-        .auth-create-between [data-testid="column"] {{
-            pointer-events: auto;
-        }}
-        .auth-create-between button {{
-            background: {t["surface"]} !important;
-            border: 2px solid rgba(124, 58, 237, 0.28) !important;
-            color: {t["primary_deep"]} !important;
-            font-weight: 700 !important;
-            font-size: 0.92rem !important;
-            border-radius: 999px !important;
-            padding: 0.65rem 1.25rem !important;
-            box-shadow: 0 10px 28px rgba(76, 29, 149, 0.18) !important;
-        }}
-        .auth-create-between button:hover {{
-            border-color: {t["primary"]} !important;
+        .auth-login-forgot-centered .stButton > button:hover {{
             color: {t["primary"]} !important;
-            transform: translateY(-1px);
+            transform: none !important;
         }}
         .auth-left-panel {{
             color: #fff;
@@ -610,6 +619,7 @@ def render_auth_styles() -> None:
         .auth-illustration {{
             width: min(100%, 260px);
             margin-bottom: 1.5rem;
+            border-radius: 16px;
             filter: drop-shadow(0 12px 24px rgba(0,0,0,0.15));
         }}
         .auth-left-title {{
@@ -642,18 +652,18 @@ def render_auth_styles() -> None:
             color: {t["muted"]};
             margin: 0 0 1.25rem;
         }}
-        .auth-card-row div[data-testid="stTextInput"] input {{
+        {split_right} div[data-testid="stTextInput"] input {{
             background: {t["surface_soft"]} !important;
             border: 1.5px solid rgba(124, 58, 237, 0.12) !important;
             border-radius: 12px !important;
             padding: 0.65rem 0.85rem !important;
             color: {t["primary_deep"]} !important;
         }}
-        .auth-card-row div[data-testid="stTextInput"] input:focus {{
+        {split_right} div[data-testid="stTextInput"] input:focus {{
             border-color: {t["primary"]} !important;
             box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12) !important;
         }}
-        .auth-card-row div[data-testid="stFormSubmitButton"] button {{
+        {split_right} div[data-testid="stFormSubmitButton"] button {{
             width: 100%;
             padding: 0.78rem 1.5rem !important;
             margin-top: 0.35rem;
@@ -747,11 +757,11 @@ def render_auth_styles() -> None:
         }}
         {_shared_components_css(t)}
         @media (max-width: 768px) {{
-            .auth-card-row [data-testid="column"]:first-child > div {{
+            {split_left} > div {{
                 border-radius: {t["radius_xl"]} {t["radius_xl"]} 0 0;
                 min-height: 260px;
             }}
-            .auth-card-row [data-testid="column"]:last-child > div {{
+            {split_right} > div {{
                 border-radius: 0 0 {t["radius_xl"]} {t["radius_xl"]};
                 min-height: auto;
             }}
