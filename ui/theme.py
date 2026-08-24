@@ -677,6 +677,9 @@ def render_auth_styles() -> None:
         }}
         .auth-back-link button {{
             color: {t["primary"]} !important;
+            font-weight: 600 !important;
+            font-size: 0.84rem !important;
+            padding-left: 0 !important;
         }}
         .reg-wizard-track {{
             display: flex;
@@ -728,6 +731,19 @@ def render_auth_styles() -> None:
         }}
         .reg-wizard-nav {{
             margin-top: 1.25rem;
+        }}
+        .reg-wizard-nav button {{
+            min-height: 2.65rem;
+        }}
+        .reg-wizard-nav [data-testid="column"]:first-child button {{
+            background: {t["surface_soft"]} !important;
+            border: 1.5px solid rgba(124, 58, 237, 0.22) !important;
+            color: {t["primary_deep"]} !important;
+            font-weight: 600 !important;
+        }}
+        .reg-wizard-nav [data-testid="column"]:first-child button:hover {{
+            border-color: {t["primary"]} !important;
+            color: {t["primary"]} !important;
         }}
         {_shared_components_css(t)}
         @media (max-width: 768px) {{

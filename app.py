@@ -5583,12 +5583,21 @@ def _render_auth_register_form() -> None:
     st.markdown('<div class="reg-wizard-nav">', unsafe_allow_html=True)
     nav_back, nav_next = st.columns(2)
     with nav_back:
-        if step > 0 and st.button(
-            t("auth.register.back"),
+        if step > 0:
+            if st.button(
+                t("auth.register.back"),
+                use_container_width=True,
+                key="register_wizard_back",
+            ):
+                st.session_state.register_wizard_step = step - 1
+                st.rerun()
+        elif st.button(
+            t("auth.footer.back_login"),
             use_container_width=True,
-            key="register_wizard_back",
+            key="auth_register_back_login",
         ):
-            st.session_state.register_wizard_step = step - 1
+            st.session_state.auth_view = "login"
+            _reset_register_wizard()
             st.rerun()
     with nav_next:
         if step < total - 1:
