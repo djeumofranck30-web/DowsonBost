@@ -810,14 +810,14 @@ def authenticate_user(email: str, password: str) -> tuple[bool, str, dict | None
             adapt_sql(
                 f"""
                 SELECT password_hash, {_USER_SELECT_SQL}
-                FROM users WHERE email = ?
+                FROM users WHERE LOWER(email) = LOWER(?)
                 """
             ),
             (email,),
         ).fetchone()
 
     if not row:
-        return False, t("auth.login.invalid"), None
+        return False, t("auth.login.unknown_email"), None
     if not _verify_password(password, row["password_hash"]):
         return False, t("auth.login.invalid"), None
 
@@ -1073,28 +1073,37 @@ def reset_password(email: str, full_name: str, new_password: str) -> tuple[bool,
 
 
 def delete_user_account(user_id: int) -> tuple[bool, str]:
-    """Permanently delete a user and every associated record."""
+    """Permanently delete a user and every associated record.
+
+    After success the same e-mail (and other profile details) can be used to
+    create a new account and log in again.
+    """
     init_db()
-    from persistence import delete_all_user_data, init_persistence_tables
+    from persistence import init_persistence_tables, release_user_identity
 
     init_persistence_tables()
     with _connect() as conn:
         row = conn.execute(
-            adapt_sql("SELECT id FROM users WHERE id = ?"),
+            adapt_sql("SELECT id, email FROM users WHERE id = ?"),
             (user_id,),
         ).fetchone()
         if not row:
             return False, t("auth.profile.not_found")
 
-        delete_all_user_data(conn, user_id)
-        conn.execute(
-            adapt_sql("DELETE FROM users WHERE id = ?"),
-            (user_id,),
-        )
-        leftover = conn.execute(
-            adapt_sql("SELECT id FROM users WHERE id = ?"),
-            (user_id,),
-        ).fetchone()
+        email = str(row["email"] or "")
+        try:
+            release_user_identity(conn, user_id, email)
+            leftover = conn.execute(
+                adapt_sql(
+                    """
+                    SELECT id FROM users
+                    WHERE id = ? OR LOWER(email) = LOWER(?)
+                    """
+                ),
+                (user_id, email or ""),
+            ).fetchone()
+        except Exception:  # noqa: BLE001 — never leave a half-deleted identity
+            return False, t("auth.account.delete_failed")
         if leftover:
             return False, t("auth.account.delete_failed")
 

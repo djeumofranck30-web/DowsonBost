@@ -5349,10 +5349,14 @@ def _render_auth_language_bar() -> None:
     )
 
 
+def _render_account_deleted_notice() -> None:
+    if st.session_state.get("account_deleted_notice"):
+        st.success(t("auth.account.deleted"))
+
+
 def _render_auth_login_form() -> None:
     """Login form in the right panel."""
-    if st.session_state.pop("account_deleted_notice", False):
-        st.success(t("auth.account.deleted"))
+    _render_account_deleted_notice()
     headline, sub = _auth_time_greeting()
     st.markdown(f'<p class="auth-greeting-main">{headline}</p>', unsafe_allow_html=True)
     st.markdown(f'<p class="auth-greeting-sub">{sub}</p>', unsafe_allow_html=True)
@@ -5390,6 +5394,8 @@ def _render_auth_login_form() -> None:
             )
             set_locale(login_locale)
             st.session_state.auth_view = "login"
+            st.session_state.pop("account_deleted_notice", None)
+            st.session_state.pop("prefill_register_email", None)
             st.success(message)
             st.rerun()
         else:
@@ -5591,6 +5597,8 @@ def _submit_register_wizard(draft: dict[str, Any]) -> None:
     if ok:
         st.success(message)
         st.session_state.auth_view = "login"
+        st.session_state.pop("account_deleted_notice", None)
+        st.session_state.pop("prefill_register_email", None)
         _reset_register_wizard()
     else:
         st.error(message)
@@ -5611,6 +5619,10 @@ def _render_auth_register_form() -> None:
         f'<p class="auth-greeting-sub">{html.escape(t("auth.register.subtitle"))}</p>',
         unsafe_allow_html=True,
     )
+    _render_account_deleted_notice()
+    prefill_email = str(st.session_state.get("prefill_register_email") or "").strip()
+    if prefill_email and "register_wiz_email" not in st.session_state:
+        st.session_state.register_wiz_email = prefill_email
     _render_register_wizard_progress(step)
 
     if step == 0:
@@ -5847,10 +5859,12 @@ def render_auth_page() -> None:
                     st.rerun()
 
 
-def _reset_session_after_account_deletion() -> None:
+def _reset_session_after_account_deletion(*, recreate_email: str = "") -> None:
     """Wipe in-browser session data after a successful account purge."""
     st.session_state.clear()
     st.session_state.account_deleted_notice = True
+    if recreate_email:
+        st.session_state.prefill_register_email = recreate_email
     init_session_state()
     st.session_state.authenticated = False
     st.session_state.user = None
@@ -5894,7 +5908,9 @@ def render_delete_account_section(user: dict[str, Any]) -> None:
             ):
                 ok, message = delete_user_account(user_id)
                 if ok:
-                    _reset_session_after_account_deletion()
+                    _reset_session_after_account_deletion(
+                        recreate_email=str(user.get("email") or "")
+                    )
                     st.rerun()
                 st.error(message)
             st.markdown("</div>", unsafe_allow_html=True)

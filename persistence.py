@@ -408,6 +408,32 @@ def delete_all_user_data(conn: Any, user_id: int) -> None:
         conn.execute(adapt_sql(f"DELETE FROM {table} WHERE user_id = ?"), (user_id,))
 
 
+def _delete_users_by_id_or_email(conn: Any, user_id: int, email: str) -> None:
+    conn.execute(adapt_sql("DELETE FROM users WHERE id = ?"), (user_id,))
+    cleaned = (email or "").strip()
+    if cleaned:
+        conn.execute(
+            adapt_sql("DELETE FROM users WHERE LOWER(email) = LOWER(?)"),
+            (cleaned,),
+        )
+
+
+def release_user_identity(conn: Any, user_id: int, email: str) -> None:
+    """Remove owned rows and the users identity so the e-mail can be registered again."""
+    delete_all_user_data(conn, user_id)
+    try:
+        _delete_users_by_id_or_email(conn, user_id, email)
+    except Exception:
+        if database_backend() != "sqlite":
+            raise
+        conn.execute("PRAGMA foreign_keys = OFF")
+        try:
+            delete_all_user_data(conn, user_id)
+            _delete_users_by_id_or_email(conn, user_id, email)
+        finally:
+            conn.execute("PRAGMA foreign_keys = ON")
+
+
 def _json_dumps(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True)
 
