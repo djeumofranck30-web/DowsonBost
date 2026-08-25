@@ -131,7 +131,40 @@ def test_connect_without_site_password_fails(sqlite_db):
         site_password="   ",
     )
     assert not ok
-    assert "mot de passe" in msg.lower() or "password" in msg.lower() or "identifiant" in msg.lower()
+    assert "échec" in msg.lower() or "fail" in msg.lower() or "incorrect" in msg.lower()
+    assert list_connected_job_accounts(user_id) == []
+
+
+def test_connect_fails_when_passwords_do_not_match(sqlite_db):
+    _reset_persistence()
+    init_persistence_tables()
+    user_id = _register_jane()
+    ok, msg = connect_job_account(
+        user_id,
+        "indeed",
+        "jane@example.com",
+        has_existing_account=True,
+        site_password="SitePass123!",
+        site_password_confirm="OtherPass123!",
+    )
+    assert not ok
+    assert "correspondent" in msg.lower() or "match" in msg.lower()
+    assert list_connected_job_accounts(user_id) == []
+
+
+def test_connect_fails_when_password_too_short(sqlite_db):
+    _reset_persistence()
+    init_persistence_tables()
+    user_id = _register_jane()
+    ok, msg = connect_job_account(
+        user_id,
+        "indeed",
+        "jane@example.com",
+        has_existing_account=True,
+        site_password="short",
+        site_password_confirm="short",
+    )
+    assert not ok
     assert list_connected_job_accounts(user_id) == []
 
 

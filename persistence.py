@@ -651,6 +651,7 @@ def get_active_cv_document(user_id: int) -> dict[str, Any] | None:
 
 _ACCOUNT_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _SITE_USERNAME_RE = re.compile(r"^[\w.+-]{3,80}$")
+MIN_SITE_PASSWORD_LEN = 8
 
 
 def _normalize_site_login(account_login: str) -> str:
@@ -666,6 +667,10 @@ def _is_valid_site_login(account_login: str) -> bool:
     if "@" in account_login:
         return bool(_ACCOUNT_EMAIL_RE.match(account_login))
     return bool(_SITE_USERNAME_RE.match(account_login))
+
+
+def _is_complete_site_password(site_password: str) -> bool:
+    return len((site_password or "").strip()) >= MIN_SITE_PASSWORD_LEN
 
 
 def _normalize_profile_url(profile_url: str) -> str:
@@ -716,11 +721,13 @@ def connect_job_account(
     *,
     has_existing_account: bool = False,
     site_password: str = "",
+    site_password_confirm: str | None = None,
     profile_url: str = "",
 ) -> tuple[bool, str]:
     """Link the candidate DowsonBost account to an existing job-board account.
 
     The job-board password is required to complete the link and is never stored.
+    Incomplete or mismatched credentials fail the connection.
     """
     from i18n import t
     from job_providers import CONNECTABLE_JOB_PROVIDERS, job_board_display_name
@@ -730,12 +737,13 @@ def connect_job_account(
     url = _normalize_profile_url(profile_url)
     if key not in CONNECTABLE_JOB_PROVIDERS:
         return False, t("accounts.unknown_provider")
+    name = job_board_display_name(key)
     if not has_existing_account:
-        return False, t("accounts.not_created", name=job_board_display_name(key))
-    if not _is_valid_site_login(login):
-        return False, t("accounts.login_invalid")
-    if not (site_password or "").strip():
-        return False, t("accounts.login_required", name=job_board_display_name(key))
+        return False, t("accounts.not_created", name=name)
+    if not _is_valid_site_login(login) or not _is_complete_site_password(site_password):
+        return False, t("accounts.login_failed", name=name)
+    if site_password_confirm is not None and site_password != site_password_confirm:
+        return False, t("accounts.login_mismatch", name=name)
     init_persistence_tables()
     now = utc_now_iso()
     with connect() as conn:
@@ -784,10 +792,8 @@ def connect_all_job_accounts(
     if not has_existing_account:
         return False, t("accounts.not_created_all"), 0
     login = _normalize_site_login(account_email)
-    if not _is_valid_site_login(login):
-        return False, t("accounts.login_invalid"), 0
-    if not (site_password or "").strip():
-        return False, t("accounts.login_required_all"), 0
+    if not _is_valid_site_login(login) or not _is_complete_site_password(site_password):
+        return False, t("accounts.login_failed_all"), 0
     already = {row["provider"] for row in list_connected_job_accounts(user_id)}
     linked_now = 0
     for provider in CONNECTABLE_JOB_PROVIDERS:

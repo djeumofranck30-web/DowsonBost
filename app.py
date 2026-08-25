@@ -6020,6 +6020,12 @@ def render_connected_accounts_section(user: dict[str, Any]) -> None:
                         help=t("accounts.login_password_help", name=name),
                     )
                     st.text_input(
+                        t("accounts.login_password_confirm", name=name),
+                        type="password",
+                        key=f"connect_password_confirm_{provider}_{user_id}",
+                        help=t("accounts.login_password_confirm_help", name=name),
+                    )
+                    st.text_input(
                         t("accounts.profile_url", name=name),
                         key=f"connect_profile_url_{provider}_{user_id}",
                         help=t("accounts.profile_url_help", name=name),
@@ -6054,6 +6060,12 @@ def render_connected_accounts_section(user: dict[str, Any]) -> None:
                         st.session_state.get(f"connect_password_{provider}_{user_id}")
                         or ""
                     )
+                    password_confirm = str(
+                        st.session_state.get(
+                            f"connect_password_confirm_{provider}_{user_id}"
+                        )
+                        or ""
+                    )
                     profile_value = str(
                         st.session_state.get(f"connect_profile_url_{provider}_{user_id}")
                         or ""
@@ -6064,6 +6076,7 @@ def render_connected_accounts_section(user: dict[str, Any]) -> None:
                         email_value,
                         has_existing_account=confirmed,
                         site_password=password_value,
+                        site_password_confirm=password_confirm,
                         profile_url=profile_value,
                     )
                     if ok:
