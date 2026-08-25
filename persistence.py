@@ -50,6 +50,7 @@ _USER_OWNED_TABLES = (
     "cv_documents",
     "user_notification_settings",
     "password_reset_tokens",
+    "user_connected_accounts",
 )
 
 _PERSISTENCE_SCHEMA_KEY = (
@@ -58,6 +59,7 @@ _PERSISTENCE_SCHEMA_KEY = (
     "user_notification_settings_v1",
     "scheduled_runs_v1",
     "cv_documents_v1",
+    "user_connected_accounts_v1",
 )
 _persistence_initialized_for: tuple[str, ...] | None = None
 
@@ -316,6 +318,36 @@ def _create_cv_documents_table(conn: Any) -> None:
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """
+        )
+
+
+def _create_user_connected_accounts_table(conn: Any) -> None:
+    if database_backend() == "postgres":
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS user_connected_accounts (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                provider TEXT NOT NULL,
+                account_email TEXT NOT NULL DEFAULT '',
+                connected_at TEXT NOT NULL,
+                UNIQUE (user_id, provider)
+            )
+            """
+        )
+        return
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS user_connected_accounts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            provider TEXT NOT NULL,
+            account_email TEXT NOT NULL DEFAULT '',
+            connected_at TEXT NOT NULL,
+            UNIQUE (user_id, provider),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+        """
     )
 
 
@@ -343,6 +375,7 @@ def init_persistence_tables() -> None:
         _create_user_notification_settings_table(conn)
         _create_scheduled_runs_table(conn)
         _create_cv_documents_table(conn)
+        _create_user_connected_accounts_table(conn)
         _ = existing_columns(conn, "analyses")
     _persistence_initialized_for = _PERSISTENCE_SCHEMA_KEY
 
@@ -597,6 +630,135 @@ def get_active_cv_document(user_id: int) -> dict[str, Any] | None:
         "criteria": _json_loads(row["criteria_json"], {}),
         "uploaded_at": row["uploaded_at"],
     }
+
+
+_ACCOUNT_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def list_connected_job_accounts(user_id: int) -> list[dict[str, Any]]:
+    init_persistence_tables()
+    with connect() as conn:
+        rows = conn.execute(
+            adapt_sql(
+                """
+                SELECT provider, account_email, connected_at
+                FROM user_connected_accounts
+                WHERE user_id = ?
+                ORDER BY provider
+                """
+            ),
+            (user_id,),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def get_connected_job_account(user_id: int, provider: str) -> dict[str, Any] | None:
+    init_persistence_tables()
+    key = (provider or "").strip().lower()
+    if not key:
+        return None
+    with connect() as conn:
+        row = conn.execute(
+            adapt_sql(
+                """
+                SELECT provider, account_email, connected_at
+                FROM user_connected_accounts
+                WHERE user_id = ? AND provider = ?
+                LIMIT 1
+                """
+            ),
+            (user_id, key),
+        ).fetchone()
+    return dict(row) if row else None
+
+
+def connect_job_account(
+    user_id: int,
+    provider: str,
+    account_email: str,
+) -> tuple[bool, str]:
+    """Link the candidate DowsonBost account to an existing job-board account."""
+    from i18n import t
+    from job_providers import CONNECTABLE_JOB_PROVIDERS, job_board_display_name
+
+    key = (provider or "").strip().lower()
+    email = (account_email or "").strip().lower()
+    if key not in CONNECTABLE_JOB_PROVIDERS:
+        return False, t("accounts.unknown_provider")
+    if not _ACCOUNT_EMAIL_RE.match(email):
+        return False, t("auth.email.invalid")
+    init_persistence_tables()
+    now = utc_now_iso()
+    with connect() as conn:
+        existing = conn.execute(
+            adapt_sql(
+                "SELECT id FROM user_connected_accounts WHERE user_id = ? AND provider = ?"
+            ),
+            (user_id, key),
+        ).fetchone()
+        if existing:
+            conn.execute(
+                adapt_sql(
+                    """
+                    UPDATE user_connected_accounts
+                    SET account_email = ?, connected_at = ?
+                    WHERE user_id = ? AND provider = ?
+                    """
+                ),
+                (email, now, user_id, key),
+            )
+        else:
+            conn.execute(
+                adapt_sql(
+                    """
+                    INSERT INTO user_connected_accounts (
+                        user_id, provider, account_email, connected_at
+                    ) VALUES (?, ?, ?, ?)
+                    """
+                ),
+                (user_id, key, email, now),
+            )
+    return True, t("accounts.connected", name=job_board_display_name(key))
+
+
+def connect_all_job_accounts(
+    user_id: int,
+    account_email: str,
+) -> tuple[bool, str, int]:
+    """Link every supported job board with the candidate's email (skip already linked)."""
+    from i18n import t
+    from job_providers import CONNECTABLE_JOB_PROVIDERS
+
+    email = (account_email or "").strip().lower()
+    if not _ACCOUNT_EMAIL_RE.match(email):
+        return False, t("auth.email.invalid"), 0
+    already = {row["provider"] for row in list_connected_job_accounts(user_id)}
+    linked_now = 0
+    for provider in CONNECTABLE_JOB_PROVIDERS:
+        if provider in already:
+            continue
+        ok, _message = connect_job_account(user_id, provider, email)
+        if ok:
+            linked_now += 1
+    if linked_now == 0 and already:
+        return True, t("accounts.already_all_connected"), 0
+    return True, t("accounts.connected_all", count=linked_now, email=email), linked_now
+
+
+def disconnect_job_account(user_id: int, provider: str) -> tuple[bool, str]:
+    from i18n import t
+    from job_providers import job_board_display_name
+
+    key = (provider or "").strip().lower()
+    init_persistence_tables()
+    with connect() as conn:
+        conn.execute(
+            adapt_sql(
+                "DELETE FROM user_connected_accounts WHERE user_id = ? AND provider = ?"
+            ),
+            (user_id, key),
+        )
+    return True, t("accounts.disconnected", name=job_board_display_name(key))
 
 
 def list_analyses(user_id: int, *, limit: int = 50) -> list[dict[str, Any]]:

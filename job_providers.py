@@ -54,6 +54,68 @@ JOB_PROVIDER_SIDEBAR_ORDER = (
     JOB_PROVIDER_SERPAPI,
 )
 
+CONNECTABLE_JOB_PROVIDERS = (
+    JOB_PROVIDER_INDEED,
+    JOB_PROVIDER_LINKEDIN,
+    JOB_PROVIDER_HELLOWORK,
+    JOB_PROVIDER_WTTJ,
+    JOB_PROVIDER_JOBTEASER,
+    JOB_PROVIDER_GLASSDOOR,
+    JOB_PROVIDER_MONSTER,
+    JOB_PROVIDER_TALENT,
+    JOB_PROVIDER_JOOBLE,
+    JOB_PROVIDER_OPTIONCARRIERE,
+)
+
+JOB_BOARD_SHORT_NAMES: dict[str, str] = {
+    JOB_PROVIDER_INDEED: "Indeed",
+    JOB_PROVIDER_LINKEDIN: "LinkedIn",
+    JOB_PROVIDER_HELLOWORK: "HelloWork",
+    JOB_PROVIDER_WTTJ: "Welcome to the Jungle",
+    JOB_PROVIDER_JOBTEASER: "JobTeaser",
+    JOB_PROVIDER_GLASSDOOR: "Glassdoor",
+    JOB_PROVIDER_MONSTER: "Monster",
+    JOB_PROVIDER_TALENT: "Talent.com",
+    JOB_PROVIDER_JOOBLE: "Jooble",
+    JOB_PROVIDER_OPTIONCARRIERE: "OptionCarriere",
+}
+
+_SOURCE_TO_PROVIDER: tuple[tuple[str, str], ...] = (
+    ("linkedin", JOB_PROVIDER_LINKEDIN),
+    ("indeed", JOB_PROVIDER_INDEED),
+    ("hellowork", JOB_PROVIDER_HELLOWORK),
+    ("hello work", JOB_PROVIDER_HELLOWORK),
+    ("welcome to the jungle", JOB_PROVIDER_WTTJ),
+    ("wttj", JOB_PROVIDER_WTTJ),
+    ("jobteaser", JOB_PROVIDER_JOBTEASER),
+    ("glassdoor", JOB_PROVIDER_GLASSDOOR),
+    ("monster", JOB_PROVIDER_MONSTER),
+    ("talent", JOB_PROVIDER_TALENT),
+    ("jooble", JOB_PROVIDER_JOOBLE),
+    ("optioncarriere", JOB_PROVIDER_OPTIONCARRIERE),
+    ("option carrière", JOB_PROVIDER_OPTIONCARRIERE),
+    ("careerjet", JOB_PROVIDER_OPTIONCARRIERE),
+    ("adzuna", JOB_PROVIDER_ADZUNA),
+)
+
+
+def job_board_display_name(provider: str) -> str:
+    """Short site name for account-linking UI (brand names, not engine labels)."""
+    return JOB_BOARD_SHORT_NAMES.get(provider, provider)
+
+
+def provider_key_from_job_source(source: str) -> str | None:
+    """Map a job listing source label to a connectable provider key."""
+    raw = (source or "").strip().lower()
+    if not raw:
+        return None
+    if raw in CONNECTABLE_JOB_PROVIDERS:
+        return raw
+    for needle, key in _SOURCE_TO_PROVIDER:
+        if needle in raw and key in CONNECTABLE_JOB_PROVIDERS:
+            return key
+    return None
+
 DEFAULT_USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
