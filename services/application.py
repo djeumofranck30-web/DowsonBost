@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import json
 import re
 from typing import Any, Callable, TypedDict
 
@@ -252,11 +253,31 @@ def _external_prepared_message(
         )
     elif not apply_email:
         parts.append(t("job.apply_auto_prepared_next", locale=locale))
+    if job.get("url"):
+        parts.append(t("job.apply_auto_opens_site", locale=locale))
     if user_notified:
         parts.append(
             t("job.apply_auto_prepared_user_email", locale=locale, email=profile.get("email", ""))
         )
     return " ".join(parts)
+
+
+def job_listing_open_script(url: str) -> str:
+    """HTML snippet that opens a job listing in a new browser tab."""
+    target = str(url or "").strip()
+    if not target:
+        return ""
+    payload = json.dumps(target).replace("<", "\\u003c").replace(">", "\\u003e")
+    return (
+        "<!DOCTYPE html><html><body><script>"
+        "try {"
+        f" (window.top || window.parent || window).open({payload},"
+        " '_blank', 'noopener,noreferrer');"
+        "} catch (e) {"
+        f" window.open({payload}, '_blank', 'noopener,noreferrer');"
+        "}"
+        "</script></body></html>"
+    )
 
 
 def _empty_result(**overrides: Any) -> ApplicationResult:
