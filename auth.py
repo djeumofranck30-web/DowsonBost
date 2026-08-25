@@ -1062,43 +1062,30 @@ def reset_password(email: str, full_name: str, new_password: str) -> tuple[bool,
 
 
 def delete_user_account(user_id: int) -> tuple[bool, str]:
-    """Permanently delete a user and all associated data."""
+    """Permanently delete a user and every associated record."""
     init_db()
-    from persistence import init_persistence_tables
+    from persistence import delete_all_user_data, init_persistence_tables
 
     init_persistence_tables()
     with _connect() as conn:
         row = conn.execute(
-            adapt_sql("SELECT id, email FROM users WHERE id = ?"),
+            adapt_sql("SELECT id FROM users WHERE id = ?"),
             (user_id,),
         ).fetchone()
         if not row:
             return False, t("auth.profile.not_found")
 
-        conn.execute(
-            adapt_sql("DELETE FROM analysis_results WHERE user_id = ?"),
-            (user_id,),
-        )
-        conn.execute(
-            adapt_sql("DELETE FROM analyses WHERE user_id = ?"),
-            (user_id,),
-        )
-        conn.execute(
-            adapt_sql("DELETE FROM scheduled_runs WHERE user_id = ?"),
-            (user_id,),
-        )
-        conn.execute(
-            adapt_sql("DELETE FROM cv_documents WHERE user_id = ?"),
-            (user_id,),
-        )
-        conn.execute(
-            adapt_sql("DELETE FROM user_notification_settings WHERE user_id = ?"),
-            (user_id,),
-        )
+        delete_all_user_data(conn, user_id)
         conn.execute(
             adapt_sql("DELETE FROM users WHERE id = ?"),
             (user_id,),
         )
+        leftover = conn.execute(
+            adapt_sql("SELECT id FROM users WHERE id = ?"),
+            (user_id,),
+        ).fetchone()
+        if leftover:
+            return False, t("auth.account.delete_failed")
 
     return True, t("auth.account.deleted")
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -39,6 +40,17 @@ AUTO_SEARCH_WEEKDAYS = (
 )
 
 _ALERT_FREQUENCIES = ("after_search", "daily", "weekly")
+
+_SAFE_TABLE_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+# Child rows first so foreign keys never block the users row.
+_USER_OWNED_TABLES = (
+    "analysis_results",
+    "scheduled_runs",
+    "analyses",
+    "cv_documents",
+    "user_notification_settings",
+    "password_reset_tokens",
+)
 
 _PERSISTENCE_SCHEMA_KEY = (
     "analyses_v1",
@@ -333,6 +345,67 @@ def init_persistence_tables() -> None:
         _create_cv_documents_table(conn)
         _ = existing_columns(conn, "analyses")
     _persistence_initialized_for = _PERSISTENCE_SCHEMA_KEY
+
+
+def _table_exists(conn: Any, table: str) -> bool:
+    if not _SAFE_TABLE_NAME.match(table):
+        return False
+    if database_backend() == "postgres":
+        row = conn.execute(
+            """
+            SELECT 1
+            FROM information_schema.tables
+            WHERE table_schema = 'public' AND table_name = %s
+            """,
+            (table,),
+        ).fetchone()
+        return bool(row)
+    row = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+        (table,),
+    ).fetchone()
+    return bool(row)
+
+
+def _tables_with_user_id_column(conn: Any) -> list[str]:
+    names: list[str] = []
+    if database_backend() == "postgres":
+        rows = conn.execute(
+            """
+            SELECT table_name
+            FROM information_schema.columns
+            WHERE table_schema = 'public' AND column_name = 'user_id'
+            """
+        ).fetchall()
+        for row in rows:
+            name = str(row["table_name"])
+            if _SAFE_TABLE_NAME.match(name):
+                names.append(name)
+        return names
+    rows = conn.execute(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"
+    ).fetchall()
+    for row in rows:
+        name = str(row["name"])
+        if not _SAFE_TABLE_NAME.match(name):
+            continue
+        if "user_id" in existing_columns(conn, name):
+            names.append(name)
+    return names
+
+
+def delete_all_user_data(conn: Any, user_id: int) -> None:
+    """Erase every row owned by this user. Caller must then delete the users row."""
+    deleted: set[str] = set()
+    for table in _USER_OWNED_TABLES:
+        if not _table_exists(conn, table):
+            continue
+        conn.execute(adapt_sql(f"DELETE FROM {table} WHERE user_id = ?"), (user_id,))
+        deleted.add(table)
+    for table in _tables_with_user_id_column(conn):
+        if table in deleted or table == "users":
+            continue
+        conn.execute(adapt_sql(f"DELETE FROM {table} WHERE user_id = ?"), (user_id,))
 
 
 def _json_dumps(value: Any) -> str:

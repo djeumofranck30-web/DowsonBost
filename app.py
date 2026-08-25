@@ -5338,6 +5338,8 @@ def _render_auth_language_bar() -> None:
 
 def _render_auth_login_form() -> None:
     """Login form in the right panel."""
+    if st.session_state.pop("account_deleted_notice", False):
+        st.success(t("auth.account.deleted"))
     headline, sub = _auth_time_greeting()
     st.markdown(f'<p class="auth-greeting-main">{headline}</p>', unsafe_allow_html=True)
     st.markdown(f'<p class="auth-greeting-sub">{sub}</p>', unsafe_allow_html=True)
@@ -5832,6 +5834,16 @@ def render_auth_page() -> None:
                     st.rerun()
 
 
+def _reset_session_after_account_deletion() -> None:
+    """Wipe in-browser session data after a successful account purge."""
+    st.session_state.clear()
+    st.session_state.account_deleted_notice = True
+    init_session_state()
+    st.session_state.authenticated = False
+    st.session_state.user = None
+    st.session_state.auth_view = "login"
+
+
 def render_delete_account_section(user: dict[str, Any]) -> None:
     """Danger zone — delete account with confirmation."""
     user_id = int(user["id"])
@@ -5839,20 +5851,18 @@ def render_delete_account_section(user: dict[str, Any]) -> None:
 
     st.markdown('<div class="delete-account-zone">', unsafe_allow_html=True)
     st.markdown(
-        '<p class="delete-account-title">Supprimer mon compte</p>',
+        f'<p class="delete-account-title">{html.escape(t("profile.delete_title"))}</p>',
         unsafe_allow_html=True,
     )
     st.markdown(
-        '<p class="delete-account-text">'
-        "Action définitive — profil, historique, candidatures et CV seront effacés."
-        "</p>",
+        f'<p class="delete-account-text">{html.escape(t("profile.delete_text"))}</p>',
         unsafe_allow_html=True,
     )
 
     if not st.session_state.get(confirm_key):
         st.markdown('<div class="delete-account-trigger">', unsafe_allow_html=True)
         if st.button(
-            "Supprimer mon compte",
+            t("profile.delete_button"),
             key=f"delete_account_btn_{user_id}",
             use_container_width=True,
         ):
@@ -5860,34 +5870,25 @@ def render_delete_account_section(user: dict[str, Any]) -> None:
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
     else:
-        st.warning(
-            "Vous êtes sur le point de supprimer votre compte. "
-            "**Êtes-vous sûr de vouloir supprimer votre compte ?**"
-        )
+        st.warning(t("profile.delete_confirm"))
         yes_col, no_col = st.columns(2)
         with yes_col:
             st.markdown('<div class="delete-confirm-yes">', unsafe_allow_html=True)
             if st.button(
-                "Oui, supprimer définitivement",
+                t("profile.delete_yes"),
                 key=f"delete_account_yes_{user_id}",
                 use_container_width=True,
             ):
                 ok, message = delete_user_account(user_id)
                 if ok:
-                    st.session_state.pop(confirm_key, None)
-                    st.session_state.authenticated = False
-                    st.session_state.user = None
-                    st.session_state.analysis = None
-                    st.session_state.pdf_fingerprint = None
-                    st.session_state.analysis_notices = []
-                    st.session_state.auth_view = "login"
+                    _reset_session_after_account_deletion()
                     st.rerun()
                 st.error(message)
             st.markdown("</div>", unsafe_allow_html=True)
         with no_col:
             st.markdown('<div class="delete-confirm-no">', unsafe_allow_html=True)
             if st.button(
-                "Non, annuler",
+                t("profile.delete_no"),
                 key=f"delete_account_no_{user_id}",
                 use_container_width=True,
             ):

@@ -10,6 +10,7 @@ from pydantic import BaseModel, EmailStr, Field
 
 from auth import (
     authenticate_user,
+    delete_user_account,
     get_user_by_id,
     init_db,
     request_password_reset_email,
@@ -111,6 +112,14 @@ def read_current_user(user: dict[str, Any] = Depends(current_user)) -> dict[str,
         "target_job_title": user.get("target_job_title", ""),
         "preferred_language": user.get("preferred_language", "fr"),
     }
+
+
+@app.delete("/users/me", response_model=MessageResponse)
+def delete_current_user(user: dict[str, Any] = Depends(current_user)) -> MessageResponse:
+    ok, message = delete_user_account(int(user["id"]))
+    if not ok:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
+    return MessageResponse(message=message)
 
 
 @app.get("/analyses")
