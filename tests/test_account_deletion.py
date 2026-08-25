@@ -12,6 +12,7 @@ from auth import (
 from database import adapt_sql, connect
 import persistence
 from persistence import (
+    connect_job_account,
     init_persistence_tables,
     list_analyses,
     list_user_applications,
@@ -100,6 +101,7 @@ def test_delete_user_account_removes_all_personal_data(sqlite_db):
     upsert_active_cv_document(user_id, "abc123", "CV confidentiel de Jane")
     save_notification_settings(user_id, {"email_alerts_enabled": True, "alert_min_score": 80})
     log_scheduled_run(user_id, "success", analysis_id=analysis_id, trigger_source="app")
+    assert connect_job_account(user_id, "indeed", "jane@example.com")[0]
     ok_token, _, token = create_password_reset_token("jane@example.com")
     assert ok_token and token
 
@@ -109,6 +111,7 @@ def test_delete_user_account_removes_all_personal_data(sqlite_db):
     assert _count_for_user("user_notification_settings", user_id) == 1
     assert _count_for_user("scheduled_runs", user_id) == 1
     assert _count_for_user("password_reset_tokens", user_id) == 1
+    assert _count_for_user("user_connected_accounts", user_id) == 1
     assert list_analyses(user_id)
     assert list_user_applications(user_id)
 
@@ -127,6 +130,7 @@ def test_delete_user_account_removes_all_personal_data(sqlite_db):
     assert _count_for_user("user_notification_settings", user_id) == 0
     assert _count_for_user("scheduled_runs", user_id) == 0
     assert _count_for_user("password_reset_tokens", user_id) == 0
+    assert _count_for_user("user_connected_accounts", user_id) == 0
     assert list_analyses(user_id) == []
     assert list_user_applications(user_id) == []
 

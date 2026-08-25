@@ -138,6 +138,7 @@ class GroqRateLimitError(RuntimeError):
     """Groq rate limit — quota org-wide, other models won't help immediately."""
 
 from job_providers import (
+    CONNECTABLE_JOB_PROVIDERS,
     JOB_PROVIDER_ADZUNA,
     JOB_PROVIDER_ALL,
     JOB_PROVIDER_GLASSDOOR,
@@ -154,8 +155,10 @@ from job_providers import (
     JOB_PROVIDER_WTTJ,
     configured_providers,
     default_job_provider,
+    job_board_display_name,
     merge_job_lists,
     normalize_careerjet_referer,
+    provider_key_from_job_source,
     provider_secrets_from_getter,
     resolve_careerjet_user_ip,
     search_jobs_glassdoor_serpapi,
@@ -256,12 +259,17 @@ from persistence import (
     APPLICATION_STATUSES,
     AUTO_SEARCH_WEEKDAYS,
     analysis_to_session_dict,
+    connect_all_job_accounts,
+    connect_job_account,
     dashboard_status_counts,
+    disconnect_job_account,
     get_active_cv_document,
     get_analysis,
+    get_connected_job_account,
     get_notification_settings,
     is_auto_search_due,
     list_analyses,
+    list_connected_job_accounts,
     list_dashboard_results,
     list_user_applications,
     log_scheduled_run,
@@ -3461,7 +3469,25 @@ def render_job_card(
     st.write(", ".join(f"`{kw}`" for kw in missing))
 
     can_apply = bool(enable_tracking and result_id and user_id and cv_text and user_profile)
+    source_key = provider_key_from_job_source(str(job.get("source") or ""))
+    linked_account = (
+        get_connected_job_account(int(user_id), source_key)
+        if user_id and source_key
+        else None
+    )
     st.markdown(f"**{t('job.application_section')}**")
+    if source_key:
+        source_name = job_board_display_name(source_key)
+        if linked_account:
+            st.caption(
+                t(
+                    "job.apply_account_linked",
+                    name=source_name,
+                    email=linked_account.get("account_email") or "",
+                )
+            )
+        else:
+            st.caption(t("job.apply_account_missing", name=source_name))
     apply_col1, apply_col2 = st.columns(2)
     with apply_col1:
         if job.get("url"):
@@ -5928,6 +5954,95 @@ def render_delete_account_section(user: dict[str, Any]) -> None:
     st.markdown("</div>", unsafe_allow_html=True)
 
 
+def render_connected_accounts_section(user: dict[str, Any]) -> None:
+    """Let the candidate link existing job-board accounts to DowsonBost."""
+    user_id = int(user["id"])
+    linked = {
+        row["provider"]: row for row in list_connected_job_accounts(user_id)
+    }
+    default_email = str(user.get("email") or "").strip()
+    total_sites = len(CONNECTABLE_JOB_PROVIDERS)
+
+    st.markdown('<div class="profile-section-card">', unsafe_allow_html=True)
+    st.markdown(
+        f'<p class="section-title">{html.escape(t("accounts.title"))}</p>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f'<p class="profile-section-hint">{html.escape(t("accounts.hint"))}</p>',
+        unsafe_allow_html=True,
+    )
+    st.caption(t("accounts.summary", linked=len(linked), total=total_sites))
+    if default_email:
+        st.caption(t("accounts.candidate_email", email=default_email))
+
+    if len(linked) < total_sites:
+        if st.button(
+            t("accounts.connect_all"),
+            key=f"connect_all_job_accounts_{user_id}",
+            use_container_width=True,
+            type="primary",
+            help=t("accounts.connect_all_help"),
+            disabled=not default_email,
+        ):
+            ok, message, _count = connect_all_job_accounts(user_id, default_email)
+            if ok:
+                st.success(message)
+                st.rerun()
+            else:
+                st.error(message)
+
+    for provider in CONNECTABLE_JOB_PROVIDERS:
+        account = linked.get(provider)
+        name = job_board_display_name(provider)
+        header = (
+            t("accounts.row_connected", name=name)
+            if account
+            else t("accounts.row_disconnected", name=name)
+        )
+        with st.expander(header, expanded=False):
+            if account:
+                st.success(
+                    t(
+                        "accounts.linked_as",
+                        name=name,
+                        email=account.get("account_email") or "—",
+                    )
+                )
+                if st.button(
+                    t("accounts.disconnect"),
+                    key=f"disconnect_{provider}_{user_id}",
+                    use_container_width=True,
+                ):
+                    _ok, message = disconnect_job_account(user_id, provider)
+                    st.success(message)
+                    st.rerun()
+            else:
+                st.text_input(
+                    t("accounts.email_on_site"),
+                    value=default_email,
+                    key=f"connect_email_{provider}_{user_id}",
+                    help=t("accounts.email_help"),
+                )
+                if st.button(
+                    t("accounts.connect"),
+                    key=f"connect_{provider}_{user_id}",
+                    use_container_width=True,
+                ):
+                    email_value = str(
+                        st.session_state.get(f"connect_email_{provider}_{user_id}")
+                        or default_email
+                    )
+                    ok, message = connect_job_account(user_id, provider, email_value)
+                    if ok:
+                        st.success(message)
+                        st.rerun()
+                    else:
+                        st.error(message)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
 def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
     """Profile settings — identity, search prefs, security, alerts, delete account."""
     _flush_analysis_notices()
@@ -6172,6 +6287,9 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                         st.rerun()
                     st.error(message)
         st.markdown("</div>", unsafe_allow_html=True)
+
+    with st.container(border=True):
+        render_connected_accounts_section(profile)
 
     sec_col1, sec_col2 = st.columns(2)
     with sec_col1:
