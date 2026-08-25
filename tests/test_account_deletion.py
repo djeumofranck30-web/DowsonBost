@@ -116,9 +116,10 @@ def test_delete_user_account_removes_all_personal_data(sqlite_db):
     assert ok, msg
 
     assert get_user_by_id(user_id) is None
-    ok_login, _, logged_in = authenticate_user("jane@example.com", "Secret123!")
+    ok_login, login_msg, logged_in = authenticate_user("jane@example.com", "Secret123!")
     assert not ok_login
     assert logged_in is None
+    assert "e-mail" in login_msg.lower() or "email" in login_msg.lower()
 
     assert _count_for_user("analyses", user_id) == 0
     assert _count_for_user("analysis_results", user_id) == 0
@@ -145,3 +146,31 @@ def test_delete_user_account_removes_all_personal_data(sqlite_db):
     ok_login, _, new_user = authenticate_user("jane@example.com", "Secret123!")
     assert ok_login and new_user is not None
     assert int(new_user["id"]) != user_id
+    assert new_user["email"] == "jane@example.com"
+    assert new_user["full_name"] == "Jane Doe"
+
+
+def test_deleted_email_can_be_reused_with_new_password(sqlite_db):
+    _reset_persistence()
+    init_persistence_tables()
+    user_id = _register_jane()
+    assert delete_user_account(user_id)[0]
+
+    ok, msg = register_user(
+        "Jane Doe",
+        "JANE@example.com",
+        "NewSecret123!",
+        target_job_title="Developer",
+        contract_type="CDI",
+        experience_level="confirme",
+        selected_countries=["France"],
+        admin_regions=["Île-de-France"],
+        selected_departments=[{"code": "75", "name": "Paris", "region": "Île-de-France"}],
+        selected_cities=["Paris"],
+    )
+    assert ok, msg
+    ok_old, _, _ = authenticate_user("jane@example.com", "Secret123!")
+    assert not ok_old
+    ok_new, _, user = authenticate_user("jane@example.com", "NewSecret123!")
+    assert ok_new and user is not None
+    assert int(user["id"]) != user_id
