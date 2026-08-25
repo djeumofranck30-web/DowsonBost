@@ -119,6 +119,7 @@ from constants import (
 from services.application import (
     build_application_profile,
     format_application_profile_text,
+    notify_candidate_application,
     prepare_manual_application,
     submit_application_automatically,
 )
@@ -3539,7 +3540,19 @@ def render_job_card(
                 status="applied",
                 notes=t("job.apply_manual_confirmed"),
             )
-            st.success(t("job.apply_manual_confirmed"))
+            notified = notify_candidate_application(
+                user_profile or {},
+                job,
+                method="manual",
+                locale=get_locale(),
+            )
+            if notified:
+                st.success(
+                    f"{t('job.apply_manual_confirmed')} "
+                    f"{t('job.apply_user_confirmation_sent', email=(user_profile or {}).get('email', ''))}"
+                )
+            else:
+                st.success(t("job.apply_manual_confirmed"))
             st.rerun()
 
     if can_apply:

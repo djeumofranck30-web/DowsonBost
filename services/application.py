@@ -7,7 +7,11 @@ import re
 from typing import Any, Callable, TypedDict
 
 from document_generation import generate_adapted_cv, generate_cover_letter
-from email_service import email_configured, send_application_email
+from email_service import (
+    email_configured,
+    send_application_confirmation_email,
+    send_application_email,
+)
 
 _EMAIL_RE = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
 _MAILTO_RE = re.compile(r"mailto:([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})", re.I)
@@ -125,6 +129,33 @@ def format_application_profile_text(profile: dict[str, str]) -> str:
     if profile.get("experience_level"):
         lines.append(f"Expérience : {profile['experience_level']}")
     return "\n".join(lines)
+
+
+def notify_candidate_application(
+    user_profile: dict[str, Any],
+    job: dict[str, Any],
+    *,
+    method: str,
+    recruiter_email: str | None = None,
+    locale: str = "fr",
+) -> bool:
+    """E-mail the candidate a confirmation of their application. Never raises."""
+    profile = build_application_profile(user_profile)
+    user_email = profile.get("email") or ""
+    if not user_email:
+        return False
+    try:
+        ok, _detail = send_application_confirmation_email(
+            user_email,
+            profile.get("full_name") or user_email,
+            job,
+            method=method,
+            recruiter_email=recruiter_email,
+            locale=locale,
+        )
+    except Exception:  # noqa: BLE001 — applying must succeed even if mail fails
+        return False
+    return ok
 
 
 def ensure_application_documents(
@@ -314,19 +345,33 @@ def submit_application_automatically(
             reply_to=profile.get("email") or None,
         )
         if ok:
+            user_notified = notify_candidate_application(
+                profile,
+                job,
+                method="email",
+                recruiter_email=apply_email,
+                locale=locale,
+            )
+            message = t(
+                "job.apply_auto_email_sent",
+                locale=locale,
+                email=apply_email,
+            )
+            if user_notified:
+                message = (
+                    f"{message} "
+                    f"{t('job.apply_user_confirmation_sent', locale=locale, email=profile.get('email', ''))}"
+                )
             return _empty_result(
                 success=True,
                 method="email",
-                message=t(
-                    "job.apply_auto_email_sent",
-                    locale=locale,
-                    email=apply_email,
-                ),
+                message=message,
                 cover_letter=letter,
                 adapted_cv=adapted,
                 apply_email=apply_email,
                 job_url=job_url,
                 profile_text=profile_text,
+                user_notified=user_notified,
             )
         return _empty_result(
             method="email_failed",

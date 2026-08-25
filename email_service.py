@@ -1,8 +1,9 @@
-"""Email alerts for new matching job offers."""
+"""Transactional e-mails: alerts, welcome, password reset, applications."""
 
 from __future__ import annotations
 
 import base64
+import html
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -254,3 +255,120 @@ def send_password_reset_email(user_email: str, reset_url: str, *, locale: str | 
     </body></html>
     """
     return send_alert_email(user_email, subject, html, locale=lang)
+
+
+def send_welcome_email(
+    user_email: str,
+    user_name: str,
+    login_url: str,
+    *,
+    locale: str | None = None,
+) -> tuple[bool, str]:
+    """Send account creation confirmation e-mail."""
+    lang = locale or get_locale()
+    if not email_configured():
+        return False, t("email.service_not_configured", locale=lang)
+    safe_name = html.escape(user_name or user_email)
+    safe_url = html.escape(login_url, quote=True)
+    subject = t("email.welcome_subject", locale=lang)
+    html_body = f"""
+    <html><body style="font-family:sans-serif;line-height:1.5">
+      <p>{t("email.greeting", locale=lang, name=safe_name)}</p>
+      <p>{t("email.welcome_intro", locale=lang)}</p>
+      <p>{t("email.welcome_body", locale=lang)}</p>
+      <p><a href="{safe_url}">{t("email.welcome_button", locale=lang)}</a></p>
+      <p style="color:#64748b;font-size:12px">{t("email.welcome_footer", locale=lang)}</p>
+    </body></html>
+    """
+    text_body = (
+        f"{t('email.greeting', locale=lang, name=user_name or user_email)}\n\n"
+        f"{t('email.welcome_intro', locale=lang)}\n"
+        f"{t('email.welcome_body', locale=lang)}\n\n"
+        f"{login_url}\n"
+    )
+    return send_alert_email(
+        user_email, subject, html_body, text_body=text_body, locale=lang
+    )
+
+
+def send_application_confirmation_email(
+    user_email: str,
+    user_name: str,
+    job: dict[str, Any],
+    *,
+    method: str = "manual",
+    recruiter_email: str | None = None,
+    locale: str | None = None,
+) -> tuple[bool, str]:
+    """Send the candidate a confirmation that their application was recorded."""
+    lang = locale or get_locale()
+    if not user_email:
+        return False, t("email.service_not_configured", locale=lang)
+    if not email_configured():
+        return False, t("email.service_not_configured", locale=lang)
+
+    title = str(job.get("title") or t("email.default_job", locale=lang)).strip()
+    company = str(job.get("company") or "").strip()
+    job_url = str(job.get("url") or job.get("apply_url") or "").strip()
+    safe_name = html.escape(user_name or user_email)
+    safe_title = html.escape(title)
+    safe_company = html.escape(company)
+    safe_url = html.escape(job_url, quote=True)
+
+    if method == "email" and recruiter_email:
+        method_html = t(
+            "email.apply_confirm_method_email",
+            locale=lang,
+            email=html.escape(recruiter_email),
+        )
+        method_text = t(
+            "email.apply_confirm_method_email",
+            locale=lang,
+            email=recruiter_email,
+        )
+    elif method in {"external_prepared", "auto_prepared"}:
+        method_html = method_text = t("email.apply_confirm_method_prepared", locale=lang)
+    else:
+        method_html = method_text = t("email.apply_confirm_method_manual", locale=lang)
+
+    subject = t("email.apply_confirm_subject", locale=lang, title=title)
+    offer_link = (
+        f'<p><a href="{safe_url}">{t("email.apply_confirm_view", locale=lang)}</a></p>'
+        if job_url
+        else ""
+    )
+    company_html = (
+        f"<p>{t('email.apply_confirm_company', locale=lang, company=safe_company)}</p>"
+        if company
+        else ""
+    )
+    html_body = f"""
+    <html><body style="font-family:sans-serif;line-height:1.5">
+      <p>{t("email.greeting", locale=lang, name=safe_name)}</p>
+      <p>{t("email.apply_confirm_intro", locale=lang)}</p>
+      <p>{t("email.apply_confirm_job", locale=lang, title=safe_title)}</p>
+      {company_html}
+      <p>{method_html}</p>
+      {offer_link}
+      <p style="color:#64748b;font-size:12px">{t("email.apply_confirm_footer", locale=lang)}</p>
+    </body></html>
+    """
+    text_parts = [
+        t("email.greeting", locale=lang, name=user_name or user_email),
+        "",
+        t("email.apply_confirm_intro", locale=lang),
+        t("email.apply_confirm_job", locale=lang, title=title),
+    ]
+    if company:
+        text_parts.append(t("email.apply_confirm_company", locale=lang, company=company))
+    text_parts.append(method_text)
+    if job_url:
+        text_parts.extend(["", job_url])
+    return send_alert_email(
+        user_email,
+        subject,
+        html_body,
+        text_body="\n".join(text_parts),
+        locale=lang,
+    )
+
