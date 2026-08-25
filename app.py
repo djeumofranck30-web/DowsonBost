@@ -6066,7 +6066,6 @@ def render_connected_accounts_section(user: dict[str, Any]) -> None:
                         site_password=password_value,
                         profile_url=profile_value,
                     )
-                    st.session_state[f"connect_password_{provider}_{user_id}"] = ""
                     if ok:
                         st.success(message)
                         st.rerun()
