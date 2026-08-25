@@ -8,6 +8,7 @@ from services.application import (
     build_application_profile,
     extract_apply_email,
     format_application_profile_text,
+    notify_candidate_application,
     prepare_manual_application,
     submit_application_automatically,
 )
@@ -98,11 +99,13 @@ def test_submit_application_automatically_generates_and_prepares_external(
     assert "préparée" in result["message"].lower()
 
 
+@patch("services.application.notify_candidate_application", return_value=True)
 @patch("services.application.send_application_email", return_value=(True, "ok"))
 @patch("services.application.email_configured", return_value=True)
 def test_submit_application_automatically_sends_email_when_found(
     _configured: object,
     _send: object,
+    notify_user: object,
 ):
     job = {
         "title": "Dev Python",
@@ -131,6 +134,34 @@ def test_submit_application_automatically_sends_email_when_found(
     assert result["success"] is True
     assert result["method"] == "email"
     assert result["apply_email"] == "recrutement@acme.fr"
+    assert result["user_notified"] is True
+    notify_user.assert_called_once()
+    assert notify_user.call_args.kwargs["method"] == "email"
+    assert notify_user.call_args.kwargs["recruiter_email"] == "recrutement@acme.fr"
+    assert "confirmation" in result["message"].lower()
+
+
+@patch("services.application.send_application_confirmation_email", return_value=(True, "ok"))
+def test_notify_candidate_application_sends_confirmation(_send: object):
+    ok = notify_candidate_application(
+        {"full_name": "Jane Doe", "email": "jane@example.com"},
+        {"title": "Dev Python", "company": "Acme", "url": "https://example.com/jobs/1"},
+        method="manual",
+        locale="fr",
+    )
+    assert ok is True
+    _send.assert_called_once()
+    assert _send.call_args.args[0] == "jane@example.com"
+    assert _send.call_args.kwargs["method"] == "manual"
+
+
+def test_notify_candidate_application_skips_without_email():
+    ok = notify_candidate_application(
+        {"full_name": "Jane Doe", "email": ""},
+        {"title": "Dev Python"},
+        method="manual",
+    )
+    assert ok is False
 
 
 def test_prepare_manual_application_requires_url():
