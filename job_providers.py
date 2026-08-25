@@ -80,6 +80,19 @@ JOB_BOARD_SHORT_NAMES: dict[str, str] = {
     JOB_PROVIDER_OPTIONCARRIERE: "OptionCarriere",
 }
 
+JOB_BOARD_SIGNUP_URLS: dict[str, str] = {
+    JOB_PROVIDER_INDEED: "https://secure.indeed.com/auth",
+    JOB_PROVIDER_LINKEDIN: "https://www.linkedin.com/signup",
+    JOB_PROVIDER_HELLOWORK: "https://www.hellowork.com/",
+    JOB_PROVIDER_WTTJ: "https://www.welcometothejungle.com/",
+    JOB_PROVIDER_JOBTEASER: "https://www.jobteaser.com/",
+    JOB_PROVIDER_GLASSDOOR: "https://www.glassdoor.com/index.htm",
+    JOB_PROVIDER_MONSTER: "https://www.monster.fr/",
+    JOB_PROVIDER_TALENT: "https://www.talent.com/",
+    JOB_PROVIDER_JOOBLE: "https://jooble.org/",
+    JOB_PROVIDER_OPTIONCARRIERE: "https://www.optioncarriere.com/",
+}
+
 _SOURCE_TO_PROVIDER: tuple[tuple[str, str], ...] = (
     ("linkedin", JOB_PROVIDER_LINKEDIN),
     ("indeed", JOB_PROVIDER_INDEED),
@@ -102,6 +115,11 @@ _SOURCE_TO_PROVIDER: tuple[tuple[str, str], ...] = (
 def job_board_display_name(provider: str) -> str:
     """Short site name for account-linking UI (brand names, not engine labels)."""
     return JOB_BOARD_SHORT_NAMES.get(provider, provider)
+
+
+def job_board_signup_url(provider: str) -> str | None:
+    """Public signup / login page for a job board."""
+    return JOB_BOARD_SIGNUP_URLS.get(provider)
 
 
 def provider_key_from_job_source(source: str) -> str | None:

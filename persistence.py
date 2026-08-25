@@ -59,7 +59,7 @@ _PERSISTENCE_SCHEMA_KEY = (
     "user_notification_settings_v1",
     "scheduled_runs_v1",
     "cv_documents_v1",
-    "user_connected_accounts_v1",
+    "user_connected_accounts_v2",
 )
 _persistence_initialized_for: tuple[str, ...] | None = None
 
@@ -330,6 +330,7 @@ def _create_user_connected_accounts_table(conn: Any) -> None:
                 user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                 provider TEXT NOT NULL,
                 account_email TEXT NOT NULL DEFAULT '',
+                profile_url TEXT NOT NULL DEFAULT '',
                 connected_at TEXT NOT NULL,
                 UNIQUE (user_id, provider)
             )
@@ -343,11 +344,26 @@ def _create_user_connected_accounts_table(conn: Any) -> None:
             user_id INTEGER NOT NULL,
             provider TEXT NOT NULL,
             account_email TEXT NOT NULL DEFAULT '',
+            profile_url TEXT NOT NULL DEFAULT '',
             connected_at TEXT NOT NULL,
             UNIQUE (user_id, provider),
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """
+    )
+
+
+def _migrate_user_connected_accounts_columns(conn: Any) -> None:
+    cols = existing_columns(conn, "user_connected_accounts")
+    if not cols or "profile_url" in cols:
+        return
+    if database_backend() == "postgres":
+        conn.execute(
+            "ALTER TABLE user_connected_accounts ADD COLUMN IF NOT EXISTS profile_url TEXT NOT NULL DEFAULT ''"
+        )
+        return
+    conn.execute(
+        "ALTER TABLE user_connected_accounts ADD COLUMN profile_url TEXT NOT NULL DEFAULT ''"
     )
 
 
@@ -376,6 +392,7 @@ def init_persistence_tables() -> None:
         _create_scheduled_runs_table(conn)
         _create_cv_documents_table(conn)
         _create_user_connected_accounts_table(conn)
+        _migrate_user_connected_accounts_columns(conn)
         _ = existing_columns(conn, "analyses")
     _persistence_initialized_for = _PERSISTENCE_SCHEMA_KEY
 
@@ -633,6 +650,26 @@ def get_active_cv_document(user_id: int) -> dict[str, Any] | None:
 
 
 _ACCOUNT_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+_SITE_USERNAME_RE = re.compile(r"^[\w.+-]{3,80}$")
+
+
+def _normalize_site_login(account_login: str) -> str:
+    raw = (account_login or "").strip()
+    if "@" in raw:
+        return raw.lower()
+    return raw
+
+
+def _is_valid_site_login(account_login: str) -> bool:
+    if not account_login:
+        return False
+    if "@" in account_login:
+        return bool(_ACCOUNT_EMAIL_RE.match(account_login))
+    return bool(_SITE_USERNAME_RE.match(account_login))
+
+
+def _normalize_profile_url(profile_url: str) -> str:
+    return (profile_url or "").strip()[:500]
 
 
 def list_connected_job_accounts(user_id: int) -> list[dict[str, Any]]:
@@ -641,7 +678,7 @@ def list_connected_job_accounts(user_id: int) -> list[dict[str, Any]]:
         rows = conn.execute(
             adapt_sql(
                 """
-                SELECT provider, account_email, connected_at
+                SELECT provider, account_email, profile_url, connected_at
                 FROM user_connected_accounts
                 WHERE user_id = ?
                 ORDER BY provider
@@ -661,7 +698,7 @@ def get_connected_job_account(user_id: int, provider: str) -> dict[str, Any] | N
         row = conn.execute(
             adapt_sql(
                 """
-                SELECT provider, account_email, connected_at
+                SELECT provider, account_email, profile_url, connected_at
                 FROM user_connected_accounts
                 WHERE user_id = ? AND provider = ?
                 LIMIT 1
@@ -676,17 +713,29 @@ def connect_job_account(
     user_id: int,
     provider: str,
     account_email: str,
+    *,
+    has_existing_account: bool = False,
+    site_password: str = "",
+    profile_url: str = "",
 ) -> tuple[bool, str]:
-    """Link the candidate DowsonBost account to an existing job-board account."""
+    """Link the candidate DowsonBost account to an existing job-board account.
+
+    The job-board password is required to complete the link and is never stored.
+    """
     from i18n import t
     from job_providers import CONNECTABLE_JOB_PROVIDERS, job_board_display_name
 
     key = (provider or "").strip().lower()
-    email = (account_email or "").strip().lower()
+    login = _normalize_site_login(account_email)
+    url = _normalize_profile_url(profile_url)
     if key not in CONNECTABLE_JOB_PROVIDERS:
         return False, t("accounts.unknown_provider")
-    if not _ACCOUNT_EMAIL_RE.match(email):
-        return False, t("auth.email.invalid")
+    if not has_existing_account:
+        return False, t("accounts.not_created", name=job_board_display_name(key))
+    if not _is_valid_site_login(login):
+        return False, t("accounts.login_invalid")
+    if not (site_password or "").strip():
+        return False, t("accounts.login_required", name=job_board_display_name(key))
     init_persistence_tables()
     now = utc_now_iso()
     with connect() as conn:
@@ -701,22 +750,22 @@ def connect_job_account(
                 adapt_sql(
                     """
                     UPDATE user_connected_accounts
-                    SET account_email = ?, connected_at = ?
+                    SET account_email = ?, profile_url = ?, connected_at = ?
                     WHERE user_id = ? AND provider = ?
                     """
                 ),
-                (email, now, user_id, key),
+                (login, url, now, user_id, key),
             )
         else:
             conn.execute(
                 adapt_sql(
                     """
                     INSERT INTO user_connected_accounts (
-                        user_id, provider, account_email, connected_at
-                    ) VALUES (?, ?, ?, ?)
+                        user_id, provider, account_email, profile_url, connected_at
+                    ) VALUES (?, ?, ?, ?, ?)
                     """
                 ),
-                (user_id, key, email, now),
+                (user_id, key, login, url, now),
             )
     return True, t("accounts.connected", name=job_board_display_name(key))
 
@@ -724,25 +773,38 @@ def connect_job_account(
 def connect_all_job_accounts(
     user_id: int,
     account_email: str,
+    *,
+    has_existing_account: bool = False,
+    site_password: str = "",
 ) -> tuple[bool, str, int]:
-    """Link every supported job board with the candidate's email (skip already linked)."""
+    """Link every supported job board with the same login (skip already linked)."""
     from i18n import t
     from job_providers import CONNECTABLE_JOB_PROVIDERS
 
-    email = (account_email or "").strip().lower()
-    if not _ACCOUNT_EMAIL_RE.match(email):
-        return False, t("auth.email.invalid"), 0
+    if not has_existing_account:
+        return False, t("accounts.not_created_all"), 0
+    login = _normalize_site_login(account_email)
+    if not _is_valid_site_login(login):
+        return False, t("accounts.login_invalid"), 0
+    if not (site_password or "").strip():
+        return False, t("accounts.login_required_all"), 0
     already = {row["provider"] for row in list_connected_job_accounts(user_id)}
     linked_now = 0
     for provider in CONNECTABLE_JOB_PROVIDERS:
         if provider in already:
             continue
-        ok, _message = connect_job_account(user_id, provider, email)
+        ok, _message = connect_job_account(
+            user_id,
+            provider,
+            login,
+            has_existing_account=True,
+            site_password=site_password,
+        )
         if ok:
             linked_now += 1
     if linked_now == 0 and already:
         return True, t("accounts.already_all_connected"), 0
-    return True, t("accounts.connected_all", count=linked_now, email=email), linked_now
+    return True, t("accounts.connected_all", count=linked_now, email=login), linked_now
 
 
 def disconnect_job_account(user_id: int, provider: str) -> tuple[bool, str]:
