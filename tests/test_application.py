@@ -7,6 +7,7 @@ from unittest.mock import patch
 from services.application import (
     build_application_profile,
     extract_apply_email,
+    format_application_autofill_text,
     format_application_profile_text,
     job_listing_open_script,
     notify_candidate_application,
@@ -58,6 +59,16 @@ def test_build_application_profile_formats_core_fields():
     assert "jane@example.com" in text
     assert "Data Engineer" in text
     assert "Lyon" in text
+    assert profile["first_name"] == "Jane"
+    assert profile["last_name"] == "Doe"
+    fill = format_application_autofill_text(
+        profile,
+        cover_letter="Lettre type",
+        adapted_cv="CV type",
+    )
+    assert "Prénom : Jane" in fill
+    assert "E-mail : jane@example.com" in fill
+    assert "Lettre type" in fill
 
 
 @patch("services.application._send_user_application_copy", return_value=True)
@@ -102,8 +113,13 @@ def test_submit_application_automatically_generates_and_prepares_external(
 
 
 def test_job_listing_open_script_embeds_safe_url():
-    html = job_listing_open_script("https://www.indeed.com/viewjob?jk=abc")
+    html = job_listing_open_script(
+        "https://www.indeed.com/viewjob?jk=abc",
+        "Prénom : Jane",
+    )
     assert "https://www.indeed.com/viewjob?jk=abc" in html
+    assert "Prénom : Jane" in html
+    assert "clipboard.writeText" in html
     assert "window.top" in html
     assert job_listing_open_script("") == ""
     assert job_listing_open_script("   ") == ""

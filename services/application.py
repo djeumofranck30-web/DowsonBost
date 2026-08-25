@@ -104,8 +104,14 @@ def build_application_profile(user_profile: dict[str, Any]) -> dict[str, str]:
         or user_profile.get("region")
         or ""
     )
+    full_name = str(user_profile.get("full_name") or "").strip()
+    parts = [p for p in full_name.split() if p]
+    first_name = parts[0] if parts else ""
+    last_name = " ".join(parts[1:]) if len(parts) > 1 else ""
     return {
-        "full_name": str(user_profile.get("full_name") or "").strip(),
+        "full_name": full_name,
+        "first_name": first_name,
+        "last_name": last_name,
         "email": str(user_profile.get("email") or "").strip(),
         "phone": str(user_profile.get("phone") or "").strip(),
         "target_job_title": str(user_profile.get("target_job_title") or "").strip(),
@@ -129,6 +135,29 @@ def format_application_profile_text(profile: dict[str, str]) -> str:
         lines.append(f"Type de contrat : {profile['contract_type']}")
     if profile.get("experience_level"):
         lines.append(f"Expérience : {profile['experience_level']}")
+    return "\n".join(lines)
+
+
+def format_application_autofill_text(
+    profile: dict[str, str],
+    *,
+    cover_letter: str = "",
+    adapted_cv: str = "",
+) -> str:
+    """Block of candidate fields ready to paste into a job-site form."""
+    lines = [
+        f"Prénom : {profile.get('first_name') or '—'}",
+        f"Nom : {profile.get('last_name') or '—'}",
+        f"Nom complet : {profile.get('full_name') or '—'}",
+        f"E-mail : {profile.get('email') or '—'}",
+        f"Téléphone : {profile.get('phone') or '—'}",
+        f"Ville : {profile.get('location') or '—'}",
+        f"Poste : {profile.get('target_job_title') or '—'}",
+    ]
+    if cover_letter.strip():
+        lines.extend(["", "--- Lettre de motivation ---", cover_letter.strip()])
+    if adapted_cv.strip():
+        lines.extend(["", "--- CV adapté ---", adapted_cv.strip()])
     return "\n".join(lines)
 
 
@@ -262,14 +291,19 @@ def _external_prepared_message(
     return " ".join(parts)
 
 
-def job_listing_open_script(url: str) -> str:
-    """HTML snippet that opens a job listing in a new browser tab."""
+def job_listing_open_script(url: str, clipboard_text: str = "") -> str:
+    """HTML snippet that opens a job listing and copies candidate fields."""
     target = str(url or "").strip()
     if not target:
         return ""
     payload = json.dumps(target).replace("<", "\\u003c").replace(">", "\\u003e")
+    clip = json.dumps(clipboard_text or "").replace("<", "\\u003c").replace(">", "\\u003e")
     return (
         "<!DOCTYPE html><html><body><script>"
+        f"var _clip = {clip};"
+        "if (_clip) {"
+        " try { navigator.clipboard.writeText(_clip); } catch (e) {}"
+        "}"
         "try {"
         f" (window.top || window.parent || window).open({payload},"
         " '_blank', 'noopener,noreferrer');"

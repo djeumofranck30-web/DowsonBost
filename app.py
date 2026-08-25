@@ -118,6 +118,7 @@ from constants import (
 )
 from services.application import (
     build_application_profile,
+    format_application_autofill_text,
     format_application_profile_text,
     job_listing_open_script,
     notify_candidate_application,
@@ -3341,9 +3342,9 @@ def _render_skill_tags(label: str, items: list[str]) -> None:
     st.write(", ".join(f"`{item}`" for item in items[:15]))
 
 
-def open_job_listing_tab(url: str) -> None:
-    """Open the job listing in a new browser tab after auto-apply."""
-    script = job_listing_open_script(url)
+def open_job_listing_tab(url: str, clipboard_text: str = "") -> None:
+    """Open the job listing in a new tab and copy candidate fields for the form."""
+    script = job_listing_open_script(url, clipboard_text)
     if not script:
         return
     import streamlit.components.v1 as components
@@ -3559,9 +3560,15 @@ def render_job_card(
                             notes=auto_result["message"],
                         )
                     offer_url = str(job.get("url") or auto_result.get("job_url") or "").strip()
+                    autofill_text = format_application_autofill_text(
+                        build_application_profile(user_profile or {}),
+                        cover_letter=auto_result.get("cover_letter") or "",
+                        adapted_cv=auto_result.get("adapted_cv") or "",
+                    )
                     if offer_url:
                         st.session_state[f"open_offer_{result_id}"] = offer_url
-                        open_job_listing_tab(offer_url)
+                        st.session_state[f"autofill_{result_id}"] = autofill_text
+                        open_job_listing_tab(offer_url, autofill_text)
                     st.success(auto_result["message"])
                     if linked_account and source_name:
                         st.info(
@@ -3573,6 +3580,8 @@ def render_job_card(
                         )
                     elif offer_url:
                         st.info(t("job.apply_auto_opens_site"))
+                    if autofill_text:
+                        st.info(t("job.apply_auto_clipboard"))
                 else:
                     st.error(auto_result["message"])
         else:
@@ -3714,6 +3723,22 @@ def render_job_card(
                     profile_text,
                     height=140,
                     key=f"apply_profile_{result_id}",
+                )
+        autofill_text = str(st.session_state.get(f"autofill_{result_id}") or "")
+        if not autofill_text and user_profile and (letter_text or adapted_text):
+            autofill_text = format_application_autofill_text(
+                build_application_profile(user_profile),
+                cover_letter=letter_text or "",
+                adapted_cv=adapted_text or "",
+            )
+        if autofill_text:
+            with st.expander(t("job.apply_autofill_expander"), expanded=True):
+                st.caption(t("job.apply_auto_clipboard"))
+                st.text_area(
+                    t("job.apply_autofill_expander"),
+                    autofill_text,
+                    height=220,
+                    key=f"apply_autofill_{result_id}",
                 )
         if letter_text or adapted_text:
             bundle_buf = io.BytesIO()
