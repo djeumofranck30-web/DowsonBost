@@ -156,6 +156,7 @@ from job_providers import (
     configured_providers,
     default_job_provider,
     job_board_display_name,
+    job_board_signup_url,
     merge_job_lists,
     normalize_careerjet_referer,
     provider_key_from_job_source,
@@ -259,7 +260,6 @@ from persistence import (
     APPLICATION_STATUSES,
     AUTO_SEARCH_WEEKDAYS,
     analysis_to_session_dict,
-    connect_all_job_accounts,
     connect_job_account,
     dashboard_status_counts,
     disconnect_job_account,
@@ -5976,22 +5976,6 @@ def render_connected_accounts_section(user: dict[str, Any]) -> None:
     if default_email:
         st.caption(t("accounts.candidate_email", email=default_email))
 
-    if len(linked) < total_sites:
-        if st.button(
-            t("accounts.connect_all"),
-            key=f"connect_all_job_accounts_{user_id}",
-            use_container_width=True,
-            type="primary",
-            help=t("accounts.connect_all_help"),
-            disabled=not default_email,
-        ):
-            ok, message, _count = connect_all_job_accounts(user_id, default_email)
-            if ok:
-                st.success(message)
-                st.rerun()
-            else:
-                st.error(message)
-
     for provider in CONNECTABLE_JOB_PROVIDERS:
         account = linked.get(provider)
         name = job_board_display_name(provider)
@@ -6009,6 +5993,9 @@ def render_connected_accounts_section(user: dict[str, Any]) -> None:
                         email=account.get("account_email") or "—",
                     )
                 )
+                profile_url = str(account.get("profile_url") or "").strip()
+                if profile_url:
+                    st.caption(t("accounts.linked_profile", url=profile_url))
                 if st.button(
                     t("accounts.disconnect"),
                     key=f"disconnect_{provider}_{user_id}",
@@ -6018,22 +6005,80 @@ def render_connected_accounts_section(user: dict[str, Any]) -> None:
                     st.success(message)
                     st.rerun()
             else:
-                st.text_input(
-                    t("accounts.email_on_site"),
-                    value=default_email,
-                    key=f"connect_email_{provider}_{user_id}",
-                    help=t("accounts.email_help"),
-                )
+                st.markdown(f"**{t('accounts.login_title', name=name)}**")
+                with st.form(f"connect_form_{provider}_{user_id}", clear_on_submit=False):
+                    st.text_input(
+                        t("accounts.login_id", name=name),
+                        value=default_email,
+                        key=f"connect_email_{provider}_{user_id}",
+                        help=t("accounts.login_id_help", name=name),
+                    )
+                    st.text_input(
+                        t("accounts.login_password", name=name),
+                        type="password",
+                        key=f"connect_password_{provider}_{user_id}",
+                        help=t("accounts.login_password_help", name=name),
+                    )
+                    st.text_input(
+                        t("accounts.login_password_confirm", name=name),
+                        type="password",
+                        key=f"connect_password_confirm_{provider}_{user_id}",
+                        help=t("accounts.login_password_confirm_help", name=name),
+                    )
+                    st.text_input(
+                        t("accounts.profile_url", name=name),
+                        key=f"connect_profile_url_{provider}_{user_id}",
+                        help=t("accounts.profile_url_help", name=name),
+                    )
+                    confirmed = st.checkbox(
+                        t("accounts.confirm_existing", name=name),
+                        key=f"confirm_existing_{provider}_{user_id}",
+                    )
+                    submitted = st.form_submit_button(
+                        t("accounts.connect"),
+                        use_container_width=True,
+                    )
+                signup_url = job_board_signup_url(provider)
+                if signup_url:
+                    st.link_button(
+                        t("accounts.create_on_site", name=name),
+                        signup_url,
+                        use_container_width=True,
+                    )
                 if st.button(
-                    t("accounts.connect"),
-                    key=f"connect_{provider}_{user_id}",
+                    t("accounts.no_account"),
+                    key=f"no_account_{provider}_{user_id}",
                     use_container_width=True,
                 ):
+                    st.error(t("accounts.not_created", name=name))
+                if submitted:
                     email_value = str(
                         st.session_state.get(f"connect_email_{provider}_{user_id}")
-                        or default_email
+                        or ""
                     )
-                    ok, message = connect_job_account(user_id, provider, email_value)
+                    password_value = str(
+                        st.session_state.get(f"connect_password_{provider}_{user_id}")
+                        or ""
+                    )
+                    password_confirm = str(
+                        st.session_state.get(
+                            f"connect_password_confirm_{provider}_{user_id}"
+                        )
+                        or ""
+                    )
+                    profile_value = str(
+                        st.session_state.get(f"connect_profile_url_{provider}_{user_id}")
+                        or ""
+                    )
+                    ok, message = connect_job_account(
+                        user_id,
+                        provider,
+                        email_value,
+                        has_existing_account=confirmed,
+                        site_password=password_value,
+                        site_password_confirm=password_confirm,
+                        profile_url=profile_value,
+                    )
                     if ok:
                         st.success(message)
                         st.rerun()

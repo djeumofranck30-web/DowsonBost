@@ -101,7 +101,13 @@ def test_delete_user_account_removes_all_personal_data(sqlite_db):
     upsert_active_cv_document(user_id, "abc123", "CV confidentiel de Jane")
     save_notification_settings(user_id, {"email_alerts_enabled": True, "alert_min_score": 80})
     log_scheduled_run(user_id, "success", analysis_id=analysis_id, trigger_source="app")
-    assert connect_job_account(user_id, "indeed", "jane@example.com")[0]
+    assert connect_job_account(
+        user_id,
+        "indeed",
+        "jane@example.com",
+        has_existing_account=True,
+        site_password="SitePass123!",
+    )[0]
     ok_token, _, token = create_password_reset_token("jane@example.com")
     assert ok_token and token
 
