@@ -119,6 +119,7 @@ from constants import (
 from services.application import (
     build_application_profile,
     format_application_profile_text,
+    job_listing_open_script,
     notify_candidate_application,
     prepare_manual_application,
     submit_application_automatically,
@@ -3340,6 +3341,16 @@ def _render_skill_tags(label: str, items: list[str]) -> None:
     st.write(", ".join(f"`{item}`" for item in items[:15]))
 
 
+def open_job_listing_tab(url: str) -> None:
+    """Open the job listing in a new browser tab after auto-apply."""
+    script = job_listing_open_script(url)
+    if not script:
+        return
+    import streamlit.components.v1 as components
+
+    components.html(script, height=0)
+
+
 def render_job_card(
     job: dict[str, Any],
     match: dict[str, Any],
@@ -3470,6 +3481,7 @@ def render_job_card(
 
     can_apply = bool(enable_tracking and result_id and user_id and cv_text and user_profile)
     source_key = provider_key_from_job_source(str(job.get("source") or ""))
+    source_name = job_board_display_name(source_key) if source_key else ""
     linked_account = (
         get_connected_job_account(int(user_id), source_key)
         if user_id and source_key
@@ -3546,8 +3558,21 @@ def render_job_card(
                             status="saved",
                             notes=auto_result["message"],
                         )
+                    offer_url = str(job.get("url") or auto_result.get("job_url") or "").strip()
+                    if offer_url:
+                        st.session_state[f"open_offer_{result_id}"] = offer_url
+                        open_job_listing_tab(offer_url)
                     st.success(auto_result["message"])
-                    st.rerun()
+                    if linked_account and source_name:
+                        st.info(
+                            t(
+                                "job.apply_auto_opens_site_linked",
+                                name=source_name,
+                                email=linked_account.get("account_email") or "",
+                            )
+                        )
+                    elif offer_url:
+                        st.info(t("job.apply_auto_opens_site"))
                 else:
                     st.error(auto_result["message"])
         else:
@@ -3662,6 +3687,22 @@ def render_job_card(
     apply_pack = st.session_state.get(f"apply_pack_{result_id}")
     letter_text = st.session_state.get(f"cover_{result_id}") or cover_letter_text
     adapted_text = st.session_state.get(f"adapted_{result_id}") or adapted_cv_text
+    offer_url = str(
+        st.session_state.get(f"open_offer_{result_id}")
+        or (apply_pack or {}).get("job_url")
+        or job.get("url")
+        or ""
+    ).strip()
+    if apply_pack and offer_url:
+        st.link_button(
+            t(
+                "job.apply_continue_on_site",
+                name=source_name or t("job.apply_open_offer"),
+            ),
+            offer_url,
+            use_container_width=True,
+            type="primary",
+        )
     if apply_pack or letter_text or adapted_text:
         profile_text = (apply_pack or {}).get("profile_text") or ""
         if not profile_text and user_profile:

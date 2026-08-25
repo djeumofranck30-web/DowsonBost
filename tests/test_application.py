@@ -8,6 +8,7 @@ from services.application import (
     build_application_profile,
     extract_apply_email,
     format_application_profile_text,
+    job_listing_open_script,
     notify_candidate_application,
     prepare_manual_application,
     submit_application_automatically,
@@ -97,6 +98,17 @@ def test_submit_application_automatically_generates_and_prepares_external(
     assert "CV adapté" in result["adapted_cv"]
     assert result["user_notified"] is True
     assert "préparée" in result["message"].lower()
+    assert "nouvel onglet" in result["message"].lower() or "ouvre" in result["message"].lower()
+
+
+def test_job_listing_open_script_embeds_safe_url():
+    html = job_listing_open_script("https://www.indeed.com/viewjob?jk=abc")
+    assert "https://www.indeed.com/viewjob?jk=abc" in html
+    assert "window.top" in html
+    assert job_listing_open_script("") == ""
+    assert job_listing_open_script("   ") == ""
+    unsafe = job_listing_open_script("https://x.test/</script>alert(1)")
+    assert "</script>alert" not in unsafe
 
 
 @patch("services.application.notify_candidate_application", return_value=True)
