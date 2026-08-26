@@ -4279,6 +4279,122 @@ def _analysis_dashboard_label(row: dict[str, Any]) -> str:
     )
 
 
+_SCORE_CHART_BUCKETS = (
+    (0, 49, "0–49"),
+    (50, 64, "50–64"),
+    (65, 74, "65–74"),
+    (75, 89, "75–89"),
+    (90, 100, "90–100"),
+)
+_STATUS_CHART_COLORS = (
+    "#94a3b8",
+    "#7c3aed",
+    "#10b981",
+    "#f59e0b",
+    "#22c55e",
+    "#ef4444",
+    "#64748b",
+)
+
+
+def dashboard_insight_rows(
+    entries: list[dict[str, Any]],
+    counts: dict[str, int],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Build chart rows for status mix and ATS score bands."""
+    status_rows = [
+        {
+            "status": application_status_label(status),
+            "count": int(counts.get(status, 0)),
+        }
+        for status in APPLICATION_STATUSES
+        if int(counts.get(status, 0)) > 0
+    ]
+    bucket_totals = {label: 0 for _low, _high, label in _SCORE_CHART_BUCKETS}
+    for entry in entries:
+        score = int(entry.get("score") or 0)
+        for low, high, label in _SCORE_CHART_BUCKETS:
+            if low <= score <= high:
+                bucket_totals[label] += 1
+                break
+    score_rows = [
+        {"band": label, "count": bucket_totals[label]}
+        for _low, _high, label in _SCORE_CHART_BUCKETS
+        if bucket_totals[label]
+    ]
+    return status_rows, score_rows
+
+
+def _render_dashboard_insight_charts(
+    entries: list[dict[str, Any]],
+    counts: dict[str, int],
+) -> None:
+    """Interactive status and score charts for the candidate dashboard."""
+    status_rows, score_rows = dashboard_insight_rows(entries, counts)
+    if not status_rows and not score_rows:
+        return
+    try:
+        import altair as alt
+        import pandas as pd
+    except ImportError:
+        return
+
+    st.markdown(
+        f'<p class="section-title">{html.escape(t("dashboard.insights_title"))}</p>',
+        unsafe_allow_html=True,
+    )
+    left, right = st.columns(2)
+    tooltip_count = t("dashboard.chart_count")
+    if status_rows:
+        with left:
+            st.markdown('<div class="dash-chart-panel">', unsafe_allow_html=True)
+            st.caption(t("dashboard.chart_status"))
+            status_chart = (
+                alt.Chart(pd.DataFrame(status_rows))
+                .mark_arc(innerRadius=48, outerRadius=78, stroke="#fff", strokeWidth=2)
+                .encode(
+                    theta=alt.Theta("count:Q", stack=True),
+                    color=alt.Color(
+                        "status:N",
+                        legend=alt.Legend(orient="bottom", title=None, columns=2),
+                        scale=alt.Scale(
+                            domain=[row["status"] for row in status_rows],
+                            range=list(_STATUS_CHART_COLORS[: len(status_rows)]),
+                        ),
+                    ),
+                    tooltip=[
+                        alt.Tooltip("status:N", title=t("dashboard.status")),
+                        alt.Tooltip("count:Q", title=tooltip_count),
+                    ],
+                )
+                .properties(height=220)
+                .configure_view(strokeWidth=0)
+            )
+            st.altair_chart(status_chart, use_container_width=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+    if score_rows:
+        with right:
+            st.markdown('<div class="dash-chart-panel">', unsafe_allow_html=True)
+            st.caption(t("dashboard.chart_scores"))
+            score_chart = (
+                alt.Chart(pd.DataFrame(score_rows))
+                .mark_bar(cornerRadiusEnd=8, color="#7c3aed", size=22)
+                .encode(
+                    x=alt.X("band:N", sort=[row["band"] for row in score_rows], title=None),
+                    y=alt.Y("count:Q", title=None),
+                    tooltip=[
+                        alt.Tooltip("band:N", title=t("dashboard.chart_scores")),
+                        alt.Tooltip("count:Q", title=tooltip_count),
+                    ],
+                )
+                .properties(height=220)
+                .configure_axis(grid=False, labelColor="#64748b", domainColor="#e2e8f0")
+                .configure_view(strokeWidth=0)
+            )
+            st.altair_chart(score_chart, use_container_width=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+
+
 def render_dashboard_page(user: dict[str, Any]) -> None:
     """Dashboard scoped to a selected analysis with filters and tracking."""
     _flush_analysis_notices()
@@ -4358,6 +4474,9 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
         for label, value in stat_items
     )
     st.markdown(f'<div class="stat-card-grid">{stats_html}</div>', unsafe_allow_html=True)
+
+    chart_entries = list_dashboard_results(user_id, analysis_id=selected_id)
+    _render_dashboard_insight_charts(chart_entries, counts)
 
     st.markdown(
         f'<p class="filter-bar-title">{html.escape(t("dashboard.filters_title"))}</p>',

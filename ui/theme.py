@@ -509,6 +509,11 @@ def render_app_styles() -> None:
             box-shadow: {t["shadow_sm"]};
             position: relative;
             overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }}
+        .stat-card:hover {{
+            transform: translateY(-3px);
+            box-shadow: {t["shadow_md"]};
         }}
         .stat-card::after {{
             content: "";
@@ -591,6 +596,14 @@ def render_app_styles() -> None:
             font-weight: 700;
             letter-spacing: 0.04em;
             text-transform: uppercase;
+        }}
+        .dash-chart-panel {{
+            background: {t["surface"]};
+            border: 1px solid rgba(124, 58, 237, 0.08);
+            border-radius: {t["radius_lg"]};
+            padding: 0.75rem 0.85rem 0.45rem;
+            box-shadow: {t["shadow_sm"]};
+            margin-bottom: 0.85rem;
         }}
         .job-card-head {{
             display: flex;
