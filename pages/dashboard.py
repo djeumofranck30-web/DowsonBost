@@ -7,7 +7,7 @@ import html
 import streamlit as st
 import streamlit.components.v1 as components
 
-from auth import authenticate_user, init_db, user_is_admin
+from auth import authenticate_admin, init_db, user_is_admin
 from config import get_secret
 from database import DatabaseConfigError, configure_database
 from services.admin import admin_delete_user, dashboard_html, list_registered_users, platform_overview, public_user_record
@@ -61,10 +61,9 @@ def _boot_database() -> bool:
 
 
 def _current_user() -> dict | None:
-    if st.session_state.get("authenticated") and st.session_state.get("user"):
-        return st.session_state.user
-    if st.session_state.get("admin_user"):
-        return st.session_state.admin_user
+    admin = st.session_state.get("admin_user")
+    if admin and user_is_admin(admin):
+        return admin
     return None
 
 
@@ -76,7 +75,7 @@ def _render_login() -> None:
                     border:1px solid rgba(124,58,237,.14)">
           <p style="margin:0;font-size:.8rem;font-weight:700;color:#7c3aed;letter-spacing:.04em">DOWSONBOST</p>
           <h1 style="margin:.2rem 0 .4rem;font-size:1.6rem">Espace administrateur</h1>
-          <p style="margin:0 0 1rem;color:#64748b">Accès réservé. Ajoutez votre e-mail dans le secret <code>ADMIN_EMAILS</code>.</p>
+          <p style="margin:0 0 1rem;color:#64748b">Accès réservé. Utilisez l’e-mail et le mot de passe ajoutés dans les secrets Streamlit (<code>ADMIN_EMAIL</code> + <code>ADMIN_PASSWORD</code>).</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -87,15 +86,10 @@ def _render_login() -> None:
         submitted = st.form_submit_button("Se connecter", type="primary", use_container_width=True)
     if not submitted:
         return
-    ok, message, user = authenticate_user(email, password)
+    ok, message, user = authenticate_admin(email, password)
     if not ok or not user:
         st.error(message)
         return
-    if not user_is_admin(user):
-        st.error("Ce compte n'est pas administrateur. Définissez ADMIN_EMAILS dans les secrets Streamlit.")
-        return
-    st.session_state.authenticated = True
-    st.session_state.user = user
     st.session_state.admin_user = user
     st.rerun()
 
@@ -126,7 +120,8 @@ def main() -> None:
         "full_name": user.get("full_name") or "",
     }
     accounts = [public_user_record(item) for item in list_registered_users()]
-    deletable = [item for item in accounts if int(item["id"]) != int(user["id"])]
+    actor_id = int(user.get("id") or 0)
+    deletable = [item for item in accounts if int(item["id"]) != actor_id]
 
     pending = st.session_state.get("admin_delete_target")
     if pending:
@@ -140,7 +135,7 @@ def main() -> None:
             )
             confirm_col, cancel_col = st.columns(2)
             if confirm_col.button("Confirmer la suppression", type="primary"):
-                ok, message = admin_delete_user(int(user["id"]), int(target["id"]))
+                ok, message = admin_delete_user(user, int(target["id"]))
                 st.session_state.pop("admin_delete_target", None)
                 if ok:
                     st.success(message)
@@ -173,7 +168,13 @@ def main() -> None:
 
     render_config_tests_panel(show_clear_cache=True, expanded=False)
 
-    st.page_link("app.py", label="Retour à l'application candidate", icon="🎯")
+    logout_col, back_col = st.columns([1, 2])
+    with logout_col:
+        if st.button("Déconnexion admin", use_container_width=True):
+            st.session_state.pop("admin_user", None)
+            st.rerun()
+    with back_col:
+        st.page_link("app.py", label="Retour à l'application candidate", icon="🎯")
 
 
 main()

@@ -7092,15 +7092,6 @@ def render_app() -> None:
             st.session_state.pdf_fingerprint = None
             st.rerun()
 
-        from auth import user_is_admin as _user_is_admin
-
-        if _user_is_admin(user):
-            st.page_link(
-                "pages/dashboard.py",
-                label="Espace administration",
-                icon="🛡️",
-            )
-
         st.markdown("---")
 
         job_provider = st.selectbox(

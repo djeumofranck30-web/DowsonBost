@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import re
 import secrets
 from contextlib import contextmanager
@@ -564,17 +565,10 @@ def _row_flag(row: Any, key: str) -> bool:
 
 
 def user_is_admin(user: dict[str, Any] | None) -> bool:
-    """True when the account is flagged admin or listed in ADMIN_EMAILS."""
+    """True only after a successful admin login against Streamlit secrets."""
     if not user:
         return False
-    if user.get("is_admin"):
-        return True
-    email = str(user.get("email") or "").strip().lower()
-    if not email:
-        return False
-    from config import get_admin_emails
-
-    return email in get_admin_emails()
+    return bool(user.get("admin_authenticated"))
 
 
 def _row_to_user(row: Any, include_created: bool = False) -> dict:
@@ -670,6 +664,72 @@ def get_user_by_id(user_id: int) -> dict | None:
     if not row:
         return None
     return _row_to_user(row, include_created=True)
+
+
+def get_user_by_email(email: str) -> dict | None:
+    """Return a registered candidate by e-mail, if any."""
+    cleaned = (email or "").strip().lower()
+    if not cleaned:
+        return None
+    init_db()
+    with _connect() as conn:
+        row = conn.execute(
+            adapt_sql(
+                f"""
+                SELECT {_USER_SELECT_SQL}
+                FROM users WHERE LOWER(email) = LOWER(?)
+                """
+            ),
+            (cleaned,),
+        ).fetchone()
+    if not row:
+        return None
+    return _row_to_user(row, include_created=True)
+
+
+def _passwords_match(provided: str, expected: str) -> bool:
+    left = provided.encode("utf-8")
+    right = expected.encode("utf-8")
+    if len(left) != len(right):
+        hmac.compare_digest(left, left)
+        return False
+    return hmac.compare_digest(left, right)
+
+
+def authenticate_admin(email: str, password: str) -> tuple[bool, str, dict | None]:
+    """Authenticate against ADMIN_EMAIL / ADMIN_PASSWORD secrets only."""
+    email = (email or "").strip().lower()
+    password = (password or "").strip()
+    if not email or not password:
+        return False, "E-mail et mot de passe requis.", None
+
+    from config import get_admin_accounts
+
+    accounts = get_admin_accounts()
+    if not accounts:
+        return (
+            False,
+            "Aucun administrateur configuré. Ajoutez ADMIN_EMAIL et ADMIN_PASSWORD dans les secrets Streamlit.",
+            None,
+        )
+
+    matched = False
+    for account_email, account_password in accounts:
+        if email == account_email and _passwords_match(password, account_password):
+            matched = True
+            break
+    if not matched:
+        return False, "E-mail ou mot de passe administrateur incorrect.", None
+
+    existing = get_user_by_email(email)
+    profile = {
+        "id": int(existing["id"]) if existing else 0,
+        "email": email,
+        "full_name": (existing.get("full_name") if existing else "") or "Administrateur",
+        "is_admin": True,
+        "admin_authenticated": True,
+    }
+    return True, "Connexion administrateur réussie.", profile
 
 
 def register_user(
@@ -871,22 +931,14 @@ def authenticate_user(email: str, password: str) -> tuple[bool, str, dict | None
 
     user = _row_to_user(row, include_created=True)
     now = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
-    from config import get_admin_emails
-
-    should_promote = user["email"].strip().lower() in get_admin_emails()
     with _connect() as conn:
-        if should_promote:
-            conn.execute(
-                adapt_sql("UPDATE users SET last_login_at = ?, is_admin = 1 WHERE id = ?"),
-                (now, user["id"]),
-            )
-            user["is_admin"] = True
-        else:
-            conn.execute(
-                adapt_sql("UPDATE users SET last_login_at = ? WHERE id = ?"),
-                (now, user["id"]),
-            )
+        conn.execute(
+            adapt_sql("UPDATE users SET last_login_at = ? WHERE id = ?"),
+            (now, user["id"]),
+        )
     user["last_login_at"] = now
+    user["is_admin"] = False
+    user["admin_authenticated"] = False
     return True, t("auth.login.success"), user
 
 
