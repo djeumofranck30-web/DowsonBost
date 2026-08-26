@@ -36,7 +36,7 @@ Règles strictes :
 5. Reformule les missions des expériences pertinentes avec le vocabulaire de l'offre (sans mentir).
 6. Ne invente JAMAIS de diplôme, entreprise, date, certification ou compétence absente du CV original.
 7. C'est une réécriture complète (nouvelle structure, nouvelles formulations), pas un copier-coller du CV actuel.
-8. Le document renvoyé est le CV FINAL, prêt à envoyer au recruteur.
+8. Le document renvoyé est le CV FINAL, prêt à envoyer au recruteur (norme France 2026 : une colonne, titres ATS classiques).
    N'ajoute JAMAIS de section « Modifications appliquées », « Modifications à apporter au CV »,
    « MODIFICATIONS APPLIQUÉES » ni aucun journal de changements en fin de document.
 

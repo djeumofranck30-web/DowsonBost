@@ -15,6 +15,7 @@ from cv_layout import (
     split_modifications,
     template_for,
     template_label,
+    ats_section_title,
 )
 from document_generation import ADAPTED_CV_SYSTEM_PROMPT, generate_adapted_cv
 
@@ -161,9 +162,27 @@ def test_templates_differ_by_profession():
     assert it.primary != med.primary
     assert it.layout == "banner"
     assert med.layout == "classic"
-    assert "STACK" in it.section_titles["skills"]
-    assert "CLINIQUE" in med.section_titles["profile"] or "CLINI" in med.section_titles["profile"]
+    assert it.section_order[1] == "skills"  # hybride 2026 : compétences avant l'expérience
+    assert med.section_order[1] == "education"  # santé France : diplômes d'État en tête
+    assert ats_section_title("experience") == "EXPÉRIENCE PROFESSIONNELLE"
+    assert ats_section_title("skills") == "COMPÉTENCES"
     assert template_label("it", "fr") == "Informatique / Digital"
+
+
+def test_pdf_uses_ats_standard_headings():
+    cv = prepare_structured_cv(
+        SAMPLE_IT_CV,
+        job={"title": "Développeur Python"},
+        user_profile={"full_name": "Jane Doe"},
+    )
+    import fitz
+
+    pdf = render_cv_pdf(cv)
+    text = fitz.open(stream=pdf, filetype="pdf")[0].get_text()
+    assert "COMPÉTENCES" in text or "COMPETENCES" in text
+    assert "EXPÉRIENCE PROFESSIONNELLE" in text or "EXPERIENCE PROFESSIONNELLE" in text
+    assert "STACK" not in text
+    assert "PROFIL CLINIQUE" not in text
 
 
 def test_split_modifications_removes_appendix():

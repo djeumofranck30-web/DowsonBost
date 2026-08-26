@@ -96,6 +96,37 @@ def _register(tpl: CvTemplate) -> CvTemplate:
     return tpl
 
 
+# Titres reconnus par les ATS 2026 (France) : une colonne, intitulés classiques.
+ATS_SECTION_TITLES = {
+    "profile": "PROFIL",
+    "skills": "COMPÉTENCES",
+    "experience": "EXPÉRIENCE PROFESSIONNELLE",
+    "education": "FORMATION",
+    "languages": "LANGUES",
+    "certifications": "CERTIFICATIONS",
+    "projects": "PROJETS",
+    "publications": "PUBLICATIONS",
+    "licenses": "CERTIFICATIONS",
+    "interests": "CENTRES D'INTÉRÊT",
+}
+
+ATS_2026_RULES = """
+Regles CV France 2026 (ATS + recruteur) :
+- Une colonne, titres de sections STANDARDS (Profil, Competences, Experience professionnelle, Formation, Langues).
+- Titre du CV = intitule exact du poste vise.
+- En-tete : nom, titre, ville (pas d'adresse complete), telephone, e-mail, LinkedIn si present.
+- Experiences en anti-chronologique, puces orientees resultats chiffres SI le CV original les contient (ne pas inventer).
+- Competences : 5 a 12 mots-cles, termes EXACTS de l'offre seulement s'ils correspondent au parcours.
+- Langues : niveau CECRL (A2/B1/B2/C1) si connu dans le CV.
+- 1 page visee (2 pages si parcours long). Pas de photo, pas d'icones, pas de graphique de competences.
+- Verbes d'action en debut de puce. Aucune section « modifications ».
+"""
+
+
+def ats_section_title(key: str) -> str:
+    return ATS_SECTION_TITLES.get(key, key.upper())
+
+
 TPL_IT = _register(CvTemplate(
     family="it",
     label_fr="Informatique / Digital",
@@ -122,13 +153,14 @@ TPL_IT = _register(CvTemplate(
     },
     extra_section_keys=("projects", "certifications"),
     llm_sections=(
-        "Structure CV INFORMATIQUE / DIGITAL :\n"
-        "## PROFIL\n(3-4 lignes : stack, domaine, impact)\n"
-        "## COMPETENCES\nlangages | frameworks | cloud | methodes (separes par | )\n"
-        "## PROJETS\n- projet : role, techno, resultat\n"
-        "## EXPERIENCE\nPOSTE: ...\nENTREPRISE: ...\nPERIODE: ...\nLIEU: ...\n- mission orientee produit / tech\n"
+        "Structure CV INFORMATIQUE 2026 (hybride competences puis experience) :\n"
+        "## PROFIL\n(3-4 lignes : stack, domaine, impact chiffre si present)\n"
+        "## COMPETENCES\nlangages | frameworks | cloud | CI/CD | methodes — termes exacts de l'offre si le candidat les a\n"
+        "## EXPERIENCE\nPOSTE: ...\nENTREPRISE: ...\nPERIODE: ...\n"
+        "- puces techniques avec techno + resultat (perf, users, delai) si connus\n"
+        "## PROJETS\n- seulement si presents dans le CV\n"
         "## FORMATION\nDIPLOME: ...\nETABLISSEMENT: ...\nPERIODE: ...\n"
-        "## CERTIFICATIONS\n- AWS, Azure, Scrum... seulement si presentes dans le CV\n"
+        "## CERTIFICATIONS\n- AWS, Azure, Scrum... seulement si presentes\n"
         "## LANGUES\n"
     ),
 ))
@@ -158,12 +190,13 @@ TPL_HEALTHCARE = _register(CvTemplate(
     },
     extra_section_keys=("licenses",),
     llm_sections=(
-        "Structure CV SANTE / MEDICAL :\n"
-        "## PROFIL\n(discipline, patients, environnement de soins)\n"
-        "## FORMATION\nDIPLOME: ...\nETABLISSEMENT: ...\nPERIODE: ...\n"
-        "## AUTORISATIONS\n- numero RPPS / ADELI, ordre, stages, internat — seulement si presents\n"
-        "## EXPERIENCE\nPOSTE: ...\nENTREPRISE: ... (service / hopital)\nPERIODE: ...\nLIEU: ...\n- responsabilites cliniques concretes\n"
-        "## COMPETENCES\ngestes | specialites | logiciels metier\n"
+        "Structure CV SANTE 2026 (diplomes d'Etat en tete, usage France) :\n"
+        "## PROFIL\n(discipline, type de service, public)\n"
+        "## FORMATION\nDIPLOME: DE infirmier, DEAS... \nETABLISSEMENT: ...\nPERIODE: ...\n"
+        "## AUTORISATIONS\n- RPPS / ADELI / ordre — seulement si presents dans le CV\n"
+        "## EXPERIENCE\nPOSTE: ...\nENTREPRISE: service / hopital / EHPAD\nPERIODE: ...\n"
+        "- soins, transmissions, DPI, protocoles — faits du CV uniquement\n"
+        "## COMPETENCES\ngestes | specialites | DPI / logiciels metier\n"
         "## LANGUES\n"
     ),
 ))
@@ -319,24 +352,23 @@ TPL_SALES = _register(CvTemplate(
     header_text=(255, 255, 255),
     chip_bg=(255, 236, 214),
     chip_text=(140, 68, 8),
-    section_order=("profile", "projects", "experience", "skills", "education", "languages"),
+    section_order=("profile", "experience", "skills", "education", "languages"),
     section_titles={
-        "profile": "PROFIL COMMERCIAL",
-        "projects": "RESULTATS CLES",
-        "experience": "EXPÉRIENCES",
-        "skills": "COMPETENCES",
+        "profile": "PROFIL",
+        "experience": "EXPÉRIENCE PROFESSIONNELLE",
+        "skills": "COMPÉTENCES",
         "education": "FORMATION",
         "languages": "LANGUES",
     },
-    extra_section_keys=("projects",),
+    extra_section_keys=(),
     llm_sections=(
-        "Structure CV COMMERCIAL / VENDEUR / MAGASIN :\n"
-        "## PROFIL\n(vente, conseil client, magasin ou BtoB)\n"
-        "## PROJETS\n- objectifs, CA, taux de conversion — seulement si presents dans le CV\n"
-        "## EXPERIENCE\nPOSTE: ...\nENTREPRISE: ...\nPERIODE: ...\n- resultats commerciaux concrets\n"
-        "## COMPETENCES\nprospection | negociation | CRM | ...\n"
+        "Structure CV COMMERCIAL / VENDEUR 2026 :\n"
+        "## PROFIL\n(3-4 lignes : type de vente B2B/B2C, meilleur resultat chiffre si present dans le CV)\n"
+        "## EXPERIENCE\nPOSTE: ...\nENTREPRISE: ...\nPERIODE: ...\n"
+        "- puces CAR (contexte, action, resultat) : CA, quota, conversion — seulement si dans le CV\n"
+        "## COMPETENCES\nprospection | negotiation | CRM Salesforce/HubSpot | ...\n"
         "## FORMATION\nDIPLOME: ...\nETABLISSEMENT: ...\nPERIODE: ...\n"
-        "## LANGUES\n"
+        "## LANGUES\nniveau CECRL si connu\n"
     ),
 ))
 
@@ -1680,7 +1712,7 @@ def public_cv_text(cv: StructuredCV) -> str:
         lines.append(contact)
     tpl = template_for(cv.family)
     for key in tpl.section_order:
-        title = tpl.section_titles.get(key, key.upper())
+        title = ats_section_title(key)
         if key == "profile" and cv.profile:
             lines.extend(["", title, cv.profile])
         elif key == "skills" and cv.skills:
@@ -2013,16 +2045,22 @@ def render_cv_pdf(cv: StructuredCV) -> bytes:
     }
 
     for key in tpl.section_order:
-        title = tpl.section_titles.get(key, key.upper())
+        title = ats_section_title(key)
         if key == "profile" and cv.profile:
             _section_title(pdf, title)
             _write_paragraph(pdf, cv.profile)
         elif key == "skills" and cv.skills:
             _section_title(pdf, title)
-            _draw_chips(pdf, cv.skills)
+            if tpl.layout == "banner":
+                _draw_chips(pdf, cv.skills)
+            else:
+                _write_paragraph(pdf, " · ".join(cv.skills))
         elif key == "languages" and cv.languages:
             _section_title(pdf, title)
-            _draw_chips(pdf, cv.languages)
+            if tpl.layout == "banner":
+                _draw_chips(pdf, cv.languages)
+            else:
+                _write_paragraph(pdf, " · ".join(cv.languages))
         elif key == "experience" and cv.experiences:
             _section_title(pdf, title)
             for job in cv.experiences:
@@ -2036,7 +2074,7 @@ def render_cv_pdf(cv: StructuredCV) -> bytes:
             _draw_bullets(pdf, extras_alias[key])
 
     if cv.raw_body and not (cv.profile or cv.experiences):
-        _section_title(pdf, tpl.section_titles.get("profile", "PARCOURS"))
+        _section_title(pdf, ats_section_title("profile"))
         _write_paragraph(pdf, cv.raw_body)
 
     return bytes(pdf.output())
@@ -2172,7 +2210,7 @@ def render_cv_html(cv: StructuredCV) -> str:
     }
     body_parts: list[str] = []
     for key in tpl.section_order:
-        title = tpl.section_titles.get(key, key.upper())
+        title = ats_section_title(key)
         section_html = ""
         if key == "profile" and cv.profile:
             section_html = f"<p style='margin:6px 0 10px;font-size:13px;line-height:1.45;color:rgb{tpl.ink};'>{esc(cv.profile)}</p>"
@@ -2225,7 +2263,8 @@ def build_cv_system_addon(family: str) -> str:
     """Extra instructions injected into the adapted-CV LLM prompt."""
     tpl = template_for(family)
     return (
-        f"\nTemplate metier impose : {tpl.label_fr} ({tpl.family}).\n"
+        f"\n{ATS_2026_RULES}\n"
+        f"Template metier 2026 : {tpl.label_fr} ({tpl.family}).\n"
         "Respecte EXACTEMENT les titres de sections ci-dessous (markdown ##).\n"
         "Commence par les champs :\n"
         "NOM: ...\nTITRE: ...\nEMAIL: ...\nTELEPHONE: ...\nVILLE: ...\n"
