@@ -257,6 +257,17 @@ from auth import (
 )
 from database import DatabaseConfigError, configure_database, database_connection_hint, database_status
 from document_generation import generate_adapted_cv, generate_cover_letter
+from cv_layout import (
+    cv_pdf_filename,
+    cv_text_for_candidate,
+    letter_pdf_filename,
+    prepare_structured_cv,
+    public_cv_text,
+    render_cover_letter_pdf,
+    render_cv_html,
+    render_cv_pdf,
+    template_label,
+)
 from email_service import email_configured, maybe_send_analysis_alert
 from persistence import (
     APPLICATION_STATUSES,
@@ -3209,10 +3220,6 @@ def generate_matching_report_pdf(
         skills = match.get("analyse_competences") or {}
         exp_analysis = match.get("analyse_experiences") or {}
         missing = ", ".join(match.get("mots_cles_manquants", []))
-        mods_html = "".join(
-            f"<li>{pdf_escape(mod)}</li>"
-            for mod in (match.get("modifications_cv") or match.get("conseils", []))[:8]
-        )
         presentes = ", ".join(skills.get("presentes", []))
         manquantes = ", ".join(skills.get("manquantes", []))
 
@@ -3234,8 +3241,6 @@ def generate_matching_report_pdf(
             <li><b>Niveau offre / CV :</b> {pdf_escape(exp_analysis.get('niveau_offre', '-'))} / {pdf_escape(exp_analysis.get('niveau_cv', '-'))}</li>
             <li><b>Lien :</b> {pdf_escape(job.get('url', '-'))}</li>
         </ul>
-        <h3>Modifications a apporter au CV</h3>
-        <ol>{mods_html}</ol>
         """
 
     pdf.write_html(sanitize_pdf_html(body_html))
@@ -3350,6 +3355,121 @@ def open_job_listing_tab(url: str, clipboard_text: str = "") -> None:
     import streamlit.components.v1 as components
 
     components.html(script, height=0)
+
+
+def _render_candidate_documents(
+    *,
+    letter_text: str | None,
+    adapted_text: str | None,
+    job: dict[str, Any],
+    match: dict[str, Any],
+    user_profile: dict[str, Any] | None,
+    original_cv: str,
+    widget_key: str,
+    profile_text: str = "",
+    show_bundle: bool = True,
+) -> None:
+    """Preview + download profession-templated CV / letter (no modifications appendix)."""
+    letter = (letter_text or "").strip()
+    adapted = cv_text_for_candidate(adapted_text or "")
+    if not letter and not adapted:
+        return
+
+    structured = None
+    cv_pdf = b""
+    letter_pdf = b""
+    if adapted:
+        structured = prepare_structured_cv(
+            adapted,
+            job=job,
+            match=match,
+            user_profile=user_profile or {},
+            original_cv=original_cv,
+        )
+        cv_pdf = render_cv_pdf(structured)
+    if letter:
+        letter_pdf = render_cover_letter_pdf(
+            letter,
+            job=job,
+            match=match,
+            user_profile=user_profile or {},
+            family=structured.family if structured else None,
+        )
+
+    if show_bundle and (letter or adapted or profile_text):
+        bundle_buf = io.BytesIO()
+        with zipfile.ZipFile(bundle_buf, "w", zipfile.ZIP_DEFLATED) as archive:
+            if profile_text:
+                archive.writestr("profil_candidat.txt", profile_text)
+            if letter:
+                archive.writestr("lettre_motivation.txt", letter)
+                if letter_pdf:
+                    archive.writestr(letter_pdf_filename(job), letter_pdf)
+            if adapted:
+                public = public_cv_text(structured) if structured else adapted
+                archive.writestr("cv_adapte.txt", public)
+                if cv_pdf:
+                    family = structured.family if structured else "generic"
+                    archive.writestr(cv_pdf_filename(job, family), cv_pdf)
+        st.download_button(
+            t("job.apply_bundle_download"),
+            bundle_buf.getvalue(),
+            file_name="dossier_candidature.zip",
+            mime="application/zip",
+            key=f"dl_bundle_{widget_key}",
+            use_container_width=True,
+        )
+
+    if letter:
+        with st.expander(t("job.cover_expander"), expanded=False):
+            st.text_area(t("job.letter_field"), letter, height=220, key=f"view_cover_{widget_key}")
+            dl_l1, dl_l2 = st.columns(2)
+            with dl_l1:
+                if letter_pdf:
+                    st.download_button(
+                        t("job.download_letter_pdf"),
+                        letter_pdf,
+                        file_name=letter_pdf_filename(job),
+                        mime="application/pdf",
+                        key=f"dl_cover_pdf_{widget_key}",
+                        use_container_width=True,
+                    )
+            with dl_l2:
+                st.download_button(
+                    t("job.download_letter"),
+                    letter,
+                    file_name="lettre_motivation.txt",
+                    key=f"dl_cover_{widget_key}",
+                    use_container_width=True,
+                )
+
+    if adapted and structured:
+        with st.expander(t("job.adapted_expander"), expanded=True):
+            st.caption(
+                t(
+                    "job.cv_template_used",
+                    name=template_label(structured.family, get_locale()),
+                )
+            )
+            st.markdown(render_cv_html(structured), unsafe_allow_html=True)
+            dl_c1, dl_c2 = st.columns(2)
+            with dl_c1:
+                st.download_button(
+                    t("job.download_adapted_pdf"),
+                    cv_pdf,
+                    file_name=cv_pdf_filename(job, structured.family),
+                    mime="application/pdf",
+                    key=f"dl_cv_pdf_{widget_key}",
+                    use_container_width=True,
+                )
+            with dl_c2:
+                st.download_button(
+                    t("job.download_adapted"),
+                    public_cv_text(structured) or adapted,
+                    file_name="cv_adapte.txt",
+                    key=f"dl_cv_{widget_key}",
+                    use_container_width=True,
+                )
 
 
 def render_job_card(
@@ -3468,17 +3588,10 @@ def render_job_card(
             for gap in ecarts:
                 st.warning(gap)
 
-    modifications = match.get("modifications_cv") or match.get("conseils") or []
-    st.markdown(f"**{t('job.cv_modifications')}**")
-    for i, mod in enumerate(modifications[:8], start=1):
-        st.info(f"{i}. {mod}")
-
     missing = match.get("mots_cles_manquants", [])
     if missing:
         st.markdown(f"**{t('job.missing_keywords')}**")
         st.write(", ".join(f"`{kw}`" for kw in missing))
-
-    st.write(", ".join(f"`{kw}`" for kw in missing))
 
     can_apply = bool(enable_tracking and result_id and user_id and cv_text and user_profile)
     source_key = provider_key_from_job_source(str(job.get("source") or ""))
@@ -3695,7 +3808,9 @@ def render_job_card(
 
     apply_pack = st.session_state.get(f"apply_pack_{result_id}")
     letter_text = st.session_state.get(f"cover_{result_id}") or cover_letter_text
-    adapted_text = st.session_state.get(f"adapted_{result_id}") or adapted_cv_text
+    adapted_text = cv_text_for_candidate(
+        st.session_state.get(f"adapted_{result_id}") or adapted_cv_text or ""
+    )
     offer_url = str(
         st.session_state.get(f"open_offer_{result_id}")
         or (apply_pack or {}).get("job_url")
@@ -3712,6 +3827,7 @@ def render_job_card(
             use_container_width=True,
             type="primary",
         )
+    profile_text = ""
     if apply_pack or letter_text or adapted_text:
         profile_text = (apply_pack or {}).get("profile_text") or ""
         if not profile_text and user_profile:
@@ -3740,42 +3856,17 @@ def render_job_card(
                     height=220,
                     key=f"apply_autofill_{result_id}",
                 )
-        if letter_text or adapted_text:
-            bundle_buf = io.BytesIO()
-            with zipfile.ZipFile(bundle_buf, "w", zipfile.ZIP_DEFLATED) as archive:
-                if profile_text:
-                    archive.writestr("profil_candidat.txt", profile_text)
-                if letter_text:
-                    archive.writestr("lettre_motivation.txt", letter_text)
-                if adapted_text:
-                    archive.writestr("cv_adapte.txt", adapted_text)
-            st.download_button(
-                t("job.apply_bundle_download"),
-                bundle_buf.getvalue(),
-                file_name="dossier_candidature.zip",
-                mime="application/zip",
-                key=f"dl_bundle_{result_id}",
-                use_container_width=True,
-            )
 
-    if letter_text:
-        with st.expander(t("job.cover_expander"), expanded=False):
-            st.text_area(t("job.letter_field"), letter_text, height=220, key=f"view_cover_{result_id}")
-            st.download_button(
-                t("job.download_letter"),
-                letter_text,
-                file_name="lettre_motivation.txt",
-                key=f"dl_cover_{result_id}",
-            )
-    if adapted_text:
-        with st.expander(t("job.adapted_expander"), expanded=False):
-            st.text_area(t("job.adapted_field"), adapted_text, height=280, key=f"view_cv_{result_id}")
-            st.download_button(
-                t("job.download_adapted"),
-                adapted_text,
-                file_name="cv_adapte.txt",
-                key=f"dl_cv_{result_id}",
-            )
+    _render_candidate_documents(
+        letter_text=letter_text,
+        adapted_text=adapted_text,
+        job=job,
+        match=match,
+        user_profile=user_profile,
+        original_cv=cv_text,
+        widget_key=str(result_id or rank),
+        profile_text=profile_text,
+    )
 
     if enable_tracking and result_id and user_id:
         st.markdown("---")
@@ -3964,42 +4055,24 @@ def _render_application_entry(
                 st.caption(t("applications.no_description"))
 
             letter = (entry.get("cover_letter_text") or "").strip()
-            adapted = (entry.get("adapted_cv_text") or "").strip()
-            if letter:
-                st.markdown(f"**{t('job.cover_expander')}**")
-                st.text_area(
-                    t("job.letter_field"),
-                    letter,
-                    height=180,
-                    key=f"{widget_key}_letter",
-                    disabled=True,
-                )
-                st.download_button(
-                    t("job.download_letter"),
-                    letter,
-                    file_name=f"lettre_{result_id}.txt",
-                    key=f"{widget_key}_dl_letter",
+            adapted = cv_text_for_candidate(entry.get("adapted_cv_text") or "")
+            user_profile = get_user_by_id(user_id) or {}
+            if letter or adapted:
+                _render_candidate_documents(
+                    letter_text=letter,
+                    adapted_text=adapted,
+                    job=job,
+                    match=match,
+                    user_profile=user_profile,
+                    original_cv="",
+                    widget_key=widget_key,
+                    show_bundle=True,
                 )
             else:
-                st.caption(t("applications.no_letter"))
-
-            if adapted:
-                st.markdown(f"**{t('job.adapted_expander')}**")
-                st.text_area(
-                    t("job.adapted_field"),
-                    adapted,
-                    height=220,
-                    key=f"{widget_key}_cv",
-                    disabled=True,
-                )
-                st.download_button(
-                    t("job.download_adapted"),
-                    adapted,
-                    file_name=f"cv_adapte_{result_id}.txt",
-                    key=f"{widget_key}_dl_cv",
-                )
-            else:
-                st.caption(t("applications.no_cv"))
+                if not letter:
+                    st.caption(t("applications.no_letter"))
+                if not adapted:
+                    st.caption(t("applications.no_cv"))
 
             action_col1, action_col2 = st.columns(2)
             with action_col1:

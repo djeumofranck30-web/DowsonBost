@@ -163,6 +163,10 @@ def test_submit_application_automatically_sends_email_when_found(
     assert result["method"] == "email"
     assert result["apply_email"] == "recrutement@acme.fr"
     assert result["user_notified"] is True
+    attachments = _send.call_args.kwargs["attachments"]
+    assert attachments[0][0].endswith(".pdf")
+    assert attachments[0][1].startswith(b"%PDF")
+    assert attachments[1][0].endswith(".pdf")
     notify_user.assert_called_once()
     assert notify_user.call_args.kwargs["method"] == "email"
     assert notify_user.call_args.kwargs["recruiter_email"] == "recrutement@acme.fr"
