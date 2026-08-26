@@ -32,6 +32,15 @@ def sqlite_db(tmp_path, monkeypatch):
     from database import configure_database
 
     configure_database("", password="")
+    try:
+        import services.llm_usage as llm_usage
+
+        llm_usage._table_ready = False
+    except Exception:
+        pass
+    import persistence
+
+    persistence._persistence_initialized_for = None
     from auth import init_db
 
     init_db()

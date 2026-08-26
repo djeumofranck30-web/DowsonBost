@@ -185,6 +185,9 @@ def render_app_styles() -> None:
         [data-testid="stHeader"] {{
             background: transparent !important;
         }}
+        [data-testid="stSidebarNav"] {{
+            display: none !important;
+        }}
 
         /* —— Sidebar (glass) —— */
         [data-testid="stSidebar"] {{

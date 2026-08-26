@@ -76,6 +76,8 @@ _USER_COLUMNS = [
     ("job_max_age_days", "INTEGER NOT NULL DEFAULT 7", "INTEGER NOT NULL DEFAULT 7"),
     ("preferred_language", "TEXT NOT NULL DEFAULT 'fr'", "TEXT NOT NULL DEFAULT 'fr'"),
     ("phone", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
+    ("is_admin", "INTEGER NOT NULL DEFAULT 0", "INTEGER NOT NULL DEFAULT 0"),
+    ("last_login_at", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
 ]
 
 
@@ -513,7 +515,8 @@ _USER_SELECT_SQL = """
     experience_level, target_sectors, country,
     admin_regions, selected_departments, selected_cities, all_cities,
     selected_countries, geo_by_country,
-    target_job_title, job_max_age_days, preferred_language, phone
+    target_job_title, job_max_age_days, preferred_language, phone,
+    is_admin, last_login_at
 """
 
 
@@ -529,6 +532,49 @@ def _legacy_geo_from_lists(
             selected_departments[0].get("name", ""),
         )
     return admin_region, "", ""
+
+
+def _row_has(row: Any, key: str) -> bool:
+    try:
+        return key in row.keys()
+    except Exception:  # noqa: BLE001
+        try:
+            return key in row
+        except Exception:  # noqa: BLE001
+            return False
+
+
+def _row_text(row: Any, key: str) -> str:
+    if not _row_has(row, key):
+        return ""
+    value = row[key]
+    return str(value or "").strip()
+
+
+def _row_flag(row: Any, key: str) -> bool:
+    if not _row_has(row, key):
+        return False
+    value = row[key]
+    if isinstance(value, bool):
+        return value
+    try:
+        return int(value or 0) == 1
+    except (TypeError, ValueError):
+        return bool(value)
+
+
+def user_is_admin(user: dict[str, Any] | None) -> bool:
+    """True when the account is flagged admin or listed in ADMIN_EMAILS."""
+    if not user:
+        return False
+    if user.get("is_admin"):
+        return True
+    email = str(user.get("email") or "").strip().lower()
+    if not email:
+        return False
+    from config import get_admin_emails
+
+    return email in get_admin_emails()
 
 
 def _row_to_user(row: Any, include_created: bool = False) -> dict:
@@ -600,6 +646,8 @@ def _row_to_user(row: Any, include_created: bool = False) -> dict:
             row["preferred_language"] if "preferred_language" in row.keys() else "fr"
         ),
         "phone": (row["phone"] or "").strip() if "phone" in row.keys() else "",
+        "is_admin": _row_flag(row, "is_admin"),
+        "last_login_at": _row_text(row, "last_login_at"),
     }
     if include_created:
         user["created_at"] = row["created_at"]
@@ -821,7 +869,25 @@ def authenticate_user(email: str, password: str) -> tuple[bool, str, dict | None
     if not _verify_password(password, row["password_hash"]):
         return False, t("auth.login.invalid"), None
 
-    return True, t("auth.login.success"), _row_to_user(row)
+    user = _row_to_user(row, include_created=True)
+    now = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    from config import get_admin_emails
+
+    should_promote = user["email"].strip().lower() in get_admin_emails()
+    with _connect() as conn:
+        if should_promote:
+            conn.execute(
+                adapt_sql("UPDATE users SET last_login_at = ?, is_admin = 1 WHERE id = ?"),
+                (now, user["id"]),
+            )
+            user["is_admin"] = True
+        else:
+            conn.execute(
+                adapt_sql("UPDATE users SET last_login_at = ? WHERE id = ?"),
+                (now, user["id"]),
+            )
+    user["last_login_at"] = now
+    return True, t("auth.login.success"), user
 
 
 def update_user_profile(
