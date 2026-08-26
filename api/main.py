@@ -5,28 +5,31 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import Depends, FastAPI, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, EmailStr, Field
 
 from auth import (
     authenticate_user,
     delete_user_account,
-    get_user_by_id,
     init_db,
     request_password_reset_email,
     reset_password_with_token,
+    user_is_admin,
 )
 from config import get_database_password, get_database_url
 from database import configure_database
 from observability import get_logger, setup_logging
-from persistence import list_analyses
-from api.security import create_access_token, decode_access_token
+from persistence import list_analyses as list_user_analyses
+from api.admin import router as admin_router
+from api.deps import current_user
+from api.security import create_access_token
+from services.admin import ADMIN_INDEX_PATH
 
 setup_logging()
 logger = get_logger(__name__)
 
 app = FastAPI(title="DowsonBost API", version="1.0.0")
-bearer = HTTPBearer(auto_error=False)
+app.include_router(admin_router)
 
 
 class LoginRequest(BaseModel):
@@ -64,6 +67,14 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/dashboard", include_in_schema=False)
+@app.get("/dashboard/", include_in_schema=False)
+def admin_dashboard_page() -> FileResponse:
+    if not ADMIN_INDEX_PATH.is_file():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dashboard introuvable")
+    return FileResponse(ADMIN_INDEX_PATH, media_type="text/html")
+
+
 @app.post("/auth/login", response_model=TokenResponse)
 def login(body: LoginRequest) -> TokenResponse:
     ok, message, user = authenticate_user(body.email, body.password)
@@ -89,20 +100,6 @@ def password_reset_confirm(body: PasswordResetConfirm) -> MessageResponse:
     return MessageResponse(message=message)
 
 
-def current_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
-) -> dict[str, Any]:
-    if credentials is None or credentials.scheme.lower() != "bearer":
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing token")
-    payload = decode_access_token(credentials.credentials)
-    if not payload:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-    user = get_user_by_id(int(payload["sub"]))
-    if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
-    return user
-
-
 @app.get("/users/me")
 def read_current_user(user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
     return {
@@ -111,6 +108,7 @@ def read_current_user(user: dict[str, Any] = Depends(current_user)) -> dict[str,
         "full_name": user.get("full_name", ""),
         "target_job_title": user.get("target_job_title", ""),
         "preferred_language": user.get("preferred_language", "fr"),
+        "is_admin": user_is_admin(user),
     }
 
 
@@ -123,8 +121,8 @@ def delete_current_user(user: dict[str, Any] = Depends(current_user)) -> Message
 
 
 @app.get("/analyses")
-def list_analyses(user: dict[str, Any] = Depends(current_user)) -> list[dict[str, Any]]:
-    rows = list_analyses(int(user["id"]))
+def list_my_analyses(user: dict[str, Any] = Depends(current_user)) -> list[dict[str, Any]]:
+    rows = list_user_analyses(int(user["id"]))
     return [
         {
             "id": row["id"],

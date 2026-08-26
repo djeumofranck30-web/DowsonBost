@@ -9,6 +9,9 @@ Plateforme de recherche d'emploi et matching CV par intelligence artificielle.
 - Tableau de bord candidatures et historique
 - Recherche automatique planifiée (cron)
 - API REST (`api/main.py`)
+- Espace administrateur (`/dashboard`) : comptes, tokens IA, graphiques d'activité
+
+## Lancer l'application
 
 ## Lancer l'application
 
@@ -25,6 +28,22 @@ python scripts/run_api.py
 ```
 
 Documentation : http://localhost:8000/docs
+
+## Espace administrateur
+
+URL Streamlit Cloud : `https://dowsonbost.streamlit.app/dashboard`
+
+Ajoutez votre e-mail dans les secrets :
+
+```toml
+ADMIN_EMAILS = ["vous@votre-domaine.com"]
+```
+
+Depuis ce tableau de bord vous pouvez consulter tous les comptes inscrits, voir les tokens consommés par utilisateur, suivre l'activité (inscriptions, analyses, consommation IA) et supprimer un compte.
+
+Si vous lancez l'API (`python scripts/run_api.py`), le même espace est servi sur `http://localhost:8000/dashboard`.
+
+## Tests
 
 ## Tests
 

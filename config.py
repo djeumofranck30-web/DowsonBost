@@ -48,3 +48,16 @@ def get_jwt_secret() -> str:
 
 def get_app_base_url() -> str:
     return get_secret("APP_BASE_URL", "http://localhost:8501").rstrip("/")
+
+
+def get_admin_emails() -> frozenset[str]:
+    """E-mails granted the administration dashboard (env or Streamlit secrets)."""
+    raw = get_secret_raw("ADMIN_EMAILS", "")
+    values: list[str] = []
+    if isinstance(raw, list):
+        values = [normalize_secret(item) for item in raw]
+    else:
+        text = normalize_secret(raw)
+        if text:
+            values = [part.strip() for part in text.replace(";", ",").split(",")]
+    return frozenset(email.lower() for email in values if email and "@" in email)

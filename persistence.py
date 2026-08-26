@@ -51,6 +51,7 @@ _USER_OWNED_TABLES = (
     "user_notification_settings",
     "password_reset_tokens",
     "user_connected_accounts",
+    "llm_usage",
 )
 
 _PERSISTENCE_SCHEMA_KEY = (
@@ -60,6 +61,7 @@ _PERSISTENCE_SCHEMA_KEY = (
     "scheduled_runs_v1",
     "cv_documents_v1",
     "user_connected_accounts_v2",
+    "llm_usage_v1",
 )
 _persistence_initialized_for: tuple[str, ...] | None = None
 
@@ -393,6 +395,9 @@ def init_persistence_tables() -> None:
         _create_cv_documents_table(conn)
         _create_user_connected_accounts_table(conn)
         _migrate_user_connected_accounts_columns(conn)
+        from services.llm_usage import ensure_llm_usage_table
+
+        ensure_llm_usage_table()
         _ = existing_columns(conn, "analyses")
     _persistence_initialized_for = _PERSISTENCE_SCHEMA_KEY
 

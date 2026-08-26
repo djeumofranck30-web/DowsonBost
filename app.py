@@ -815,6 +815,18 @@ def _chat_completion(
     content = response.choices[0].message.content
     if not content:
         raise RuntimeError("Le modèle IA n'a renvoyé aucun texte.")
+    try:
+        from services.llm_usage import record_chat_usage
+
+        record_chat_usage(
+            provider="openai",
+            model=model,
+            usage=getattr(response, "usage", None),
+            prompt_text=f"{system_prompt}\n{user_prompt}",
+            completion_text=content,
+        )
+    except Exception:  # noqa: BLE001
+        pass
     return content
 
 
@@ -946,7 +958,20 @@ def _groq_chat_raw(
     content = data["choices"][0]["message"]["content"]
     if not content:
         raise RuntimeError("Réponse Groq vide.")
-    return content.strip()
+    content = content.strip()
+    try:
+        from services.llm_usage import record_chat_usage
+
+        record_chat_usage(
+            provider="groq",
+            model=model,
+            usage=data.get("usage"),
+            prompt_text=f"{system_prompt}\n{user_prompt}",
+            completion_text=content,
+        )
+    except Exception:  # noqa: BLE001
+        pass
+    return content
 
 
 def _classify_groq_error(exc: Exception) -> str:
@@ -1326,6 +1351,21 @@ def _gemini_via_sdk(
                 config=config,
             )
             if response.text:
+                try:
+                    from services.llm_usage import record_llm_usage, usage_from_gemini_payload
+
+                    prompt_n, completion_n, total_n = usage_from_gemini_payload(response)
+                    record_llm_usage(
+                        provider="gemini",
+                        model=model,
+                        prompt_tokens=prompt_n,
+                        completion_tokens=completion_n,
+                        total_tokens=total_n,
+                        prompt_text=system_prompt or "",
+                        completion_text=response.text.strip(),
+                    )
+                except Exception:  # noqa: BLE001
+                    pass
                 return response.text.strip(), None
             return None, f"{model}/SDK: réponse vide"
     except Exception as exc:  # noqa: BLE001
@@ -1367,7 +1407,24 @@ def _gemini_via_rest(
         try:
             response = requests.post(url, json=payload, headers=headers, timeout=90)
             if response.ok:
-                return _extract_gemini_text(response.json()), None
+                data = response.json()
+                text = _extract_gemini_text(data)
+                try:
+                    from services.llm_usage import record_llm_usage, usage_from_gemini_payload
+
+                    prompt_n, completion_n, total_n = usage_from_gemini_payload(data)
+                    record_llm_usage(
+                        provider="gemini",
+                        model=model,
+                        prompt_tokens=prompt_n,
+                        completion_tokens=completion_n,
+                        total_tokens=total_n,
+                        prompt_text=system_prompt or "",
+                        completion_text=text,
+                    )
+                except Exception:  # noqa: BLE001
+                    pass
+                return text, None
             last_error = f"HTTP {response.status_code} — {response.text[:120]}"
         except Exception as exc:  # noqa: BLE001
             last_error = str(exc)[:120]
@@ -1667,6 +1724,12 @@ def _call_llm_backend(
     max_tokens: int = 1200,
 ) -> str:
     """Invoke a single LLM backend by id."""
+    try:
+        from services.llm_usage import bind_current_user_from_streamlit
+
+        bind_current_user_from_streamlit()
+    except Exception:  # noqa: BLE001
+        pass
     if provider == "groq":
         if not api_key:
             st.session_state.active_llm_provider = "Groq (gratuit)"
@@ -3029,6 +3092,15 @@ def build_matching_results(
     progress: ProgressReporter | None = None,
 ) -> tuple[list[dict[str, Any]], int]:
     """AI-match job candidates and return the best offers by correspondence score."""
+    try:
+        from services.llm_usage import bind_current_user_from_streamlit, bind_usage_user_id
+
+        profile_id = (user_profile or {}).get("id")
+        if profile_id is not None:
+            bind_usage_user_id(int(profile_id))
+        bind_current_user_from_streamlit()
+    except Exception:  # noqa: BLE001
+        pass
     candidate_limit = min(len(jobs), pool_size or MATCHING_CANDIDATE_POOL)
     candidates = rank_jobs_for_cv(
         jobs,
@@ -6738,6 +6810,15 @@ def render_app() -> None:
             st.session_state.analysis = None
             st.session_state.pdf_fingerprint = None
             st.rerun()
+
+        from auth import user_is_admin as _user_is_admin
+
+        if _user_is_admin(user):
+            st.page_link(
+                "pages/dashboard.py",
+                label="Espace administration",
+                icon="🛡️",
+            )
 
         st.markdown("---")
 
