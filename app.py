@@ -3569,46 +3569,57 @@ def render_job_card(
     exp_analysis = match.get("analyse_experiences") or {}
 
     st.markdown('<div class="job-match-card">', unsafe_allow_html=True)
-    st.markdown(f"### #{rank} — {job['title']}")
+    kicker = f"#{rank}"
     if enable_tracking and result_id:
-        st.caption(
-            t("job.tracking", status=application_status_label(application_status))
+        kicker += " · " + t(
+            "job.tracking", status=application_status_label(application_status)
         )
-
+    contract_label_value = job.get("inferred_contract") or job.get("contract_type") or ""
+    fact_parts = [
+        f"{t('job.company_label')} {job.get('company') or '—'}",
+        f"{t('job.location_label')} {job.get('location') or '—'}",
+    ]
+    if contract_label_value:
+        fact_parts.append(f"{t('job.contract_label')} {contract_label_value}")
+    fact_parts.append(f"{t('job.publication_label')} {format_job_published_label(job)}")
+    if job.get("source"):
+        fact_parts.append(f"{t('job.source_label')} {job.get('source')}")
+    recommended = match.get("titre_cv_recommande")
+    if recommended:
+        fact_parts.append(f"{t('job.recommended_cv_title')} {recommended}")
+    facts_html = "".join(
+        f"<span>{html.escape(str(part))}</span>" for part in fact_parts
+    )
+    chip_items = (
+        (t("job.skills"), match.get("score_competences", score)),
+        (t("job.experiences"), match.get("score_experiences", score)),
+        (t("job.title_match"), match.get("score_titre", score)),
+        (t("job.location_contract_metric"), match.get("score_localisation", score)),
+    )
+    chips_html = "".join(
+        f'<span class="score-chip">{html.escape(label)} {int(value or 0)}%</span>'
+        for label, value in chip_items
+    )
+    st.markdown(
+        (
+            '<div class="job-card-head">'
+            "<div>"
+            f'<p class="job-card-kicker">{html.escape(kicker)}</p>'
+            f'<p class="job-card-title">{html.escape(str(job.get("title") or "—"))}</p>'
+            f'<p class="job-card-facts">{facts_html}</p>'
+            "</div>"
+            f'<div class="job-score-badge" style="background:{score_color}18;'
+            f'border:2px solid {score_color};color:{score_color}">'
+            f"<strong>{score}%</strong>"
+            f"<small>{html.escape(t('job.ats_global_score'))}</small>"
+            "</div></div>"
+            f'<div class="score-chip-row">{chips_html}</div>'
+        ),
+        unsafe_allow_html=True,
+    )
     if match.get("synthese_ats"):
         st.caption(match["synthese_ats"])
-
-    col1, col2, col3 = st.columns([2, 2, 1])
-
-    with col1:
-        st.markdown(f"**{t('job.company_label')}** {job['company']}")
-        st.markdown(f"**{t('job.location_label')}** {job['location']}")
-        if job.get("contract_type") or job.get("inferred_contract"):
-            contract_label_value = job.get("inferred_contract") or job.get("contract_type")
-            st.markdown(f"**{t('job.contract_label')}** {contract_label_value}")
-        st.markdown(f"**{t('job.publication_label')}** {format_job_published_label(job)}")
-        st.markdown(f"**{t('job.source_label')}** {job.get('source', '')}")
-        st.markdown(
-            f"**{t('job.recommended_cv_title')}** "
-            f"{match.get('titre_cv_recommande', 'N/A')}"
-        )
-
-    with col2:
-        sc1, sc2, sc3, sc4 = st.columns(4)
-        sc1.metric(t("job.skills"), f"{match.get('score_competences', score)}%")
-        sc2.metric(t("job.experiences"), f"{match.get('score_experiences', score)}%")
-        sc3.metric(t("job.title_match"), f"{match.get('score_titre', score)}%")
-        sc4.metric(t("job.location_contract_metric"), f"{match.get('score_localisation', score)}%")
-        st.caption(t("job.ats_scale"))
-
-    with col3:
-        st.markdown(
-            f"<div class='job-score-pill' style='background:{score_color}22;"
-            f"border:2px solid {score_color}'>"
-            f"<span style='font-size:2rem;font-weight:bold;color:{score_color}'>"
-            f"{score}%</span><br><small>{t('job.ats_global_score')}</small></div>",
-            unsafe_allow_html=True,
-        )
+    st.caption(t("job.ats_scale"))
 
     with st.expander(t("job.skills_expander"), expanded=rank <= 3):
         c_left, c_right = st.columns(2)
@@ -4270,9 +4281,30 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
     """Dashboard scoped to a selected analysis with filters and tracking."""
     _flush_analysis_notices()
     user_id = int(user["id"])
+    render_page_hero(
+        t("hero.dashboard.title"),
+        t("hero.dashboard.subtitle"),
+        badge=t("hero.dashboard.badge"),
+    )
     analyses = list_analyses(user_id)
     if not analyses:
-        st.info(t("history.empty_start"))
+        st.markdown(
+            (
+                '<div class="empty-panel">'
+                '<div class="empty-icon">📊</div>'
+                f"<h2>{html.escape(t('dashboard.empty_title'))}</h2>"
+                f"<p>{html.escape(t('dashboard.empty_text'))}</p>"
+                "</div>"
+            ),
+            unsafe_allow_html=True,
+        )
+        if st.button(
+            t("dashboard.empty_cta"),
+            type="primary",
+            use_container_width=True,
+            key="dashboard_empty_cta",
+        ):
+            _request_navigation("analysis")
         return
 
     analysis_by_id = {int(row["id"]): row for row in analyses}
@@ -4288,60 +4320,68 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
     elif st.session_state.dashboard_analysis_select not in analysis_by_id:
         st.session_state.dashboard_analysis_select = analysis_ids[0]
 
-    st.markdown(
-        f'<p class="section-title">{t("dashboard.title")}</p>',
-        unsafe_allow_html=True,
+    selected_id = st.selectbox(
+        t("dashboard.analysis_select"),
+        options=analysis_ids,
+        format_func=lambda aid: _analysis_dashboard_label(analysis_by_id[aid]),
+        key="dashboard_analysis_select",
     )
-
-    with st.container(border=True):
-        selected_id = st.selectbox(
-            t("dashboard.analysis_select"),
-            options=analysis_ids,
-            format_func=lambda aid: _analysis_dashboard_label(analysis_by_id[aid]),
-            key="dashboard_analysis_select",
-        )
-        selected_meta = analysis_by_id[selected_id]
-        created = str(selected_meta.get("created_at", ""))[:16].replace("T", " ")
-        st.caption(
-            t(
-                "dashboard.meta",
-                id=selected_id,
-                created=created,
-                engine=selected_meta.get("job_provider", "—"),
-                raw=selected_meta.get("jobs_raw", 0),
-                kept=selected_meta.get("jobs_found", 0),
-            )
-        )
+    selected_meta = analysis_by_id[selected_id]
+    created = str(selected_meta.get("created_at", ""))[:16].replace("T", " ")
+    pills = [
+        f"#{selected_id}",
+        created,
+        str(selected_meta.get("job_provider") or "—"),
+        f"{selected_meta.get('jobs_raw', 0)} → {selected_meta.get('jobs_found', 0)}",
+    ]
+    pills_html = "".join(
+        f'<span class="dash-meta-pill">{html.escape(str(item))}</span>' for item in pills if item
+    )
+    st.markdown(f'<div class="dash-meta-pills">{pills_html}</div>', unsafe_allow_html=True)
 
     counts = dashboard_status_counts(user_id, analysis_id=selected_id)
-    metric_cols = st.columns(4)
-    metric_cols[0].metric(t("dashboard.metric_total"), counts.get("all", 0))
-    metric_cols[1].metric(t("dashboard.metric_saved"), counts.get("saved", 0))
-    metric_cols[2].metric(t("dashboard.metric_applied"), counts.get("applied", 0))
-    metric_cols[3].metric(t("dashboard.metric_interview"), counts.get("interview", 0))
+    stat_items = (
+        (t("dashboard.metric_total"), counts.get("all", 0)),
+        (t("dashboard.metric_saved"), counts.get("saved", 0)),
+        (t("dashboard.metric_applied"), counts.get("applied", 0)),
+        (t("dashboard.metric_interview"), counts.get("interview", 0)),
+    )
+    stats_html = "".join(
+        (
+            '<div class="stat-card">'
+            f'<p class="stat-card-label">{html.escape(str(label))}</p>'
+            f'<p class="stat-card-value">{int(value)}</p>'
+            "</div>"
+        )
+        for label, value in stat_items
+    )
+    st.markdown(f'<div class="stat-card-grid">{stats_html}</div>', unsafe_allow_html=True)
 
-    with st.container(border=True):
-        f1, f2, f3, f4 = st.columns(4)
-        with f1:
-            status_filter = st.selectbox(
-                t("dashboard.status"),
-                ["all", *APPLICATION_STATUSES],
-                format_func=lambda value: t("dashboard.all")
-                if value == "all"
-                else application_status_label(value),
-                key="dash_status_filter",
-            )
-        with f2:
-            sort_by = st.selectbox(
-                t("common.sort"),
-                ["score_desc", "score_asc", "date_desc", "date_asc"],
-                format_func=sort_label,
-                key="dash_sort",
-            )
-        with f3:
-            min_score = st.slider(t("dashboard.min_score"), 0, 100, 0, key="dash_min_score")
-        with f4:
-            company_query = st.text_input(t("common.company"), key="dash_company")
+    st.markdown(
+        f'<p class="filter-bar-title">{html.escape(t("dashboard.filters_title"))}</p>',
+        unsafe_allow_html=True,
+    )
+    f1, f2, f3, f4 = st.columns(4)
+    with f1:
+        status_filter = st.selectbox(
+            t("dashboard.status"),
+            ["all", *APPLICATION_STATUSES],
+            format_func=lambda value: t("dashboard.all")
+            if value == "all"
+            else application_status_label(value),
+            key="dash_status_filter",
+        )
+    with f2:
+        sort_by = st.selectbox(
+            t("common.sort"),
+            ["score_desc", "score_asc", "date_desc", "date_asc"],
+            format_func=sort_label,
+            key="dash_sort",
+        )
+    with f3:
+        min_score = st.slider(t("dashboard.min_score"), 0, 100, 0, key="dash_min_score")
+    with f4:
+        company_query = st.text_input(t("common.company"), key="dash_company")
 
     entries = list_dashboard_results(
         user_id,
@@ -4355,7 +4395,10 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
         st.info(t("dashboard.no_results"))
         return
 
-    st.caption(t("dashboard.results_count", count=len(entries), id=selected_id))
+    st.markdown(
+        f'<p class="dash-results-line">{html.escape(t("dashboard.results_count", count=len(entries), id=selected_id))}</p>',
+        unsafe_allow_html=True,
+    )
     user_profile = get_user_by_id(user_id) or user
     stored_analysis = get_analysis(user_id, selected_id)
     cv_text = stored_analysis.get("cv_text", "") if stored_analysis else ""
@@ -6302,6 +6345,26 @@ def render_connected_accounts_section(user: dict[str, Any]) -> None:
     st.markdown("</div>", unsafe_allow_html=True)
 
 
+def _profile_header_chips(profile: dict[str, Any]) -> str:
+    """Compact identity chips for the profile header."""
+    chips: list[str] = []
+    job_title = str(profile.get("target_job_title") or "").strip()
+    if job_title:
+        chips.append(job_title)
+    contract = profile.get("contract_type")
+    if contract:
+        chips.append(contract_label(str(contract)))
+    level = profile.get("experience_level")
+    if level:
+        chips.append(experience_label(str(level)))
+    countries = format_countries_summary(profile)
+    if countries:
+        chips.append(countries)
+    return "".join(
+        f'<span class="profile-chip">{html.escape(chip)}</span>' for chip in chips if chip
+    )
+
+
 def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
     """Profile settings — identity, search prefs, security, alerts, delete account."""
     _flush_analysis_notices()
@@ -6331,13 +6394,22 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
             f"<p>{html.escape(profile.get('email', '—'))}</p>"
             f"{phone_line}"
             f'<span class="profile-badge">{member_label}</span>'
+            f'<div class="profile-chip-row">{_profile_header_chips(profile)}</div>'
             "</div></div>"
         ),
         unsafe_allow_html=True,
     )
 
-    with st.container(border=True):
-        st.markdown('<div class="profile-section-card">', unsafe_allow_html=True)
+    tab_search, tab_accounts, tab_alerts, tab_security = st.tabs(
+        [
+            t("profile.tab_search"),
+            t("profile.tab_accounts"),
+            t("profile.tab_alerts"),
+            t("profile.tab_security"),
+        ]
+    )
+
+    with tab_search:
         st.markdown(
             f'<p class="section-title">{html.escape(t("profile.search_section"))}</p>',
             unsafe_allow_html=True,
@@ -6350,7 +6422,10 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
         profile_key_prefix = f"profile_{user['id']}"
         selected_countries = render_countries_multiselect(profile, key_prefix=profile_key_prefix)
 
-        st.markdown("**Périmètre géographique par pays**")
+        st.markdown(
+            f'<p class="filter-bar-title">{html.escape(t("profile.geo_section"))}</p>',
+            unsafe_allow_html=True,
+        )
         admin_regions: list[str] = []
         selected_departments: list[dict[str, str]] = []
         profile_cities: list[str] = []
@@ -6467,8 +6542,8 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                     t("profile.sectors"),
                     SECTOR_OPTIONS,
                     help=t("profile.sectors_help"),
-                    format_func=sector_label,
                     key=sectors_key,
+                    format_func=sector_label,
                 )
                 search_radius = st.slider(
                     t("profile.radius"),
@@ -6545,42 +6620,49 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                         ]
                         st.rerun()
                     st.error(message)
-        st.markdown("</div>", unsafe_allow_html=True)
 
-    with st.container(border=True):
+    with tab_accounts:
         render_connected_accounts_section(profile)
 
-    sec_col1, sec_col2 = st.columns(2)
-    with sec_col1:
-        with st.container(border=True):
-            st.markdown('<div class="profile-section-card">', unsafe_allow_html=True)
-            st.markdown(
-                '<p class="section-title">Mot de passe</p>',
-                unsafe_allow_html=True,
+    with tab_alerts:
+        render_notification_settings(user, job_provider)
+
+    with tab_security:
+        st.markdown(
+            f'<p class="section-title">{html.escape(t("profile.password_section"))}</p>',
+            unsafe_allow_html=True,
+        )
+        with st.form("password_form"):
+            current_pw = st.text_input(
+                t("profile.current_password"),
+                type="password",
+                key=f"profile_current_password_{user['id']}",
             )
-            with st.form("password_form"):
-                current_pw = st.text_input("Mot de passe actuel", type="password")
-                new_pw = st.text_input("Nouveau mot de passe", type="password")
-                new_pw2 = st.text_input("Confirmer", type="password")
-                if st.form_submit_button("Modifier le mot de passe", use_container_width=True):
-                    if new_pw != new_pw2:
-                        st.error("Les nouveaux mots de passe ne correspondent pas.")
+            new_pw = st.text_input(
+                t("profile.new_password"),
+                type="password",
+                key=f"profile_new_password_{user['id']}",
+            )
+            new_pw2 = st.text_input(
+                t("profile.confirm_password"),
+                type="password",
+                key=f"profile_confirm_password_{user['id']}",
+            )
+            if st.form_submit_button(
+                t("profile.change_password"),
+                use_container_width=True,
+            ):
+                if new_pw != new_pw2:
+                    st.error(t("profile.password_mismatch"))
+                else:
+                    ok, message = change_password(user["id"], current_pw, new_pw)
+                    if ok:
+                        st.success(message)
                     else:
-                        ok, message = change_password(user["id"], current_pw, new_pw)
-                        if ok:
-                            st.success(message)
-                        else:
-                            st.error(message)
-            st.markdown("</div>", unsafe_allow_html=True)
+                        st.error(message)
 
-    with sec_col2:
-        with st.container(border=True):
-            st.markdown('<div class="profile-section-card">', unsafe_allow_html=True)
-            render_notification_settings(user, job_provider)
-            st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown('<hr class="profile-divider">', unsafe_allow_html=True)
-    render_delete_account_section(user)
+        st.markdown('<hr class="profile-divider">', unsafe_allow_html=True)
+        render_delete_account_section(user)
 
 
 def render_cv_analysis(
@@ -7119,11 +7201,6 @@ def render_app() -> None:
 
 
     if page == "profile":
-        render_page_hero(
-            t("hero.profile.title"),
-            t("hero.profile.subtitle"),
-            badge=t("hero.profile.badge"),
-        )
         render_profile_page(user, job_provider)
         return
 
@@ -7146,11 +7223,6 @@ def render_app() -> None:
         return
 
     if page == "dashboard":
-        render_page_hero(
-            t("hero.dashboard.title"),
-            t("hero.dashboard.subtitle"),
-            badge=t("hero.dashboard.badge"),
-        )
         render_dashboard_page(user)
         return
 

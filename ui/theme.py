@@ -418,6 +418,250 @@ def render_app_styles() -> None:
             font-size: 0.88rem;
             margin: 0 0 0.85rem 0;
         }}
+        .profile-chip-row {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.65rem;
+        }}
+        .profile-chip {{
+            display: inline-flex;
+            align-items: center;
+            padding: 0.28rem 0.7rem;
+            border-radius: 999px;
+            background: rgba(124, 58, 237, 0.08);
+            color: {t["primary_dark"]};
+            font-size: 0.78rem;
+            font-weight: 600;
+        }}
+        .profile-header-card {{
+            margin-top: 0.15rem;
+        }}
+        .profile-header-meta {{
+            color: {t["muted"]};
+            font-size: 0.9rem;
+            margin: 0.15rem 0 0 !important;
+        }}
+        .profile-section-card {{
+            margin: 0;
+        }}
+        .profile-divider {{
+            border: 0;
+            height: 1px;
+            margin: 1.4rem 0 1.1rem;
+            background: linear-gradient(90deg, rgba(124,58,237,0.25), transparent);
+        }}
+        .job-match-card {{
+            padding: 1.1rem 1.25rem 0.55rem;
+        }}
+
+        .stat-card-grid {{
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.85rem;
+            margin: 0 0 1.2rem 0;
+        }}
+        .stat-card {{
+            background: {t["surface"]};
+            border: 1px solid rgba(124, 58, 237, 0.1);
+            border-radius: {t["radius_md"]};
+            padding: 1rem 1.1rem 0.95rem;
+            box-shadow: {t["shadow_sm"]};
+            position: relative;
+            overflow: hidden;
+        }}
+        .stat-card::after {{
+            content: "";
+            position: absolute;
+            right: -12px;
+            bottom: -18px;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(124,58,237,0.12), transparent);
+        }}
+        .stat-card-label {{
+            margin: 0;
+            color: {t["muted"]};
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }}
+        .stat-card-value {{
+            margin: 0.25rem 0 0.1rem;
+            font-size: 1.65rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: {t["primary_deep"]};
+        }}
+        .stat-card-hint {{
+            margin: 0;
+            color: {t["muted"]};
+            font-size: 0.78rem;
+        }}
+        .empty-panel {{
+            text-align: center;
+            background: {t["surface"]};
+            border-radius: {t["radius_xl"]};
+            padding: 2.4rem 1.5rem;
+            box-shadow: {t["shadow_md"]};
+            border: 1px solid rgba(124, 58, 237, 0.08);
+            margin-bottom: 1rem;
+        }}
+        .empty-panel h2 {{
+            margin: 0.4rem 0 0.35rem;
+            color: {t["primary_deep"]};
+            font-size: 1.35rem;
+        }}
+        .empty-panel p {{
+            margin: 0 auto;
+            max-width: 32rem;
+            color: {t["muted"]};
+        }}
+        .empty-icon {{
+            font-size: 2rem;
+        }}
+        .dash-meta-pills {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin: 0.35rem 0 1rem;
+        }}
+        .dash-meta-pill {{
+            display: inline-flex;
+            align-items: center;
+            padding: 0.22rem 0.7rem;
+            border-radius: 999px;
+            background: rgba(124, 58, 237, 0.08);
+            color: {t["primary_deep"]};
+            font-size: 0.78rem;
+            font-weight: 600;
+        }}
+        .dash-results-line {{
+            color: {t["muted"]};
+            font-size: 0.88rem;
+            font-weight: 600;
+            margin: 0.35rem 0 0.85rem;
+        }}
+        .filter-bar-title {{
+            margin: 0 0 0.35rem;
+            color: {t["primary_deep"]};
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }}
+        .job-card-head {{
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: flex-start;
+            margin-bottom: 0.55rem;
+        }}
+        .job-card-kicker {{
+            margin: 0 0 0.2rem;
+            color: {t["muted"]};
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }}
+        .job-card-title {{
+            margin: 0 0 0.25rem !important;
+            font-size: 1.15rem !important;
+            font-weight: 800 !important;
+            color: {t["primary_deep"]} !important;
+            line-height: 1.3 !important;
+        }}
+        .job-card-sub {{
+            margin: 0;
+            color: {t["muted"]};
+            font-size: 0.9rem;
+        }}
+        .job-card-facts {{
+            margin: 0 0 0.45rem;
+            color: {t["muted"]};
+            font-size: 0.86rem;
+            line-height: 1.55;
+        }}
+        .job-card-facts span {{
+            display: inline-block;
+            margin-right: 0.85rem;
+        }}
+        .job-score-badge {{
+            min-width: 4.6rem;
+            text-align: center;
+            padding: 0.55rem 0.7rem 0.5rem;
+            border-radius: 16px;
+            flex-shrink: 0;
+        }}
+        .job-score-badge strong {{
+            display: block;
+            font-size: 1.4rem;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+        }}
+        .job-score-badge small {{
+            color: {t["muted"]};
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }}
+        .score-chip-row {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin: 0.2rem 0 0.65rem;
+        }}
+        .score-chip {{
+            display: inline-flex;
+            align-items: center;
+            padding: 0.28rem 0.65rem;
+            border-radius: 999px;
+            background: {t["surface_soft"]};
+            border: 1px solid rgba(124, 58, 237, 0.1);
+            color: {t["primary_deep"]};
+            font-size: 0.78rem;
+            font-weight: 700;
+        }}
+        .stTabs [data-baseweb="tab-list"] {{
+            gap: 0.35rem;
+            background: rgba(255,255,255,0.55);
+            padding: 0.35rem;
+            border-radius: 999px;
+            border: 1px solid rgba(124, 58, 237, 0.08);
+            margin-bottom: 0.85rem;
+        }}
+        .stTabs [data-baseweb="tab"] {{
+            border-radius: 999px !important;
+            font-weight: 700 !important;
+            color: {t["muted"]} !important;
+        }}
+        .stTabs [aria-selected="true"] {{
+            background: #fff !important;
+            color: {t["primary"]} !important;
+            box-shadow: 0 4px 12px rgba(76, 29, 149, 0.1);
+        }}
+        @media (max-width: 900px) {{
+            .stat-card-grid {{
+                grid-template-columns: 1fr 1fr;
+            }}
+            .job-card-head {{
+                flex-direction: column;
+            }}
+        }}
+        @media (max-width: 560px) {{
+            .stat-card-grid {{
+                grid-template-columns: 1fr;
+            }}
+            .profile-header-card {{
+                flex-direction: column;
+                align-items: flex-start;
+            }}
+        }}
 
         /* —— Delete zone —— */
         .delete-account-zone {{
