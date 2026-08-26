@@ -167,6 +167,12 @@ def main() -> None:
             st.rerun()
 
     components.html(dashboard_html(overview, embedded=True), height=1080, scrolling=True)
+
+    st.markdown("---")
+    from app import render_config_tests_panel
+
+    render_config_tests_panel(show_clear_cache=True, expanded=False)
+
     st.page_link("app.py", label="Retour à l'application candidate", icon="🎯")
 
 

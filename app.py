@@ -314,12 +314,15 @@ THEME_ACCENT = THEME["accent"]
 
 APP_VERSION = "3.13.0-modern-ui"
 
-st.set_page_config(
-    page_title=APP_NAME,
-    page_icon="🎯",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+try:
+    st.set_page_config(
+        page_title=APP_NAME,
+        page_icon="🎯",
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
+except Exception:  # noqa: BLE001 — already set when imported from pages/dashboard.py
+    pass
 
 GROQ_KEY_PLACEHOLDERS = {
     "",
@@ -6778,6 +6781,284 @@ def render_cv_analysis(
         render_analysis_results(st.session_state.analysis)
 
 
+def render_config_tests_panel(*, show_clear_cache: bool = True, expanded: bool = False) -> None:
+    """API diagnostics — shown only on the admin dashboard."""
+    provider_secrets = provider_secrets_from_getter(get_secret)
+    with st.expander(t("app.config_tests"), expanded=expanded):
+        st.caption(f"{t('app.version')} : `{APP_VERSION}`")
+
+        db_backend, db_message = database_status()
+        if db_backend == "postgres":
+            st.success(db_message)
+        else:
+            st.warning(db_message)
+
+        adzuna_id = get_secret("ADZUNA_APP_ID")
+        adzuna_key = get_secret("ADZUNA_APP_KEY")
+        serp_configured = bool(provider_secrets["serpapi_api_key"])
+        jooble_configured = bool(provider_secrets["jooble_api_key"])
+        careerjet_configured = bool(provider_secrets["careerjet_api_key"])
+        apify_configured = bool(provider_secrets["apify_api_token"])
+        has_adzuna = bool(adzuna_id and adzuna_key)
+
+        openai_configured = bool(get_secret("OPENAI_API_KEY"))
+        groq_configured = bool(get_secret("GROQ_API_KEY"))
+        gemini_configured = bool(get_secret("GEMINI_API_KEY"))
+        ai_ready, ai_status = ai_setup_status()
+        chain = get_llm_provider_chain()
+        active = st.session_state.get(
+            "active_llm_provider",
+            resolve_llm_provider(),
+        )
+
+        st.markdown("**Mode IA :** sélection automatique")
+        if chain:
+            st.caption(
+                "Ordre de bascule : "
+                + " → ".join({"groq": "Groq", "gemini": "Gemini", "openai": "OpenAI"}[p] for p in chain)
+            )
+        st.markdown(f"**Moteur en cours :** `{active}`")
+
+        if ai_ready:
+            st.success(ai_status)
+        else:
+            st.error(ai_status)
+
+        parallel_keys = collect_parallel_llm_slots(PARALLEL_MATCH_KEYS_PER_PROVIDER)
+        counts = count_parallel_keys_by_provider()
+        if counts["total"] > 1:
+            st.success(
+                f"Matching parallèle : **{counts['groq']} Groq** + "
+                f"**{counts['gemini']} Gemini** "
+                f"(**{min(PARALLEL_MATCH_MAX_WORKERS, counts['total'])}** offres simultanées max)."
+            )
+        else:
+            st.caption(
+                "Matching parallèle : configurez **3 clés Groq** + **3 clés Gemini** "
+                "via `GROQ_API_KEY` + `GROQ_API_KEYS` et `GEMINI_API_KEY` + `GEMINI_API_KEYS`."
+            )
+
+        if groq_configured:
+            fmt_ok, fmt_msg = validate_groq_api_key()
+            if fmt_ok:
+                st.success(f"Groq : clé présente ({fmt_msg})")
+            else:
+                st.error(f"Groq : {fmt_msg}")
+        else:
+            st.warning("Groq : clé absente — [créer ici](https://console.groq.com/keys)")
+
+        if openai_configured:
+            st.info("OpenAI : clé présente *(secours, crédits requis)*")
+
+        if gemini_configured:
+            g_status, g_msg = gemini_key_status()
+            if g_status == "ok":
+                st.info(f"Gemini : clé présente ({g_msg}) — secours auto")
+            else:
+                st.warning(f"Gemini : {g_msg}")
+
+        if has_adzuna:
+            st.caption(f"Adzuna : app_id `{adzuna_id[:4]}…`, clé {len(adzuna_key)} caractères")
+        else:
+            st.warning("Adzuna : identifiants incomplets")
+
+        st.success("Welcome to the Jungle : actif *(gratuit, sans clé API)*")
+
+        if jooble_configured:
+            st.success("Jooble : clé présente")
+        else:
+            st.caption("Jooble : [clé gratuite](https://fr.jooble.org/api/about)")
+
+        if careerjet_configured:
+            st.success("OptionCarriere / Careerjet : clé présente")
+            referer_preview = resolve_careerjet_referer(
+                provider_secrets["careerjet_referer"]
+            )
+            ip_preview = resolve_careerjet_user_ip(
+                provider_secrets["careerjet_user_ip"],
+                client_ip=resolve_streamlit_client_ip(),
+            )
+            st.caption(
+                f"Careerjet — referer `{referer_preview}` · IP `{ip_preview}`. "
+                "Le referer doit être l'URL exacte enregistrée sur le portail partenaire."
+            )
+        else:
+            st.caption(
+                "OptionCarriere : [clé gratuite](https://www.optioncarriere.com/partners/api)"
+            )
+
+        if apify_configured:
+            st.success(
+                "Apify : token présent "
+                "*(JobTeaser, HelloWork, Monster, Talent.com)*"
+            )
+        else:
+            st.caption(
+                "Apify : token requis pour JobTeaser, HelloWork, Monster, Talent.com "
+                "— [apify.com](https://apify.com/)"
+            )
+
+        if serp_configured:
+            st.success(
+                "SerpApi : clé présente "
+                "*(Indeed, LinkedIn, Glassdoor, HelloWork, Monster, Talent.com, Google Jobs)*"
+            )
+        else:
+            st.caption("SerpApi : non configuré — [serpapi.com](https://serpapi.com/)")
+
+        if st.button(
+            "Tester Welcome to the Jungle",
+            use_container_width=True,
+            key="admin_test_wttj",
+        ):
+            ok, message = test_wttj_connection()
+            if ok:
+                st.success(message)
+            else:
+                st.warning(message)
+
+        if st.button("Tester Jooble", use_container_width=True, key="admin_test_jooble"):
+            ok, message = test_jooble_connection(provider_secrets["jooble_api_key"])
+            if ok:
+                st.success(message)
+            else:
+                st.warning(message)
+
+        if st.button(
+            "Tester OptionCarriere",
+            use_container_width=True,
+            key="admin_test_optioncarriere",
+        ):
+            ok, message = test_optioncarriere_connection(
+                provider_secrets["careerjet_api_key"],
+                user_ip=provider_secrets["careerjet_user_ip"],
+                referer=resolve_careerjet_referer(provider_secrets["careerjet_referer"]),
+                client_ip=resolve_streamlit_client_ip(),
+            )
+            if ok:
+                st.success(message)
+            else:
+                st.warning(message)
+
+        if st.button("Tester JobTeaser", use_container_width=True, key="admin_test_jobteaser"):
+            ok, message = test_jobteaser_connection(provider_secrets["apify_api_token"])
+            if ok:
+                st.success(message)
+            else:
+                st.warning(message)
+
+        if st.button("Tester HelloWork", use_container_width=True, key="admin_test_hellowork"):
+            ok, message = test_hellowork_connection(
+                provider_secrets["apify_api_token"],
+                serpapi_key=provider_secrets["serpapi_api_key"],
+            )
+            if ok:
+                st.success(message)
+            else:
+                st.warning(message)
+
+        if st.button("Tester Monster", use_container_width=True, key="admin_test_monster"):
+            ok, message = test_monster_connection(
+                provider_secrets["apify_api_token"],
+                serpapi_key=provider_secrets["serpapi_api_key"],
+            )
+            if ok:
+                st.success(message)
+            else:
+                st.warning(message)
+
+        if st.button("Tester Talent.com", use_container_width=True, key="admin_test_talent"):
+            ok, message = test_talent_connection(
+                provider_secrets["apify_api_token"],
+                serpapi_key=provider_secrets["serpapi_api_key"],
+            )
+            if ok:
+                st.success(message)
+            else:
+                st.warning(message)
+
+        if st.button("Tester Indeed (SerpApi)", use_container_width=True, key="admin_test_indeed"):
+            ok, message = test_serpapi_platform_connection(
+                provider_secrets["serpapi_api_key"], "indeed"
+            )
+            if ok:
+                st.success(message)
+            else:
+                st.warning(message)
+
+        if st.button(
+            "Tester LinkedIn (SerpApi)",
+            use_container_width=True,
+            key="admin_test_linkedin",
+        ):
+            ok, message = test_serpapi_platform_connection(
+                provider_secrets["serpapi_api_key"], "linkedin"
+            )
+            if ok:
+                st.success(message)
+            else:
+                st.warning(message)
+
+        if st.button(
+            "Tester Glassdoor (SerpApi)",
+            use_container_width=True,
+            key="admin_test_glassdoor",
+        ):
+            ok, message = test_serpapi_platform_connection(
+                provider_secrets["serpapi_api_key"], "glassdoor"
+            )
+            if ok:
+                st.success(message)
+            else:
+                st.warning(message)
+
+        if st.button("Tester connexion Adzuna", use_container_width=True, key="admin_test_adzuna"):
+            ok, message = test_adzuna_connection()
+            if ok:
+                st.success(message)
+            else:
+                st.error(message)
+                render_adzuna_auth_help(adzuna_id)
+
+        if st.button("Tester connexion IA", use_container_width=True, key="admin_test_ai"):
+            ok, message, provider = test_ai_connection()
+            if ok:
+                st.success(f"{provider} — {message}")
+            else:
+                st.error(f"{provider} — {message}")
+                if groq_configured and (
+                    "401" in message
+                    or "Invalid API Key" in message
+                    or "refusée" in message
+                ):
+                    render_groq_key_help()
+                elif groq_configured:
+                    fp = hashlib.sha256(get_secret("GROQ_API_KEY").encode()).hexdigest()[:16]
+                    models, live = fetch_groq_model_ids(fp)
+                    if live and models:
+                        st.caption(
+                            "Modèles Groq (API live) : "
+                            + ", ".join(f"`{m}`" for m in models[:6])
+                        )
+                    elif models:
+                        st.caption(
+                            "Liste modèles par défaut (API Groq non joignable) — "
+                            "vérifiez votre clé."
+                        )
+
+        if show_clear_cache and st.button(
+            t("app.clear_cache"), use_container_width=True, key="admin_clear_cache"
+        ):
+            st.cache_data.clear()
+            st.session_state.analysis = None
+            st.session_state.pdf_fingerprint = None
+            st.session_state.analysis_notices = []
+            st.session_state.groq_quota_exhausted = False
+            st.session_state.llm_backend_active = None
+            st.success(t("app.cache_cleared"))
+            st.rerun()
+
+
 def render_app() -> None:
     """Main application shell with navigation."""
     render_app_styles()
@@ -6845,279 +7126,6 @@ def render_app() -> None:
             )
             st.session_state.analysis_depth = analysis_depth
 
-        with st.expander(t("app.config_tests"), expanded=False):
-            st.caption(f"{t('app.version')} : `{APP_VERSION}`")
-
-            db_backend, db_message = database_status()
-            if db_backend == "postgres":
-                st.success(db_message)
-            else:
-                st.warning(db_message)
-
-            adzuna_id = get_secret("ADZUNA_APP_ID")
-            adzuna_key = get_secret("ADZUNA_APP_KEY")
-            serp_configured = bool(provider_secrets["serpapi_api_key"])
-            jooble_configured = bool(provider_secrets["jooble_api_key"])
-            careerjet_configured = bool(provider_secrets["careerjet_api_key"])
-            apify_configured = bool(provider_secrets["apify_api_token"])
-            has_adzuna = bool(adzuna_id and adzuna_key)
-
-            openai_configured = bool(get_secret("OPENAI_API_KEY"))
-            groq_configured = bool(get_secret("GROQ_API_KEY"))
-            gemini_configured = bool(get_secret("GEMINI_API_KEY"))
-            ai_ready, ai_status = ai_setup_status()
-            chain = get_llm_provider_chain()
-            active = st.session_state.get(
-                "active_llm_provider",
-                resolve_llm_provider(),
-            )
-
-            st.markdown("**Mode IA :** sélection automatique")
-            if chain:
-                st.caption(
-                    "Ordre de bascule : "
-                    + " → ".join({"groq": "Groq", "gemini": "Gemini", "openai": "OpenAI"}[p] for p in chain)
-                )
-            st.markdown(f"**Moteur en cours :** `{active}`")
-
-            if ai_ready:
-                st.success(ai_status)
-            else:
-                st.error(ai_status)
-
-            parallel_keys = collect_parallel_llm_slots(PARALLEL_MATCH_KEYS_PER_PROVIDER)
-            counts = count_parallel_keys_by_provider()
-            if counts["total"] > 1:
-                st.success(
-                    f"Matching parallèle : **{counts['groq']} Groq** + "
-                    f"**{counts['gemini']} Gemini** "
-                    f"(**{min(PARALLEL_MATCH_MAX_WORKERS, counts['total'])}** offres simultanées max)."
-                )
-            else:
-                st.caption(
-                    "Matching parallèle : configurez **3 clés Groq** + **3 clés Gemini** "
-                    "via `GROQ_API_KEY` + `GROQ_API_KEYS` et `GEMINI_API_KEY` + `GEMINI_API_KEYS`."
-                )
-
-            if groq_configured:
-                fmt_ok, fmt_msg = validate_groq_api_key()
-                if fmt_ok:
-                    st.success(f"Groq : clé présente ({fmt_msg})")
-                else:
-                    st.error(f"Groq : {fmt_msg}")
-            else:
-                st.warning("Groq : clé absente — [créer ici](https://console.groq.com/keys)")
-
-            if openai_configured:
-                st.info("OpenAI : clé présente *(secours, crédits requis)*")
-
-            if gemini_configured:
-                g_status, g_msg = gemini_key_status()
-                if g_status == "ok":
-                    st.info(f"Gemini : clé présente ({g_msg}) — secours auto")
-                else:
-                    st.warning(f"Gemini : {g_msg}")
-
-            if has_adzuna:
-                st.caption(f"Adzuna : app_id `{adzuna_id[:4]}…`, clé {len(adzuna_key)} caractères")
-            else:
-                st.warning("Adzuna : identifiants incomplets")
-
-            st.success("Welcome to the Jungle : actif *(gratuit, sans clé API)*")
-
-            if jooble_configured:
-                st.success("Jooble : clé présente")
-            else:
-                st.caption("Jooble : [clé gratuite](https://fr.jooble.org/api/about)")
-
-            if careerjet_configured:
-                st.success("OptionCarriere / Careerjet : clé présente")
-                referer_preview = resolve_careerjet_referer(
-                    provider_secrets["careerjet_referer"]
-                )
-                ip_preview = resolve_careerjet_user_ip(
-                    provider_secrets["careerjet_user_ip"],
-                    client_ip=resolve_streamlit_client_ip(),
-                )
-                st.caption(
-                    f"Careerjet — referer `{referer_preview}` · IP `{ip_preview}`. "
-                    "Le referer doit être l'URL exacte enregistrée sur le portail partenaire."
-                )
-            else:
-                st.caption(
-                    "OptionCarriere : [clé gratuite](https://www.optioncarriere.com/partners/api)"
-                )
-
-            if apify_configured:
-                st.success(
-                    "Apify : token présent "
-                    "*(JobTeaser, HelloWork, Monster, Talent.com)*"
-                )
-            else:
-                st.caption(
-                    "Apify : token requis pour JobTeaser, HelloWork, Monster, Talent.com "
-                    "— [apify.com](https://apify.com/)"
-                )
-
-            if serp_configured:
-                st.success(
-                    "SerpApi : clé présente "
-                    "*(Indeed, LinkedIn, Glassdoor, HelloWork, Monster, Talent.com, Google Jobs)*"
-                )
-            else:
-                st.caption("SerpApi : non configuré — [serpapi.com](https://serpapi.com/)")
-
-            if st.button(
-                "Tester Welcome to the Jungle",
-                use_container_width=True,
-                key="test_wttj",
-            ):
-                ok, message = test_wttj_connection()
-                if ok:
-                    st.success(message)
-                else:
-                    st.warning(message)
-
-            if st.button("Tester Jooble", use_container_width=True, key="test_jooble"):
-                ok, message = test_jooble_connection(provider_secrets["jooble_api_key"])
-                if ok:
-                    st.success(message)
-                else:
-                    st.warning(message)
-
-            if st.button(
-                "Tester OptionCarriere",
-                use_container_width=True,
-                key="test_optioncarriere",
-            ):
-                ok, message = test_optioncarriere_connection(
-                    provider_secrets["careerjet_api_key"],
-                    user_ip=provider_secrets["careerjet_user_ip"],
-                    referer=resolve_careerjet_referer(provider_secrets["careerjet_referer"]),
-                    client_ip=resolve_streamlit_client_ip(),
-                )
-                if ok:
-                    st.success(message)
-                else:
-                    st.warning(message)
-
-            if st.button("Tester JobTeaser", use_container_width=True, key="test_jobteaser"):
-                ok, message = test_jobteaser_connection(provider_secrets["apify_api_token"])
-                if ok:
-                    st.success(message)
-                else:
-                    st.warning(message)
-
-            if st.button("Tester HelloWork", use_container_width=True, key="test_hellowork"):
-                ok, message = test_hellowork_connection(
-                    provider_secrets["apify_api_token"],
-                    serpapi_key=provider_secrets["serpapi_api_key"],
-                )
-                if ok:
-                    st.success(message)
-                else:
-                    st.warning(message)
-
-            if st.button("Tester Monster", use_container_width=True, key="test_monster"):
-                ok, message = test_monster_connection(
-                    provider_secrets["apify_api_token"],
-                    serpapi_key=provider_secrets["serpapi_api_key"],
-                )
-                if ok:
-                    st.success(message)
-                else:
-                    st.warning(message)
-
-            if st.button("Tester Talent.com", use_container_width=True, key="test_talent"):
-                ok, message = test_talent_connection(
-                    provider_secrets["apify_api_token"],
-                    serpapi_key=provider_secrets["serpapi_api_key"],
-                )
-                if ok:
-                    st.success(message)
-                else:
-                    st.warning(message)
-
-            if st.button("Tester Indeed (SerpApi)", use_container_width=True, key="test_indeed"):
-                ok, message = test_serpapi_platform_connection(
-                    provider_secrets["serpapi_api_key"], "indeed"
-                )
-                if ok:
-                    st.success(message)
-                else:
-                    st.warning(message)
-
-            if st.button(
-                "Tester LinkedIn (SerpApi)",
-                use_container_width=True,
-                key="test_linkedin",
-            ):
-                ok, message = test_serpapi_platform_connection(
-                    provider_secrets["serpapi_api_key"], "linkedin"
-                )
-                if ok:
-                    st.success(message)
-                else:
-                    st.warning(message)
-
-            if st.button(
-                "Tester Glassdoor (SerpApi)",
-                use_container_width=True,
-                key="test_glassdoor",
-            ):
-                ok, message = test_serpapi_platform_connection(
-                    provider_secrets["serpapi_api_key"], "glassdoor"
-                )
-                if ok:
-                    st.success(message)
-                else:
-                    st.warning(message)
-
-            if st.button("Tester connexion Adzuna", use_container_width=True, key="test_adzuna"):
-                ok, message = test_adzuna_connection()
-                if ok:
-                    st.success(message)
-                else:
-                    st.error(message)
-                    render_adzuna_auth_help(adzuna_id)
-
-            if st.button("Tester connexion IA", use_container_width=True, key="test_ai"):
-                ok, message, provider = test_ai_connection()
-                if ok:
-                    st.success(f"{provider} — {message}")
-                else:
-                    st.error(f"{provider} — {message}")
-                    if groq_configured and (
-                        "401" in message
-                        or "Invalid API Key" in message
-                        or "refusée" in message
-                    ):
-                        render_groq_key_help()
-                    elif groq_configured:
-                        fp = hashlib.sha256(get_secret("GROQ_API_KEY").encode()).hexdigest()[:16]
-                        models, live = fetch_groq_model_ids(fp)
-                        if live and models:
-                            st.caption(
-                                "Modèles Groq (API live) : "
-                                + ", ".join(f"`{m}`" for m in models[:6])
-                            )
-                        elif models:
-                            st.caption(
-                                "Liste modèles par défaut (API Groq non joignable) — "
-                                "vérifiez votre clé."
-                            )
-
-            if page == "analysis" and st.button(
-                t("app.clear_cache"), use_container_width=True, key="clear_cache"
-            ):
-                st.cache_data.clear()
-                st.session_state.analysis = None
-                st.session_state.pdf_fingerprint = None
-                st.session_state.analysis_notices = []
-                st.session_state.groq_quota_exhausted = False
-                st.session_state.llm_backend_active = None
-                st.success(t("app.cache_cleared"))
-                st.rerun()
 
     if page == "profile":
         render_page_hero(
