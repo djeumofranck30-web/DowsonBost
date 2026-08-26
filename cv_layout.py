@@ -307,8 +307,8 @@ TPL_MARKETING = _register(CvTemplate(
 
 TPL_SALES = _register(CvTemplate(
     family="sales",
-    label_fr="Commercial / Vente",
-    label_en="Sales",
+    label_fr="Commercial / Vente / Magasin",
+    label_en="Sales / Retail",
     layout="banner",
     font="Helvetica",
     primary=(20, 52, 89),
@@ -330,8 +330,8 @@ TPL_SALES = _register(CvTemplate(
     },
     extra_section_keys=("projects",),
     llm_sections=(
-        "Structure CV COMMERCIAL / VENTE :\n"
-        "## PROFIL\n(cycle de vente, portefeuille, secteur)\n"
+        "Structure CV COMMERCIAL / VENDEUR / MAGASIN :\n"
+        "## PROFIL\n(vente, conseil client, magasin ou BtoB)\n"
         "## PROJETS\n- objectifs, CA, taux de conversion — seulement si presents dans le CV\n"
         "## EXPERIENCE\nPOSTE: ...\nENTREPRISE: ...\nPERIODE: ...\n- resultats commerciaux concrets\n"
         "## COMPETENCES\nprospection | negociation | CRM | ...\n"
@@ -638,6 +638,272 @@ TPL_CUSTOMER = _register(CvTemplate(
     ),
 ))
 
+
+TPL_OFFICE = _register(CvTemplate(
+    family="office",
+    label_fr="Assistant / Administratif / Secrétariat",
+    label_en="Office / Administration",
+    layout="classic",
+    font="Helvetica",
+    primary=(40, 64, 96),
+    accent=(96, 140, 168),
+    ink=(28, 36, 48),
+    muted=(100, 108, 120),
+    paper=(248, 250, 252),
+    header_text=(255, 255, 255),
+    chip_bg=(228, 236, 244),
+    chip_text=(40, 64, 96),
+    section_order=("profile", "skills", "experience", "education", "languages"),
+    section_titles={
+        "profile": "PROFIL",
+        "skills": "COMPÉTENCES ADMINISTRATIVES",
+        "experience": "EXPÉRIENCES",
+        "education": "FORMATION",
+        "languages": "LANGUES",
+    },
+    llm_sections=(
+        "Structure CV ASSISTANT / EMPLOYE ADMINISTRATIF / SECRETARIAT :\n"
+        "## PROFIL\n(accueil, organisation, outils bureautiques)\n"
+        "## COMPETENCES\nPack Office | accueil | planning | ...\n"
+        "## EXPERIENCE\nPOSTE: ...\nENTREPRISE: ...\nPERIODE: ...\n"
+        "## FORMATION\nDIPLOME: ...\nETABLISSEMENT: ...\nPERIODE: ...\n"
+        "## LANGUES\n"
+    ),
+))
+
+TPL_SECURITY = _register(CvTemplate(
+    family="security",
+    label_fr="Sécurité / Surveillance",
+    label_en="Security",
+    layout="banner",
+    font="Helvetica",
+    primary=(32, 36, 40),
+    accent=(196, 148, 52),
+    ink=(28, 28, 32),
+    muted=(108, 108, 112),
+    paper=(248, 248, 246),
+    header_text=(255, 255, 255),
+    chip_bg=(240, 232, 214),
+    chip_text=(80, 60, 20),
+    section_order=("profile", "licenses", "experience", "skills", "education"),
+    section_titles={
+        "profile": "PROFIL",
+        "licenses": "HABILITATIONS",
+        "experience": "EXPÉRIENCES",
+        "skills": "COMPÉTENCES",
+        "education": "FORMATION",
+    },
+    extra_section_keys=("licenses",),
+    llm_sections=(
+        "Structure CV SECURITE / SURVEILLANCE :\n"
+        "## PROFIL\n(sites, horaires, public)\n"
+        "## AUTORISATIONS\n- carte professionnelle CNAPS, SST, SSIAP — seulement si presentes\n"
+        "## EXPERIENCE\nPOSTE: ...\nENTREPRISE: ...\nPERIODE: ...\n"
+        "## COMPETENCES\nrondes | surete | incendie | ...\n"
+        "## FORMATION\nDIPLOME: ...\nETABLISSEMENT: ...\nPERIODE: ...\n"
+    ),
+))
+
+TPL_BEAUTY = _register(CvTemplate(
+    family="beauty",
+    label_fr="Beauté / Coiffure / Esthétique",
+    label_en="Beauty / Hair / Aesthetics",
+    layout="banner",
+    font="Helvetica",
+    primary=(122, 48, 80),
+    accent=(214, 132, 156),
+    ink=(48, 28, 36),
+    muted=(120, 92, 100),
+    paper=(253, 246, 248),
+    header_text=(255, 255, 255),
+    chip_bg=(248, 228, 236),
+    chip_text=(122, 40, 72),
+    section_order=("profile", "skills", "experience", "education", "languages"),
+    section_titles={
+        "profile": "PROFIL",
+        "skills": "TECHNIQUES & SOINS",
+        "experience": "EXPÉRIENCES",
+        "education": "FORMATION",
+        "languages": "LANGUES",
+    },
+    llm_sections=(
+        "Structure CV BEAUTE / COIFFURE / ESTHETIQUE :\n"
+        "## PROFIL\n(type de salon, clientele, specialites)\n"
+        "## COMPETENCES\ncoloration | soins | accueil | ...\n"
+        "## EXPERIENCE\nPOSTE: ...\nENTREPRISE: ...\nPERIODE: ...\n"
+        "## FORMATION\nDIPLOME: CAP, BP...\nETABLISSEMENT: ...\nPERIODE: ...\n"
+        "## LANGUES\n"
+    ),
+))
+
+TPL_REALESTATE = _register(CvTemplate(
+    family="realestate",
+    label_fr="Immobilier",
+    label_en="Real estate",
+    layout="banner",
+    font="Helvetica",
+    primary=(36, 64, 74),
+    accent=(184, 140, 74),
+    ink=(28, 36, 40),
+    muted=(104, 108, 112),
+    paper=(250, 248, 242),
+    header_text=(255, 255, 255),
+    chip_bg=(240, 232, 214),
+    chip_text=(92, 64, 24),
+    section_order=("profile", "projects", "experience", "skills", "education", "languages"),
+    section_titles={
+        "profile": "PROFIL",
+        "projects": "RESULTATS",
+        "experience": "EXPÉRIENCES",
+        "skills": "COMPÉTENCES",
+        "education": "FORMATION",
+        "languages": "LANGUES",
+    },
+    extra_section_keys=("projects",),
+    llm_sections=(
+        "Structure CV IMMOBILIER :\n"
+        "## PROFIL\n(transaction, location, gestion, secteur geo)\n"
+        "## PROJETS\n- volume, mandats — seulement si presents dans le CV\n"
+        "## EXPERIENCE\nPOSTE: ...\nENTREPRISE: ...\nPERIODE: ...\n"
+        "## COMPETENCES\nnegociation | visites | loi ALUR | ...\n"
+        "## FORMATION\nDIPLOME: ...\nETABLISSEMENT: ...\nPERIODE: ...\n"
+        "## LANGUES\n"
+    ),
+))
+
+TPL_SOCIAL = _register(CvTemplate(
+    family="social",
+    label_fr="Social / Médico-social",
+    label_en="Social work",
+    layout="academic",
+    font="Times",
+    primary=(64, 72, 52),
+    accent=(148, 124, 74),
+    ink=(36, 40, 32),
+    muted=(104, 108, 96),
+    paper=(250, 250, 246),
+    header_text=(255, 255, 255),
+    chip_bg=(236, 236, 220),
+    chip_text=(64, 72, 40),
+    section_order=("profile", "education", "experience", "skills", "languages"),
+    section_titles={
+        "profile": "PROFIL",
+        "education": "DIPLÔMES",
+        "experience": "EXPÉRIENCES",
+        "skills": "COMPÉTENCES",
+        "languages": "LANGUES",
+    },
+    llm_sections=(
+        "Structure CV SOCIAL / MEDICO-SOCIAL :\n"
+        "## PROFIL\n(publics, structures, accompagnement)\n"
+        "## FORMATION\nDIPLOME: DEES, DEASS, DEME...\nETABLISSEMENT: ...\nPERIODE: ...\n"
+        "## EXPERIENCE\nPOSTE: ...\nENTREPRISE: ...\nPERIODE: ...\n"
+        "## COMPETENCES\nentretien | projet personnalise | ...\n"
+        "## LANGUES\n"
+    ),
+))
+
+TPL_FACILITIES = _register(CvTemplate(
+    family="facilities",
+    label_fr="Propreté / Entretien / Espaces verts",
+    label_en="Cleaning / Facilities",
+    layout="banner",
+    font="Helvetica",
+    primary=(52, 72, 56),
+    accent=(120, 148, 84),
+    ink=(32, 40, 32),
+    muted=(100, 108, 96),
+    paper=(248, 250, 246),
+    header_text=(255, 255, 255),
+    chip_bg=(228, 236, 220),
+    chip_text=(44, 72, 40),
+    section_order=("profile", "licenses", "experience", "skills", "education"),
+    section_titles={
+        "profile": "PROFIL",
+        "licenses": "HABILITATIONS",
+        "experience": "EXPÉRIENCES",
+        "skills": "COMPÉTENCES",
+        "education": "FORMATION",
+    },
+    extra_section_keys=("licenses",),
+    llm_sections=(
+        "Structure CV PROPRETE / ENTRETIEN :\n"
+        "## PROFIL\n(sites, horaires, type de locaux)\n"
+        "## AUTORISATIONS\n- CACES, produits, SST — seulement si presentes\n"
+        "## EXPERIENCE\nPOSTE: ...\nENTREPRISE: ...\nPERIODE: ...\n"
+        "## COMPETENCES\nnettoyage | espaces verts | ...\n"
+        "## FORMATION\nDIPLOME: ...\nETABLISSEMENT: ...\nPERIODE: ...\n"
+    ),
+))
+
+TPL_AGRICULTURE = _register(CvTemplate(
+    family="agriculture",
+    label_fr="Agriculture / Agroalimentaire",
+    label_en="Agriculture / Food",
+    layout="banner",
+    font="Helvetica",
+    primary=(64, 84, 36),
+    accent=(168, 132, 52),
+    ink=(36, 40, 28),
+    muted=(108, 108, 92),
+    paper=(250, 248, 240),
+    header_text=(255, 255, 255),
+    chip_bg=(236, 232, 208),
+    chip_text=(72, 64, 24),
+    section_order=("profile", "skills", "experience", "education", "licenses"),
+    section_titles={
+        "profile": "PROFIL",
+        "skills": "COMPÉTENCES",
+        "experience": "EXPÉRIENCES",
+        "education": "FORMATION",
+        "licenses": "PERMIS & HABILITATIONS",
+    },
+    extra_section_keys=("licenses",),
+    llm_sections=(
+        "Structure CV AGRICULTURE / AGROALIMENTAIRE :\n"
+        "## PROFIL\n(cultures, elevage, atelier, saisonnier)\n"
+        "## COMPETENCES\ntracteur | traite | hygiene | ...\n"
+        "## EXPERIENCE\nPOSTE: ...\nENTREPRISE: exploitation / usine\nPERIODE: ...\n"
+        "## FORMATION\nDIPLOME: Bac pro, BPREA...\nETABLISSEMENT: ...\nPERIODE: ...\n"
+        "## AUTORISATIONS\n- permis, Certiphyto — seulement si presents\n"
+    ),
+))
+
+TPL_SPORTS = _register(CvTemplate(
+    family="sports",
+    label_fr="Sport / Animation / Loisirs",
+    label_en="Sports / Recreation",
+    layout="banner",
+    font="Helvetica",
+    primary=(16, 92, 84),
+    accent=(232, 148, 36),
+    ink=(24, 40, 36),
+    muted=(96, 112, 108),
+    paper=(245, 250, 248),
+    header_text=(255, 255, 255),
+    chip_bg=(220, 240, 232),
+    chip_text=(12, 84, 72),
+    section_order=("profile", "licenses", "experience", "skills", "education", "languages"),
+    section_titles={
+        "profile": "PROFIL",
+        "licenses": "DIPLÔMES SPORTIFS",
+        "experience": "EXPÉRIENCES",
+        "skills": "COMPÉTENCES",
+        "education": "FORMATION",
+        "languages": "LANGUES",
+    },
+    extra_section_keys=("licenses",),
+    llm_sections=(
+        "Structure CV SPORT / ANIMATION / LOISIRS :\n"
+        "## PROFIL\n(publics, disciplines, structures)\n"
+        "## AUTORISATIONS\n- BPJEPS, BAFA, BNSSA — seulement si presents\n"
+        "## EXPERIENCE\nPOSTE: ...\nENTREPRISE: ...\nPERIODE: ...\n"
+        "## COMPETENCES\nanimation | coaching | securite | ...\n"
+        "## FORMATION\nDIPLOME: ...\nETABLISSEMENT: ...\nPERIODE: ...\n"
+        "## LANGUES\n"
+    ),
+))
+
 TPL_GENERIC = _register(CvTemplate(
     family="generic",
     label_fr="Professionnel",
@@ -677,6 +943,12 @@ FAMILY_DETECTION_ORDER = (
     "it",
     "finance",
     "research",
+    "beauty",
+    "realestate",
+    "security",
+    "agriculture",
+    "sports",
+    "social",
     "education",
     "construction",
     "engineering",
@@ -685,139 +957,248 @@ FAMILY_DETECTION_ORDER = (
     "hr",
     "marketing",
     "sales",
+    "office",
     "public",
     "management",
     "customer",
+    "facilities",
 )
 
 _FAMILY_KEYWORDS: dict[str, tuple[tuple[str, int], ...]] = {
     "healthcare": (
         ("medecin", 5), ("infirmier", 5), ("infirmiere", 5), ("hopital", 4),
-        ("clinique", 3), ("pharmacien", 5), ("sage-femme", 5), ("sage femme", 5),
-        ("kinesitherapeute", 5), ("dentiste", 5), ("chirurgien", 5),
-        ("aide-soignant", 5), ("aide soignant", 5), ("cadre de sante", 5),
-        ("soins infirmiers", 4), ("urgences", 2), ("patient", 2),
-        ("medical", 3), ("sante", 2), ("nurse", 4), ("healthcare", 4),
-        ("hospital", 3), ("interne des hopitaux", 5), ("iade", 4), ("ibode", 4),
+        ("clinique", 3), ("pharmacien", 5), ("preparateur en pharmacie", 5),
+        ("sage-femme", 5), ("sage femme", 5), ("kinesitherapeute", 5),
+        ("dentiste", 5), ("chirurgien", 5), ("aide-soignant", 5),
+        ("aide soignant", 5), ("cadre de sante", 5), ("soins infirmiers", 4),
+        ("medical", 3), ("nurse", 4), ("healthcare", 4), ("hospital", 3),
+        ("interne des hopitaux", 5), ("iade", 4), ("ibode", 4),
         ("radiologue", 5), ("anesthesiste", 5), ("puericultrice", 5),
         ("orthophoniste", 5), ("ergotherapeute", 5), ("psychologue clinicien", 4),
         ("laboratoire d'analyses", 3), ("rpps", 4), ("adeli", 4),
+        ("ambulancier", 5), ("auxiliaire de puericulture", 5),
+        ("opticien", 5), ("audioprothesiste", 5), ("veterinaire", 5),
     ),
     "legal": (
         ("avocat", 5), ("juriste", 5), ("notaire", 5), ("clerc de notaire", 5),
         ("droit des societes", 4), ("droit social", 4), ("droit public", 4),
         ("legal counsel", 5), ("magistrat", 5), ("huissier", 5),
         ("contentieux", 3), ("cabinet d'avocats", 4), ("direction juridique", 4),
-        ("compliance officer", 3), ("rgpd", 2), ("contrat de travail", 2),
-        ("barreau", 4), ("crfpa", 4),
+        ("compliance officer", 3), ("barreau", 4), ("crfpa", 4),
+        ("assistant juridique", 5), ("paralegal", 4),
     ),
     "it": (
         ("developpeur", 5), ("developer", 5), ("devops", 5), ("data scientist", 5),
-        ("data engineer", 5), ("software", 4), ("fullstack", 5), ("full-stack", 5),
-        ("backend", 4), ("frontend", 4), ("front-end", 4), ("informaticien", 5),
+        ("data engineer", 5), ("software", 4), ("fullstack", 5), ("full stack", 5),
+        ("backend", 4), ("frontend", 4), ("informaticien", 5),
         ("informatique", 4), ("cybersecurite", 5), ("sysadmin", 4),
         ("administrateur systeme", 4), ("product owner", 3), ("scrum master", 3),
-        ("cloud", 2), ("python", 2), ("javascript", 3), ("react", 3),
-        ("java ", 2), ("architecte logiciel", 5), ("machine learning", 4),
-        ("intelligence artificielle", 3), ("data analyst", 3), ("webmaster", 3),
-        ("ingenieur logiciel", 5), ("software engineer", 5), ("sre", 3),
-        ("qa engineer", 4), ("testeur logiciel", 4), ("ux/ui", 3),
+        ("architecte logiciel", 5), ("machine learning", 4),
+        ("ingenieur logiciel", 5), ("software engineer", 5),
+        ("qa engineer", 4), ("testeur logiciel", 4),
         ("administrateur reseau", 4), ("technicien informatique", 5),
+        ("technicien helpdesk", 4), ("administrateur bases de donnees", 4),
     ),
     "finance": (
-        ("comptable", 5), ("expert-comptable", 5), ("controleur de gestion", 5),
-        ("analyste financier", 5), ("banquier", 4), ("audit", 3),
+        ("comptable", 5), ("aide comptable", 5), ("expert-comptable", 5),
+        ("controleur de gestion", 5), ("analyste financier", 5), ("banquier", 4),
+        ("conseiller bancaire", 5), ("charge de clientele banque", 5),
         ("commissaire aux comptes", 5), ("tresorerie", 4), ("ifrs", 4),
-        ("dscg", 4), ("cfa", 3), ("asset management", 4), ("middle office", 4),
-        ("risk manager", 4), ("actuaire", 5), ("credit manager", 4),
-        ("back office", 3), ("consolidation", 3), ("fiscaliste", 3),
-        ("banque", 2), ("finance", 2), ("tresorier", 4), ("credit agricole", 2),
+        ("dscg", 4), ("actuaire", 5), ("credit manager", 4),
+        ("gestionnaire de paie", 4), ("tresorier", 4), ("assureur", 4),
+        ("conseiller assurance", 5), ("courtier", 3),
     ),
     "research": (
         ("chercheur", 5), ("doctorant", 5), ("post-doc", 5), ("postdoc", 5),
-        ("these", 3), ("laboratoire", 3), ("publication", 3), ("phd", 4),
         ("recherche scientifique", 5), ("maitre de conferences", 4),
         ("charge de recherche", 5), ("cnrs", 4), ("inserm", 4),
-        ("biologiste", 3), ("chimiste", 3), ("physicien", 3),
+        ("biologiste", 3), ("laborantin", 4),
+    ),
+    "beauty": (
+        ("coiffeur", 5), ("coiffeuse", 5), ("estheticienne", 5),
+        ("estheticien", 5), ("barbier", 5), ("prothesiste ongulaire", 5),
+        ("spa practicien", 4), ("spa praticien", 4), ("maquilleur", 5),
+        ("maquilleuse", 5), ("salon de coiffure", 4), ("beaute", 3),
+    ),
+    "realestate": (
+        ("agent immobilier", 5), ("conseiller immobilier", 5),
+        ("negociateur immobilier", 5), ("gestionnaire locatif", 5),
+        ("syndic", 4), ("immobilier", 4), ("mandataire immobilier", 5),
+    ),
+    "security": (
+        ("agent de securite", 5), ("agent de surveillance", 5),
+        ("vigile", 5), ("ssi ap", 3), ("ssiap", 5), ("cnaps", 4),
+        ("maitre chien", 4), ("agent de prevention", 4),
+        ("surete aeroportuaire", 5), ("incendie ssiap", 4),
+    ),
+    "agriculture": (
+        ("agriculteur", 5), ("viticulteur", 5), ("eleveur", 5),
+        ("ouvrier agricole", 5), ("saisonier agricole", 5),
+        ("conducteur d'engins agricoles", 5), ("agroalimentaire", 4),
+        ("operateur de production agro", 4), ("maraicher", 5),
+        ("horticulteur", 5), ("paysan", 4),
+    ),
+    "sports": (
+        ("educateur sportif", 5), ("coach sportif", 5), ("moniteur de sport", 5),
+        ("animateur sportif", 5), ("bpjeps", 5), ("bafa", 4),
+        ("maitre nageur", 5), ("bnssa", 5), ("animateur periscolaire", 4),
+        ("animateur ba fa", 3), ("professeur de fitness", 5),
+        ("personal trainer", 4),
+    ),
+    "social": (
+        ("educateur specialise", 5), ("assistant de service social", 5),
+        ("moniteur educateur", 5), ("accompagnant educatif", 5),
+        ("aes", 3), ("avs", 3), ("aide a domicile", 5),
+        ("auxiliaire de vie", 5), ("amp ", 3), ("cesf", 4),
+        ("mediateur social", 5), ("conseiller insertion", 5),
+        ("travailleur social", 5), ("medico-social", 4),
     ),
     "education": (
-        ("enseignant", 5), ("professeur", 4), ("instituteur", 5),
-        ("formateur", 4), ("education nationale", 5), ("capes", 5),
-        ("agregation", 4), ("meef", 4), ("cpe", 3), ("proviseur", 4),
-        ("directeur d'ecole", 4), ("enseignant-chercheur", 4),
-        ("pedagogie", 3), ("teacher", 4), ("trainer", 3),
-        ("educateur specialise", 4), ("aes", 2),
+        ("enseignant", 5), ("professeur des ecoles", 5), ("professeur", 4),
+        ("instituteur", 5), ("formateur", 4), ("education nationale", 5),
+        ("capes", 5), ("agregation", 4), ("atsem", 5), ("aes h", 3),
+        ("aesn", 4), ("vie scolaire", 4), ("surveillant scolaire", 5),
+        ("assistant d'education", 5), ("teacher", 4),
     ),
     "construction": (
-        ("macon", 5), ("charpentier", 5), ("electricien batiment", 5),
+        ("macon", 5), ("charpentier", 5), ("electricien", 5),
         ("plombier", 5), ("conducteur de travaux", 5), ("chef de chantier", 5),
-        ("btp", 4), ("gros oeuvre", 4), ("second oeuvre", 4),
-        ("caces", 3), ("architecte d'interieur", 3), ("metreur", 4),
-        ("couvreur", 5), ("menuisier", 5), ("peintre en batiment", 5),
-        ("ouvrier", 2), ("chantier", 2),
+        ("btp", 4), ("couvreur", 5), ("menuisier", 5), ("peintre en batiment", 5),
+        ("carreleur", 5), ("chauffagiste", 5), ("serrurier", 5),
+        ("facadier", 4), ("coffreur", 5), ("bancheur", 4),
+        ("manoeuvre batiment", 5), ("ouvrier du batiment", 5),
+        ("technicien de maintenance batiment", 4),
     ),
     "engineering": (
         ("ingenieur", 4), ("bureau d'etudes", 4), ("genie civil", 5),
-        ("genie mecanique", 5), ("genie electrique", 5), ("maintenance industrielle", 4),
-        ("automatisme", 4), ("robotique", 3), ("qualite industrielle", 4),
-        ("lean manufacturing", 4), ("cao", 3), ("solidworks", 3),
-        ("methodes industrielles", 4), ("technicien de maintenance", 4),
-        ("electrotechnicien", 4), ("mecanicien", 3),
+        ("genie mecanique", 5), ("technicien de maintenance", 5),
+        ("electrotechnicien", 4), ("mecanicien", 4), ("automaticien", 5),
+        ("qualiticien", 4), ("technicien methodes", 5),
+        ("operateur de production", 4), ("ajusteur", 5), ("soudeur", 5),
+        ("chaudronnier", 5), ("usinage", 3),
     ),
     "logistics": (
         ("logisticien", 5), ("supply chain", 5), ("magasinier", 5),
-        ("cariste", 5), ("chauffeur poids lourd", 5), ("transporteur", 4),
-        ("preparateur de commandes", 5), ("wms", 3), ("ordonnancement", 3),
-        ("affreteur", 5), ("exploitant transport", 5), ("entrepot", 3),
-        ("commissionnaire de transport", 4),
+        ("cariste", 5), ("chauffeur poids lourd", 5), ("chauffeur spl", 5),
+        ("chauffeur livreur", 5), ("coursier", 4), ("transporteur", 4),
+        ("preparateur de commandes", 5), ("affreteur", 5),
+        ("exploitant transport", 5), ("agent de quai", 5),
+        ("responsable d'entrepot", 5), ("manutentionnaire", 5),
     ),
     "hospitality": (
         ("hotellerie", 5), ("restaurateur", 4), ("chef de rang", 5),
-        ("maitre d'hotel", 5), ("cuisinier", 5), ("chef de cuisine", 5),
-        ("receptionniste", 5), ("gouvernante", 5), ("sommelier", 5),
-        ("tourisme", 4), ("guide touristique", 5), ("agent de voyage", 5),
-        ("barman", 4), ("serveuse", 4), ("serveur", 3), ("spa", 2),
-        ("concierge", 3), ("yield manager", 3),
+        ("maitre d'hotel", 5), ("cuisinier", 5), ("commis de cuisine", 5),
+        ("chef de cuisine", 5), ("plongeur", 4), ("receptionniste", 5),
+        ("gouvernante", 5), ("femme de chambre", 5), ("valet de chambre", 5),
+        ("sommelier", 5), ("tourisme", 4), ("guide touristique", 5),
+        ("agent de voyage", 5), ("barman", 4), ("serveuse", 5), ("serveur", 5),
+        ("equipier polyvalent restauration", 5), ("mcdo", 3), ("equipier mcdonald", 5),
+        ("employe de restauration", 5),
     ),
     "hr": (
-        ("ressources humaines", 5), ("responsable rh", 5), ("chargé de recrutement", 5),
-        ("charge de recrutement", 5), ("talent acquisition", 5), ("gestionnaire paie", 5),
-        ("responsable formation", 4), ("relations sociales", 4), ("sirh", 4),
-        ("recruteur", 4), ("hrbp", 5), ("human resources", 4),
+        ("ressources humaines", 5), ("responsable rh", 5),
+        ("charge de recrutement", 5), ("talent acquisition", 5),
+        ("gestionnaire paie", 5), ("recruteur", 4), ("hrbp", 5),
+        ("assistant rh", 5),
     ),
     "marketing": (
         ("marketing", 4), ("community manager", 5), ("charge de communication", 5),
-        ("chargé de communication", 5), ("graphiste", 5), ("directeur artistique", 5),
-        ("seo", 3), ("sea", 3), ("brand manager", 5), ("content manager", 4),
+        ("graphiste", 5), ("directeur artistique", 5), ("brand manager", 5),
         ("social media", 4), ("ux designer", 4), ("ui designer", 4),
-        ("chef de publicite", 4), ("relations presse", 4),
+        ("charge de communication", 5), ("journaliste", 4), ("redacteur web", 4),
     ),
     "sales": (
-        ("commercial", 4), ("business developer", 5), ("account manager", 5),
+        ("vendeur", 5), ("vendeuse", 5), ("commercial", 5), ("commerciale", 5),
+        ("business developer", 5), ("account manager", 5),
         ("ingenieur d'affaires", 5), ("responsable des ventes", 5),
-        ("teleconseiller", 3), ("sédentaire", 1), ("itinerant", 2),
-        ("negociateur", 3), ("adv ", 3), ("inside sales", 4),
-        ("directeur commercial", 5), ("vendeur", 3),
+        ("directeur commercial", 5), ("conseiller de vente", 5),
+        ("conseiller commercial", 5), ("vendeur conseil", 5),
+        ("vendeur automobile", 5), ("vendeur pret a porter", 5),
+        ("caissier", 5), ("caissiere", 5), ("hote de caisse", 5),
+        ("hotesse de caisse", 5), ("employe de rayon", 5),
+        ("employe commercial", 5), ("employe de libre service", 5),
+        ("employe de magasin", 5), ("employe polyvalent magasin", 5),
+        ("employe polyvalent", 4), ("vendeur en magasin", 5), ("teleprospecteur", 5),
+        ("technicien commercial", 5), ("itinerant", 3),
+        ("adv ", 4), ("assistant commercial", 5), ("inside sales", 4),
+        ("responsable de magasin", 5), ("directeur de magasin", 5),
+        ("chef de rayon", 5), ("category manager", 4),
+        ("negoce", 3), ("force de vente", 5),
+    ),
+    "office": (
+        ("secretaire", 5), ("assistant de direction", 5),
+        ("assistante de direction", 5), ("assistant administratif", 5),
+        ("employe administratif", 5), ("employe de bureau", 5),
+        ("office manager", 5), ("gestionnaire administratif", 5),
+        ("assistant polyvalent", 4), ("charge d'accueil", 4),
+        ("standardiste", 4), ("greffier", 3),
+        ("technicien des services administratifs", 5),
+        ("secretaire medicale", 5), ("secretaire medical", 5),
     ),
     "public": (
-        ("fonctionnaire", 5), ("collectivite", 3), ("mairie", 3),
-        ("prefecture", 4), ("agent administratif", 5), ("secretaire administratif", 5),
-        ("categorie a", 3), ("categorie b", 3), ("categorie c", 2),
-        ("service public", 4), ("attache territorial", 5), ("redacteur territorial", 5),
-        ("adjoint administratif", 5), ("fonction publique", 5),
+        ("fonctionnaire", 5), ("fonction publique", 5),
+        ("agent administratif territorial", 5), ("secretaire administratif", 5),
+        ("attache territorial", 5), ("redacteur territorial", 5),
+        ("adjoint administratif", 5), ("prefecture", 4),
+        ("collectivite territoriale", 4),
     ),
     "management": (
         ("directeur general", 5), ("directrice generale", 5), ("ceo", 4),
-        ("directeur d'usine", 5), ("directeur d'agence", 4), ("head of", 3),
-        ("manager d'equipe", 3), ("chef d'entreprise", 4), ("directeur des operations", 5),
-        ("coo", 3), ("comex", 3),
+        ("directeur d'usine", 5), ("directeur des operations", 5),
+        ("chef d'entreprise", 4), ("directeur de site", 5),
     ),
     "customer": (
-        ("relation client", 5), ("service client", 5), ("conseiller clientele", 5),
-        ("hotline", 4), ("support client", 5), ("accueil", 2),
-        ("customer success", 4), ("helpdesk", 4), ("standardiste", 4),
+        ("relation client", 5), ("service client", 5),
+        ("conseiller clientele", 5), ("conseiller client", 5),
+        ("hotline", 4), ("support client", 5), ("customer success", 4),
+        ("helpdesk", 3), ("teleconseiller", 5), ("teleconseillere", 5),
+        ("charge de clientele", 4),
+    ),
+    "facilities": (
+        ("agent d'entretien", 5), ("agent de proprete", 5),
+        ("agent de nettoyage", 5), ("technicien de surface", 5),
+        ("femme de menage", 4), ("agent d'entretien des locaux", 5),
+        ("espaces verts", 4), ("jardinier", 5), ("paysagiste", 4),
+        ("gardien d'immeuble", 5), ("concierge d'immeuble", 4),
+        ("agent de maintenance immeuble", 4),
     ),
 }
+
+
+def _padded_text(value: str) -> str:
+    folded = (
+        _fold(value)
+        .replace("-", " ")
+        .replace("/", " ")
+        .replace("'", " ")
+        .replace("\u2019", " ")
+    )
+    folded = re.sub(r"\s+", " ", folded).strip()
+    return f" {folded} "
+
+
+def _score_keywords(padded: str, keywords: tuple[tuple[str, int], ...]) -> int:
+    total = 0
+    for term, weight in keywords:
+        needle = _fold(term).replace("-", " ").replace("'", " ").strip()
+        if len(needle) < 3:
+            continue
+        if f" {needle} " in padded:
+            total += weight
+    return total
+
+
+def _rank_families(scores: dict[str, int]) -> str:
+    ranked = sorted(
+        scores.items(),
+        key=lambda item: (
+            -item[1],
+            FAMILY_DETECTION_ORDER.index(item[0])
+            if item[0] in FAMILY_DETECTION_ORDER
+            else 99,
+        ),
+    )
+    return ranked[0][0]
 
 
 def list_cv_templates() -> list[CvTemplate]:
@@ -833,44 +1214,40 @@ def detect_job_family(
     match: dict[str, Any] | None = None,
     extra_text: str = "",
 ) -> str:
-    """Pick the CV template family from the offer (title, description, recommended title)."""
+    """Pick the CV template family from the offer (title first, then description)."""
     job = job or {}
     match = match or {}
-    blob = " ".join(
+    title_blob = " ".join(
+        str(part or "")
+        for part in (job.get("title"), match.get("titre_cv_recommande"))
+    )
+    full_blob = " ".join(
         str(part or "")
         for part in (
-            job.get("title"),
+            title_blob,
             job.get("company"),
             job.get("description"),
-            match.get("titre_cv_recommande"),
             extra_text,
         )
     )
-    folded = f" {_fold(blob)} "
-    scores: dict[str, int] = {}
+    title_pad = _padded_text(title_blob)
+    full_pad = _padded_text(full_blob)
+    title_scores: dict[str, int] = {}
+    full_scores: dict[str, int] = {}
     for family, keywords in _FAMILY_KEYWORDS.items():
-        total = 0
-        for term, weight in keywords:
-            if f" {_fold(term)} " in folded or _fold(term) in folded:
-                total += weight
-        if total:
-            scores[family] = total
-    if not scores:
+        tscore = _score_keywords(title_pad, keywords)
+        fscore = _score_keywords(full_pad, keywords)
+        if tscore:
+            title_scores[family] = tscore
+        if fscore:
+            full_scores[family] = fscore
+    if title_scores and max(title_scores.values()) >= 3:
+        return _rank_families(title_scores)
+    if not full_scores:
         return "generic"
-    best = max(scores.values())
-    if best < 3:
+    if max(full_scores.values()) < 3:
         return "generic"
-    # Prefer the first family in the domain order among tied/near-tied scores.
-    ranked = sorted(
-        scores.items(),
-        key=lambda item: (
-            -item[1],
-            FAMILY_DETECTION_ORDER.index(item[0])
-            if item[0] in FAMILY_DETECTION_ORDER
-            else 99,
-        ),
-    )
-    return ranked[0][0]
+    return _rank_families(full_scores)
 
 
 def template_label(family: str, locale: str = "fr") -> str:

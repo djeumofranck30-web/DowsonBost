@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from cv_layout import (
     cv_text_for_candidate,
+    list_cv_templates,
     detect_job_family,
     parse_adapted_cv,
     prepare_structured_cv,
@@ -101,6 +102,57 @@ def test_detect_job_family_legal():
 
 def test_detect_job_family_generic_unknown():
     assert detect_job_family({"title": "Candidat", "description": "Poste à pourvoir"}) == "generic"
+    assert detect_job_family({"title": "Employé", "description": "Mission à pourvoir"}) == "generic"
+
+
+def test_everyday_job_titles_use_a_specific_template():
+    cases = {
+        "Vendeur H/F": "sales",
+        "Vendeuse prêt-à-porter": "sales",
+        "Commercial BtoB": "sales",
+        "Commerciale itinérante": "sales",
+        "Employé de magasin": "sales",
+        "Employé de rayon": "sales",
+        "Caissier / caissière": "sales",
+        "Employé polyvalent": "sales",
+        "Employé administratif": "office",
+        "Secrétaire": "office",
+        "Assistant de direction": "office",
+        "Employé de bureau": "office",
+        "Agent de sécurité": "security",
+        "Coiffeur": "beauty",
+        "Esthéticienne": "beauty",
+        "Agent immobilier": "realestate",
+        "Agent d'entretien": "facilities",
+        "Électricien": "construction",
+        "Cuisinier": "hospitality",
+        "Serveur": "hospitality",
+        "Chauffeur livreur": "logistics",
+        "Comptable": "finance",
+        "Infirmier": "healthcare",
+        "Développeur": "it",
+        "Conseiller clientèle": "customer",
+        "Éducateur spécialisé": "social",
+        "Jardinier": "facilities",
+        "Agriculteur": "agriculture",
+        "Coach sportif": "sports",
+    }
+    for title, family in cases.items():
+        got = detect_job_family({"title": title, "description": ""})
+        assert got == family, f"{title!r} -> {got!r}, expected {family!r}"
+
+
+def test_all_registered_templates_are_complete():
+    templates = list_cv_templates()
+    families = {tpl.family for tpl in templates}
+    assert "sales" in families
+    assert "office" in families
+    assert "generic" in families
+    assert len(templates) >= 20
+    for tpl in templates:
+        assert tpl.section_order
+        assert tpl.llm_sections
+        assert tpl.label_fr
 
 
 def test_templates_differ_by_profession():
