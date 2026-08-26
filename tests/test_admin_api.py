@@ -39,7 +39,8 @@ def test_admin_overview_requires_auth(sqlite_db):
 
 
 def test_admin_overview_rejects_member(sqlite_db, monkeypatch):
-    monkeypatch.setenv("ADMIN_EMAILS", "boss@example.com")
+    monkeypatch.setenv("ADMIN_EMAIL", "boss@example.com")
+    monkeypatch.setenv("ADMIN_PASSWORD", "AdminPass123!")
     _register("jane@example.com")
     client = _client()
     token = client.post(
@@ -51,20 +52,20 @@ def test_admin_overview_rejects_member(sqlite_db, monkeypatch):
 
 
 def test_admin_overview_and_delete(sqlite_db, monkeypatch):
-    monkeypatch.setenv("ADMIN_EMAILS", "boss@example.com")
-    _register("boss@example.com", "Boss")
+    monkeypatch.setenv("ADMIN_EMAIL", "boss@example.com")
+    monkeypatch.setenv("ADMIN_PASSWORD", "AdminPass123!")
     member = _register("jane@example.com")
     record_llm_usage(provider="gemini", total_tokens=80, user_id=int(member["id"]))
     client = _client()
     token = client.post(
-        "/auth/login",
-        json={"email": "boss@example.com", "password": "Secret123!"},
+        "/api/admin/login",
+        json={"email": "boss@example.com", "password": "AdminPass123!"},
     ).json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
     overview = client.get("/api/admin/overview", headers=headers)
     assert overview.status_code == 200, overview.text
     body = overview.json()
-    assert body["kpis"]["users_total"] == 2
+    assert body["kpis"]["users_total"] == 1
     assert body["kpis"]["tokens_total"] == 80
     dashboard = client.get("/dashboard")
     assert dashboard.status_code == 200
@@ -72,4 +73,4 @@ def test_admin_overview_and_delete(sqlite_db, monkeypatch):
     deleted = client.delete(f"/api/admin/users/{member['id']}", headers=headers)
     assert deleted.status_code == 200, deleted.text
     remaining = client.get("/api/admin/users", headers=headers).json()
-    assert [row["email"] for row in remaining] == ["boss@example.com"]
+    assert remaining == []

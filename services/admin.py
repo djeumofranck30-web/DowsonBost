@@ -15,6 +15,7 @@ from auth import (
     init_db,
     user_is_admin,
 )
+from config import get_admin_accounts
 from database import adapt_sql, connect
 from services.llm_usage import ensure_llm_usage_table
 
@@ -60,25 +61,7 @@ def _scalar(row: Any, key: str, default: int = 0) -> int:
 
 
 def count_admins() -> int:
-    init_db()
-    from config import get_admin_emails
-
-    emails = get_admin_emails()
-    with connect() as conn:
-        rows = conn.execute(
-            adapt_sql("SELECT email, is_admin FROM users")
-        ).fetchall()
-    count = 0
-    for row in rows:
-        email = str(row["email"] or "").strip().lower()
-        flagged = False
-        try:
-            flagged = int(row["is_admin"] or 0) == 1
-        except (TypeError, ValueError):
-            flagged = bool(row["is_admin"])
-        if flagged or email in emails:
-            count += 1
-    return count
+    return len(get_admin_accounts())
 
 
 def list_registered_users() -> list[dict[str, Any]]:
@@ -106,7 +89,9 @@ def list_registered_users() -> list[dict[str, Any]]:
     users: list[dict[str, Any]] = []
     for row in rows:
         user = _row_to_user(row, include_created=True)
-        user["is_admin"] = user_is_admin(user)
+        user["is_admin"] = str(user.get("email") or "").strip().lower() in {
+            email for email, _password in get_admin_accounts()
+        }
         user["tokens_consumed"] = _scalar(row, "tokens_consumed")
         user["analyses_count"] = _scalar(row, "analyses_count")
         user["is_active"] = _is_recent(user.get("last_login_at") or "") or _is_recent(
@@ -141,18 +126,18 @@ def public_user_record(user: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def admin_delete_user(actor_id: int, target_id: int) -> tuple[bool, str]:
+def admin_delete_user(actor: dict[str, Any] | int, target_id: int) -> tuple[bool, str]:
     """Delete a registered user from the admin space."""
-    actor = get_user_by_id(int(actor_id))
+    if isinstance(actor, int):
+        return False, "Accès réservé aux administrateurs."
     if not user_is_admin(actor):
         return False, "Accès réservé aux administrateurs."
-    if int(actor_id) == int(target_id):
+    actor_id = int(actor.get("id") or 0)
+    if actor_id and actor_id == int(target_id):
         return False, "Vous ne pouvez pas supprimer votre propre compte depuis l'administration."
     target = get_user_by_id(int(target_id))
     if not target:
         return False, "Utilisateur introuvable."
-    if user_is_admin(target) and count_admins() <= 1:
-        return False, "Impossible de supprimer le dernier administrateur."
     return delete_user_account(int(target_id))
 
 
@@ -253,7 +238,7 @@ def platform_overview() -> dict[str, Any]:
             "tokens_total": total_tokens,
             "analyses_total": total_analyses,
             "llm_calls": _scalar(call_row, "n"),
-            "admins": sum(1 for user in users if user.get("is_admin")),
+            "admins": len(get_admin_accounts()),
         },
         "series": {
             "signups": signups,

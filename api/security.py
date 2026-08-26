@@ -13,7 +13,7 @@ JWT_ALGORITHM = "HS256"
 JWT_TTL_HOURS = 12
 
 
-def create_access_token(user_id: int, email: str) -> str:
+def create_access_token(user_id: int, email: str, *, admin: bool = False) -> str:
     now = datetime.now(timezone.utc)
     payload = {
         "sub": str(user_id),
@@ -21,7 +21,13 @@ def create_access_token(user_id: int, email: str) -> str:
         "iat": now,
         "exp": now + timedelta(hours=JWT_TTL_HOURS),
     }
+    if admin:
+        payload["adm"] = True
     return jwt.encode(payload, get_jwt_secret(), algorithm=JWT_ALGORITHM)
+
+
+def create_admin_token(email: str, user_id: int = 0) -> str:
+    return create_access_token(int(user_id or 0), email, admin=True)
 
 
 def decode_access_token(token: str) -> dict[str, Any] | None:

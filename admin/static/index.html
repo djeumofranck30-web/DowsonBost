@@ -154,7 +154,7 @@
           <p>Espace administrateur</p>
         </div>
       </div>
-      <p>Connectez-vous avec un compte listé dans <strong>ADMIN_EMAILS</strong>.</p>
+      <p>Connectez-vous avec l’e-mail et le mot de passe enregistrés dans les secrets Streamlit (<strong>ADMIN_EMAIL</strong> + <strong>ADMIN_PASSWORD</strong>).</p>
       <div id="login-error" class="error hidden"></div>
       <label for="email">E-mail</label>
       <input id="email" type="email" autocomplete="username" required />
@@ -459,7 +459,7 @@
       const error = $("login-error");
       show(error, false);
       try {
-        const body = await api("/auth/login", {
+        const body = await api("/api/admin/login", {
           method: "POST",
           body: JSON.stringify({ email: $("email").value, password: $("password").value }),
         });

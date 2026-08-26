@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 from typing import Any
 
@@ -50,14 +51,69 @@ def get_app_base_url() -> str:
     return get_secret("APP_BASE_URL", "http://localhost:8501").rstrip("/")
 
 
-def get_admin_emails() -> frozenset[str]:
-    """E-mails granted the administration dashboard (env or Streamlit secrets)."""
-    raw = get_secret_raw("ADMIN_EMAILS", "")
-    values: list[str] = []
+def _as_secret_list(raw: Any) -> list[str]:
+    if raw is None or raw == "":
+        return []
     if isinstance(raw, list):
-        values = [normalize_secret(item) for item in raw]
-    else:
-        text = normalize_secret(raw)
-        if text:
-            values = [part.strip() for part in text.replace(";", ",").split(",")]
-    return frozenset(email.lower() for email in values if email and "@" in email)
+        return [str(item) for item in raw]
+    text = str(raw).strip()
+    if not text:
+        return []
+    if text.startswith("["):
+        try:
+            parsed = json.loads(text)
+        except json.JSONDecodeError:
+            parsed = None
+        if isinstance(parsed, list):
+            return [str(item) for item in parsed]
+    return [part.strip() for part in text.replace(";", ",").split(",") if part.strip()]
+
+
+def get_admin_emails() -> frozenset[str]:
+    """Admin e-mails configured in secrets (passwords are required separately)."""
+    return frozenset(email for email, _password in get_admin_accounts())
+
+
+def get_admin_accounts() -> list[tuple[str, str]]:
+    """Admin login pairs from Streamlit secrets / env: e-mail + password.
+
+    Supported formats:
+    - ADMIN_EMAIL + ADMIN_PASSWORD
+    - ADMIN_EMAILS = ["a@x.com"] and ADMIN_PASSWORDS = ["secret"] (same order)
+    - ADMIN_ACCOUNTS = [{email = "...", password = "..."}]
+    """
+    pairs: list[tuple[str, str]] = []
+    seen: set[str] = set()
+
+    def _add(email: str, password: str) -> None:
+        cleaned_email = normalize_secret(email).lower()
+        cleaned_password = str(password or "").strip()
+        if not cleaned_email or "@" not in cleaned_email or not cleaned_password:
+            return
+        if cleaned_email in seen:
+            pairs[:] = [(e, p) for e, p in pairs if e != cleaned_email]
+        seen.add(cleaned_email)
+        pairs.append((cleaned_email, cleaned_password))
+
+    raw_accounts = get_secret_raw("ADMIN_ACCOUNTS", "")
+    if isinstance(raw_accounts, str) and raw_accounts.strip().startswith("["):
+        try:
+            raw_accounts = json.loads(raw_accounts)
+        except json.JSONDecodeError:
+            raw_accounts = []
+    if isinstance(raw_accounts, list):
+        for item in raw_accounts:
+            if isinstance(item, dict):
+                _add(
+                    str(item.get("email") or item.get("EMAIL") or ""),
+                    str(item.get("password") or item.get("PASSWORD") or ""),
+                )
+
+    emails = [normalize_secret(item).lower() for item in _as_secret_list(get_secret_raw("ADMIN_EMAILS", ""))]
+    emails = [email for email in emails if email and "@" in email]
+    passwords = [str(item).strip() for item in _as_secret_list(get_secret_raw("ADMIN_PASSWORDS", ""))]
+    for email, password in zip(emails, passwords):
+        _add(email, password)
+
+    _add(get_secret("ADMIN_EMAIL", ""), get_secret("ADMIN_PASSWORD", ""))
+    return pairs

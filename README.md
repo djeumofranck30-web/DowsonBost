@@ -13,8 +13,6 @@ Plateforme de recherche d'emploi et matching CV par intelligence artificielle.
 
 ## Lancer l'application
 
-## Lancer l'application
-
 ```bash
 pip install -r requirements.txt
 streamlit run app.py
@@ -33,17 +31,25 @@ Documentation : http://localhost:8000/docs
 
 URL Streamlit Cloud : `https://dowsonbost.streamlit.app/dashboard`
 
-Ajoutez votre e-mail dans les secrets :
+Ajoutez **l'e-mail et le mot de passe admin** dans les secrets Streamlit Cloud (Settings → Secrets). Seuls ces identifiants ouvrent le dashboard :
 
 ```toml
-ADMIN_EMAILS = ["vous@votre-domaine.com"]
+ADMIN_EMAIL = "vous@votre-domaine.com"
+ADMIN_PASSWORD = "choisissez-un-mot-de-passe-fort"
 ```
 
-Depuis ce tableau de bord vous pouvez consulter tous les comptes inscrits, voir les tokens consommés par utilisateur, suivre l'activité (inscriptions, analyses, consommation IA) et supprimer un compte.
+Plusieurs administrateurs :
+
+```toml
+ADMIN_EMAILS = ["vous@domaine.com", "autre@domaine.com"]
+ADMIN_PASSWORDS = ["mot-de-passe-1", "mot-de-passe-2"]
+```
+
+Ce mot de passe admin est indépendant des comptes candidats. Après modification des secrets, faites un **Reboot** de l'application.
+
+Depuis ce tableau de bord vous pouvez consulter tous les comptes inscrits, voir les tokens consommés par utilisateur, suivre l'activité (inscriptions, analyses, consommation IA) et supprimer un compte. Le panneau **Configuration & tests** est aussi réservé à cet espace.
 
 Si vous lancez l'API (`python scripts/run_api.py`), le même espace est servi sur `http://localhost:8000/dashboard`.
-
-## Tests
 
 ## Tests
 
