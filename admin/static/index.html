@@ -57,12 +57,13 @@
     .tabs { display: flex; background: #f1e9ff; padding: 4px; border-radius: 999px; }
     .tabs button {
       border: 0; background: transparent; color: var(--muted); font-weight: 600;
-      padding: .45rem .9rem; border-radius: 999px; cursor: pointer; transition: .2s;
+      padding: .28rem .7rem; border-radius: 999px; cursor: pointer; transition: .2s;
+      font-size: .82rem;
     }
     .tabs button.active { background: #fff; color: var(--violet); box-shadow: 0 4px 12px rgba(76,29,149,.12); }
     .ghost, .danger, .primary {
-      border: 0; border-radius: 12px; padding: .55rem .95rem; font-weight: 700; cursor: pointer;
-      transition: transform .15s ease, box-shadow .15s ease;
+      border: 0; border-radius: 10px; padding: .32rem .75rem; font-weight: 700; cursor: pointer;
+      font-size: .82rem; min-height: 2rem; transition: transform .15s ease, box-shadow .15s ease;
     }
     .ghost { background: #fff; color: var(--violet); border: 1.5px solid var(--line); }
     .primary { background: linear-gradient(135deg, var(--violet), var(--violet-dark)); color: #fff; }

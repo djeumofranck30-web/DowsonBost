@@ -11,6 +11,7 @@ from auth import authenticate_admin, init_db, user_is_admin
 from config import get_secret
 from database import DatabaseConfigError, configure_database
 from services.admin import admin_delete_user, dashboard_html, list_registered_users, platform_overview, public_user_record
+from ui.theme import THEME, _shared_components_css
 
 st.set_page_config(
     page_title="Admin · DowsonBost",
@@ -36,6 +37,9 @@ def _inject_admin_chrome() -> None:
         [data-testid="stSidebar"] { display: none !important; }
         .block-container { padding-top: 1.1rem !important; max-width: 1280px !important; }
         iframe { border: 0 !important; }
+        """
+        + _shared_components_css(THEME)
+        + """
         </style>
         """,
         unsafe_allow_html=True,

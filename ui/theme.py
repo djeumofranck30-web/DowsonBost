@@ -55,14 +55,51 @@ def _font_import() -> str:
 
 def _shared_components_css(t: dict[str, str]) -> str:
     return f"""
-        /* —— Buttons (modern pill + lift) —— */
+        /* —— Buttons (compact, used everywhere) —— */
         .stButton > button,
         div[data-testid="stFormSubmitButton"] button,
-        .stDownloadButton > button {{
+        .stDownloadButton > button,
+        .stLinkButton a,
+        [data-testid="stBaseButton-primary"],
+        [data-testid="stBaseButton-secondary"],
+        [data-testid="stBaseButton-tertiary"],
+        [data-testid="stBaseButton-primaryFormSubmit"],
+        [data-testid="stBaseButton-secondaryFormSubmit"],
+        [data-testid^="stBaseLinkButton-"] {{
             font-family: {t["font"]} !important;
             font-weight: 600 !important;
-            border-radius: 12px !important;
+            font-size: 0.82rem !important;
+            line-height: 1.2 !important;
+            min-height: 2rem !important;
+            height: auto !important;
+            padding: 0.22rem 0.75rem !important;
+            border-radius: 10px !important;
             transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease !important;
+        }}
+        .stButton,
+        .stDownloadButton,
+        .stLinkButton,
+        [data-testid="stFormSubmitButton"] {{
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+        }}
+        [data-testid="stHorizontalBlock"] .stButton,
+        [data-testid="stHorizontalBlock"] .stDownloadButton,
+        [data-testid="stHorizontalBlock"] .stLinkButton,
+        [data-testid="stHorizontalBlock"] [data-testid="stFormSubmitButton"] {{
+            align-self: stretch;
+        }}
+        [data-testid="stHorizontalBlock"] .stButton > button,
+        [data-testid="stHorizontalBlock"] .stDownloadButton > button,
+        [data-testid="stHorizontalBlock"] .stLinkButton a,
+        [data-testid="stHorizontalBlock"] [data-testid^="stBaseLinkButton-"] {{
+            width: 100%;
+        }}
+        div[data-testid="stElementContainer"]:has(.stButton),
+        div[data-testid="stElementContainer"]:has(.stLinkButton),
+        div[data-testid="stElementContainer"]:has(.stDownloadButton),
+        div[data-testid="stElementContainer"]:has([data-testid="stFormSubmitButton"]) {{
+            margin-bottom: 0 !important;
         }}
         .stButton > button[kind="primary"],
         div[data-testid="stFormSubmitButton"] button,
@@ -277,6 +314,9 @@ def render_app_styles() -> None:
             padding-top: 1.5rem;
             padding-bottom: 3rem;
             max-width: 1100px;
+        }}
+        .main [data-testid="stVerticalBlock"] {{
+            gap: 0.5rem !important;
         }}
 
         .app-page-hero {{
@@ -783,10 +823,11 @@ def render_auth_styles() -> None:
             border: 2px solid rgba(124, 58, 237, 0.28) !important;
             color: {t["primary_deep"]} !important;
             font-weight: 700 !important;
-            font-size: 0.92rem !important;
+            font-size: 0.84rem !important;
             border-radius: 999px !important;
-            padding: 0.65rem 1.25rem !important;
-            box-shadow: 0 10px 28px rgba(76, 29, 149, 0.18) !important;
+            padding: 0.32rem 1rem !important;
+            min-height: 2rem !important;
+            box-shadow: 0 8px 20px rgba(76, 29, 149, 0.16) !important;
         }}
         {create_row} button:hover {{
             border-color: {t["primary"]} !important;
@@ -953,8 +994,9 @@ def render_auth_styles() -> None:
         }}
         {split_right} div[data-testid="stFormSubmitButton"] button {{
             width: 100%;
-            padding: 0.78rem 1.5rem !important;
-            margin-top: 0.35rem;
+            padding: 0.38rem 1rem !important;
+            min-height: 2.15rem !important;
+            margin-top: 0.25rem;
         }}
         .auth-link-row button,
         .auth-footer-link button,
@@ -1028,10 +1070,10 @@ def render_auth_styles() -> None:
             text-overflow: ellipsis;
         }}
         .reg-wizard-nav {{
-            margin-top: 1.25rem;
+            margin-top: 0.85rem;
         }}
         .reg-wizard-nav button {{
-            min-height: 2.65rem;
+            min-height: 2rem !important;
         }}
         .reg-wizard-nav [data-testid="column"]:first-child button {{
             background: {t["surface_soft"]} !important;

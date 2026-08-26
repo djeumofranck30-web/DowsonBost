@@ -3786,69 +3786,71 @@ def render_job_card(
         else:
             st.button(t("job.apply_auto"), disabled=True, use_container_width=True)
 
-    if can_apply and job.get("url"):
-        if st.button(
-            t("job.apply_manual_confirm"),
-            key=f"apply_manual_confirm_{result_id}",
-            use_container_width=True,
-        ):
-            record_application(
-                user_id,
-                result_id,
-                "manual",
-                status="applied",
-                notes=t("job.apply_manual_confirmed"),
-            )
-            notified = notify_candidate_application(
-                user_profile or {},
-                job,
-                method="manual",
-                locale=get_locale(),
-            )
-            if notified:
-                st.success(
-                    f"{t('job.apply_manual_confirmed')} "
-                    f"{t('job.apply_user_confirmation_sent', email=(user_profile or {}).get('email', ''))}"
-                )
-            else:
-                st.success(t("job.apply_manual_confirmed"))
-            st.rerun()
-
     if can_apply:
-        if st.button(
-            t("job.apply_manual_prepare"),
-            key=f"apply_manual_prepare_{result_id}",
-            use_container_width=True,
-            help=t("job.apply_manual_prepare_help"),
-        ):
-            with st.spinner(t("job.apply_auto_running")):
-                current_letter = st.session_state.get(f"cover_{result_id}") or cover_letter_text
-                current_cv = st.session_state.get(f"adapted_{result_id}") or adapted_cv_text
-                manual_result = prepare_manual_application(
-                    cv_text,
-                    job,
-                    match,
-                    user_profile,
-                    llm_call=call_llm,
-                    cover_letter_text=current_letter,
-                    adapted_cv_text=current_cv,
-                    generate_documents=True,
-                    locale=get_locale(),
-                )
-            if manual_result["success"]:
-                save_generated_documents(
-                    user_id,
-                    result_id,
-                    cover_letter_text=manual_result["cover_letter"],
-                    adapted_cv_text=manual_result["adapted_cv"],
-                )
-                st.session_state[f"cover_{result_id}"] = manual_result["cover_letter"]
-                st.session_state[f"adapted_{result_id}"] = manual_result["adapted_cv"]
-                st.session_state[f"apply_pack_{result_id}"] = manual_result
-                st.success(manual_result["message"])
-                st.rerun()
-            else:
-                st.error(manual_result["message"])
+        pack_col1, pack_col2 = st.columns(2)
+        with pack_col1:
+            if job.get("url"):
+                if st.button(
+                    t("job.apply_manual_confirm"),
+                    key=f"apply_manual_confirm_{result_id}",
+                    use_container_width=True,
+                ):
+                    record_application(
+                        user_id,
+                        result_id,
+                        "manual",
+                        status="applied",
+                        notes=t("job.apply_manual_confirmed"),
+                    )
+                    notified = notify_candidate_application(
+                        user_profile or {},
+                        job,
+                        method="manual",
+                        locale=get_locale(),
+                    )
+                    if notified:
+                        st.success(
+                            f"{t('job.apply_manual_confirmed')} "
+                            f"{t('job.apply_user_confirmation_sent', email=(user_profile or {}).get('email', ''))}"
+                        )
+                    else:
+                        st.success(t("job.apply_manual_confirmed"))
+                    st.rerun()
+        with pack_col2:
+            if st.button(
+                t("job.apply_manual_prepare"),
+                key=f"apply_manual_prepare_{result_id}",
+                use_container_width=True,
+                help=t("job.apply_manual_prepare_help"),
+            ):
+                with st.spinner(t("job.apply_auto_running")):
+                    current_letter = st.session_state.get(f"cover_{result_id}") or cover_letter_text
+                    current_cv = st.session_state.get(f"adapted_{result_id}") or adapted_cv_text
+                    manual_result = prepare_manual_application(
+                        cv_text,
+                        job,
+                        match,
+                        user_profile,
+                        llm_call=call_llm,
+                        cover_letter_text=current_letter,
+                        adapted_cv_text=current_cv,
+                        generate_documents=True,
+                        locale=get_locale(),
+                    )
+                if manual_result["success"]:
+                    save_generated_documents(
+                        user_id,
+                        result_id,
+                        cover_letter_text=manual_result["cover_letter"],
+                        adapted_cv_text=manual_result["adapted_cv"],
+                    )
+                    st.session_state[f"cover_{result_id}"] = manual_result["cover_letter"]
+                    st.session_state[f"adapted_{result_id}"] = manual_result["adapted_cv"]
+                    st.session_state[f"apply_pack_{result_id}"] = manual_result
+                    st.success(manual_result["message"])
+                    st.rerun()
+                else:
+                    st.error(manual_result["message"])
 
     if can_apply:
         gen_col1, gen_col2 = st.columns(2)
