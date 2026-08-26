@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import html
 import smtplib
+from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Any
@@ -157,16 +158,22 @@ def maybe_send_analysis_alert(
     return send_alert_email(user_email, subject, html, locale=lang)
 
 
+def _attachment_bytes(content: str | bytes) -> bytes:
+    if isinstance(content, bytes):
+        return content
+    return content.encode("utf-8")
+
+
 def send_application_email(
     to_email: str,
     subject: str,
     body_text: str,
     *,
-    attachments: list[tuple[str, str, str]] | None = None,
+    attachments: list[tuple[str, str | bytes, str]] | None = None,
     reply_to: str | None = None,
     locale: str | None = None,
 ) -> tuple[bool, str]:
-    """Send a job application e-mail with optional text attachments."""
+    """Send a job application e-mail with optional text or PDF attachments."""
     lang = locale or get_locale()
     resend_key = _get_secret("RESEND_API_KEY")
     from_resend = _get_secret("EMAIL_FROM") or "DowsonBost <onboarding@resend.dev>"
@@ -186,7 +193,7 @@ def send_application_email(
                 payload["attachments"] = [
                     {
                         "filename": filename,
-                        "content": base64.b64encode(content.encode("utf-8")).decode("ascii"),
+                        "content": base64.b64encode(_attachment_bytes(content)).decode("ascii"),
                     }
                     for filename, content, _mime in attachment_items
                 ]
@@ -225,9 +232,14 @@ def send_application_email(
     body_part.attach(MIMEText(body_text, "plain", "utf-8"))
     message.attach(body_part)
 
-    for filename, content, _mime in attachment_items:
-        part = MIMEText(content, "plain", "utf-8")
-        part.add_header("Content-Disposition", f'attachment; filename="{filename}"')
+    for filename, content, mime in attachment_items:
+        raw = _attachment_bytes(content)
+        if (mime or "").startswith("application/pdf") or str(filename).lower().endswith(".pdf"):
+            part = MIMEApplication(raw, _subtype="pdf")
+            part.add_header("Content-Disposition", "attachment", filename=filename)
+        else:
+            part = MIMEText(raw.decode("utf-8"), "plain", "utf-8")
+            part.add_header("Content-Disposition", f'attachment; filename="{filename}"')
         message.attach(part)
 
     try:

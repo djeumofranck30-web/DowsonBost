@@ -13,6 +13,12 @@ from email_service import (
     send_application_confirmation_email,
     send_application_email,
 )
+from cv_layout import (
+    application_document_attachments,
+    cv_text_for_candidate,
+    prepare_structured_cv,
+    public_cv_text,
+)
 
 _EMAIL_RE = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
 _MAILTO_RE = re.compile(r"mailto:([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})", re.I)
@@ -157,7 +163,9 @@ def format_application_autofill_text(
     if cover_letter.strip():
         lines.extend(["", "--- Lettre de motivation ---", cover_letter.strip()])
     if adapted_cv.strip():
-        lines.extend(["", "--- CV adapté ---", adapted_cv.strip()])
+        structured = prepare_structured_cv(adapted_cv)
+        clean = public_cv_text(structured) or cv_text_for_candidate(adapted_cv)
+        lines.extend(["", "--- CV adapté ---", clean])
     return "\n".join(lines)
 
 
@@ -217,7 +225,7 @@ def ensure_application_documents(
             user_profile,
             llm_call=llm_call,
         ).strip()
-    return letter, adapted
+    return letter, cv_text_for_candidate(adapted)
 
 
 def _application_subject(job: dict[str, Any], profile: dict[str, str]) -> str:
@@ -238,6 +246,9 @@ def _send_user_application_copy(
     job_url: str,
     *,
     locale: str,
+    match: dict[str, Any] | None = None,
+    user_profile: dict[str, Any] | None = None,
+    original_cv: str = "",
 ) -> bool:
     """E-mail the prepared dossier to the candidate when no recruiter address exists."""
     from i18n import t
@@ -257,10 +268,14 @@ def _send_user_application_copy(
         to_email=user_email,
         subject=t("job.apply_user_copy_subject", locale=locale, title=title),
         body_text=body,
-        attachments=[
-            ("cv_adapte.txt", adapted, "text/plain; charset=utf-8"),
-            ("lettre_motivation.txt", letter, "text/plain; charset=utf-8"),
-        ],
+        attachments=application_document_attachments(
+            letter,
+            adapted,
+            job=job,
+            match=match,
+            user_profile=user_profile or profile,
+            original_cv=original_cv,
+        ),
     )
     return ok
 
@@ -393,10 +408,14 @@ def submit_application_automatically(
             to_email=apply_email,
             subject=_application_subject(job, profile),
             body_text=body,
-            attachments=[
-                ("cv_adapte.txt", adapted, "text/plain; charset=utf-8"),
-                ("lettre_motivation.txt", letter, "text/plain; charset=utf-8"),
-            ],
+            attachments=application_document_attachments(
+                letter,
+                adapted,
+                job=job,
+                match=match,
+                user_profile=user_profile,
+                original_cv=cv_text,
+            ),
             reply_to=profile.get("email") or None,
         )
         if ok:
@@ -446,6 +465,9 @@ def submit_application_automatically(
         profile_text,
         job_url,
         locale=locale,
+        match=match,
+        user_profile=user_profile,
+        original_cv=cv_text,
     )
     return _empty_result(
         success=True,

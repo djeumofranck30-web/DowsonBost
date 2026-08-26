@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
+from cv_layout import build_cv_system_addon, cv_text_for_candidate, detect_job_family
+
 COVER_LETTER_SYSTEM_PROMPT = """
 Tu es un expert en recrutement francophone. Rédige une lettre de motivation personnalisée,
 professionnelle et convaincante (250 à 400 mots), en français.
@@ -34,34 +36,11 @@ Règles strictes :
 5. Reformule les missions des expériences pertinentes avec le vocabulaire de l'offre (sans mentir).
 6. Ne invente JAMAIS de diplôme, entreprise, date, certification ou compétence absente du CV original.
 7. C'est une réécriture complète (nouvelle structure, nouvelles formulations), pas un copier-coller du CV actuel.
+8. Le document renvoyé est le CV FINAL, prêt à envoyer au recruteur (norme France 2026 : une colonne, titres ATS classiques).
+   N'ajoute JAMAIS de section « Modifications appliquées », « Modifications à apporter au CV »,
+   « MODIFICATIONS APPLIQUÉES » ni aucun journal de changements en fin de document.
 
-Structure obligatoire :
----
-[TITRE CV RECOMMANDÉ]
-[Nom · coordonnées si présentes dans le CV original]
-
-PROFIL PROFESSIONNEL
-(3-5 lignes percutantes alignées sur l'offre)
-
-COMPÉTENCES CLÉS
-• compétences techniques et transversales (mots-clés ATS de l'offre quand le candidat les a)
-
-EXPÉRIENCES PROFESSIONNELLES
-POSTE — ENTREPRISE | période
-• missions reformulées pour l'offre (expériences les plus pertinentes en premier)
-
-FORMATION & CERTIFICATIONS
-
-LANGUES & OUTILS (si pertinent)
----
-
-En fin de document, ajoute :
----
-MODIFICATIONS APPLIQUÉES
-(pour CHAQUE modification ATS demandée, une ligne numérotée expliquant comment tu l'as intégrée)
----
-
-Retourne UNIQUEMENT le texte du CV adapté (pas de JSON, pas de markdown).
+Retourne UNIQUEMENT le CV (champs NOM/TITRE/EMAIL puis sections ## du template métier).
 """
 
 
@@ -177,16 +156,19 @@ def generate_adapted_cv(
     *,
     llm_call: Callable[..., str],
 ) -> str:
-    """Rewrite the CV for one offer, applying every ATS modification from the match analysis."""
+    """Rewrite the CV for one offer using the matching profession template."""
+    family = detect_job_family(job, match)
     user_prompt = (
         f"{_candidate_block(cv_text, match, user_profile)}\n\n"
         f"=== OFFRE CIBLÉE ===\n{_job_block(job)}\n\n"
         "Réécris un CV complet et nouveau pour cette offre. "
-        "Applique TOUTES les modifications ATS listées ci-dessus. "
-        "Termine par la section MODIFICATIONS APPLIQUÉES."
+        "Applique TOUTES les modifications ATS listées ci-dessus DANS le corps du CV "
+        "(reformulations, mots-clés, ordre des sections). "
+        "N'ajoute aucune section listant les modifications : le CV s'arrête après les rubriques métier."
     )
-    return llm_call(
-        ADAPTED_CV_SYSTEM_PROMPT,
+    raw = llm_call(
+        ADAPTED_CV_SYSTEM_PROMPT + build_cv_system_addon(family),
         user_prompt,
         max_tokens=4800,
     ).strip()
+    return cv_text_for_candidate(raw)
