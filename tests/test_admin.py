@@ -112,3 +112,16 @@ def test_dashboard_html_injects_payload(sqlite_db, monkeypatch):
 def test_estimate_tokens_minimum():
     assert estimate_tokens("") >= 1
     assert estimate_tokens("abcd" * 10) == 10
+
+
+def test_config_tests_only_on_admin_dashboard():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    app_src = (root / "app.py").read_text(encoding="utf-8")
+    dash_src = (root / "pages" / "dashboard.py").read_text(encoding="utf-8")
+    assert "def render_config_tests_panel" in app_src
+    assert "render_config_tests_panel" in dash_src
+    candidate_shell = app_src.split("def render_app()", 1)[1]
+    assert "render_config_tests_panel" not in candidate_shell
+    assert 't("app.config_tests")' not in candidate_shell
