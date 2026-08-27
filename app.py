@@ -4482,6 +4482,8 @@ def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None
       var text = labels[i].textContent || '';
       if (text.indexOf('Messagerie') !== -1 || text.indexOf('Inbox') !== -1) {
         var input = labels[i].querySelector('input');
+        if (input && input.checked) return true;
+        if (labels[i].getAttribute('aria-checked') === 'true') return true;
         if (input) { input.click(); return true; }
         labels[i].click();
         return true;
@@ -4498,6 +4500,7 @@ def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None
       if (!target) return;
       ev.preventDefault();
       ev.stopPropagation();
+      if (target.getAttribute('data-page') === 'support') return;
       openMessaging();
     }, true);
   }
@@ -4523,6 +4526,7 @@ def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None
   fab.innerHTML = svg;
   fab.setAttribute("aria-label", label);
   fab.title = label;
+  fab.setAttribute("data-page", {json.dumps(current_page or "")});
   if (!doc.getElementById("db-chat-fab-nav-script")) {{
     const script = doc.createElement("script");
     script.id = "db-chat-fab-nav-script";
