@@ -249,6 +249,7 @@
   "profile.change_password": "Change password",
   "profile.delete_yes": "Yes, permanently delete",
   "profile.delete_title": "Delete my account",
+  "profile.delete_kicker": "Danger zone",
   "profile.delete_button": "Delete my account",
   "profile.delete_text": "Permanent and irreversible: profile, e-mail, password, CV, analyses, applications, history, and all associated data will be completely erased.",
   "profile.delete_confirm": "You are about to delete your account and all of your information. This cannot be undone. Continue?",

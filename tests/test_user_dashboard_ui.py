@@ -34,6 +34,9 @@ def test_dashboard_and_profile_locale_keys_exist():
             "profile.photo.title",
             "profile.photo.upload",
             "profile.photo.remove",
+            "profile.delete_kicker",
+            "profile.delete_title",
+            "profile.delete_button",
         ):
             assert key in data, f"missing {key} in {locale}.json"
             assert str(data[key]).strip()
@@ -55,6 +58,9 @@ def test_theme_contains_dashboard_and_profile_layout_classes():
         "filter-bar-title",
         "profile-divider",
         "sidebar-avatar-ring",
+        "danger-zone",
+        "danger-zone-kicker",
+        "danger-zone-title",
     ):
         assert f".{class_name}" in css, class_name
 
@@ -73,6 +79,10 @@ def test_dashboard_page_uses_compact_layout():
     assert "render_connected_accounts_section(profile)" in source
     assert "render_notification_settings(user, job_provider)" in source
     assert "render_delete_account_section(user)" in source
+    assert "danger-zone" in source
+    assert 'key="logout_button"' in source
+    assert "st-key-logout_button" in _read("ui/theme.py")
+    assert "height: 100vh !important" in _read("ui/theme.py")
     assert "dashboard_empty_cta" in source
     assert "_render_profile_photo_editor" in source
     assert "sidebar-avatar-ring" in source

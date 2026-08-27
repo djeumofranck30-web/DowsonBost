@@ -439,11 +439,16 @@ def _shared_components_css(t: dict[str, str]) -> str:
             justify-content: center;
             pointer-events: none;
         }}
-        [data-testid="stAppViewContainer"],
+        [data-testid="stAppViewContainer"] {{
+            overflow: hidden !important;
+        }}
         [data-testid="stMain"],
-        .stApp,
-        .main,
-        .block-container {{
+        .main {{
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            height: 100vh !important;
+        }}
+        .main .block-container {{
             overflow: visible !important;
         }}
         .st-key-support_new button {{
@@ -489,8 +494,15 @@ def render_app_styles() -> None:
             display: none !important;
         }}
 
-        /* —— Sidebar (icon rail + avatar) —— */
-        [data-testid="stSidebar"] {{
+        /* —— Sidebar (full-height rail, no gap on page scroll) —— */
+        section[data-testid="stSidebar"] {{
+            position: sticky !important;
+            top: 0 !important;
+            height: 100vh !important;
+            min-height: 100vh !important;
+            max-height: 100vh !important;
+            transform: none !important;
+            overflow: hidden !important;
             background:
                 radial-gradient(ellipse 80% 40% at 50% 0%, rgba(232,185,35,0.16), transparent 55%),
                 linear-gradient(180deg, #0B1628 0%, #0A1220 100%) !important;
@@ -499,8 +511,17 @@ def render_app_styles() -> None:
             border-right: 1px solid rgba(255, 255, 255, 0.06);
             box-shadow: 8px 0 28px rgba(11, 18, 32, 0.22);
         }}
-        [data-testid="stSidebar"] > div:first-child {{
+        section[data-testid="stSidebar"] > div:first-child,
+        [data-testid="stSidebarContent"] {{
+            height: 100% !important;
+            min-height: 100vh !important;
+            max-height: 100vh !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
             padding-top: 1.1rem;
+            background:
+                radial-gradient(ellipse 80% 40% at 50% 0%, rgba(232,185,35,0.16), transparent 55%),
+                linear-gradient(180deg, #0B1628 0%, #0A1220 100%) !important;
         }}
         [data-testid="stSidebar"] .sidebar-brand {{
             text-align: center;
@@ -1041,30 +1062,61 @@ def render_app_styles() -> None:
             }}
         }}
 
-        /* —— Delete zone —— */
+        /* —— Delete / danger zone —— */
+        .danger-zone,
         .delete-account-zone {{
-            margin-top: 0.5rem;
-            padding: 1.35rem 1.6rem;
-            border-radius: {t["radius_md"]};
-            border: 1.5px dashed rgba(239, 68, 68, 0.35);
-            background: linear-gradient(145deg, #fffafa, #fef2f2);
+            margin-top: 0.15rem;
+            padding: 0;
+            border: 0;
+            background: transparent;
         }}
-        .delete-account-zone .delete-account-title {{
-            color: #991b1b;
-            font-weight: 700;
+        .danger-zone-kicker {{
+            margin: 0 0 0.55rem;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #BE123C;
+        }}
+        .danger-zone-row {{
+            display: flex;
+            gap: 0.85rem;
+            align-items: flex-start;
+        }}
+        .danger-zone-icon {{
+            flex: 0 0 2.35rem;
+            width: 2.35rem;
+            height: 2.35rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1.05rem;
-            margin: 0 0 0.35rem;
+            font-weight: 800;
+            color: #fff;
+            background: linear-gradient(135deg, #FB7185, #E11D48);
+            box-shadow: 0 8px 18px rgba(225, 29, 72, 0.28);
         }}
+        .danger-zone-title,
+        .delete-account-zone .delete-account-title {{
+            color: #9F1239;
+            font-weight: 800;
+            font-size: 1.08rem;
+            letter-spacing: -0.02em;
+            margin: 0 0 0.28rem;
+        }}
+        .danger-zone-text,
         .delete-account-zone .delete-account-text {{
-            color: #7f1d1d;
-            font-size: 0.92rem;
-            margin: 0 0 1rem;
+            color: #4C0519;
+            font-size: 0.9rem;
+            line-height: 1.45;
+            margin: 0;
         }}
-        .delete-account-zone .delete-account-trigger + div[data-testid="stButton"] button {{
-            background: linear-gradient(135deg, #ef4444, #dc2626) !important;
-            color: #fff !important;
-            border: none !important;
-            box-shadow: 0 6px 16px rgba(220, 38, 38, 0.28) !important;
+        .danger-zone-confirm {{
+            margin: 0.15rem 0 0.35rem;
+            color: #9F1239;
+            font-size: 0.9rem;
+            font-weight: 600;
         }}
 
         /* —— Support chat —— */
@@ -1146,6 +1198,97 @@ def render_app_styles() -> None:
         }}
 
         {_shared_components_css(t)}
+
+        /* Late overrides — beat compact button styles */
+        [data-testid="stSidebar"] [class*="st-key-sidebar_locale_select"] {{
+            margin-top: auto !important;
+            padding-top: 1.1rem;
+        }}
+        [data-testid="stSidebar"] [class*="st-key-logout_button"] {{
+            padding: 0.55rem 0 0.85rem;
+        }}
+        [data-testid="stSidebar"] [class*="st-key-logout_button"] button,
+        [data-testid="stSidebar"] [class*="st-key-logout_button"] [data-testid="stBaseButton-secondary"],
+        [data-testid="stSidebar"] [class*="st-key-logout_button"] [data-testid="stBaseButton-primary"] {{
+            width: 100% !important;
+            min-height: 2.4rem !important;
+            height: auto !important;
+            padding: 0.55rem 0.85rem !important;
+            border-radius: 12px !important;
+            background: rgba(225, 29, 72, 0.08) !important;
+            color: #FECDD3 !important;
+            border: 1px solid rgba(251, 113, 133, 0.32) !important;
+            box-shadow: none !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.01em !important;
+        }}
+        [data-testid="stSidebar"] [class*="st-key-logout_button"] button:hover,
+        [data-testid="stSidebar"] [class*="st-key-logout_button"] [data-testid="stBaseButton-secondary"]:hover {{
+            background: rgba(225, 29, 72, 0.22) !important;
+            color: #fff !important;
+            border-color: rgba(251, 113, 133, 0.55) !important;
+            transform: none !important;
+            filter: none !important;
+        }}
+        div[data-testid="stElementContainer"]:has(.danger-zone),
+        div[data-testid="stElementContainer"]:has(.delete-account-zone) {{
+            background: linear-gradient(180deg, #fff 0%, #FFF1F2 100%);
+            border: 1px solid rgba(225, 29, 72, 0.16);
+            border-bottom: 0;
+            border-radius: 18px 18px 0 0;
+            padding: 1.15rem 1.2rem 0.35rem;
+            box-shadow: 0 18px 40px rgba(159, 18, 57, 0.08);
+            margin-bottom: 0 !important;
+        }}
+        div[data-testid="stElementContainer"]:has(.danger-zone) + div[data-testid="stElementContainer"],
+        div[data-testid="stElementContainer"]:has(.danger-zone-confirm) {{
+            background: #FFF1F2;
+            border-color: rgba(225, 29, 72, 0.16);
+            border-style: solid;
+            border-width: 0 1px;
+            padding: 0.2rem 1.2rem 0.35rem;
+            margin-bottom: 0 !important;
+        }}
+        div[data-testid="stElementContainer"]:has([class*="st-key-delete_account_btn"]),
+        div[data-testid="stElementContainer"]:has([class*="st-key-delete_account_yes"]),
+        div[data-testid="stElementContainer"]:has([class*="st-key-delete_account_no"]) {{
+            background: #FFF1F2;
+            border: 1px solid rgba(225, 29, 72, 0.16);
+            border-top: 0;
+            border-radius: 0 0 18px 18px;
+            padding: 0.15rem 1.2rem 1.15rem;
+            box-shadow: 0 18px 40px rgba(159, 18, 57, 0.08);
+        }}
+        [class*="st-key-delete_account_btn"] button,
+        [class*="st-key-delete_account_btn"] [data-testid="stBaseButton-secondary"],
+        [class*="st-key-delete_account_btn"] [data-testid="stBaseButton-primary"] {{
+            background: #fff !important;
+            color: #E11D48 !important;
+            border: 1.5px solid rgba(225, 29, 72, 0.38) !important;
+            border-radius: 12px !important;
+            font-weight: 700 !important;
+            box-shadow: none !important;
+            min-height: 2.45rem !important;
+        }}
+        [class*="st-key-delete_account_btn"] button:hover {{
+            background: #E11D48 !important;
+            color: #fff !important;
+            transform: none !important;
+        }}
+        [class*="st-key-delete_account_yes"] button,
+        [class*="st-key-delete_account_yes"] [data-testid="stBaseButton-secondary"],
+        [class*="st-key-delete_account_yes"] [data-testid="stBaseButton-primary"] {{
+            background: linear-gradient(135deg, #E11D48, #BE123C) !important;
+            color: #fff !important;
+            border: 0 !important;
+            box-shadow: 0 8px 18px rgba(225, 29, 72, 0.28) !important;
+        }}
+        [class*="st-key-delete_account_no"] button {{
+            background: #fff !important;
+            color: #0B1220 !important;
+            border: 1.5px solid rgba(11, 18, 32, 0.12) !important;
+            box-shadow: none !important;
+        }}
         </style>
         """,
         unsafe_allow_html=True,

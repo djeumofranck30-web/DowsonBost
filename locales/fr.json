@@ -249,6 +249,7 @@
   "profile.change_password": "Modifier le mot de passe",
   "profile.password_mismatch": "Les nouveaux mots de passe ne correspondent pas.",
   "profile.delete_title": "Supprimer mon compte",
+  "profile.delete_kicker": "Zone sensible",
   "profile.delete_button": "Supprimer mon compte",
   "profile.delete_text": "Action définitive et irréversible : profil, e-mail, mot de passe, CV, analyses, candidatures, historique et toutes les données associées seront complètement effacés.",
   "profile.delete_confirm": "Vous êtes sur le point de supprimer votre compte et toutes vos informations. Cette action est irréversible. Continuer ?",

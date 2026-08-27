@@ -6807,18 +6807,21 @@ def render_delete_account_section(user: dict[str, Any]) -> None:
     user_id = int(user["id"])
     confirm_key = f"delete_account_confirm_{user_id}"
 
-    st.markdown('<div class="delete-account-zone">', unsafe_allow_html=True)
     st.markdown(
-        f'<p class="delete-account-title">{html.escape(t("profile.delete_title"))}</p>',
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        f'<p class="delete-account-text">{html.escape(t("profile.delete_text"))}</p>',
+        (
+            '<div class="danger-zone delete-account-zone">'
+            f'<p class="danger-zone-kicker">{html.escape(t("profile.delete_kicker"))}</p>'
+            '<div class="danger-zone-row">'
+            '<span class="danger-zone-icon" aria-hidden="true">!</span>'
+            "<div>"
+            f'<p class="danger-zone-title delete-account-title">{html.escape(t("profile.delete_title"))}</p>'
+            f'<p class="danger-zone-text delete-account-text">{html.escape(t("profile.delete_text"))}</p>'
+            "</div></div></div>"
+        ),
         unsafe_allow_html=True,
     )
 
     if not st.session_state.get(confirm_key):
-        st.markdown('<div class="delete-account-trigger">', unsafe_allow_html=True)
         if st.button(
             t("profile.delete_button"),
             key=f"delete_account_btn_{user_id}",
@@ -6826,12 +6829,13 @@ def render_delete_account_section(user: dict[str, Any]) -> None:
         ):
             st.session_state[confirm_key] = True
             st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
     else:
-        st.warning(t("profile.delete_confirm"))
+        st.markdown(
+            f'<p class="danger-zone-confirm">{html.escape(t("profile.delete_confirm"))}</p>',
+            unsafe_allow_html=True,
+        )
         yes_col, no_col = st.columns(2)
         with yes_col:
-            st.markdown('<div class="delete-confirm-yes">', unsafe_allow_html=True)
             if st.button(
                 t("profile.delete_yes"),
                 key=f"delete_account_yes_{user_id}",
@@ -6844,9 +6848,7 @@ def render_delete_account_section(user: dict[str, Any]) -> None:
                     )
                     st.rerun()
                 st.error(message)
-            st.markdown("</div>", unsafe_allow_html=True)
         with no_col:
-            st.markdown('<div class="delete-confirm-no">', unsafe_allow_html=True)
             if st.button(
                 t("profile.delete_no"),
                 key=f"delete_account_no_{user_id}",
@@ -6854,9 +6856,6 @@ def render_delete_account_section(user: dict[str, Any]) -> None:
             ):
                 st.session_state.pop(confirm_key, None)
                 st.rerun()
-            st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def render_connected_accounts_section(user: dict[str, Any]) -> None:
@@ -7888,15 +7887,6 @@ def render_app() -> None:
             key="main_navigation",
         )
 
-        render_language_selector(key_prefix="sidebar_locale", persist_user=True)
-
-        if st.button(t("app.logout"), use_container_width=True, key="logout_button"):
-            st.session_state.authenticated = False
-            st.session_state.user = None
-            st.session_state.analysis = None
-            st.session_state.pdf_fingerprint = None
-            st.rerun()
-
         if page == "analysis":
             st.markdown("---")
             options = JOB_PROVIDER_SIDEBAR_ORDER
@@ -7923,6 +7913,15 @@ def render_app() -> None:
                 key="analysis_depth_select",
             )
             st.session_state.analysis_depth = analysis_depth
+
+        render_language_selector(key_prefix="sidebar_locale", persist_user=True)
+
+        if st.button(t("app.logout"), use_container_width=True, key="logout_button"):
+            st.session_state.authenticated = False
+            st.session_state.user = None
+            st.session_state.analysis = None
+            st.session_state.pdf_fingerprint = None
+            st.rerun()
 
     render_floating_chat_fab(unread=support_unread, current_page=page)
 
