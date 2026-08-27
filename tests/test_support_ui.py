@@ -19,6 +19,8 @@ def test_support_is_in_candidate_navigation():
     assert "support" in NAV_PAGE_KEYS
     app = _read("app.py")
     assert "def render_support_page" in app
+    assert "start_user_support_conversation" in app
+    assert 'key="support_new"' in app
     assert 'if page == "support":' in app
     assert "def render_floating_chat_fab" in app
     assert "render_floating_chat_fab(" in app
@@ -53,6 +55,7 @@ def test_support_locale_keys_exist():
             "support.empty_pane",
             "support.conversations",
             "support.new",
+            "support.new_title",
             "support.fab_label",
             "support.fab_help",
         ):
@@ -61,6 +64,7 @@ def test_support_locale_keys_exist():
     fr = json.loads(_read("locales/fr.json"))
     assert fr["hero.support.title"] == "Messagerie"
     assert "Nouveau" in fr["support.new"]
+    assert "Nouvelle conversation" in fr["support.new_title"]
 
 
 def test_admin_dashboard_has_per_user_inbox():
@@ -68,11 +72,16 @@ def test_admin_dashboard_has_per_user_inbox():
     assert "def _render_admin_support" in dash
     assert "admin_support_conversations" in dash
     assert "send_admin_support_reply" in dash
+    assert "start_admin_support_conversation" in dash
     assert "admin_support_send" in dash
+    assert 'key="admin_support_new"' in dash
     assert "Espace de" in dash
     assert "Espaces chat" in dash
     html = _read("admin/static/index.html")
     assert 'data-tab="support"' in html
     assert "tab-support" in html
     assert "/api/admin/support/conversations" in html
+    assert "/api/admin/support/users/" in html
+    assert "createNewSupportConversation" in html
+    assert "support-new-btn" in html
     assert "Espace de" in html

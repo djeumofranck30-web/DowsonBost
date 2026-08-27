@@ -178,6 +178,7 @@
   "support.empty_pane": "Sélectionnez une conversation ou commencez-en une nouvelle",
   "support.conversations": "Conversations",
   "support.new": "+ Nouveau",
+  "support.new_title": "Nouvelle conversation",
   "support.hint": "Conversation privée avec l’administrateur. Les autres candidats ne voient pas cet échange.",
   "support.placeholder": "Votre message au support…",
   "support.send": "Envoyer",

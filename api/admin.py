@@ -14,9 +14,11 @@ from services.admin import admin_delete_user, list_registered_users, platform_ov
 from services.support import (
     admin_support_conversations,
     admin_support_thread,
+    get_support_conversation,
     mark_admin_support_read,
     public_support_message,
     send_admin_support_reply,
+    start_admin_support_conversation,
 )
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -102,6 +104,59 @@ def admin_support_user_reply(
         body.body,
         admin_id=int(user.get("id") or 0) or None,
         admin_email=str(user.get("email") or ""),
+    )
+    if not ok or not saved:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
+    return {"message": message, "item": public_support_message(saved)}
+
+
+@router.post("/support/users/{user_id}/conversations")
+def admin_create_support_conversation(
+    user_id: int,
+    user: dict[str, Any] = Depends(current_admin),
+) -> dict[str, Any]:
+    created = start_admin_support_conversation(int(user_id))
+    if not created:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable.")
+    return {"conversation": created}
+
+
+@router.get("/support/threads/{conversation_id}")
+def admin_support_conversation_thread(
+    conversation_id: int,
+    user: dict[str, Any] = Depends(current_admin),
+) -> dict[str, Any]:
+    space = get_support_conversation(int(conversation_id))
+    if not space:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation introuvable.")
+    target = get_user_by_id(int(space["user_id"]))
+    if not target:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable.")
+    mark_admin_support_read(int(space["user_id"]), conversation_id=int(conversation_id))
+    thread = admin_support_thread(int(space["user_id"]), conversation_id=int(conversation_id))
+    return {
+        "user_id": int(space["user_id"]),
+        "conversation_id": int(conversation_id),
+        "user": public_user_record(target),
+        "messages": [public_support_message(item) for item in thread],
+    }
+
+
+@router.post("/support/threads/{conversation_id}")
+def admin_support_conversation_reply(
+    conversation_id: int,
+    body: SupportReplyRequest,
+    user: dict[str, Any] = Depends(current_admin),
+) -> dict[str, Any]:
+    space = get_support_conversation(int(conversation_id))
+    if not space:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation introuvable.")
+    ok, message, saved = send_admin_support_reply(
+        int(space["user_id"]),
+        body.body,
+        admin_id=int(user.get("id") or 0) or None,
+        admin_email=str(user.get("email") or ""),
+        conversation_id=int(conversation_id),
     )
     if not ok or not saved:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)

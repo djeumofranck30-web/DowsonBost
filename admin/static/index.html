@@ -266,11 +266,12 @@
     <section id="tab-support" class="hidden">
       <article class="card" style="margin-top:1.2rem">
         <h2>Espaces chat</h2>
-        <p style="margin:0 0 .8rem;color:var(--muted);font-size:.9rem">Chaque candidat a son propre espace. Votre réponse n’est visible que par la personne sélectionnée.</p>
+        <p style="margin:0 0 .8rem;color:var(--muted);font-size:.9rem">Chaque conversation est privée. « + Nouveau » ouvre un fil vierge avec le candidat sélectionné — seul ce candidat le verra.</p>
         <div class="support-inbox">
           <div>
-            <div class="support-start" style="border-top:0;border-bottom:1px solid var(--line)">
-              <input id="support-user-search" placeholder="Rechercher un candidat…" />
+            <div class="support-start" style="border-top:0;border-bottom:1px solid var(--line);display:flex;gap:.5rem;align-items:center">
+              <input id="support-user-search" placeholder="Rechercher un candidat…" style="flex:1" />
+              <button type="button" class="primary" id="support-new-btn" style="white-space:nowrap">+ Nouveau</button>
             </div>
             <div id="support-list" class="support-inbox-list"></div>
           </div>
@@ -303,6 +304,7 @@
       token: localStorage.getItem("dowsonbost_admin_token") || "",
       deleteId: null,
       supportUserId: null,
+      supportConversationId: null,
     };
     const charts = {};
 
@@ -496,30 +498,27 @@
       const list = $("support-list");
       if (!list) return;
       const conversations = (state.data && state.data.support && state.data.support.conversations) || [];
-      const users = (state.data && state.data.users) || [];
-      const byId = {};
-      conversations.forEach((c) => { byId[Number(c.user_id)] = c; });
-      let rows = users.map((u) => {
-        const extra = byId[Number(u.id)] || {};
-        return {
-          user_id: Number(u.id),
-          full_name: u.full_name || extra.full_name || "",
-          email: u.email || extra.email || "",
-          last_body: extra.last_body || "",
-          last_at: extra.last_at || "",
-          unread: Number(extra.unread || 0),
-          has_messages: !!extra.has_messages || !!extra.last_body,
-        };
-      });
+      let rows = conversations.map((c) => ({
+        id: c.id == null ? null : Number(c.id),
+        user_id: Number(c.user_id),
+        full_name: c.full_name || "",
+        email: c.email || "",
+        last_body: c.last_body || "",
+        last_at: c.last_at || "",
+        unread: Number(c.unread || 0),
+        has_messages: !!c.has_messages || !!c.last_body,
+      }));
       if (!rows.length) {
-        rows = conversations.map((c) => ({
-          user_id: Number(c.user_id),
-          full_name: c.full_name || "",
-          email: c.email || "",
-          last_body: c.last_body || "",
-          last_at: c.last_at || "",
-          unread: Number(c.unread || 0),
-          has_messages: !!c.has_messages || !!c.last_body,
+        const users = (state.data && state.data.users) || [];
+        rows = users.map((u) => ({
+          id: null,
+          user_id: Number(u.id),
+          full_name: u.full_name || "",
+          email: u.email || "",
+          last_body: "",
+          last_at: "",
+          unread: 0,
+          has_messages: false,
         }));
       }
       const query = (($("support-user-search") && $("support-user-search").value) || "").trim().toLowerCase();
@@ -533,22 +532,28 @@
       }
       list.innerHTML = rows.map((c) => {
         const name = c.full_name || c.email || ("#" + c.user_id);
-        const preview = c.last_body ? String(c.last_body).slice(0, 80) : "Aucun message — espace vide";
+        const preview = c.last_body ? String(c.last_body).slice(0, 80) : (c.id ? "Nouvelle conversation" : "Aucun message — espace vide");
         const badge = Number(c.unread || 0) > 0 ? (" · " + c.unread + " non lu") : "";
-        const active = Number(state.supportUserId) === Number(c.user_id) ? " active" : "";
-        return '<button type="button" class="support-inbox-item' + active + '" data-user-id="' + Number(c.user_id) + '">'
+        const active = (c.id && Number(state.supportConversationId) === Number(c.id))
+          || (!c.id && Number(state.supportUserId) === Number(c.user_id) && !state.supportConversationId)
+          ? " active" : "";
+        return '<button type="button" class="support-inbox-item' + active + '" data-user-id="' + Number(c.user_id) + '" data-conversation-id="' + (c.id == null ? "" : Number(c.id)) + '">'
           + '<strong>' + escapeHtml(name) + '</strong>'
           + '<div class="meta">' + escapeHtml(c.email || "") + badge + '</div>'
           + '<div class="meta">' + escapeHtml(preview) + '</div>'
           + '</button>';
       }).join("");
       list.querySelectorAll(".support-inbox-item").forEach((btn) => {
-        btn.addEventListener("click", () => openSupportThread(Number(btn.dataset.userId)));
+        btn.addEventListener("click", () => openSupportThread(
+          Number(btn.dataset.userId),
+          btn.dataset.conversationId ? Number(btn.dataset.conversationId) : null
+        ));
       });
     }
 
-    async function openSupportThread(userId) {
+    async function openSupportThread(userId, conversationId) {
       state.supportUserId = userId;
+      state.supportConversationId = conversationId || null;
       setTab("support");
       const pane = $("support-thread-pane");
       if (!state.token) {
@@ -556,18 +561,24 @@
         renderSupportInbox();
         return;
       }
-      const data = await api("/api/admin/support/conversations/" + encodeURIComponent(userId));
+      const data = conversationId
+        ? await api("/api/admin/support/threads/" + encodeURIComponent(conversationId))
+        : await api("/api/admin/support/conversations/" + encodeURIComponent(userId));
       const user = data.user || {};
       const messages = data.messages || [];
+      if (data.conversation_id) state.supportConversationId = Number(data.conversation_id);
+      const emptyText = conversationId
+        ? "Conversation vierge. Écrivez le premier message — seul ce candidat le verra."
+        : "Aucun message dans ce fil.";
       const thread = messages.length
         ? messages.map((m) => {
             const role = m.sender_role === "admin" ? "admin" : "user";
             const who = role === "admin" ? "Administrateur" : (user.full_name || user.email || "Candidat");
             return '<div class="support-bubble ' + role + '"><div class="who">' + escapeHtml(who) + '</div>'
-              + '<div>' + escapeHtml(m.body || "").replaceAll("\n", "<br>") + '</div>'
+              + '<div>' + escapeHtml(m.body || "").replaceAll("\\n", "<br>") + '</div>'
               + '<div class="meta">' + escapeHtml(formatDate(m.created_at)) + '</div></div>';
           }).join("")
-        : '<p style="color:var(--muted)">Aucun message dans ce fil.</p>';
+        : '<p style="color:var(--muted)">' + emptyText + '</p>';
       pane.innerHTML =
         '<div><strong>Espace de ' + escapeHtml(user.full_name || user.email || ("#" + userId)) + '</strong>'
         + '<div style="color:var(--muted);font-size:.85rem">' + escapeHtml(user.email || "") + '</div>'
@@ -576,7 +587,7 @@
         + '<form class="support-compose" id="support-reply-form">'
         + '<textarea id="support-reply-body" required maxlength="4000" placeholder="Répondre uniquement à ce candidat…"></textarea>'
         + '<button class="primary" type="submit">Envoyer la réponse</button></form>';
-      $("support-reply-form").addEventListener("submit", (event) => sendSupportReply(event, userId));
+      $("support-reply-form").addEventListener("submit", (event) => sendSupportReply(event, userId, conversationId || state.supportConversationId));
       try {
         const inbox = await api("/api/admin/support/conversations");
         if (state.data) {
@@ -589,15 +600,41 @@
       renderSupportInbox();
     }
 
-    async function sendSupportReply(event, userId) {
+    async function createNewSupportConversation() {
+      const userId = Number(state.supportUserId || 0);
+      if (!userId) {
+        const pane = $("support-thread-pane");
+        pane.innerHTML = '<p style="color:var(--muted)">Sélectionnez d’abord un candidat, puis cliquez sur + Nouveau.</p>';
+        return;
+      }
+      const created = await api("/api/admin/support/users/" + encodeURIComponent(userId) + "/conversations", {
+        method: "POST",
+        body: JSON.stringify({}),
+      });
+      const conversation = created.conversation || {};
+      if (!conversation.id) {
+        throw new Error("Impossible de créer la conversation.");
+      }
+      await openSupportThread(userId, Number(conversation.id));
+    }
+
+    async function sendSupportReply(event, userId, conversationId) {
       event.preventDefault();
       const body = ($("support-reply-body").value || "").trim();
       if (!body) return;
+      if (conversationId) {
+        await api("/api/admin/support/threads/" + encodeURIComponent(conversationId), {
+          method: "POST",
+          body: JSON.stringify({ body }),
+        });
+        await openSupportThread(userId, conversationId);
+        return;
+      }
       await api("/api/admin/support/conversations/" + encodeURIComponent(userId), {
         method: "POST",
         body: JSON.stringify({ body }),
       });
-      await openSupportThread(userId);
+      await openSupportThread(userId, null);
     }
 
     function openDelete(user) {
@@ -666,6 +703,11 @@
     $("user-search").addEventListener("input", renderUsers);
     if ($("support-user-search")) {
       $("support-user-search").addEventListener("input", renderSupportInbox);
+    }
+    if ($("support-new-btn")) {
+      $("support-new-btn").addEventListener("click", () => {
+        createNewSupportConversation().catch((err) => alert(err.message || String(err)));
+      });
     }
     $("refresh-btn").addEventListener("click", async () => {
       if (window.__DOWSONBOST_ADMIN__ && window.__DOWSONBOST_ADMIN__.embedded) {

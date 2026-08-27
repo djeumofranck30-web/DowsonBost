@@ -5,11 +5,15 @@ from __future__ import annotations
 from auth import authenticate_user, register_user
 from services.support import (
     admin_support_conversations,
+    admin_support_thread,
     admin_support_unread,
     mark_admin_support_read,
     mark_user_support_read,
     send_admin_support_reply,
     send_user_support_message,
+    start_admin_support_conversation,
+    start_user_support_conversation,
+    user_support_conversations,
     user_support_thread,
     user_support_unread,
 )
@@ -113,4 +117,69 @@ def test_every_registered_user_has_a_private_admin_space(sqlite_db):
     ]
     assert [item["body"] for item in user_support_thread(int(paul["id"]))] == [
         "Bonjour Paul, espace privé."
+    ]
+
+
+def test_user_new_conversation_is_blank_and_isolated(sqlite_db):
+    jane = _register("jane@example.com", "Jane Doe")
+    jane_id = int(jane["id"])
+    ok, _, first = send_user_support_message(jane_id, "Premier fil")
+    assert ok and first is not None
+    first_id = int(first["conversation_id"])
+
+    blank = start_user_support_conversation(jane_id)
+    assert blank is not None
+    new_id = int(blank["id"])
+    assert new_id != first_id
+    assert blank["has_messages"] is False
+    assert user_support_thread(jane_id, conversation_id=new_id) == []
+
+    ok, _, second = send_user_support_message(
+        jane_id, "Second fil", conversation_id=new_id
+    )
+    assert ok and second is not None
+    assert int(second["conversation_id"]) == new_id
+    assert [item["body"] for item in user_support_thread(jane_id, conversation_id=first_id)] == [
+        "Premier fil"
+    ]
+    assert [item["body"] for item in user_support_thread(jane_id, conversation_id=new_id)] == [
+        "Second fil"
+    ]
+    threads = user_support_conversations(jane_id)
+    assert {int(item["id"]) for item in threads} == {first_id, new_id}
+
+
+def test_admin_new_conversation_is_blank_and_isolated(sqlite_db):
+    jane = _register("jane@example.com", "Jane Doe")
+    ali = _register("ali@example.com", "Ali Martin")
+    jane_id = int(jane["id"])
+    ali_id = int(ali["id"])
+    send_user_support_message(jane_id, "Question existante de Jane")
+    old_id = int(user_support_conversations(jane_id)[0]["id"])
+
+    created = start_admin_support_conversation(jane_id)
+    assert created is not None
+    new_id = int(created["id"])
+    assert new_id != old_id
+    assert created["has_messages"] is False
+    assert admin_support_thread(jane_id, conversation_id=new_id) == []
+
+    ok, _, reply = send_admin_support_reply(
+        jane_id,
+        "Nouveau fil admin",
+        admin_email="boss@example.com",
+        conversation_id=new_id,
+    )
+    assert ok and reply is not None
+    assert [item["body"] for item in user_support_thread(jane_id, conversation_id=old_id)] == [
+        "Question existante de Jane"
+    ]
+    assert [item["body"] for item in user_support_thread(jane_id, conversation_id=new_id)] == [
+        "Nouveau fil admin"
+    ]
+    assert "Nouveau fil admin" not in [
+        item["body"] for item in user_support_thread(ali_id)
+    ]
+    assert "Question existante de Jane" not in [
+        item["body"] for item in user_support_thread(ali_id)
     ]

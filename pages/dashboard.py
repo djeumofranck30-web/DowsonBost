@@ -18,6 +18,7 @@ from services.support import (
     mark_admin_support_read,
     render_support_thread_html,
     send_admin_support_reply,
+    start_admin_support_conversation,
 )
 from ui.theme import THEME, _shared_components_css
 
@@ -135,15 +136,38 @@ def _user_label(user: dict) -> str:
     return f"{user.get('full_name') or 'Sans nom'} — {user.get('email')} ({tokens} tokens)"
 
 
+def _space_key(item: dict) -> str:
+    if item.get("id") is not None:
+        return f"c:{int(item['id'])}"
+    return f"u:{int(item['user_id'])}"
+
+
+def _parse_space_key(key: str) -> tuple[int | None, int | None]:
+    raw = str(key or "")
+    if raw.startswith("c:"):
+        try:
+            return int(raw[2:]), None
+        except ValueError:
+            return None, None
+    if raw.startswith("u:"):
+        try:
+            return None, int(raw[2:])
+        except ValueError:
+            return None, None
+    return None, None
+
+
 def _space_label(item: dict) -> str:
     unread = int(item.get("unread") or 0)
     name = item.get("full_name") or "Sans nom"
     email = item.get("email") or ""
-    if unread:
-        return f"{name}  · {unread} non lu(s)\n{email}"
-    if item.get("has_messages"):
-        return f"{name}\n{email}"
-    return f"{name}  · vide\n{email}"
+    preview = str(item.get("last_body") or "").strip().replace("\n", " ")
+    if not preview:
+        preview = "Nouvelle conversation" if item.get("id") is not None else "vide"
+    elif len(preview) > 60:
+        preview = preview[:57] + "…"
+    badge = f"  · {unread} non lu(s)" if unread else ""
+    return f"{name}{badge}\n{email}\n{preview}"
 
 
 def _render_admin_support(admin: dict) -> None:
@@ -152,8 +176,8 @@ def _render_admin_support(admin: dict) -> None:
         f"### Espaces chat{' · ' + str(unread) + ' message(s) non lu(s)' if unread else ''}"
     )
     st.caption(
-        "Chaque candidat a son propre espace. Ouvrez un nom pour voir uniquement "
-        "sa conversation — votre réponse n’est visible que par cette personne."
+        "Chaque conversation est privée. « Nouvelle conversation » ouvre un fil vierge "
+        "avec le candidat sélectionné — seul ce candidat le verra."
     )
     if st.session_state.pop("admin_reply_sent", False):
         st.success("Réponse envoyée — seul ce candidat la verra.")
@@ -163,18 +187,29 @@ def _render_admin_support(admin: dict) -> None:
         st.info("Aucun candidat inscrit pour le moment.")
         return
 
-    by_id = {int(item["user_id"]): item for item in spaces}
-    pending_id = st.session_state.get("admin_support_open_user")
-    if pending_id and int(pending_id) in by_id:
-        st.session_state.admin_support_conversation = int(pending_id)
-        st.session_state.pop("admin_support_open_user", None)
-    if st.session_state.get("admin_support_conversation") not in by_id:
+    by_key = {_space_key(item): item for item in spaces}
+    pending_key = st.session_state.get("admin_support_open_space")
+    if pending_key and pending_key in by_key:
+        st.session_state.admin_support_space = pending_key
+        st.session_state.pop("admin_support_open_space", None)
+    if st.session_state.get("admin_support_space") not in by_key:
         preferred = next((item for item in spaces if int(item.get("unread") or 0)), spaces[0])
-        st.session_state.admin_support_conversation = int(preferred["user_id"])
+        st.session_state.admin_support_space = _space_key(preferred)
 
     list_col, chat_col = st.columns([0.4, 0.6], gap="large")
     with list_col:
-        st.markdown("#### Candidats")
+        st.markdown("#### Conversations")
+        if st.button("+ Nouvelle conversation", use_container_width=True, key="admin_support_new"):
+            current = by_key.get(str(st.session_state.get("admin_support_space") or ""))
+            target_uid = int(current["user_id"]) if current else None
+            if not target_uid:
+                st.warning("Sélectionnez d’abord un candidat.")
+            else:
+                created = start_admin_support_conversation(target_uid)
+                if created:
+                    st.session_state.admin_support_space = f"c:{int(created['id'])}"
+                    st.session_state.admin_stay_on_support = True
+                    st.rerun()
         query = (st.text_input(
             "Rechercher un candidat",
             placeholder="Nom ou e-mail…",
@@ -186,31 +221,43 @@ def _render_admin_support(admin: dict) -> None:
             haystack = f"{item.get('full_name') or ''} {item.get('email') or ''}".lower()
             if not query or query in haystack:
                 filtered.append(item)
-        selected_now = st.session_state.get("admin_support_conversation")
-        if selected_now in by_id and all(int(item["user_id"]) != int(selected_now) for item in filtered):
-            filtered = [by_id[int(selected_now)]] + filtered
+        selected_now = st.session_state.get("admin_support_space")
+        if selected_now in by_key and all(_space_key(item) != selected_now for item in filtered):
+            filtered = [by_key[selected_now]] + filtered
         if not filtered:
             st.info("Aucun candidat ne correspond à la recherche.")
-            option_ids = [int(st.session_state.admin_support_conversation)]
+            option_keys = [str(st.session_state.admin_support_space)]
         else:
-            option_ids = [int(item["user_id"]) for item in filtered]
-        selected_id = st.radio(
+            option_keys = [_space_key(item) for item in filtered]
+        selected_key = st.radio(
             "Espace du candidat",
-            options=option_ids,
-            format_func=lambda uid: _space_label(by_id.get(int(uid)) or {}),
-            key="admin_support_conversation",
+            options=option_keys,
+            format_func=lambda key: _space_label(by_key.get(str(key)) or {}),
+            key="admin_support_space",
         )
 
-    selected_id = int(selected_id)
-    if st.session_state.get("admin_support_last_user") != selected_id:
-        st.session_state.admin_support_last_user = selected_id
+    selected_key = str(selected_key)
+    conversation_id, placeholder_uid = _parse_space_key(selected_key)
+    target = by_key.get(selected_key) or {}
+    selected_uid = int(target.get("user_id") or placeholder_uid or 0)
+    if st.session_state.get("admin_support_last_space") != selected_key:
+        st.session_state.admin_support_last_space = selected_key
         st.session_state.admin_support_reply_body = ""
 
-    target = by_id.get(selected_id) or {}
-    mark_admin_support_read(selected_id)
-    thread = admin_support_thread(selected_id)
+    if selected_uid:
+        mark_admin_support_read(selected_uid, conversation_id=conversation_id)
+    thread = (
+        admin_support_thread(selected_uid, conversation_id=conversation_id)
+        if selected_uid
+        else []
+    )
     name = target.get("full_name") or "Candidat"
     email = target.get("email") or ""
+    empty_label = (
+        "Conversation vierge. Écrivez le premier message — seul ce candidat le verra."
+        if conversation_id
+        else "Aucun message dans cet espace. Vous pouvez écrire en premier."
+    )
 
     with chat_col:
         st.markdown(
@@ -226,7 +273,7 @@ def _render_admin_support(admin: dict) -> None:
                 thread,
                 user_label=name,
                 admin_label="Vous (admin)",
-                empty_text="Aucun message dans cet espace. Vous pouvez écrire en premier.",
+                empty_text=empty_label,
             ),
             unsafe_allow_html=True,
         )
@@ -238,19 +285,26 @@ def _render_admin_support(admin: dict) -> None:
             key="admin_support_reply_body",
         )
         if st.button("Envoyer dans cet espace", type="primary", use_container_width=True, key="admin_support_send"):
-            ok, message, _saved = send_admin_support_reply(
-                selected_id,
-                body,
-                admin_id=int(admin.get("id") or 0) or None,
-                admin_email=str(admin.get("email") or ""),
-            )
-            if ok:
-                st.session_state.admin_stay_on_support = True
-                st.session_state.admin_support_open_user = selected_id
-                st.session_state.admin_clear_reply = True
-                st.session_state.admin_reply_sent = True
-                st.rerun()
-            st.error(message)
+            if not selected_uid:
+                st.error("Candidat introuvable.")
+            else:
+                ok, message, _saved = send_admin_support_reply(
+                    selected_uid,
+                    body,
+                    admin_id=int(admin.get("id") or 0) or None,
+                    admin_email=str(admin.get("email") or ""),
+                    conversation_id=conversation_id,
+                )
+                if ok:
+                    st.session_state.admin_stay_on_support = True
+                    saved_key = selected_key
+                    if _saved and _saved.get("conversation_id") is not None:
+                        saved_key = f"c:{int(_saved['conversation_id'])}"
+                    st.session_state.admin_support_open_space = saved_key
+                    st.session_state.admin_clear_reply = True
+                    st.session_state.admin_reply_sent = True
+                    st.rerun()
+                st.error(message)
 
 
 def main() -> None:

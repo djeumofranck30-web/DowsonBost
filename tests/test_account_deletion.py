@@ -129,6 +129,7 @@ def test_delete_user_account_removes_all_personal_data(sqlite_db):
     assert _count_for_user("password_reset_tokens", user_id) == 1
     assert _count_for_user("user_connected_accounts", user_id) == 1
     assert _count_for_user("support_messages", user_id) == 1
+    assert _count_for_user("support_conversations", user_id) == 1
     assert _count_for_user("user_profile_photos", user_id) == 1
     assert list_analyses(user_id)
     assert list_user_applications(user_id)
@@ -150,6 +151,7 @@ def test_delete_user_account_removes_all_personal_data(sqlite_db):
     assert _count_for_user("password_reset_tokens", user_id) == 0
     assert _count_for_user("user_connected_accounts", user_id) == 0
     assert _count_for_user("support_messages", user_id) == 0
+    assert _count_for_user("support_conversations", user_id) == 0
     assert _count_for_user("user_profile_photos", user_id) == 0
     assert list_analyses(user_id) == []
     assert list_user_applications(user_id) == []

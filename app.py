@@ -130,6 +130,8 @@ from services.support import (
     mark_user_support_read,
     render_support_thread_html,
     send_user_support_message,
+    start_user_support_conversation,
+    user_support_conversations,
     user_support_thread,
     user_support_unread,
 )
@@ -4350,16 +4352,30 @@ def render_applications_page(user: dict[str, Any]) -> None:
 
 
 def render_support_page(user: dict[str, Any]) -> None:
-    """Private 1:1 chat with the platform administrator — Messagerie layout."""
+    """Private chat with the platform administrator — one or more conversations."""
     _flush_analysis_notices()
     user_id = int(user["id"])
-    mark_user_support_read(user_id)
-    st.session_state._support_unread = 0
+    conversations = user_support_conversations(user_id)
+    selected_id = st.session_state.get("support_active_conversation_id")
+    conv_ids = [int(item["id"]) for item in conversations if item.get("id") is not None]
+    if selected_id not in conv_ids:
+        selected_id = conv_ids[0] if conv_ids else None
+        if selected_id is not None:
+            st.session_state.support_active_conversation_id = selected_id
+
+    if selected_id:
+        mark_user_support_read(user_id, conversation_id=int(selected_id))
+    else:
+        mark_user_support_read(user_id)
+    st.session_state._support_unread = user_support_unread(user_id)
     st.session_state._support_unread_uid = user_id
     st.session_state._support_unread_at = time.time()
-    messages = user_support_thread(user_id)
-    if messages:
-        st.session_state.support_compose_open = True
+
+    messages = (
+        user_support_thread(user_id, conversation_id=int(selected_id))
+        if selected_id
+        else []
+    )
 
     st.markdown(
         (
@@ -4371,34 +4387,45 @@ def render_support_page(user: dict[str, Any]) -> None:
 
     list_col, pane_col = st.columns([0.95, 2.05], gap="medium")
     with list_col:
-        head_l, head_r = st.columns([1.4, 1])
-        with head_l:
-            st.markdown(
-                f'<div class="msg-list-head"><strong>{html.escape(t("support.conversations"))}</strong></div>',
-                unsafe_allow_html=True,
+        st.markdown(
+            f'<div class="msg-list-head"><strong>{html.escape(t("support.conversations"))}</strong></div>',
+            unsafe_allow_html=True,
+        )
+        if st.button(
+            t("support.new"),
+            key="support_new",
+            use_container_width=True,
+            type="primary",
+        ):
+            created = start_user_support_conversation(user_id)
+            if created:
+                st.session_state.support_active_conversation_id = int(created["id"])
+            st.rerun()
+        if conversations:
+            by_id = {int(item["id"]): item for item in conversations}
+
+            def _conv_label(cid: int) -> str:
+                item = by_id.get(int(cid)) or {}
+                preview = str(item.get("last_body") or "").strip().replace("\n", " ")
+                if not preview:
+                    preview = t("support.new_title")
+                elif len(preview) > 72:
+                    preview = preview[:69] + "…"
+                unread = int(item.get("unread") or 0)
+                title = t("support.admin")
+                if unread:
+                    return f"{title}  ({unread})\n{preview}"
+                return f"{title}\n{preview}"
+
+            picked = st.radio(
+                t("support.conversations"),
+                conv_ids,
+                format_func=_conv_label,
+                key="support_active_conversation_id",
+                label_visibility="collapsed",
             )
-        with head_r:
-            if st.button(
-                t("support.new"),
-                key="support_new",
-                use_container_width=True,
-                type="primary",
-            ):
-                st.session_state.support_compose_open = True
-                st.rerun()
-        if messages:
-            preview = str(messages[-1].get("body") or "").strip().replace("\n", " ")
-            if len(preview) > 72:
-                preview = preview[:69] + "…"
-            st.markdown(
-                (
-                    '<div class="msg-conv-item active">'
-                    f"<strong>{html.escape(t('support.admin'))}</strong>"
-                    f"<small>{html.escape(preview or t('support.hint'))}</small>"
-                    "</div>"
-                ),
-                unsafe_allow_html=True,
-            )
+            selected_id = int(picked)
+            messages = user_support_thread(user_id, conversation_id=selected_id)
         else:
             st.markdown(
                 f'<p class="msg-empty-list">{html.escape(t("support.empty_list"))}</p>',
@@ -4406,8 +4433,7 @@ def render_support_page(user: dict[str, Any]) -> None:
             )
 
     with pane_col:
-        show_thread = bool(messages or st.session_state.get("support_compose_open"))
-        if not show_thread:
+        if not selected_id:
             st.markdown(
                 (
                     '<div class="msg-empty-pane">'
@@ -4450,7 +4476,11 @@ def render_support_page(user: dict[str, Any]) -> None:
         if refresh:
             st.rerun()
         if submitted:
-            ok, message, _saved = send_user_support_message(user_id, body)
+            ok, message, _saved = send_user_support_message(
+                user_id,
+                body,
+                conversation_id=int(selected_id),
+            )
             if ok:
                 st.success(t("support.sent"))
                 st.rerun()
