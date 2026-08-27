@@ -970,6 +970,139 @@ def render_app_styles() -> None:
             box-shadow: {t["shadow_sm"]};
             margin-bottom: 0.85rem;
         }}
+        .dash-quality {{
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+            margin: 0 0 1.1rem;
+        }}
+        .dash-quality-kpis {{
+            display: grid;
+            grid-template-columns: 1.35fr repeat(3, 1fr);
+            gap: 0.85rem;
+        }}
+        .dash-quality-hero {{
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.9rem;
+            align-items: center;
+        }}
+        .dash-quality-title {{
+            font-size: 1.05rem !important;
+            margin: 0.15rem 0 0.2rem !important;
+        }}
+        .dash-score-ring {{
+            width: 74px;
+            height: 74px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: conic-gradient(var(--ring, {t["primary"]}) calc(var(--p, 0) * 1%), #E7F1EE 0);
+            flex-shrink: 0;
+        }}
+        .dash-score-ring span {{
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #fff;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            font-size: 1.05rem;
+            letter-spacing: -0.03em;
+            color: {t["primary_deep"]};
+        }}
+        .dash-quality-split {{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.85rem;
+        }}
+        .dash-quality-panel {{
+            background: {t["surface"]};
+            border: 1px solid rgba(14, 116, 144, 0.08);
+            border-radius: {t["radius_lg"]};
+            padding: 0.95rem 1rem 1rem;
+            box-shadow: {t["shadow_sm"]};
+        }}
+        .dash-quality-panel h3 {{
+            margin: 0;
+            font-size: 0.95rem;
+            color: {t["primary_deep"]};
+        }}
+        .dash-quality-panel > p {{
+            margin: 0.2rem 0 0.75rem;
+            color: {t["muted"]};
+            font-size: 0.78rem;
+        }}
+        .dash-band-list, .dash-top-list {{
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+        }}
+        .dash-band {{
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 0.3rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: {t["primary_deep"]};
+        }}
+        .dash-band .meta {{
+            color: {t["muted"]};
+            font-variant-numeric: tabular-nums;
+        }}
+        .dash-band-track {{
+            grid-column: 1 / -1;
+            height: 8px;
+            border-radius: 999px;
+            background: #E7F1EE;
+            overflow: hidden;
+        }}
+        .dash-band-track i {{
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+        }}
+        .dash-band-track i.high {{ background: {t["success"]}; }}
+        .dash-band-track i.mid {{ background: {t["accent"]}; }}
+        .dash-band-track i.low {{ background: {t["danger"]}; }}
+        .dash-top-match {{
+            display: grid;
+            grid-template-columns: 48px 1fr;
+            gap: 0.7rem;
+            align-items: center;
+            padding: 0.55rem 0.65rem;
+            border-radius: 14px;
+            border: 1px solid rgba(14, 116, 144, 0.08);
+            background: linear-gradient(180deg, #fff, {t["surface_soft"]});
+        }}
+        .dash-top-match strong {{
+            display: block;
+            font-size: 0.88rem;
+            color: {t["primary_deep"]};
+        }}
+        .dash-top-match small {{
+            color: {t["muted"]};
+            font-size: 0.74rem;
+        }}
+        .dash-score-pill {{
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            color: #fff;
+            background: linear-gradient(135deg, {t["primary"]}, {t["primary_dark"]});
+        }}
+        .dash-score-pill.high {{ background: linear-gradient(135deg, #0F9F6E, #0B7A55); }}
+        .dash-score-pill.mid {{ background: linear-gradient(135deg, #E8B923, #C49212); color: #0B1220; }}
+        .dash-score-pill.low {{ background: linear-gradient(135deg, #FB7185, #E11D48); }}
+        .dash-empty-insight {{
+            margin: 0.4rem 0 0;
+            color: {t["muted"]};
+            font-size: 0.86rem;
+        }}
         .job-card-head {{
             display: flex;
             justify-content: space-between;
@@ -1064,7 +1197,7 @@ def render_app_styles() -> None:
             box-shadow: 0 4px 12px rgba(11, 18, 32, 0.1);
         }}
         @media (max-width: 900px) {{
-            .stat-card-grid {{
+            .stat-card-grid, .dash-quality-kpis, .dash-quality-split {{
                 grid-template-columns: 1fr 1fr;
             }}
             .job-card-head {{
@@ -1072,7 +1205,7 @@ def render_app_styles() -> None:
             }}
         }}
         @media (max-width: 560px) {{
-            .stat-card-grid {{
+            .stat-card-grid, .dash-quality-kpis, .dash-quality-split {{
                 grid-template-columns: 1fr;
             }}
             .profile-header-card {{

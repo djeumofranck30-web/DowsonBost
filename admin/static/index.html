@@ -82,6 +82,63 @@
     .kpi .label { color: var(--muted); font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
     .kpi .value { font-size: 1.7rem; font-weight: 800; margin: .25rem 0 .15rem; letter-spacing: -.03em; }
     .kpi .hint { color: var(--muted); font-size: .8rem; }
+    .insight-kpis { display: grid; grid-template-columns: 1.15fr repeat(3, 1fr); gap: 1rem; margin: 0 0 1.2rem; }
+    .kpi.hero {
+      display: grid; grid-template-columns: auto 1fr; gap: .9rem; align-items: center;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.92), #fff),
+        radial-gradient(ellipse 80% 70% at 100% 0%, rgba(232,185,35,.16), transparent 55%);
+    }
+    .score-ring {
+      width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center;
+      background: conic-gradient(var(--ring, var(--ok)) calc(var(--p, 0) * 1%), #E7F1EE 0);
+      box-shadow: inset 0 0 0 1px rgba(14,116,144,.08);
+    }
+    .score-ring span {
+      width: 54px; height: 54px; border-radius: 50%; background: #fff;
+      display: grid; place-items: center; font-weight: 800; font-size: 1.05rem; letter-spacing: -.03em;
+      color: var(--ink); grid-area: 1 / 1;
+    }
+    .bento { display: grid; grid-template-columns: 1.05fr 1.35fr; gap: 1rem; margin-bottom: 1rem; }
+    .board-head { display: flex; align-items: baseline; justify-content: space-between; gap: .8rem; margin: 0 0 .85rem; }
+    .board-head h2 { margin: 0; }
+    .board-head p { margin: 0; color: var(--muted); font-size: .8rem; }
+    .quality-layout { display: grid; grid-template-columns: 150px 1fr; gap: 1rem; align-items: center; }
+    .band-list { display: flex; flex-direction: column; gap: .55rem; }
+    .band { display: grid; grid-template-columns: 1fr auto; gap: .35rem; font-size: .8rem; }
+    .band .meta { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .band-track { grid-column: 1 / -1; height: 8px; border-radius: 999px; background: #E7F1EE; overflow: hidden; }
+    .band-track i { display: block; height: 100%; border-radius: inherit; }
+    .band-track i.high { background: var(--ok); }
+    .band-track i.mid { background: var(--warn); }
+    .band-track i.low { background: var(--danger); }
+    .title-bars { display: flex; flex-direction: column; gap: .7rem; margin-top: .4rem; }
+    .title-bar { display: grid; grid-template-columns: 1fr auto; gap: .25rem .7rem; font-size: .84rem; }
+    .title-bar .meta { color: var(--muted); font-size: .75rem; }
+    .title-track { grid-column: 1 / -1; height: 10px; border-radius: 999px; background: #E7F1EE; overflow: hidden; }
+    .title-track i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--violet), #0ea5e9); }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .run-list, .match-list { display: flex; flex-direction: column; gap: .65rem; }
+    .run, .match {
+      display: grid; gap: .15rem .8rem; padding: .75rem .85rem; border-radius: 14px;
+      border: 1px solid var(--line); background: linear-gradient(180deg, #fff, #FBF9F5);
+    }
+    .run { grid-template-columns: 52px 1fr; align-items: center; }
+    .match { grid-template-columns: 52px 1fr; align-items: center; }
+    .score-pill {
+      width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center;
+      font-weight: 800; color: #fff; letter-spacing: -.03em;
+      background: linear-gradient(135deg, var(--violet), var(--violet-dark));
+    }
+    .score-pill.high { background: linear-gradient(135deg, #0F9F6E, #0B7A55); }
+    .score-pill.mid { background: linear-gradient(135deg, #E8B923, #C49212); color: #0B1220; }
+    .score-pill.low { background: linear-gradient(135deg, #FB7185, #E11D48); }
+    .run strong, .match strong { font-size: .92rem; }
+    .run small, .match small { color: var(--muted); font-size: .75rem; }
+    .run .facts, .match .facts { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .28rem; }
+    .chip { display: inline-flex; align-items: center; border-radius: 999px; padding: .12rem .5rem; font-size: .7rem; font-weight: 700; background: #E7F1EE; color: #155E75; }
+    .empty-insight { color: var(--muted); text-align: center; padding: 1.6rem .8rem; }
+    .empty-insight strong { display: block; color: var(--ink); margin-bottom: .25rem; }
     .grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1rem; }
     .card {
       background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
@@ -89,6 +146,7 @@
     }
     .card h2 { margin: 0 0 .85rem; font-size: 1rem; }
     canvas { width: 100% !important; height: 260px !important; }
+    #chart-score-bands { height: 150px !important; }
     .table-wrap { overflow: auto; margin-top: .4rem; }
     table { width: 100%; border-collapse: collapse; min-width: 760px; }
     th, td { text-align: left; padding: .78rem .6rem; border-bottom: 1px solid #f1f5f9; font-size: .9rem; }
@@ -174,11 +232,11 @@
       to { opacity: 1; transform: none; }
     }
     @media (max-width: 980px) {
-      .kpis, .grid { grid-template-columns: 1fr 1fr; }
+      .kpis, .grid, .insight-kpis, .bento, .split, .quality-layout { grid-template-columns: 1fr 1fr; }
       header.top { flex-direction: column; align-items: stretch; }
     }
     @media (max-width: 640px) {
-      .kpis, .grid { grid-template-columns: 1fr; }
+      .kpis, .grid, .insight-kpis, .bento, .split, .quality-layout { grid-template-columns: 1fr; }
       .shell { padding: .85rem .75rem 1.5rem; }
     }
   </style>
@@ -226,11 +284,66 @@
       <div class="kpis">
         <article class="kpi"><div class="label">Utilisateurs</div><div class="value" id="kpi-users">0</div><div class="hint" id="kpi-active">actifs</div></article>
         <article class="kpi"><div class="label">Tokens consommés</div><div class="value" id="kpi-tokens">0</div><div class="hint" id="kpi-calls">appels IA</div></article>
-        <article class="kpi"><div class="label">Analyses</div><div class="value" id="kpi-analyses">0</div><div class="hint">matching CV / offres</div></article>
+        <article class="kpi"><div class="label">Analyses</div><div class="value" id="kpi-analyses">0</div><div class="hint" id="kpi-analyses-hint">matching CV / offres</div></article>
         <article class="kpi"><div class="label">Administrateurs</div><div class="value" id="kpi-admins">0</div><div class="hint">comptes protégés</div></article>
       </div>
+      <div class="insight-kpis">
+        <article class="kpi hero">
+          <div class="score-ring" id="kpi-score-ring" style="--p:0;--ring:var(--violet)"><span id="kpi-avg-score">0</span></div>
+          <div>
+            <div class="label">Qualité du matching</div>
+            <div class="value" style="font-size:1.15rem;margin:.1rem 0 .2rem">Score moyen ATS</div>
+            <div class="hint" id="kpi-high-hint">Aucun résultat pour le moment</div>
+          </div>
+        </article>
+        <article class="kpi"><div class="label">Offres scorées</div><div class="value" id="kpi-matches">0</div><div class="hint">résultats d’analyse</div></article>
+        <article class="kpi"><div class="label">Matches forts</div><div class="value" id="kpi-high">0</div><div class="hint">score ≥ 75</div></article>
+        <article class="kpi"><div class="label">Candidatures</div><div class="value" id="kpi-applied">0</div><div class="hint" id="kpi-applied-hint">lancées depuis le matching</div></article>
+      </div>
+      <div class="bento">
+        <article class="card">
+          <div class="board-head">
+            <h2>Répartition des scores</h2>
+            <p>Lecture ATS des offres analysées</p>
+          </div>
+          <div class="quality-layout">
+            <canvas id="chart-score-bands" style="height:150px !important"></canvas>
+            <div class="band-list" id="score-bands"></div>
+          </div>
+        </article>
+        <article class="card">
+          <div class="board-head">
+            <h2>Qualité dans le temps</h2>
+            <p>Score moyen des résultats, 30 jours</p>
+          </div>
+          <canvas id="chart-quality"></canvas>
+        </article>
+      </div>
+      <div class="split">
+        <article class="card">
+          <div class="board-head">
+            <h2>Analyses récentes</h2>
+            <p>Derniers matching lancés</p>
+          </div>
+          <div class="run-list" id="recent-runs"></div>
+        </article>
+        <article class="card">
+          <div class="board-head">
+            <h2>Meilleurs résultats</h2>
+            <p>Offres les plus alignées avec les CV</p>
+          </div>
+          <div class="match-list" id="top-matches"></div>
+        </article>
+      </div>
+      <article class="card" style="margin-bottom:1rem">
+        <div class="board-head">
+          <h2>Métiers ciblés</h2>
+          <p>Volume d’analyses et score moyen</p>
+        </div>
+        <div class="title-bars" id="title-bars"></div>
+      </article>
       <div class="grid">
-        <article class="card"><h2>Évolution des analyses</h2><canvas id="chart-analyses"></canvas></article>
+        <article class="card"><h2>Volume d’analyses</h2><canvas id="chart-analyses"></canvas></article>
         <article class="card"><h2>Utilisateurs inscrits</h2><canvas id="chart-signups"></canvas></article>
         <article class="card"><h2>Consommation de tokens</h2><canvas id="chart-tokens"></canvas></article>
         <article class="card"><h2>Tokens par utilisateur</h2><canvas id="chart-users"></canvas></article>
@@ -364,6 +477,34 @@
       };
     }
 
+    function doughnutConfig(labels, values, colors) {
+      return {
+        type: "doughnut",
+        data: {
+          labels,
+          datasets: [{ data: values, backgroundColor: colors, borderWidth: 0, hoverOffset: 4 }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "72%",
+          plugins: { legend: { display: false } },
+        },
+      };
+    }
+
+    function scoreTone(score) {
+      const n = Number(score || 0);
+      if (n >= 75) return "high";
+      if (n >= 50) return "mid";
+      return "low";
+    }
+
+    function scoreRingColor(score) {
+      const tone = scoreTone(score);
+      return tone === "high" ? "#0F9F6E" : tone === "mid" ? "#E8B923" : "#0E7490";
+    }
+
     function renderCharts(data) {
       const c = chartColors();
       const s = data.series || {};
@@ -392,6 +533,37 @@
           scales: { x: { beginAtZero: true }, y: { grid: { display: false } } },
         },
       });
+      const quality = s.quality || (data.analysis && data.analysis.quality) || [];
+      makeChart("chart-quality", {
+        type: "line",
+        data: {
+          labels: quality.map((x) => x.label),
+          datasets: [{
+            data: quality.map((x) => x.value),
+            borderColor: c.violet,
+            backgroundColor: "rgba(14,116,144,.12)",
+            fill: true,
+            tension: 0.35,
+            pointRadius: 2,
+            borderWidth: 3,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false } },
+            y: { min: 0, max: 100, ticks: { precision: 0 } },
+          },
+        },
+      });
+      const bands = (data.analysis && data.analysis.score_bands) || [];
+      makeChart("chart-score-bands", doughnutConfig(
+        bands.map((b) => b.label),
+        bands.map((b) => Number(b.count || 0)),
+        ["#0F9F6E", "#E8B923", "#E11D48"]
+      ));
     }
 
     function renderKpis(data) {
@@ -402,6 +574,34 @@
       $("kpi-calls").textContent = `${fmt.format(k.llm_calls || 0)} appels IA`;
       $("kpi-analyses").textContent = fmt.format(k.analyses_total || 0);
       $("kpi-admins").textContent = fmt.format(k.admins || 0);
+      const insight = (data.analysis && data.analysis.kpis) || {};
+      const avg = Number(k.avg_score || insight.avg_score || 0);
+      const matches = Number(k.matches_total || insight.matches_total || 0);
+      const high = Number(k.high_matches || insight.high_matches || 0);
+      const applied = Number(k.applied_total || insight.applied_total || 0);
+      $("kpi-avg-score").textContent = avg.toFixed(avg % 1 ? 1 : 0);
+      $("kpi-matches").textContent = fmt.format(matches);
+      $("kpi-high").textContent = fmt.format(high);
+      $("kpi-applied").textContent = fmt.format(applied);
+      const ring = $("kpi-score-ring");
+      if (ring) {
+        ring.style.setProperty("--p", String(Math.max(0, Math.min(100, avg))));
+        ring.style.setProperty("--ring", scoreRingColor(avg));
+      }
+      const analysesHint = $("kpi-analyses-hint");
+      if (analysesHint) analysesHint.textContent = matches ? (fmt.format(matches) + " offres scorées") : "matching CV / offres";
+      const highHint = $("kpi-high-hint");
+      if (highHint) {
+        highHint.textContent = matches
+          ? (fmt.format(high) + " matches forts · " + Number(insight.high_rate || 0).toFixed(0) + " %")
+          : "Les scores ATS apparaîtront après la première analyse";
+      }
+      const appliedHint = $("kpi-applied-hint");
+      if (appliedHint) {
+        appliedHint.textContent = matches
+          ? (Number(insight.applied_rate || 0).toFixed(0) + " % des offres scorées")
+          : "lancées depuis le matching";
+      }
       const viewer = data.viewer;
       if (viewer && viewer.email) $("viewer-label").textContent = viewer.full_name || viewer.email;
     }
@@ -452,6 +652,67 @@
       });
     }
 
+    function emptyInsight(title, text) {
+      return '<div class="empty-insight"><strong>' + escapeHtml(title) + '</strong>' + escapeHtml(text) + '</div>';
+    }
+
+    function renderAnalysisBoard(data) {
+      const board = (data && data.analysis) || {};
+      const bands = board.score_bands || [];
+      const bandBox = $("score-bands");
+      if (bandBox) {
+        bandBox.innerHTML = bands.map((band) => {
+          const pct = Number(band.pct || 0);
+          return '<div class="band"><span>' + escapeHtml(band.label) + '</span>'
+            + '<span class="meta">' + fmt.format(band.count || 0) + ' · ' + pct.toFixed(0) + '%</span>'
+            + '<div class="band-track"><i class="' + escapeHtml(band.key) + '" style="width:' + pct + '%"></i></div></div>';
+        }).join("");
+      }
+      const runsBox = $("recent-runs");
+      if (runsBox) {
+        const runs = board.recent_runs || [];
+        runsBox.innerHTML = runs.length ? runs.map((run) => {
+          const score = Number(run.avg_score || 0);
+          return '<article class="run">'
+            + '<div class="score-pill ' + scoreTone(score) + '">' + score.toFixed(score % 1 ? 1 : 0) + '</div>'
+            + '<div><strong>' + escapeHtml(run.full_name || run.email || "Candidat") + '</strong>'
+            + '<small>' + escapeHtml(run.target_job_title || "Analyse") + ' · ' + escapeHtml(formatDate(run.created_at)) + '</small>'
+            + '<div class="facts">'
+            + '<span class="chip">' + fmt.format(run.matches || 0) + ' offres</span>'
+            + '<span class="chip">' + fmt.format(run.high_matches || 0) + ' forts</span>'
+            + (run.job_provider ? '<span class="chip">' + escapeHtml(run.job_provider) + '</span>' : '')
+            + '</div></div></article>';
+        }).join("") : emptyInsight("Pas encore d’analyse", "Les matching lancés par les candidats apparaîtront ici.");
+      }
+      const matchBox = $("top-matches");
+      if (matchBox) {
+        const matches = board.top_matches || [];
+        matchBox.innerHTML = matches.length ? matches.map((item) => {
+          const score = Number(item.score || 0);
+          const where = [item.company, item.location].filter(Boolean).join(" · ");
+          return '<article class="match">'
+            + '<div class="score-pill ' + scoreTone(score) + '">' + fmt.format(score) + '</div>'
+            + '<div><strong>' + escapeHtml(item.job_title || "Offre") + '</strong>'
+            + '<small>' + escapeHtml(where || "Lieu non renseigné") + '</small>'
+            + '<div class="facts">'
+            + '<span class="chip">' + escapeHtml(item.full_name || item.email || "Candidat") + '</span>'
+            + (item.target_job_title ? '<span class="chip">' + escapeHtml(item.target_job_title) + '</span>' : '')
+            + '</div></div></article>';
+        }).join("") : emptyInsight("Aucun résultat", "Les meilleures correspondances CV / offre s’afficheront après la première analyse.");
+      }
+      const titleBox = $("title-bars");
+      if (titleBox) {
+        const titles = board.by_title || [];
+        const maxRuns = Math.max(1, ...titles.map((item) => Number(item.runs || 0)));
+        titleBox.innerHTML = titles.length ? titles.map((item) => {
+          const width = Math.max(8, Math.round((Number(item.runs || 0) / maxRuns) * 100));
+          return '<div class="title-bar"><strong>' + escapeHtml(item.title) + '</strong>'
+            + '<span class="meta">' + fmt.format(item.runs || 0) + ' analyses · score ' + Number(item.avg_score || 0).toFixed(0) + '</span>'
+            + '<div class="title-track"><i style="width:' + width + '%"></i></div></div>';
+        }).join("") : emptyInsight("Aucun métier encore", "Les postes ciblés par les candidats se regrouperont ici.");
+      }
+    }
+
     function escapeHtml(value) {
       return String(value || "")
         .replaceAll("&", "&amp;")
@@ -471,6 +732,7 @@
       if (supportPanel && embedded) supportPanel.classList.add("hidden");
       renderKpis(data);
       renderCharts(data);
+      renderAnalysisBoard(data);
       renderUsers();
       renderSupportBadge();
       renderSupportInbox();

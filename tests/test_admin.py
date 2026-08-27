@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from auth import authenticate_admin, authenticate_user, register_user, user_is_admin
+from persistence import save_analysis
 from services.admin import admin_delete_user, dashboard_html, list_registered_users, platform_overview
 from services.llm_usage import estimate_tokens, record_llm_usage
 
@@ -111,6 +112,62 @@ def test_overview_includes_users_and_tokens(sqlite_db, monkeypatch):
     assert spaces[0]["has_messages"] is False
     listed = list_registered_users()
     assert {row["email"] for row in listed} == {"jane@example.com"}
+    assert overview["kpis"]["matches_total"] == 0
+    assert overview["analysis"]["kpis"]["matches_total"] == 0
+    assert overview["analysis"]["recent_runs"] == []
+    assert overview["analysis"]["top_matches"] == []
+
+
+def test_overview_surfaces_analysis_results(sqlite_db, monkeypatch):
+    monkeypatch.setenv("ADMIN_EMAIL", "boss@example.com")
+    monkeypatch.setenv("ADMIN_PASSWORD", "AdminPass123!")
+    member = _register("jane@example.com")
+    save_analysis(
+        int(member["id"]),
+        {
+            "cv_text": "CV Jane",
+            "criteria": {},
+            "user_profile": {"full_name": "Jane Doe"},
+            "target_job_title": "Développeuse Python",
+            "search_plan": {},
+            "filter_stats": {},
+            "jobs_found": 2,
+            "jobs_raw": 8,
+            "job_provider": "wttj",
+            "results": [
+                {
+                    "job": {
+                        "title": "Backend engineer",
+                        "company": "Acme",
+                        "location": "Paris",
+                        "url": "https://example.com/1",
+                    },
+                    "match": {"score_correspondance": 88},
+                },
+                {
+                    "job": {
+                        "title": "Data analyst",
+                        "company": "Nova",
+                        "location": "Lyon",
+                        "url": "https://example.com/2",
+                    },
+                    "match": {"score_correspondance": 41},
+                },
+            ],
+        },
+        cv_fingerprint="dash-quality",
+    )
+    overview = platform_overview()
+    assert overview["kpis"]["analyses_total"] == 1
+    assert overview["kpis"]["matches_total"] == 2
+    assert overview["kpis"]["high_matches"] == 1
+    assert overview["kpis"]["avg_score"] == 64.5
+    bands = {item["key"]: item["count"] for item in overview["analysis"]["score_bands"]}
+    assert bands == {"high": 1, "mid": 0, "low": 1}
+    assert overview["analysis"]["recent_runs"][0]["target_job_title"] == "Développeuse Python"
+    assert overview["analysis"]["top_matches"][0]["job_title"] == "Backend engineer"
+    assert overview["analysis"]["top_matches"][0]["score"] == 88
+    assert overview["analysis"]["by_title"][0]["title"] == "Développeuse Python"
 
 
 def test_admin_cannot_delete_linked_self(sqlite_db, monkeypatch):
@@ -152,6 +209,12 @@ def test_dashboard_html_injects_payload(sqlite_db, monkeypatch):
     assert "users_total" in html
     assert '"embedded": true' in html
     assert "data-tab=\"support\"" in html
+    assert "id=\"recent-runs\"" in html
+    assert "id=\"top-matches\"" in html
+    assert "id=\"kpi-avg-score\"" in html
+    assert "chart-score-bands" in html
+    assert "chart-quality" in html
+    assert "renderAnalysisBoard" in html
 
 
 def test_estimate_tokens_minimum():

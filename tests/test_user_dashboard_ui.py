@@ -20,6 +20,9 @@ def test_dashboard_and_profile_locale_keys_exist():
             "dashboard.empty_text",
             "dashboard.empty_cta",
             "dashboard.filters_title",
+            "dashboard.quality_title",
+            "dashboard.metric_avg_score",
+            "dashboard.top_matches",
             "profile.tab_search",
             "profile.tab_accounts",
             "profile.tab_alerts",
@@ -61,6 +64,9 @@ def test_theme_contains_dashboard_and_profile_layout_classes():
         "danger-zone",
         "danger-zone-kicker",
         "danger-zone-title",
+        "dash-quality",
+        "dash-score-ring",
+        "dash-top-match",
     ):
         assert f".{class_name}" in css, class_name
 
@@ -69,6 +75,9 @@ def test_dashboard_page_uses_compact_layout():
     source = _read("app.py")
     assert "empty-panel" in source
     assert "stat-card-grid" in source
+    assert "dash-quality" in source
+    assert "dashboard_quality_summary" in source
+    assert "_render_dashboard_quality_board" in source
     assert "job-card-head" in source
     assert "job-score-badge" in source
     assert "score-chip" in source

@@ -40,6 +40,9 @@ def test_dashboard_insight_locale_keys_exist():
             "dashboard.chart_status",
             "dashboard.chart_scores",
             "dashboard.chart_count",
+            "dashboard.quality_title",
+            "dashboard.top_matches",
+            "dashboard.band_high",
         ):
             assert key in data, key
 
@@ -66,7 +69,40 @@ def test_dashboard_insight_rows_group_status_and_scores():
     assert {"band": "90–100", "count": 1} in score_rows
 
 
+def test_dashboard_quality_summary_highlights_strong_matches():
+    from app import dashboard_quality_summary
+
+    summary = dashboard_quality_summary(
+        [
+            {
+                "score": 88,
+                "application_status": "applied",
+                "job": {"title": "Backend", "company": "Acme", "location": "Paris"},
+            },
+            {
+                "score": 40,
+                "application_status": "new",
+                "job": {"title": "Junior", "company": "Beta", "location": "Lyon"},
+            },
+            {
+                "score": 91,
+                "application_status": "saved",
+                "job": {"title": "Lead", "company": "Nova", "location": "Lille"},
+            },
+        ]
+    )
+    assert summary["total"] == 3
+    assert summary["high"] == 2
+    assert summary["applied"] == 1
+    assert summary["avg_score"] == 73.0
+    assert summary["top"][0]["score"] == 91
+    bands = {item["key"]: item["count"] for item in summary["bands"]}
+    assert bands == {"high": 2, "mid": 0, "low": 1}
+
+
 def test_theme_has_interactive_dashboard_panels():
     css = (ROOT / "ui/theme.py").read_text(encoding="utf-8")
     assert ".dash-chart-panel" in css
     assert ".stat-card:hover" in css
+    assert ".dash-quality" in css
+    assert ".dash-score-ring" in css

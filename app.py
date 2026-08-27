@@ -4850,6 +4850,151 @@ def dashboard_insight_rows(
     return status_rows, score_rows
 
 
+def dashboard_quality_summary(entries: list[dict[str, Any]]) -> dict[str, Any]:
+    """ATS quality board for the candidate dashboard."""
+    total = len(entries)
+    scores = [int(entry.get("score") or 0) for entry in entries]
+    avg = round(sum(scores) / total, 1) if total else 0.0
+    high = sum(1 for score in scores if score >= 75)
+    applied = sum(
+        1
+        for entry in entries
+        if str(entry.get("application_status") or "") in ("applied", "interview", "offer")
+    )
+    bands = (
+        ("high", t("dashboard.band_high"), lambda score: score >= 75),
+        ("mid", t("dashboard.band_mid"), lambda score: 50 <= score < 75),
+        ("low", t("dashboard.band_low"), lambda score: score < 50),
+    )
+    band_rows = []
+    for key, label, matches in bands:
+        count = sum(1 for score in scores if matches(score))
+        band_rows.append(
+            {
+                "key": key,
+                "label": label,
+                "count": count,
+                "pct": round((count / total) * 100, 1) if total else 0.0,
+            }
+        )
+    top = sorted(entries, key=lambda item: int(item.get("score") or 0), reverse=True)[:4]
+    return {
+        "total": total,
+        "avg_score": avg,
+        "high": high,
+        "high_rate": round((high / total) * 100, 1) if total else 0.0,
+        "applied": applied,
+        "bands": band_rows,
+        "top": top,
+    }
+
+
+def _score_tone(score: float) -> str:
+    if score >= 75:
+        return "high"
+    if score >= 50:
+        return "mid"
+    return "low"
+
+
+def _score_ring_color(score: float) -> str:
+    tone = _score_tone(score)
+    if tone == "high":
+        return "#0F9F6E"
+    if tone == "mid":
+        return "#E8B923"
+    return "#0E7490"
+
+
+def _render_dashboard_quality_board(entries: list[dict[str, Any]]) -> None:
+    """2026-style matching quality board: average ATS, bands and top offers."""
+    summary = dashboard_quality_summary(entries)
+    avg = float(summary["avg_score"])
+    ring_label = f"{avg:g}"
+    high_hint = t("dashboard.high_hint", count=int(summary["high"]), rate=f"{summary['high_rate']:g}")
+    bands_html = "".join(
+        (
+            '<div class="dash-band">'
+            f"<span>{html.escape(str(band['label']))}</span>"
+            f'<span class="meta">{int(band["count"])} · {float(band["pct"]):g}%</span>'
+            f'<div class="dash-band-track"><i class="{html.escape(str(band["key"]))}" '
+            f'style="width:{float(band["pct"])}%"></i></div>'
+            "</div>"
+        )
+        for band in summary["bands"]
+    )
+    if summary["top"]:
+        matches_html = "".join(
+            (
+                '<article class="dash-top-match">'
+                f'<div class="dash-score-pill {_score_tone(int(item.get("score") or 0))}">'
+                f'{int(item.get("score") or 0)}</div>'
+                "<div>"
+                f'<strong>{html.escape(str((item.get("job") or {}).get("title") or "—"))}</strong>'
+                "<small>"
+                + html.escape(
+                    " · ".join(
+                        part
+                        for part in (
+                            str((item.get("job") or {}).get("company") or "").strip(),
+                            str((item.get("job") or {}).get("location") or "").strip(),
+                        )
+                        if part
+                    )
+                    or "—"
+                )
+                + "</small>"
+                "</div></article>"
+            )
+            for item in summary["top"]
+        )
+    else:
+        matches_html = f'<p class="dash-empty-insight">{html.escape(t("dashboard.top_empty"))}</p>'
+    st.markdown(
+        (
+            '<div class="dash-quality">'
+            '<div class="dash-quality-kpis">'
+            '<article class="stat-card dash-quality-hero">'
+            f'<div class="dash-score-ring" style="--p:{max(0.0, min(100.0, avg))};'
+            f'--ring:{_score_ring_color(avg)}"><span>{html.escape(ring_label)}</span></div>'
+            "<div>"
+            f'<p class="stat-card-label">{html.escape(t("dashboard.quality_title"))}</p>'
+            f'<p class="stat-card-value dash-quality-title">{html.escape(t("dashboard.metric_avg_score"))}</p>'
+            f'<p class="stat-card-hint">{html.escape(high_hint)}</p>'
+            "</div></article>"
+            '<article class="stat-card">'
+            f'<p class="stat-card-label">{html.escape(t("dashboard.metric_scored"))}</p>'
+            f'<p class="stat-card-value">{int(summary["total"])}</p>'
+            f'<p class="stat-card-hint">{html.escape(t("dashboard.metric_scored_hint"))}</p>'
+            "</article>"
+            '<article class="stat-card">'
+            f'<p class="stat-card-label">{html.escape(t("dashboard.metric_high"))}</p>'
+            f'<p class="stat-card-value">{int(summary["high"])}</p>'
+            f'<p class="stat-card-hint">{html.escape(t("dashboard.metric_high_hint"))}</p>'
+            "</article>"
+            '<article class="stat-card">'
+            f'<p class="stat-card-label">{html.escape(t("dashboard.metric_pipeline"))}</p>'
+            f'<p class="stat-card-value">{int(summary["applied"])}</p>'
+            f'<p class="stat-card-hint">{html.escape(t("dashboard.metric_pipeline_hint"))}</p>'
+            "</article>"
+            "</div>"
+            '<div class="dash-quality-split">'
+            '<section class="dash-quality-panel">'
+            f"<h3>{html.escape(t('dashboard.chart_scores'))}</h3>"
+            f'<p>{html.escape(t("dashboard.quality_subtitle"))}</p>'
+            f'<div class="dash-band-list">{bands_html}</div>'
+            "</section>"
+            '<section class="dash-quality-panel">'
+            f"<h3>{html.escape(t('dashboard.top_matches'))}</h3>"
+            f'<p>{html.escape(t("dashboard.top_matches_hint"))}</p>'
+            f'<div class="dash-top-list">{matches_html}</div>'
+            "</section>"
+            "</div></div>"
+        ),
+        unsafe_allow_html=True,
+    )
+
+
 def _render_dashboard_insight_charts(
     entries: list[dict[str, Any]],
     counts: dict[str, int],
@@ -5001,6 +5146,7 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
     )
     st.markdown(f'<div class="stat-card-grid">{stats_html}</div>', unsafe_allow_html=True)
 
+    _render_dashboard_quality_board(all_entries)
     _render_dashboard_insight_charts(all_entries, counts)
 
     st.markdown(

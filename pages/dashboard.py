@@ -399,7 +399,7 @@ def main() -> None:
             st.session_state.admin_delete_target = int(selected_id)
             st.rerun()
 
-    components.html(dashboard_html(overview, embedded=True), height=1080, scrolling=True)
+    components.html(dashboard_html(overview, embedded=True), height=1680, scrolling=True)
 
     st.markdown("---")
     from app import render_config_tests_panel

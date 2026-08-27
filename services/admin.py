@@ -17,8 +17,25 @@ from auth import (
 )
 from config import get_admin_accounts
 from database import adapt_sql, connect
+from persistence import _sql_json_text, init_persistence_tables
 from services.llm_usage import ensure_llm_usage_table
 from services.support import admin_support_conversations, admin_support_unread
+
+_APPLIED_STATUSES = ("applied", "interview", "offer")
+_STATUS_LABELS = {
+    "new": "Nouveau",
+    "saved": "Sauvegardé",
+    "applied": "Candidaté",
+    "interview": "Entretien",
+    "offer": "Offre",
+    "rejected": "Refusé",
+    "archived": "Archivé",
+}
+_SCORE_BANDS = (
+    ("high", "Fort · 75–100", 75, 100),
+    ("mid", "Correct · 50–74", 50, 74),
+    ("low", "Faible · 0–49", 0, 49),
+)
 
 ACTIVE_USER_DAYS = 30
 SERIES_DAYS = 30
@@ -169,14 +186,230 @@ def _fill_series(counts: dict[str, int], *, days: int = SERIES_DAYS) -> list[dic
     return series
 
 
+def _round_score(value: Any) -> float:
+    try:
+        return round(float(value or 0), 1)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _pct(part: int, total: int) -> float:
+    if total <= 0:
+        return 0.0
+    return round((part / total) * 100, 1)
+
+
+def analysis_insights() -> dict[str, Any]:
+    """Matching quality, recent runs and top job results for the admin board."""
+    init_persistence_tables()
+    title_sql = _sql_json_text("ar.job_json", "title")
+    company_sql = _sql_json_text("ar.job_json", "company")
+    location_sql = _sql_json_text("ar.job_json", "location")
+    applied_placeholders = ", ".join("?" for _ in _APPLIED_STATUSES)
+
+    with connect() as conn:
+        totals = conn.execute(
+            adapt_sql(
+                f"""
+                SELECT COUNT(*) AS matches,
+                       COALESCE(AVG(score), 0) AS avg_score,
+                       SUM(CASE WHEN score >= 75 THEN 1 ELSE 0 END) AS high_matches,
+                       SUM(CASE WHEN application_status IN ({applied_placeholders}) THEN 1 ELSE 0 END) AS applied
+                FROM analysis_results
+                """
+            ),
+            _APPLIED_STATUSES,
+        ).fetchone()
+        band_rows = conn.execute(
+            adapt_sql(
+                """
+                SELECT CASE
+                         WHEN score >= 75 THEN 'high'
+                         WHEN score >= 50 THEN 'mid'
+                         ELSE 'low'
+                       END AS band,
+                       COUNT(*) AS n
+                FROM analysis_results
+                GROUP BY 1
+                """
+            )
+        ).fetchall()
+        status_rows = conn.execute(
+            adapt_sql(
+                """
+                SELECT application_status AS status, COUNT(*) AS n
+                FROM analysis_results
+                GROUP BY 1
+                ORDER BY n DESC
+                """
+            )
+        ).fetchall()
+        quality_rows = conn.execute(
+            adapt_sql(
+                """
+                SELECT substr(a.created_at, 1, 10) AS day,
+                       COALESCE(AVG(ar.score), 0) AS avg_score,
+                       COUNT(ar.id) AS n
+                FROM analysis_results ar
+                JOIN analyses a ON a.id = ar.analysis_id
+                GROUP BY 1
+                """
+            )
+        ).fetchall()
+        recent_rows = conn.execute(
+            adapt_sql(
+                """
+                SELECT a.id, a.created_at, a.target_job_title, a.jobs_found, a.job_provider,
+                       u.full_name, u.email,
+                       COUNT(ar.id) AS matches,
+                       COALESCE(AVG(ar.score), 0) AS avg_score,
+                       COALESCE(MAX(ar.score), 0) AS max_score,
+                       SUM(CASE WHEN ar.score >= 75 THEN 1 ELSE 0 END) AS high_matches
+                FROM analyses a
+                JOIN users u ON u.id = a.user_id
+                LEFT JOIN analysis_results ar ON ar.analysis_id = a.id
+                GROUP BY a.id, a.created_at, a.target_job_title, a.jobs_found, a.job_provider,
+                         u.full_name, u.email
+                ORDER BY a.created_at DESC, a.id DESC
+                LIMIT 8
+                """
+            )
+        ).fetchall()
+        top_rows = conn.execute(
+            adapt_sql(
+                f"""
+                SELECT ar.id AS result_id, ar.score, ar.application_status,
+                       a.created_at, a.target_job_title,
+                       u.full_name, u.email,
+                       {title_sql} AS job_title,
+                       {company_sql} AS job_company,
+                       {location_sql} AS job_location
+                FROM analysis_results ar
+                JOIN analyses a ON a.id = ar.analysis_id
+                JOIN users u ON u.id = ar.user_id
+                ORDER BY ar.score DESC, a.created_at DESC, ar.id DESC
+                LIMIT 8
+                """
+            )
+        ).fetchall()
+        title_rows = conn.execute(
+            adapt_sql(
+                """
+                SELECT a.target_job_title AS title,
+                       COUNT(DISTINCT a.id) AS runs,
+                       COUNT(ar.id) AS matches,
+                       COALESCE(AVG(ar.score), 0) AS avg_score
+                FROM analyses a
+                LEFT JOIN analysis_results ar ON ar.analysis_id = a.id
+                WHERE TRIM(COALESCE(a.target_job_title, '')) != ''
+                GROUP BY 1
+                ORDER BY runs DESC, avg_score DESC
+                LIMIT 5
+                """
+            )
+        ).fetchall()
+
+    matches_total = _scalar(totals, "matches")
+    high_matches = _scalar(totals, "high_matches")
+    applied_total = _scalar(totals, "applied")
+    avg_score = _round_score(totals["avg_score"] if totals is not None else 0)
+    band_counts = {str(row["band"] or ""): _scalar(row, "n") for row in band_rows}
+    quality_avgs = {str(row["day"] or "")[:10]: _round_score(row["avg_score"]) for row in quality_rows}
+    quality_counts = {str(row["day"] or "")[:10]: _scalar(row, "n") for row in quality_rows}
+    quality_series = []
+    today = datetime.now(timezone.utc).date()
+    for offset in range(SERIES_DAYS - 1, -1, -1):
+        day = today - timedelta(days=offset)
+        key = day.isoformat()
+        quality_series.append(
+            {
+                "date": key,
+                "label": day.strftime("%d/%m"),
+                "value": quality_avgs.get(key, 0.0),
+                "matches": quality_counts.get(key, 0),
+            }
+        )
+
+    return {
+        "kpis": {
+            "matches_total": matches_total,
+            "avg_score": avg_score,
+            "high_matches": high_matches,
+            "high_rate": _pct(high_matches, matches_total),
+            "applied_total": applied_total,
+            "applied_rate": _pct(applied_total, matches_total),
+        },
+        "score_bands": [
+            {
+                "key": key,
+                "label": label,
+                "count": int(band_counts.get(key, 0)),
+                "pct": _pct(int(band_counts.get(key, 0)), matches_total),
+            }
+            for key, label, _lo, _hi in _SCORE_BANDS
+        ],
+        "status_mix": [
+            {
+                "status": str(row["status"] or "new"),
+                "label": _STATUS_LABELS.get(str(row["status"] or "new"), str(row["status"] or "new")),
+                "count": _scalar(row, "n"),
+            }
+            for row in status_rows
+        ],
+        "quality": quality_series,
+        "recent_runs": [
+            {
+                "id": int(row["id"]),
+                "created_at": str(row["created_at"] or ""),
+                "full_name": str(row["full_name"] or ""),
+                "email": str(row["email"] or ""),
+                "target_job_title": str(row["target_job_title"] or ""),
+                "jobs_found": _scalar(row, "jobs_found"),
+                "matches": _scalar(row, "matches"),
+                "avg_score": _round_score(row["avg_score"]),
+                "max_score": _scalar(row, "max_score"),
+                "high_matches": _scalar(row, "high_matches"),
+                "job_provider": str(row["job_provider"] or ""),
+            }
+            for row in recent_rows
+        ],
+        "top_matches": [
+            {
+                "result_id": int(row["result_id"]),
+                "score": _scalar(row, "score"),
+                "status": str(row["application_status"] or "new"),
+                "created_at": str(row["created_at"] or ""),
+                "full_name": str(row["full_name"] or ""),
+                "email": str(row["email"] or ""),
+                "target_job_title": str(row["target_job_title"] or ""),
+                "job_title": str(row["job_title"] or ""),
+                "company": str(row["job_company"] or ""),
+                "location": str(row["job_location"] or ""),
+            }
+            for row in top_rows
+        ],
+        "by_title": [
+            {
+                "title": str(row["title"] or ""),
+                "runs": _scalar(row, "runs"),
+                "matches": _scalar(row, "matches"),
+                "avg_score": _round_score(row["avg_score"]),
+            }
+            for row in title_rows
+        ],
+    }
+
+
 def platform_overview() -> dict[str, Any]:
     """KPI + chart series for the administration dashboard."""
     init_db()
+    init_persistence_tables()
     ensure_llm_usage_table()
     users = list_registered_users()
     active_users = sum(1 for user in users if user.get("is_active"))
     total_tokens = sum(int(user.get("tokens_consumed") or 0) for user in users)
     total_analyses = sum(int(user.get("analyses_count") or 0) for user in users)
+    insights = analysis_insights()
 
     signups = _fill_series(
         _day_counts(
@@ -240,12 +473,18 @@ def platform_overview() -> dict[str, Any]:
             "analyses_total": total_analyses,
             "llm_calls": _scalar(call_row, "n"),
             "admins": len(get_admin_accounts()),
+            "matches_total": insights["kpis"]["matches_total"],
+            "avg_score": insights["kpis"]["avg_score"],
+            "high_matches": insights["kpis"]["high_matches"],
+            "applied_total": insights["kpis"]["applied_total"],
         },
         "series": {
             "signups": signups,
             "analyses": analyses,
             "tokens": tokens,
+            "quality": insights["quality"],
         },
+        "analysis": insights,
         "tokens_by_user": top_tokens,
         "tokens_by_provider": [
             {"provider": str(row["provider"] or "unknown"), "tokens": _scalar(row, "n")}
