@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from constants import NAV_PAGE_KEYS
+from ui.theme import THEME
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -28,8 +29,10 @@ def test_support_is_in_candidate_navigation():
     assert ".support-bubble.user" in theme
     assert "st-key-floating_chat_fab" in theme
     assert "@keyframes db-chat-pulse" in theme
-    assert "chat-fab.png" in theme or "CHAT_FAB_PATH" in theme
-    assert (ROOT / "static" / "chat-fab.png").is_file()
+    assert "db-chat-fab" in app
+    assert "doc.body.appendChild(fab)" in app
+    assert THEME["primary"] in app
+    assert "#E11D48" not in app.split("def render_floating_chat_fab")[1].split("def render_history_page")[0]
 
 
 def test_support_locale_keys_exist():

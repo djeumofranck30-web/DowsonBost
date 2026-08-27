@@ -384,76 +384,30 @@ def _shared_components_css(t: dict[str, str]) -> str:
         @keyframes db-chat-pulse {{
             0%, 100% {{
                 transform: scale(1);
-                box-shadow: 0 10px 24px rgba(225, 29, 72, 0.38), 0 0 0 0 rgba(225, 29, 72, 0.35);
+                box-shadow: 0 0 0 3px {t["accent"]}, 0 12px 26px rgba(14, 116, 144, 0.42);
             }}
             50% {{
                 transform: scale(1.07);
-                box-shadow: 0 14px 32px rgba(225, 29, 72, 0.5), 0 0 0 10px rgba(225, 29, 72, 0);
+                box-shadow: 0 0 0 3px {t["accent"]}, 0 16px 32px rgba(14, 116, 144, 0.5);
             }}
-        }}
-        @keyframes db-chat-bob {{
-            0%, 100% {{ transform: translateY(0); }}
-            50% {{ transform: translateY(-5px); }}
         }}
         .st-key-floating_chat_fab,
         div[class*="st-key-floating_chat_fab"] {{
             position: fixed !important;
-            right: 1.25rem !important;
-            bottom: 1.25rem !important;
-            z-index: 2147483000 !important;
-            width: 72px !important;
-            pointer-events: auto !important;
-        }}
-        .st-key-floating_chat_fab button,
-        div[class*="st-key-floating_chat_fab"] button {{
-            width: 64px !important;
-            height: 64px !important;
-            min-height: 64px !important;
-            padding: 0 !important;
-            border: 0 !important;
-            border-radius: 50% !important;
-            background: {t["danger"]} url("{chat_fab_data_url()}") center / 78% no-repeat !important;
-            color: transparent !important;
-            box-shadow: 0 10px 24px rgba(225, 29, 72, 0.4) !important;
-            animation: db-chat-pulse 2.2s ease-in-out infinite, db-chat-bob 3.2s ease-in-out infinite !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 1px !important;
+            height: 1px !important;
             overflow: hidden !important;
-        }}
-        .st-key-floating_chat_fab button:hover,
-        div[class*="st-key-floating_chat_fab"] button:hover {{
-            transform: scale(1.08) !important;
-            animation: none !important;
-            filter: brightness(1.05);
-        }}
-        .st-key-floating_chat_fab p,
-        .st-key-floating_chat_fab span,
-        div[class*="st-key-floating_chat_fab"] p,
-        div[class*="st-key-floating_chat_fab"] span {{
-            display: none !important;
-        }}
-        .db-chat-fab-badge {{
-            position: fixed !important;
-            right: 1.15rem !important;
-            bottom: 4.85rem !important;
-            z-index: 2147483001 !important;
-            min-width: 1.35rem;
-            height: 1.35rem;
-            padding: 0 0.35rem;
-            border-radius: 999px;
-            background: {t["primary_deep"]};
-            color: #fff;
-            font-size: 0.72rem;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(11, 18, 32, 0.25);
-            pointer-events: none;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            z-index: 0 !important;
         }}
         .st-key-support_new button {{
-            background: {t["danger"]} !important;
+            background: {t["primary"]} !important;
             color: #fff !important;
             border: 0 !important;
-            box-shadow: 0 6px 16px rgba(225, 29, 72, 0.28) !important;
+            box-shadow: 0 6px 16px rgba(14, 116, 144, 0.28) !important;
         }}
         .st-key-support_new button:hover {{
             filter: brightness(1.06);
