@@ -29,7 +29,7 @@ THEME = {
     "shadow_sm": "0 2px 10px rgba(11, 18, 32, 0.05)",
     "shadow_md": "0 14px 36px rgba(11, 18, 32, 0.08)",
     "shadow_lg": "0 28px 56px rgba(11, 18, 32, 0.12)",
-    "font": '"Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif',
+    "font": 'system-ui, -apple-system, "Segoe UI", sans-serif',
 }
 
 NAV_ICONS: dict[str, str] = {
@@ -47,10 +47,8 @@ def nav_label_with_icon(page_key: str, label: str) -> str:
 
 
 def _font_import() -> str:
-    return (
-        "@import url('https://fonts.googleapis.com/css2?"
-        "family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');"
-    )
+    # System fonts only — skip Google Fonts so first paint is not blocked.
+    return ""
 
 
 def _shared_components_css(t: dict[str, str]) -> str:
@@ -397,7 +395,7 @@ def render_app_styles() -> None:
             box-shadow: {t["shadow_md"]};
             border: 1px solid rgba(255, 255, 255, 0.8);
             overflow: hidden;
-            animation: db-rise 0.45s ease both;
+            animation: db-rise 0.18s ease both;
         }}
         .app-page-hero::before {{
             content: "";
@@ -463,7 +461,7 @@ def render_app_styles() -> None:
             box-shadow: {t["shadow_sm"]};
             border-left: 4px solid {t["primary"]};
             transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
-            animation: db-rise 0.4s ease both;
+            animation: db-rise 0.16s ease both;
         }}
         .job-match-card:hover {{
             box-shadow: {t["shadow_md"]};
@@ -492,7 +490,7 @@ def render_app_styles() -> None:
             background: {t["surface"]};
             border: 1px solid rgba(14, 116, 144, 0.08);
             box-shadow: {t["shadow_md"]};
-            animation: db-rise 0.4s ease both;
+            animation: db-rise 0.16s ease both;
         }}
         .profile-avatar {{
             width: 68px;
@@ -626,7 +624,7 @@ def render_app_styles() -> None:
             box-shadow: {t["shadow_md"]};
             border: 1px solid rgba(14, 116, 144, 0.08);
             margin-bottom: 1rem;
-            animation: db-rise 0.45s ease both;
+            animation: db-rise 0.18s ease both;
         }}
         .empty-panel h2 {{
             margin: 0.4rem 0 0.35rem;

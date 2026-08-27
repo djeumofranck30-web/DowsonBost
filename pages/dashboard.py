@@ -25,13 +25,12 @@ def _inject_admin_chrome() -> None:
     st.markdown(
         """
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         html, body, [data-testid="stAppViewContainer"] {
             background:
                 radial-gradient(ellipse 80% 50% at 8% 0%, rgba(14,116,144,.16), transparent 55%),
                 radial-gradient(ellipse 50% 40% at 100% 0%, rgba(232,185,35,.16), transparent 50%),
                 linear-gradient(160deg, #F4F1EA 0%, #E7F1EE 55%, #DCE8F2 100%) !important;
-            font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
         }
         [data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDecoration"],
         [data-testid="stSidebarNav"], footer { display: none !important; }

@@ -62,7 +62,8 @@ def test_dashboard_page_uses_compact_layout():
     assert "job-card-head" in source
     assert "job-score-badge" in source
     assert "score-chip" in source
-    assert 'st.tabs(' in source
+    assert 'st.radio(' in source
+    assert 'profile_section' in source
     assert 't("profile.tab_search")' in source
     assert 't("profile.password_section")' in source
     assert "render_connected_accounts_section(profile)" in source

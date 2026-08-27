@@ -23,5 +23,8 @@ ANALYSIS_DEPTH_OPTIONS = ("rapide", "standard", "complet")
 ANALYSIS_DEPTH_POOL = {"rapide": 18, "standard": 30, "complet": 45}
 ANALYSIS_DEPTH_TOP = {"rapide": 15, "standard": 30, "complet": 30}
 NAV_PAGE_KEYS = ("analysis", "dashboard", "applications", "history", "profile")
+JOB_CARDS_PER_PAGE = 8
+PROFILE_SECTION_KEYS = ("search", "accounts", "alerts", "security")
+APPLICATION_CHANNEL_KEYS = ("all", "automatic", "manual")
 
 PASSWORD_RESET_TOKEN_TTL_HOURS = 24

@@ -900,6 +900,28 @@ def get_analysis(user_id: int, analysis_id: int) -> dict[str, Any] | None:
     return analysis
 
 
+def get_analysis_apply_context(user_id: int, analysis_id: int) -> dict[str, Any] | None:
+    """Load only the CV and profile snapshot needed for apply actions."""
+    init_persistence_tables()
+    with connect() as conn:
+        row = conn.execute(
+            adapt_sql(
+                """
+                SELECT cv_text, user_profile_snapshot
+                FROM analyses
+                WHERE id = ? AND user_id = ?
+                """
+            ),
+            (analysis_id, user_id),
+        ).fetchone()
+    if not row:
+        return None
+    return {
+        "cv_text": row["cv_text"] or "",
+        "user_profile": _json_loads(row["user_profile_snapshot"], {}),
+    }
+
+
 def analysis_to_session_dict(stored: dict[str, Any]) -> dict[str, Any]:
     """Convert DB analysis row to the in-app analysis dict shape."""
     return {
@@ -1147,6 +1169,27 @@ def list_user_applications(user_id: int) -> list[dict[str, Any]]:
             }
         )
     return results
+
+
+def count_user_applications(user_id: int) -> int:
+    """Count job offers the user applied to without loading JSON payloads."""
+    init_persistence_tables()
+    with connect() as conn:
+        row = conn.execute(
+            adapt_sql(
+                """
+                SELECT COUNT(*) AS total
+                FROM analysis_results ar
+                WHERE ar.user_id = ?
+                  AND (
+                    ar.application_method IS NOT NULL
+                    OR ar.application_status IN (?, ?, ?)
+                  )
+                """
+            ),
+            (user_id, *_APPLIED_HISTORY_STATUSES),
+        ).fetchone()
+    return int((row["total"] if row else 0) or 0)
 
 
 def get_application_result(user_id: int, result_id: int) -> dict[str, Any] | None:

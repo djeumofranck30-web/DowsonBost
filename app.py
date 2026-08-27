@@ -20,8 +20,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import Any, Callable
 
-import fitz  # pymupdf
-import pdfplumber
 import requests
 import streamlit as st
 from fpdf import FPDF
@@ -113,8 +111,11 @@ from constants import (
     NAV_PAGE_KEYS,
     PARALLEL_MATCH_KEYS_PER_PROVIDER,
     PARALLEL_MATCH_MAX_WORKERS,
+    PROFILE_SECTION_KEYS,
     SEARCH_LOCATION_MAX_WORKERS,
     TOP_MATCHING_JOBS,
+    JOB_CARDS_PER_PAGE,
+    APPLICATION_CHANNEL_KEYS,
 )
 from services.application import (
     build_application_profile,
@@ -274,10 +275,11 @@ from persistence import (
     AUTO_SEARCH_WEEKDAYS,
     analysis_to_session_dict,
     connect_job_account,
-    dashboard_status_counts,
+    count_user_applications,
     disconnect_job_account,
     get_active_cv_document,
     get_analysis,
+    get_analysis_apply_context,
     get_connected_job_account,
     get_notification_settings,
     is_auto_search_due,
@@ -636,6 +638,8 @@ def pdf_fingerprint(pdf_bytes: bytes) -> str:
 
 def extract_text_native(pdf_bytes: bytes) -> str:
     """Extract plain text from a PDF using pdfplumber."""
+    import pdfplumber
+
     text_parts: list[str] = []
     with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
         for page in pdf.pages:
@@ -1546,6 +1550,8 @@ def test_ai_connection() -> tuple[bool, str, str]:
 
 def extract_text_ocr(pdf_bytes: bytes) -> str:
     """OCR fallback using Gemini vision, or OpenAI vision if Gemini fails."""
+    import fitz
+
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     page_count = min(len(doc), MAX_OCR_PAGES)
     text_parts: list[str] = []
@@ -3561,6 +3567,7 @@ def render_job_card(
     cv_text: str = "",
     user_profile: dict[str, Any] | None = None,
     enable_tracking: bool = False,
+    connected_accounts: dict[str, dict[str, Any]] | None = None,
 ) -> None:
     """Render a single job match card with ATS deep analysis."""
     score = int(match.get("score_correspondance", 0))
@@ -3621,72 +3628,84 @@ def render_job_card(
         st.caption(match["synthese_ats"])
     st.caption(t("job.ats_scale"))
 
-    with st.expander(t("job.skills_expander"), expanded=rank <= 3):
-        c_left, c_right = st.columns(2)
-        with c_left:
-            st.markdown(f"**{t('job.candidate_cv')}**")
-            _render_skill_tags(t("skills.technical"), skills.get("cv_techniques", []))
-            _render_skill_tags(t("skills.soft"), skills.get("cv_transversales", []))
-            _render_skill_tags(t("skills.tools"), skills.get("cv_outils", []))
-            _render_skill_tags(t("skills.languages_prog"), skills.get("cv_langages", []))
-            _render_skill_tags(t("skills.certifications"), skills.get("cv_certifications", []))
-        with c_right:
-            st.markdown(f"**{t('job.offer_requirements')}**")
-            _render_skill_tags(t("skills.required"), skills.get("offre_obligatoires", []))
-            _render_skill_tags(t("skills.desired"), skills.get("offre_souhaitees", []))
-            _render_skill_tags(t("skills.company_tech"), skills.get("offre_technos", []))
-        st.markdown("---")
-        st.markdown(f"**{t('job.skills_result')}**")
-        m1, m2, m3 = st.columns(3)
-        with m1:
-            _render_skill_tags(t("skills.present"), skills.get("presentes", []))
-        with m2:
-            _render_skill_tags(t("skills.partial"), skills.get("partielles", []))
-        with m3:
-            _render_skill_tags(t("skills.missing"), skills.get("manquantes", []))
+    details_key = f"job_open_{result_id or rank}"
+    show_details = bool(st.session_state.get(details_key))
+    if st.button(
+        t("job.hide_details") if show_details else t("job.toggle_details"),
+        key=f"toggle_{details_key}",
+        use_container_width=True,
+    ):
+        st.session_state[details_key] = not show_details
+        st.rerun()
 
-    with st.expander(t("job.exp_expander"), expanded=False):
-        niveau_offre = exp_analysis.get("niveau_offre") or "—"
-        niveau_cv = exp_analysis.get("niveau_cv") or "—"
-        align = exp_analysis.get("alignement_niveau") or "—"
-        st.markdown(
-            f"**{t('job.level_offer')} :** {niveau_offre} · "
-            f"**{t('job.level_cv')} :** {niveau_cv} · "
-            f"**{t('job.alignment')} :** {align}"
-        )
-        for exp in exp_analysis.get("experiences_pertinentes", []):
-            if not isinstance(exp, dict):
-                continue
-            poste = exp.get("poste", "")
-            if not poste:
-                continue
-            line = f"**{poste}**"
-            if exp.get("duree"):
-                line += f" ({exp['duree']})"
-            if exp.get("secteur"):
-                line += f" — {exp['secteur']}"
-            st.markdown(line)
-            if exp.get("missions_liees"):
-                st.caption(exp["missions_liees"])
-        ecarts = exp_analysis.get("ecarts") or []
-        if ecarts:
-            st.markdown(f"**{t('job.gaps')}**")
-            for gap in ecarts:
-                st.warning(gap)
+    if show_details:
+        with st.expander(t("job.skills_expander"), expanded=False):
+            c_left, c_right = st.columns(2)
+            with c_left:
+                st.markdown(f"**{t('job.candidate_cv')}**")
+                _render_skill_tags(t("skills.technical"), skills.get("cv_techniques", []))
+                _render_skill_tags(t("skills.soft"), skills.get("cv_transversales", []))
+                _render_skill_tags(t("skills.tools"), skills.get("cv_outils", []))
+                _render_skill_tags(t("skills.languages_prog"), skills.get("cv_langages", []))
+                _render_skill_tags(t("skills.certifications"), skills.get("cv_certifications", []))
+            with c_right:
+                st.markdown(f"**{t('job.offer_requirements')}**")
+                _render_skill_tags(t("skills.required"), skills.get("offre_obligatoires", []))
+                _render_skill_tags(t("skills.desired"), skills.get("offre_souhaitees", []))
+                _render_skill_tags(t("skills.company_tech"), skills.get("offre_technos", []))
+            st.markdown("---")
+            st.markdown(f"**{t('job.skills_result')}**")
+            m1, m2, m3 = st.columns(3)
+            with m1:
+                _render_skill_tags(t("skills.present"), skills.get("presentes", []))
+            with m2:
+                _render_skill_tags(t("skills.partial"), skills.get("partielles", []))
+            with m3:
+                _render_skill_tags(t("skills.missing"), skills.get("manquantes", []))
 
-    missing = match.get("mots_cles_manquants", [])
-    if missing:
-        st.markdown(f"**{t('job.missing_keywords')}**")
-        st.write(", ".join(f"`{kw}`" for kw in missing))
+        with st.expander(t("job.exp_expander"), expanded=False):
+            niveau_offre = exp_analysis.get("niveau_offre") or "—"
+            niveau_cv = exp_analysis.get("niveau_cv") or "—"
+            align = exp_analysis.get("alignement_niveau") or "—"
+            st.markdown(
+                f"**{t('job.level_offer')} :** {niveau_offre} · "
+                f"**{t('job.level_cv')} :** {niveau_cv} · "
+                f"**{t('job.alignment')} :** {align}"
+            )
+            for exp in exp_analysis.get("experiences_pertinentes", []):
+                if not isinstance(exp, dict):
+                    continue
+                poste = exp.get("poste", "")
+                if not poste:
+                    continue
+                line = f"**{poste}**"
+                if exp.get("duree"):
+                    line += f" ({exp['duree']})"
+                if exp.get("secteur"):
+                    line += f" — {exp['secteur']}"
+                st.markdown(line)
+                if exp.get("missions_liees"):
+                    st.caption(exp["missions_liees"])
+            ecarts = exp_analysis.get("ecarts") or []
+            if ecarts:
+                st.markdown(f"**{t('job.gaps')}**")
+                for gap in ecarts:
+                    st.warning(gap)
+
+        missing = match.get("mots_cles_manquants", [])
+        if missing:
+            st.markdown(f"**{t('job.missing_keywords')}**")
+            st.write(", ".join(f"`{kw}`" for kw in missing))
 
     can_apply = bool(enable_tracking and result_id and user_id and cv_text and user_profile)
     source_key = provider_key_from_job_source(str(job.get("source") or ""))
     source_name = job_board_display_name(source_key) if source_key else ""
-    linked_account = (
-        get_connected_job_account(int(user_id), source_key)
-        if user_id and source_key
-        else None
-    )
+    linked_account = None
+    if source_key:
+        if connected_accounts is not None:
+            linked_account = connected_accounts.get(source_key)
+        elif user_id:
+            linked_account = get_connected_job_account(int(user_id), source_key)
     st.markdown(f"**{t('job.application_section')}**")
     if source_key:
         source_name = job_board_display_name(source_key)
@@ -3781,12 +3800,14 @@ def render_job_card(
                         st.info(t("job.apply_auto_opens_site"))
                     if autofill_text:
                         st.info(t("job.apply_auto_clipboard"))
+                    st.session_state[details_key] = True
+                    show_details = True
                 else:
                     st.error(auto_result["message"])
         else:
             st.button(t("job.apply_auto"), disabled=True, use_container_width=True)
 
-    if can_apply:
+    if show_details and can_apply:
         pack_col1, pack_col2 = st.columns(2)
         with pack_col1:
             if job.get("url"):
@@ -3852,7 +3873,7 @@ def render_job_card(
                 else:
                     st.error(manual_result["message"])
 
-    if can_apply:
+    if show_details and can_apply:
         gen_col1, gen_col2 = st.columns(2)
         with gen_col1:
             if st.button(t("job.cover_letter"), key=f"gen_cover_{result_id}", use_container_width=True):
@@ -3893,6 +3914,10 @@ def render_job_card(
                     )
                     st.session_state[f"adapted_{result_id}"] = adapted
                     st.success(t("job.cv_ready"))
+
+    if not show_details:
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
 
     apply_pack = st.session_state.get(f"apply_pack_{result_id}")
     letter_text = st.session_state.get(f"cover_{result_id}") or cover_letter_text
@@ -4076,6 +4101,7 @@ def _render_application_entry(
     user_id: int,
     *,
     key_prefix: str,
+    user_profile: dict[str, Any] | None = None,
 ) -> None:
     """Render one application with expandable offer and dossier details."""
     job = entry.get("job") or {}
@@ -4144,14 +4170,14 @@ def _render_application_entry(
 
             letter = (entry.get("cover_letter_text") or "").strip()
             adapted = cv_text_for_candidate(entry.get("adapted_cv_text") or "")
-            user_profile = get_user_by_id(user_id) or {}
+            profile = user_profile or get_user_by_id(user_id) or {}
             if letter or adapted:
                 _render_candidate_documents(
                     letter_text=letter,
                     adapted_text=adapted,
                     job=job,
                     match=match,
-                    user_profile=user_profile,
+                    user_profile=profile,
                     original_cv="",
                     widget_key=widget_key,
                     show_bundle=True,
@@ -4186,12 +4212,24 @@ def _render_applications_list(
     user_id: int,
     *,
     key_prefix: str,
+    user_profile: dict[str, Any] | None = None,
 ) -> None:
     if not entries:
         st.info(t("applications.empty"))
         return
-    for entry in entries:
-        _render_application_entry(entry, user_id, key_prefix=key_prefix)
+    visible = _paged_items(
+        entries,
+        key=f"{key_prefix}_page",
+        page_size=JOB_CARDS_PER_PAGE,
+        filter_signature=key_prefix,
+    )
+    for entry in visible:
+        _render_application_entry(
+            entry,
+            user_id,
+            key_prefix=key_prefix,
+            user_profile=user_profile,
+        )
 
 
 def render_applications_page(user: dict[str, Any]) -> None:
@@ -4201,27 +4239,39 @@ def render_applications_page(user: dict[str, Any]) -> None:
     applications = list_user_applications(user_id)
     auto_apps = [entry for entry in applications if entry.get("channel") == "automatic"]
     manual_apps = [entry for entry in applications if entry.get("channel") == "manual"]
-
-    tab_all, tab_auto, tab_manual = st.tabs(
-        [
-            t("applications.tab_all", count=len(applications)),
-            t("applications.tab_auto", count=len(auto_apps)),
-            t("applications.tab_manual", count=len(manual_apps)),
-        ]
+    user_profile = get_user_by_id(user_id) or user
+    channel_map = {
+        "all": applications,
+        "automatic": auto_apps,
+        "manual": manual_apps,
+    }
+    channel = st.radio(
+        t("applications.tab_all", count=len(applications)),
+        list(APPLICATION_CHANNEL_KEYS),
+        format_func=lambda key: (
+            t("applications.tab_all", count=len(applications))
+            if key == "all"
+            else t("applications.tab_auto", count=len(auto_apps))
+            if key == "automatic"
+            else t("applications.tab_manual", count=len(manual_apps))
+        ),
+        horizontal=True,
+        key="applications_channel",
+        label_visibility="collapsed",
     )
-    with tab_all:
-        _render_applications_list(applications, user_id, key_prefix="app_all")
-    with tab_auto:
-        _render_applications_list(auto_apps, user_id, key_prefix="app_auto")
-    with tab_manual:
-        _render_applications_list(manual_apps, user_id, key_prefix="app_manual")
+    _render_applications_list(
+        channel_map.get(channel, applications),
+        user_id,
+        key_prefix=f"app_{channel}",
+        user_profile=user_profile,
+    )
 
 
 def render_history_page(user: dict[str, Any]) -> None:
     """List past analyses and reload one into the session."""
     _flush_analysis_notices()
     user_id = int(user["id"])
-    application_count = len(list_user_applications(user_id))
+    application_count = count_user_applications(user_id)
     if application_count:
         info_col1, info_col2 = st.columns([3, 1])
         with info_col1:
@@ -4277,6 +4327,103 @@ def _analysis_dashboard_label(row: dict[str, Any]) -> str:
         count=row.get("jobs_found", 0),
         depth=row.get("analysis_depth", "standard"),
     )
+
+
+def _connected_accounts_map(user_id: int | None) -> dict[str, dict[str, Any]]:
+    if not user_id:
+        return {}
+    return {
+        str(row.get("provider") or ""): dict(row)
+        for row in list_connected_job_accounts(int(user_id))
+        if row.get("provider")
+    }
+
+
+def _status_counts_from_entries(entries: list[dict[str, Any]]) -> dict[str, int]:
+    counts = {status: 0 for status in APPLICATION_STATUSES}
+    for entry in entries:
+        status = str(entry.get("application_status") or "new")
+        if status in counts:
+            counts[status] += 1
+    counts["all"] = len(entries)
+    return counts
+
+
+def _filter_dashboard_entries(
+    entries: list[dict[str, Any]],
+    *,
+    status_filter: str,
+    min_score: int,
+    company_query: str,
+    sort_by: str,
+) -> list[dict[str, Any]]:
+    company_q = (company_query or "").strip().lower()
+    filtered: list[dict[str, Any]] = []
+    for entry in entries:
+        if status_filter and status_filter != "all" and entry.get("application_status") != status_filter:
+            continue
+        if int(entry.get("score") or 0) < int(min_score or 0):
+            continue
+        if company_q:
+            company = str((entry.get("job") or {}).get("company") or "").lower()
+            if company_q not in company:
+                continue
+        filtered.append(entry)
+    if sort_by == "score_asc":
+        filtered.sort(key=lambda item: int(item.get("score") or 0))
+    elif sort_by == "date_asc":
+        filtered.sort(key=lambda item: str(item.get("analysis_created_at") or ""))
+    elif sort_by == "date_desc":
+        filtered.sort(
+            key=lambda item: str(item.get("analysis_created_at") or ""),
+            reverse=True,
+        )
+    else:
+        filtered.sort(key=lambda item: int(item.get("score") or 0), reverse=True)
+    return filtered
+
+
+def _paged_items(
+    items: list[Any],
+    *,
+    key: str,
+    page_size: int,
+    filter_signature: Any = None,
+) -> list[Any]:
+    """Show a compact page of items with prev/next controls."""
+    sig_key = f"{key}_sig"
+    if filter_signature is not None and st.session_state.get(sig_key) != filter_signature:
+        st.session_state[key] = 1
+        st.session_state[sig_key] = filter_signature
+    total = len(items)
+    if total <= page_size:
+        return items
+    pages = max(1, (total + page_size - 1) // page_size)
+    page = min(max(int(st.session_state.get(key, 1) or 1), 1), pages)
+    st.session_state[key] = page
+    prev_col, mid_col, next_col = st.columns([1, 2, 1])
+    with prev_col:
+        if st.button(
+            t("common.previous"),
+            disabled=page <= 1,
+            key=f"{key}_prev",
+            use_container_width=True,
+        ):
+            st.session_state[key] = page - 1
+            st.rerun()
+    with mid_col:
+        st.caption(t("dashboard.page_status", page=page, pages=pages))
+    with next_col:
+        if st.button(
+            t("common.next"),
+            disabled=page >= pages,
+            key=f"{key}_next",
+            use_container_width=True,
+        ):
+            st.session_state[key] = page + 1
+            st.rerun()
+    start = (page - 1) * page_size
+    return items[start : start + page_size]
 
 
 _SCORE_CHART_BUCKETS = (
@@ -4457,7 +4604,8 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
     )
     st.markdown(f'<div class="dash-meta-pills">{pills_html}</div>', unsafe_allow_html=True)
 
-    counts = dashboard_status_counts(user_id, analysis_id=selected_id)
+    all_entries = list_dashboard_results(user_id, analysis_id=selected_id)
+    counts = _status_counts_from_entries(all_entries)
     stat_items = (
         (t("dashboard.metric_total"), counts.get("all", 0)),
         (t("dashboard.metric_saved"), counts.get("saved", 0)),
@@ -4475,8 +4623,7 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
     )
     st.markdown(f'<div class="stat-card-grid">{stats_html}</div>', unsafe_allow_html=True)
 
-    chart_entries = list_dashboard_results(user_id, analysis_id=selected_id)
-    _render_dashboard_insight_charts(chart_entries, counts)
+    _render_dashboard_insight_charts(all_entries, counts)
 
     st.markdown(
         f'<p class="filter-bar-title">{html.escape(t("dashboard.filters_title"))}</p>',
@@ -4504,10 +4651,9 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
     with f4:
         company_query = st.text_input(t("common.company"), key="dash_company")
 
-    entries = list_dashboard_results(
-        user_id,
-        analysis_id=selected_id,
-        status_filter=None if status_filter == "all" else status_filter,
+    entries = _filter_dashboard_entries(
+        all_entries,
+        status_filter=status_filter,
         min_score=min_score,
         company_query=company_query,
         sort_by=sort_by,
@@ -4520,13 +4666,21 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
         f'<p class="dash-results-line">{html.escape(t("dashboard.results_count", count=len(entries), id=selected_id))}</p>',
         unsafe_allow_html=True,
     )
+    visible_entries = _paged_items(
+        entries,
+        key="dash_page",
+        page_size=JOB_CARDS_PER_PAGE,
+        filter_signature=(selected_id, status_filter, sort_by, min_score, company_query),
+    )
     user_profile = get_user_by_id(user_id) or user
-    stored_analysis = get_analysis(user_id, selected_id)
-    cv_text = stored_analysis.get("cv_text", "") if stored_analysis else ""
-    profile_snapshot = (
-        stored_analysis.get("user_profile") if stored_analysis else None
-    ) or user_profile
-    for idx, entry in enumerate(entries, start=1):
+    apply_context = get_analysis_apply_context(user_id, selected_id) or {}
+    cv_text = apply_context.get("cv_text", "")
+    profile_snapshot = apply_context.get("user_profile") or user_profile
+    connected_accounts = _connected_accounts_map(user_id)
+    page_offset = 0
+    if st.session_state.get("dash_page"):
+        page_offset = (int(st.session_state.get("dash_page") or 1) - 1) * JOB_CARDS_PER_PAGE
+    for idx, entry in enumerate(visible_entries, start=page_offset + 1):
         render_job_card(
             entry["job"],
             entry["match"],
@@ -4540,6 +4694,7 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
             cv_text=cv_text,
             user_profile=profile_snapshot,
             enable_tracking=True,
+            connected_accounts=connected_accounts,
         )
 
 
@@ -4908,7 +5063,17 @@ def render_analysis_results(analysis: dict[str, Any]) -> None:
     session_user = st.session_state.get("user") or {}
     user_id = session_user.get("id")
     cv_text = analysis.get("cv_text", "")
-    for idx, entry in enumerate(displayed_results, start=1):
+    connected_accounts = _connected_accounts_map(int(user_id) if user_id else None)
+    visible_results = _paged_items(
+        displayed_results,
+        key="analysis_results_page",
+        page_size=JOB_CARDS_PER_PAGE,
+        filter_signature=(results_sort, min_result_score, analysis.get("analysis_id")),
+    )
+    page_offset = 0
+    if len(displayed_results) > JOB_CARDS_PER_PAGE:
+        page_offset = (int(st.session_state.get("analysis_results_page") or 1) - 1) * JOB_CARDS_PER_PAGE
+    for idx, entry in enumerate(visible_results, start=page_offset + 1):
         render_job_card(
             entry["job"],
             entry["match"],
@@ -4922,6 +5087,7 @@ def render_analysis_results(analysis: dict[str, Any]) -> None:
             cv_text=cv_text,
             user_profile=user_profile,
             enable_tracking=bool(entry.get("result_id") and user_id),
+            connected_accounts=connected_accounts,
         )
 
 
@@ -6521,16 +6687,16 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
         unsafe_allow_html=True,
     )
 
-    tab_search, tab_accounts, tab_alerts, tab_security = st.tabs(
-        [
-            t("profile.tab_search"),
-            t("profile.tab_accounts"),
-            t("profile.tab_alerts"),
-            t("profile.tab_security"),
-        ]
+    profile_section = st.radio(
+        t("profile.tab_search"),
+        list(PROFILE_SECTION_KEYS),
+        format_func=lambda key: t(f"profile.tab_{key}"),
+        horizontal=True,
+        key="profile_section",
+        label_visibility="collapsed",
     )
 
-    with tab_search:
+    if profile_section == "search":
         st.markdown(
             f'<p class="section-title">{html.escape(t("profile.search_section"))}</p>',
             unsafe_allow_html=True,
@@ -6742,13 +6908,13 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                         st.rerun()
                     st.error(message)
 
-    with tab_accounts:
+    elif profile_section == "accounts":
         render_connected_accounts_section(profile)
 
-    with tab_alerts:
+    elif profile_section == "alerts":
         render_notification_settings(user, job_provider)
 
-    with tab_security:
+    elif profile_section == "security":
         st.markdown(
             f'<p class="section-title">{html.escape(t("profile.password_section"))}</p>',
             unsafe_allow_html=True,

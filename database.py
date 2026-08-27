@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import os
 import sqlite3
-from contextlib import contextmanager
+import threading
+from contextlib import contextmanager, suppress
 from pathlib import Path
 from typing import Any, Iterator
 from urllib.parse import parse_qs, quote, unquote, urlencode, urlparse, urlunparse
@@ -15,6 +16,7 @@ _backend: str = "sqlite"
 _database_url: str = ""
 _database_password: str = ""
 _configured = False
+_pg_local = threading.local()
 
 
 class DatabaseConfigError(ValueError):
@@ -123,8 +125,18 @@ def configure_database(url: str = "", password: str = "") -> str:
         _database_url = ""
         _database_password = ""
         _backend = "sqlite"
+        _close_postgres_connection()
     _configured = True
     return _backend
+
+
+def _close_postgres_connection() -> None:
+    conn = getattr(_pg_local, "conn", None)
+    if conn is None:
+        return
+    with suppress(Exception):
+        conn.close()
+    _pg_local.conn = None
 
 
 def ensure_configured() -> None:
@@ -278,12 +290,23 @@ def connect() -> Iterator[Any]:
         from psycopg.rows import dict_row
 
         try:
-            conninfo = postgres_conninfo(_database_url)
-            with psycopg.connect(conninfo, row_factory=dict_row) as conn:
+            conn = getattr(_pg_local, "conn", None)
+            if conn is None or getattr(conn, "closed", True):
+                conninfo = postgres_conninfo(_database_url)
+                conn = psycopg.connect(conninfo, row_factory=dict_row)
+                _pg_local.conn = conn
+            try:
                 yield conn
+                conn.commit()
+            except Exception:
+                with suppress(Exception):
+                    conn.rollback()
+                raise
         except DatabaseConfigError:
+            _close_postgres_connection()
             raise
         except Exception as exc:  # noqa: BLE001
+            _close_postgres_connection()
             summary = postgres_connection_summary(_database_url)
             raise RuntimeError(
                 f"Connexion PostgreSQL impossible ({summary}).\n"
@@ -294,6 +317,8 @@ def connect() -> Iterator[Any]:
         conn = sqlite3.connect(str(SQLITE_PATH), check_same_thread=False)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA synchronous=NORMAL")
         try:
             yield conn
             conn.commit()
