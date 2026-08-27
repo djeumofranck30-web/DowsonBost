@@ -33,10 +33,10 @@ THEME = {
 }
 
 NAV_ICONS: dict[str, str] = {
-    "analysis": "🎯",
-    "dashboard": "📊",
-    "applications": "📨",
-    "history": "🕘",
+    "analysis": "📄",
+    "dashboard": "▦",
+    "applications": "☑️",
+    "history": "🕓",
     "support": "💬",
     "profile": "👤",
 }
@@ -335,22 +335,47 @@ def render_app_styles() -> None:
             display: none !important;
         }}
 
-        /* —— Sidebar (glass) —— */
+        /* —— Sidebar (icon rail + avatar) —— */
         [data-testid="stSidebar"] {{
-            background: {t["surface_glass"]} !important;
-            backdrop-filter: blur(16px) saturate(1.2);
-            -webkit-backdrop-filter: blur(16px) saturate(1.2);
-            border-right: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 4px 0 32px rgba(11, 18, 32, 0.08);
+            background:
+                radial-gradient(ellipse 80% 40% at 50% 0%, rgba(232,185,35,0.16), transparent 55%),
+                linear-gradient(180deg, #0B1628 0%, #0A1220 100%) !important;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 8px 0 28px rgba(11, 18, 32, 0.22);
         }}
         [data-testid="stSidebar"] > div:first-child {{
-            padding-top: 1.25rem;
+            padding-top: 1.1rem;
         }}
         [data-testid="stSidebar"] .sidebar-brand {{
             text-align: center;
-            padding: 0.75rem 0.5rem 1.25rem;
-            margin-bottom: 0.5rem;
-            border-bottom: 1px solid rgba(14, 116, 144, 0.08);
+            padding: 0.35rem 0.35rem 1.1rem;
+            margin-bottom: 0.35rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }}
+        [data-testid="stSidebar"] .sidebar-avatar-ring {{
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 0.7rem;
+            border-radius: 50%;
+            padding: 3px;
+            background: linear-gradient(135deg, #F97316, {t["accent"]}, {t["primary"]});
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.22), 0 10px 22px rgba(249, 115, 22, 0.28);
+        }}
+        [data-testid="stSidebar"] .sidebar-avatar-img,
+        [data-testid="stSidebar"] .sidebar-avatar-fallback {{
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #122033;
+            color: #fff;
+            font-weight: 800;
+            font-size: 1.05rem;
         }}
         [data-testid="stSidebar"] .sidebar-logo {{
             width: 48px;
@@ -365,58 +390,81 @@ def render_app_styles() -> None:
             box-shadow: 0 8px 20px rgba(14, 116, 144, 0.35);
         }}
         [data-testid="stSidebar"] .sidebar-brand-name {{
-            font-size: 1.25rem;
+            font-size: 1.05rem;
             font-weight: 800;
-            color: {t["primary_deep"]};
+            color: #F8FAFC;
             margin: 0;
             letter-spacing: -0.02em;
         }}
         [data-testid="stSidebar"] .sidebar-brand-name span {{
-            background: linear-gradient(135deg, {t["primary"]}, {t["accent"]});
+            background: linear-gradient(135deg, {t["accent"]}, #F97316);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }}
         [data-testid="stSidebar"] .sidebar-user {{
-            font-size: 0.78rem;
-            color: {t["muted"]};
-            margin: 0.35rem 0 0;
+            font-size: 0.72rem;
+            color: rgba(248, 250, 252, 0.62);
+            margin: 0.3rem 0 0;
             font-weight: 500;
+            word-break: break-all;
         }}
         [data-testid="stSidebar"] .sidebar-nav-label {{
             font-size: 0.68rem;
             font-weight: 700;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            color: {t["muted"]};
+            color: rgba(248, 250, 252, 0.45);
             margin: 0.5rem 0 0.35rem 0.15rem;
         }}
+        [data-testid="stSidebar"] p,
+        [data-testid="stSidebar"] label,
+        [data-testid="stSidebar"] span,
+        [data-testid="stSidebar"] .stMarkdown {{
+            color: rgba(248, 250, 252, 0.86);
+        }}
 
-        /* Nav radio — icon pills */
+        /* Nav radio — icon rail */
         [data-testid="stSidebar"] div[data-testid="stRadio"] > div {{
-            gap: 0.4rem;
+            gap: 0.28rem;
         }}
         [data-testid="stSidebar"] div[data-testid="stRadio"] label {{
-            background: rgba(255, 255, 255, 0.65);
-            border: 1px solid rgba(14, 116, 144, 0.1);
-            border-radius: 12px !important;
-            padding: 0.65rem 0.9rem !important;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 14px !important;
+            padding: 0.55rem 0.7rem !important;
             font-weight: 600 !important;
-            font-size: 0.9rem !important;
-            color: {t["primary_deep"]} !important;
+            font-size: 0.86rem !important;
+            color: rgba(248, 250, 252, 0.82) !important;
             transition: all 0.2s cubic-bezier(.2,.8,.2,1) !important;
+            position: relative;
         }}
         [data-testid="stSidebar"] div[data-testid="stRadio"] label:hover {{
-            border-color: rgba(14, 116, 144, 0.25);
-            background: rgba(255, 255, 255, 0.9);
-            transform: translateX(3px);
+            border-color: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.06);
+            transform: none;
         }}
         [data-testid="stSidebar"] div[data-testid="stRadio"] label[data-checked="true"],
         [data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) {{
-            background: linear-gradient(135deg, {t["primary"]}, {t["primary_dark"]}) !important;
+            background: rgba(255, 255, 255, 0.10) !important;
             color: #fff !important;
             border-color: transparent !important;
-            box-shadow: 0 6px 16px rgba(14, 116, 144, 0.35);
+            box-shadow: none;
+        }}
+        [data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked)::before {{
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 8px;
+            bottom: 8px;
+            width: 3px;
+            border-radius: 999px;
+            background: #F97316;
+        }}
+        [data-testid="stSidebar"] .stButton > button {{
+            background: rgba(255, 255, 255, 0.06) !important;
+            color: #fff !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
         }}
 
         /* —— Main —— */
@@ -536,9 +584,9 @@ def render_app_styles() -> None:
             animation: db-rise 0.16s ease both;
         }}
         .profile-avatar {{
-            width: 68px;
-            height: 68px;
-            border-radius: 18px;
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
             background: linear-gradient(135deg, {t["primary"]}, {t["accent"]});
             color: #fff;
             font-size: 1.4rem;
@@ -547,7 +595,14 @@ def render_app_styles() -> None:
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            box-shadow: 0 8px 20px rgba(14, 116, 144, 0.3);
+            overflow: hidden;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.28), 0 8px 20px rgba(14, 116, 144, 0.3);
+        }}
+        .profile-avatar img {{
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }}
         .profile-header-text h2 {{
             margin: 0 0 0.2rem 0 !important;

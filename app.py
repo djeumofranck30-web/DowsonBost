@@ -133,6 +133,12 @@ from services.support import (
     user_support_thread,
     user_support_unread,
 )
+from services.profile_photo import (
+    cached_profile_photo_data_url,
+    clear_profile_photo_cache,
+    remove_profile_photo,
+    save_profile_photo,
+)
 from services.matching import (
     as_str_list as _as_str_list,
     compute_ats_score as _compute_ats_score,
@@ -3401,14 +3407,25 @@ def render_page_hero(title: str, subtitle: str, badge: str = "") -> None:
     )
 
 
-def render_sidebar_brand(user_email: str) -> None:
-    """Branded sidebar header."""
+def _user_initials(full_name: str) -> str:
+    return "".join(word[0].upper() for word in (full_name or "").split()[:2]) or "?"
+
+
+def render_sidebar_brand(user: dict[str, Any], photo_url: str | None = None) -> None:
+    """Sidebar header with circular profile photo and account name."""
+    email = user.get("email") or ""
+    name = user.get("full_name") or ""
+    initials = _user_initials(name)
+    if photo_url:
+        avatar = f'<img class="sidebar-avatar-img" src="{photo_url}" alt="" />'
+    else:
+        avatar = f'<div class="sidebar-avatar-fallback">{html.escape(initials)}</div>'
     st.markdown(
         f"""
         <div class="sidebar-brand">
-            <div class="sidebar-logo">🎯</div>
+            <div class="sidebar-avatar-ring">{avatar}</div>
             <p class="sidebar-brand-name"><span>Dowson</span>Bost</p>
-            <p class="sidebar-user">{html.escape(user_email)}</p>
+            <p class="sidebar-user">{html.escape(name or email)}</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -6707,6 +6724,41 @@ def _profile_header_chips(profile: dict[str, Any]) -> str:
     )
 
 
+def _render_profile_photo_editor(user_id: int, *, has_photo: bool) -> None:
+    """Let the candidate add, replace, or remove their profile photo."""
+    st.markdown(f'<p class="filter-bar-title">{html.escape(t("profile.photo.title"))}</p>', unsafe_allow_html=True)
+    st.caption(t("profile.photo.hint"))
+    uploaded = st.file_uploader(
+        t("profile.photo.upload"),
+        type=["jpg", "jpeg", "png", "webp"],
+        key="profile_photo_upload",
+        label_visibility="collapsed",
+    )
+    if uploaded is not None:
+        raw = uploaded.getvalue()
+        digest = hashlib.sha256(raw).hexdigest()
+        if st.session_state.get("_profile_photo_digest") != digest:
+            ok, reason = save_profile_photo(user_id, raw, uploaded.type or "")
+            st.session_state._profile_photo_digest = digest
+            clear_profile_photo_cache(st.session_state)
+            if ok:
+                st.success(t("profile.photo.saved"))
+                st.rerun()
+            if reason == "too_large":
+                st.error(t("profile.photo.too_large"))
+            elif reason == "empty":
+                st.error(t("profile.photo.empty"))
+            else:
+                st.error(t("profile.photo.invalid"))
+    if has_photo:
+        if st.button(t("profile.photo.remove"), key="profile_photo_remove"):
+            remove_profile_photo(user_id)
+            st.session_state.pop("_profile_photo_digest", None)
+            clear_profile_photo_cache(st.session_state)
+            st.success(t("profile.photo.removed"))
+            st.rerun()
+
+
 def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
     """Profile settings — identity, search prefs, security, alerts, delete account."""
     _flush_analysis_notices()
@@ -6716,7 +6768,8 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
     full_name = profile.get("full_name", "Utilisateur")
     profile_first, profile_last = split_full_name(full_name)
     profile_phone = profile.get("phone", "") or ""
-    initials = "".join(word[0].upper() for word in full_name.split()[:2]) or "?"
+    initials = _user_initials(full_name)
+    photo_url = cached_profile_photo_data_url(int(user["id"]), st.session_state)
 
     phone_line = (
         f"<p>{html.escape(profile_phone)}</p>" if profile_phone else ""
@@ -6727,10 +6780,15 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
             date=format_member_since(member_since) if member_since else "—",
         )
     )
+    avatar_html = (
+        f'<div class="profile-avatar"><img src="{photo_url}" alt="" /></div>'
+        if photo_url
+        else f'<div class="profile-avatar">{html.escape(initials)}</div>'
+    )
     st.markdown(
         (
             '<div class="profile-header-card">'
-            f'<div class="profile-avatar">{html.escape(initials)}</div>'
+            f"{avatar_html}"
             '<div class="profile-header-text">'
             f"<h2>{html.escape(full_name)}</h2>"
             f"<p>{html.escape(profile.get('email', '—'))}</p>"
@@ -6741,6 +6799,7 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
         ),
         unsafe_allow_html=True,
     )
+    _render_profile_photo_editor(int(user["id"]), has_photo=bool(photo_url))
 
     profile_section = st.radio(
         t("profile.tab_search"),
@@ -7496,7 +7555,10 @@ def render_app() -> None:
     job_provider = default_provider
 
     with st.sidebar:
-        render_sidebar_brand(user.get("email", ""))
+        photo_url = None
+        if user.get("id"):
+            photo_url = cached_profile_photo_data_url(int(user["id"]), st.session_state)
+        render_sidebar_brand(user, photo_url)
 
         st.markdown('<p class="sidebar-nav-label">Menu</p>', unsafe_allow_html=True)
         support_unread = 0

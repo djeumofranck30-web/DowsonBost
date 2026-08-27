@@ -31,6 +31,9 @@ def test_dashboard_and_profile_locale_keys_exist():
             "profile.confirm_password",
             "profile.change_password",
             "profile.password_mismatch",
+            "profile.photo.title",
+            "profile.photo.upload",
+            "profile.photo.remove",
         ):
             assert key in data, f"missing {key} in {locale}.json"
             assert str(data[key]).strip()
@@ -51,6 +54,7 @@ def test_theme_contains_dashboard_and_profile_layout_classes():
         "profile-chip",
         "filter-bar-title",
         "profile-divider",
+        "sidebar-avatar-ring",
     ):
         assert f".{class_name}" in css, class_name
 
@@ -70,6 +74,8 @@ def test_dashboard_page_uses_compact_layout():
     assert "render_notification_settings(user, job_provider)" in source
     assert "render_delete_account_section(user)" in source
     assert "dashboard_empty_cta" in source
+    assert "_render_profile_photo_editor" in source
+    assert "sidebar-avatar-ring" in source
 
 
 def test_profile_and_dashboard_do_not_double_the_page_hero():

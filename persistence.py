@@ -53,6 +53,7 @@ _USER_OWNED_TABLES = (
     "user_connected_accounts",
     "llm_usage",
     "support_messages",
+    "user_profile_photos",
 )
 
 _PERSISTENCE_SCHEMA_KEY = (
@@ -64,6 +65,7 @@ _PERSISTENCE_SCHEMA_KEY = (
     "user_connected_accounts_v2",
     "llm_usage_v1",
     "support_messages_v1",
+    "user_profile_photos_v1",
 )
 _persistence_initialized_for: tuple[str, ...] | None = None
 
@@ -429,6 +431,32 @@ def _create_support_messages_table(conn: Any) -> None:
         )
 
 
+def _create_user_profile_photos_table(conn: Any) -> None:
+    if database_backend() == "postgres":
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS user_profile_photos (
+                user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+                mime_type TEXT NOT NULL,
+                image_data BYTEA NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+            """
+        )
+        return
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS user_profile_photos (
+            user_id INTEGER PRIMARY KEY,
+            mime_type TEXT NOT NULL,
+            image_data BLOB NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+        """
+    )
+
+
 def _migrate_analysis_results_columns(conn: Any) -> None:
     cols = existing_columns(conn, "analysis_results")
     if "application_method" in cols:
@@ -456,6 +484,7 @@ def init_persistence_tables() -> None:
         _create_user_connected_accounts_table(conn)
         _migrate_user_connected_accounts_columns(conn)
         _create_support_messages_table(conn)
+        _create_user_profile_photos_table(conn)
         from services.llm_usage import ensure_llm_usage_table
 
         ensure_llm_usage_table()
@@ -1778,4 +1807,93 @@ def list_support_conversations() -> list[dict[str, Any]]:
             }
         )
     return conversations
+
+
+def _photo_bytes(value: Any) -> bytes:
+    if value is None:
+        return b""
+    if isinstance(value, memoryview):
+        return value.tobytes()
+    if isinstance(value, bytearray):
+        return bytes(value)
+    return bytes(value)
+
+
+def upsert_user_profile_photo(user_id: int, mime_type: str, image_data: bytes) -> None:
+    init_persistence_tables()
+    updated_at = utc_now_iso()
+    with connect() as conn:
+        if database_backend() == "postgres":
+            conn.execute(
+                adapt_sql(
+                    """
+                    INSERT INTO user_profile_photos (user_id, mime_type, image_data, updated_at)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT (user_id) DO UPDATE SET
+                        mime_type = EXCLUDED.mime_type,
+                        image_data = EXCLUDED.image_data,
+                        updated_at = EXCLUDED.updated_at
+                    """
+                ),
+                (int(user_id), mime_type, image_data, updated_at),
+            )
+            return
+        conn.execute(
+            adapt_sql(
+                """
+                INSERT INTO user_profile_photos (user_id, mime_type, image_data, updated_at)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(user_id) DO UPDATE SET
+                    mime_type = excluded.mime_type,
+                    image_data = excluded.image_data,
+                    updated_at = excluded.updated_at
+                """
+            ),
+            (int(user_id), mime_type, image_data, updated_at),
+        )
+
+
+def get_user_profile_photo(user_id: int) -> dict[str, Any] | None:
+    init_persistence_tables()
+    with connect() as conn:
+        row = conn.execute(
+            adapt_sql(
+                """
+                SELECT user_id, mime_type, image_data, updated_at
+                FROM user_profile_photos
+                WHERE user_id = ?
+                """
+            ),
+            (int(user_id),),
+        ).fetchone()
+    if not row:
+        return None
+    data = _photo_bytes(row["image_data"])
+    if not data:
+        return None
+    return {
+        "user_id": int(row["user_id"]),
+        "mime_type": str(row["mime_type"] or "image/jpeg"),
+        "image_data": data,
+        "updated_at": str(row["updated_at"] or ""),
+    }
+
+
+def delete_user_profile_photo(user_id: int) -> None:
+    init_persistence_tables()
+    with connect() as conn:
+        conn.execute(
+            adapt_sql("DELETE FROM user_profile_photos WHERE user_id = ?"),
+            (int(user_id),),
+        )
+
+
+def user_has_profile_photo(user_id: int) -> bool:
+    init_persistence_tables()
+    with connect() as conn:
+        row = conn.execute(
+            adapt_sql("SELECT 1 AS present FROM user_profile_photos WHERE user_id = ?"),
+            (int(user_id),),
+        ).fetchone()
+    return bool(row)
 

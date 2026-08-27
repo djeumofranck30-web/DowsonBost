@@ -23,6 +23,7 @@ from persistence import (
     save_notification_settings,
     upsert_active_cv_document,
 )
+from services.profile_photo import save_profile_photo
 
 
 def _reset_persistence() -> None:
@@ -110,6 +111,13 @@ def test_delete_user_account_removes_all_personal_data(sqlite_db):
         site_password="SitePass123!",
     )[0]
     insert_support_message(user_id, "user", "Message privé de Jane au support")
+    from io import BytesIO
+    from PIL import Image
+
+    image = Image.new("RGB", (32, 32), color=(14, 116, 144))
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    assert save_profile_photo(user_id, buffer.getvalue(), "image/png")[0]
     ok_token, _, token = create_password_reset_token("jane@example.com")
     assert ok_token and token
 
@@ -121,6 +129,7 @@ def test_delete_user_account_removes_all_personal_data(sqlite_db):
     assert _count_for_user("password_reset_tokens", user_id) == 1
     assert _count_for_user("user_connected_accounts", user_id) == 1
     assert _count_for_user("support_messages", user_id) == 1
+    assert _count_for_user("user_profile_photos", user_id) == 1
     assert list_analyses(user_id)
     assert list_user_applications(user_id)
 
@@ -141,6 +150,7 @@ def test_delete_user_account_removes_all_personal_data(sqlite_db):
     assert _count_for_user("password_reset_tokens", user_id) == 0
     assert _count_for_user("user_connected_accounts", user_id) == 0
     assert _count_for_user("support_messages", user_id) == 0
+    assert _count_for_user("user_profile_photos", user_id) == 0
     assert list_analyses(user_id) == []
     assert list_user_applications(user_id) == []
 
