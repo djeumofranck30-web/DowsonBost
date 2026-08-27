@@ -4350,54 +4350,132 @@ def render_applications_page(user: dict[str, Any]) -> None:
 
 
 def render_support_page(user: dict[str, Any]) -> None:
-    """Private 1:1 chat with the platform administrator."""
+    """Private 1:1 chat with the platform administrator — Messagerie layout."""
     _flush_analysis_notices()
     user_id = int(user["id"])
-    render_page_hero(
-        t("hero.support.title"),
-        t("hero.support.subtitle"),
-        badge=t("hero.support.badge"),
-    )
-    st.caption(t("support.hint"))
     mark_user_support_read(user_id)
     st.session_state._support_unread = 0
     st.session_state._support_unread_uid = user_id
     st.session_state._support_unread_at = time.time()
     messages = user_support_thread(user_id)
+    if messages:
+        st.session_state.support_compose_open = True
+
     st.markdown(
-        render_support_thread_html(
-            messages,
-            user_label=t("support.you"),
-            admin_label=t("support.admin"),
-            empty_text=t("support.empty"),
+        (
+            f'<p class="msg-title">{html.escape(t("hero.support.title"))}</p>'
+            f'<p class="msg-sub">{html.escape(t("hero.support.subtitle"))}</p>'
         ),
         unsafe_allow_html=True,
     )
-    with st.form("support_user_form", clear_on_submit=True):
-        body = st.text_area(
-            t("support.placeholder"),
-            height=110,
-            max_chars=4000,
-            label_visibility="collapsed",
-            placeholder=t("support.placeholder"),
-        )
-        send_col, refresh_col = st.columns([2, 1])
-        with send_col:
-            submitted = st.form_submit_button(
-                t("support.send"),
-                type="primary",
-                use_container_width=True,
+
+    list_col, pane_col = st.columns([0.95, 2.05], gap="medium")
+    with list_col:
+        head_l, head_r = st.columns([1.4, 1])
+        with head_l:
+            st.markdown(
+                f'<div class="msg-list-head"><strong>{html.escape(t("support.conversations"))}</strong></div>',
+                unsafe_allow_html=True,
             )
-        with refresh_col:
-            refresh = st.form_submit_button(t("support.refresh"), use_container_width=True)
-    if refresh:
-        st.rerun()
-    if submitted:
-        ok, message, _saved = send_user_support_message(user_id, body)
-        if ok:
-            st.success(t("support.sent"))
+        with head_r:
+            if st.button(
+                t("support.new"),
+                key="support_new",
+                use_container_width=True,
+                type="primary",
+            ):
+                st.session_state.support_compose_open = True
+                st.rerun()
+        if messages:
+            preview = str(messages[-1].get("body") or "").strip().replace("\n", " ")
+            if len(preview) > 72:
+                preview = preview[:69] + "…"
+            st.markdown(
+                (
+                    '<div class="msg-conv-item active">'
+                    f"<strong>{html.escape(t('support.admin'))}</strong>"
+                    f"<small>{html.escape(preview or t('support.hint'))}</small>"
+                    "</div>"
+                ),
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                f'<p class="msg-empty-list">{html.escape(t("support.empty_list"))}</p>',
+                unsafe_allow_html=True,
+            )
+
+    with pane_col:
+        show_thread = bool(messages or st.session_state.get("support_compose_open"))
+        if not show_thread:
+            st.markdown(
+                (
+                    '<div class="msg-empty-pane">'
+                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+                    'stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+                    '<path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>'
+                    "</svg>"
+                    f"<p>{html.escape(t('support.empty_pane'))}</p>"
+                    "</div>"
+                ),
+                unsafe_allow_html=True,
+            )
+            return
+        st.markdown(
+            render_support_thread_html(
+                messages,
+                user_label=t("support.you"),
+                admin_label=t("support.admin"),
+                empty_text=t("support.empty"),
+            ),
+            unsafe_allow_html=True,
+        )
+        with st.form("support_user_form", clear_on_submit=True):
+            body = st.text_area(
+                t("support.placeholder"),
+                height=110,
+                max_chars=4000,
+                label_visibility="collapsed",
+                placeholder=t("support.placeholder"),
+            )
+            send_col, refresh_col = st.columns([2, 1])
+            with send_col:
+                submitted = st.form_submit_button(
+                    t("support.send"),
+                    type="primary",
+                    use_container_width=True,
+                )
+            with refresh_col:
+                refresh = st.form_submit_button(t("support.refresh"), use_container_width=True)
+        if refresh:
             st.rerun()
-        st.error(t("support.empty_error") if "vide" in message.lower() or "empty" in message.lower() else message)
+        if submitted:
+            ok, message, _saved = send_user_support_message(user_id, body)
+            if ok:
+                st.success(t("support.sent"))
+                st.rerun()
+            st.error(
+                t("support.empty_error")
+                if "vide" in message.lower() or "empty" in message.lower()
+                else message
+            )
+
+
+def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None:
+    """Fixed animated chat logo — stays on screen while navigating pages."""
+    if unread:
+        st.markdown(
+            f'<div class="db-chat-fab-badge">{int(unread)}</div>',
+            unsafe_allow_html=True,
+        )
+    clicked = st.button(
+        t("support.fab_label"),
+        key="floating_chat_fab",
+        help=t("support.fab_help"),
+        type="primary",
+    )
+    if clicked and current_page != "support":
+        _request_navigation("support")
 
 
 def render_history_page(user: dict[str, Any]) -> None:
@@ -7696,6 +7774,7 @@ def render_app() -> None:
             )
             st.session_state.analysis_depth = analysis_depth
 
+    render_floating_chat_fab(unread=support_unread, current_page=page)
 
     if page == "profile":
         render_profile_page(user, job_provider)

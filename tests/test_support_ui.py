@@ -19,10 +19,17 @@ def test_support_is_in_candidate_navigation():
     app = _read("app.py")
     assert "def render_support_page" in app
     assert 'if page == "support":' in app
+    assert "def render_floating_chat_fab" in app
+    assert 'key="floating_chat_fab"' in app
+    assert "render_floating_chat_fab(" in app
     theme = _read("ui/theme.py")
     assert '"support": "💬"' in theme
     assert ".support-thread" in theme
     assert ".support-bubble.user" in theme
+    assert "st-key-floating_chat_fab" in theme
+    assert "@keyframes db-chat-pulse" in theme
+    assert "chat-fab.png" in theme or "CHAT_FAB_PATH" in theme
+    assert (ROOT / "static" / "chat-fab.png").is_file()
 
 
 def test_support_locale_keys_exist():
@@ -35,9 +42,18 @@ def test_support_locale_keys_exist():
             "support.hint",
             "support.send",
             "support.empty",
+            "support.empty_list",
+            "support.empty_pane",
+            "support.conversations",
+            "support.new",
+            "support.fab_label",
+            "support.fab_help",
         ):
             assert key in data, f"missing {key} in {locale}.json"
             assert str(data[key]).strip()
+    fr = json.loads(_read("locales/fr.json"))
+    assert fr["hero.support.title"] == "Messagerie"
+    assert "Nouveau" in fr["support.new"]
 
 
 def test_admin_dashboard_has_per_user_inbox():

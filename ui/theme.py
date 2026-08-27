@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import base64
+from pathlib import Path
+
 import streamlit as st
 
 # Career-platform tokens — LinkedIn trust + Welcome to the Jungle energy
@@ -31,6 +34,18 @@ THEME = {
     "shadow_lg": "0 28px 56px rgba(11, 18, 32, 0.12)",
     "font": 'system-ui, -apple-system, "Segoe UI", sans-serif',
 }
+
+CHAT_FAB_PATH = Path(__file__).resolve().parents[1] / "static" / "chat-fab.png"
+_chat_fab_data_url_cache = ""
+
+
+def chat_fab_data_url() -> str:
+    global _chat_fab_data_url_cache
+    if _chat_fab_data_url_cache:
+        return _chat_fab_data_url_cache
+    raw = CHAT_FAB_PATH.read_bytes()
+    _chat_fab_data_url_cache = "data:image/png;base64," + base64.b64encode(raw).decode("ascii")
+    return _chat_fab_data_url_cache
 
 NAV_ICONS: dict[str, str] = {
     "analysis": "📄",
@@ -305,6 +320,154 @@ def _shared_components_css(t: dict[str, str]) -> str:
             line-height: 1.45;
             font-size: 0.92rem;
         }}
+
+        /* —— Messagerie page —— */
+        .msg-title {{
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: {t["primary_deep"]};
+        }}
+        .msg-sub {{
+            margin: 0.35rem 0 1.15rem;
+            color: {t["muted"]};
+            font-size: 1rem;
+        }}
+        .msg-list-head {{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.6rem;
+            margin-bottom: 0.35rem;
+        }}
+        .msg-list-head strong {{
+            font-size: 1.02rem;
+            color: {t["primary_deep"]};
+        }}
+        .msg-empty-list {{
+            color: {t["muted"]};
+            font-size: 0.9rem;
+            line-height: 1.45;
+            padding: 0.4rem 0.15rem 0.8rem;
+        }}
+        .msg-conv-item {{
+            background: {t["surface"]};
+            border: 1px solid rgba(14, 116, 144, 0.12);
+            border-radius: 12px;
+            padding: 0.75rem 0.85rem;
+            cursor: default;
+        }}
+        .msg-conv-item.active {{
+            background: rgba(14, 116, 144, 0.08);
+            border-color: rgba(14, 116, 144, 0.28);
+        }}
+        .msg-conv-item strong {{ display: block; color: {t["primary_deep"]}; }}
+        .msg-conv-item small {{ color: {t["muted"]}; }}
+        .msg-empty-pane {{
+            min-height: 22rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            color: {t["muted"]};
+            text-align: center;
+        }}
+        .msg-empty-pane svg {{
+            width: 72px;
+            height: 72px;
+            opacity: 0.35;
+        }}
+
+        /* —— Floating chat logo (fixed, never covered by page content) —— */
+        @keyframes db-chat-pulse {{
+            0%, 100% {{
+                transform: scale(1);
+                box-shadow: 0 10px 24px rgba(225, 29, 72, 0.38), 0 0 0 0 rgba(225, 29, 72, 0.35);
+            }}
+            50% {{
+                transform: scale(1.07);
+                box-shadow: 0 14px 32px rgba(225, 29, 72, 0.5), 0 0 0 10px rgba(225, 29, 72, 0);
+            }}
+        }}
+        @keyframes db-chat-bob {{
+            0%, 100% {{ transform: translateY(0); }}
+            50% {{ transform: translateY(-5px); }}
+        }}
+        .st-key-floating_chat_fab,
+        div[class*="st-key-floating_chat_fab"] {{
+            position: fixed !important;
+            right: 1.25rem !important;
+            bottom: 1.25rem !important;
+            z-index: 2147483000 !important;
+            width: 72px !important;
+            pointer-events: auto !important;
+        }}
+        .st-key-floating_chat_fab button,
+        div[class*="st-key-floating_chat_fab"] button {{
+            width: 64px !important;
+            height: 64px !important;
+            min-height: 64px !important;
+            padding: 0 !important;
+            border: 0 !important;
+            border-radius: 50% !important;
+            background: {t["danger"]} url("{chat_fab_data_url()}") center / 78% no-repeat !important;
+            color: transparent !important;
+            box-shadow: 0 10px 24px rgba(225, 29, 72, 0.4) !important;
+            animation: db-chat-pulse 2.2s ease-in-out infinite, db-chat-bob 3.2s ease-in-out infinite !important;
+            overflow: hidden !important;
+        }}
+        .st-key-floating_chat_fab button:hover,
+        div[class*="st-key-floating_chat_fab"] button:hover {{
+            transform: scale(1.08) !important;
+            animation: none !important;
+            filter: brightness(1.05);
+        }}
+        .st-key-floating_chat_fab p,
+        .st-key-floating_chat_fab span,
+        div[class*="st-key-floating_chat_fab"] p,
+        div[class*="st-key-floating_chat_fab"] span {{
+            display: none !important;
+        }}
+        .db-chat-fab-badge {{
+            position: fixed !important;
+            right: 1.15rem !important;
+            bottom: 4.85rem !important;
+            z-index: 2147483001 !important;
+            min-width: 1.35rem;
+            height: 1.35rem;
+            padding: 0 0.35rem;
+            border-radius: 999px;
+            background: {t["primary_deep"]};
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(11, 18, 32, 0.25);
+            pointer-events: none;
+        }}
+        .st-key-support_new button {{
+            background: {t["danger"]} !important;
+            color: #fff !important;
+            border: 0 !important;
+            box-shadow: 0 6px 16px rgba(225, 29, 72, 0.28) !important;
+        }}
+        .st-key-support_new button:hover {{
+            filter: brightness(1.06);
+        }}
+        [data-testid="stAppViewContainer"],
+        [data-testid="stMain"],
+        .main,
+        .block-container {{
+            overflow: visible !important;
+        }}
+        .main .block-container {{
+            padding-bottom: 6.5rem;
+            padding-right: 5.5rem;
+        }}
     """
 
 
@@ -470,7 +633,8 @@ def render_app_styles() -> None:
         /* —— Main —— */
         .main .block-container {{
             padding-top: 1.5rem;
-            padding-bottom: 3rem;
+            padding-bottom: 6.5rem;
+            padding-right: 5.5rem;
             max-width: 1100px;
         }}
         .main [data-testid="stVerticalBlock"] {{
