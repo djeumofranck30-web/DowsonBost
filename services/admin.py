@@ -18,6 +18,7 @@ from auth import (
 from config import get_admin_accounts
 from database import adapt_sql, connect
 from services.llm_usage import ensure_llm_usage_table
+from services.support import admin_support_conversations, admin_support_unread
 
 ACTIVE_USER_DAYS = 30
 SERIES_DAYS = 30
@@ -251,6 +252,10 @@ def platform_overview() -> dict[str, Any]:
             for row in provider_rows
         ],
         "users": [public_user_record(user) for user in users],
+        "support": {
+            "unread": admin_support_unread(),
+            "conversations": admin_support_conversations(),
+        },
     }
 
 

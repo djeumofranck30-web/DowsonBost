@@ -11,6 +11,14 @@ from auth import authenticate_admin, init_db, user_is_admin
 from config import get_secret
 from database import DatabaseConfigError, configure_database
 from services.admin import admin_delete_user, dashboard_html, list_registered_users, platform_overview, public_user_record
+from services.support import (
+    admin_support_conversations,
+    admin_support_thread,
+    admin_support_unread,
+    mark_admin_support_read,
+    render_support_thread_html,
+    send_admin_support_reply,
+)
 from ui.theme import THEME, _shared_components_css
 
 st.set_page_config(
@@ -103,6 +111,107 @@ def _user_label(user: dict) -> str:
     return f"{user.get('full_name') or 'Sans nom'} — {user.get('email')} ({tokens} tokens)"
 
 
+def _conversation_label(item: dict) -> str:
+    unread = int(item.get("unread") or 0)
+    base = f"{item.get('full_name') or 'Sans nom'} — {item.get('email')}"
+    if unread:
+        return f"{base}  · {unread} non lu(s)"
+    return base
+
+
+def _render_admin_support(admin: dict) -> None:
+    unread = admin_support_unread()
+    st.markdown(
+        f"### Support candidats{' · ' + str(unread) + ' message(s) non lu(s)' if unread else ''}"
+    )
+    st.caption(
+        "Chaque conversation est privée : vous voyez quel candidat a écrit, "
+        "et votre réponse n’est visible que par ce candidat."
+    )
+    conversations = admin_support_conversations()
+    accounts = [public_user_record(item) for item in list_registered_users()]
+    account_by_id = {int(item["id"]): item for item in accounts}
+    conv_by_id = {int(item["user_id"]): item for item in conversations}
+
+    option_ids = [int(item["user_id"]) for item in conversations]
+    pending_id = st.session_state.get("admin_support_open_user")
+    if pending_id and int(pending_id) not in option_ids and int(pending_id) in account_by_id:
+        option_ids = [int(pending_id)] + option_ids
+
+    def _label_for(uid: int) -> str:
+        if uid in conv_by_id:
+            return _conversation_label(conv_by_id[uid])
+        person = account_by_id.get(uid) or {}
+        return f"{person.get('full_name') or 'Sans nom'} — {person.get('email')}"
+
+    selected_id = None
+    if option_ids:
+        selected_id = st.selectbox(
+            "Conversations",
+            options=option_ids,
+            format_func=_label_for,
+            key="admin_support_conversation",
+        )
+    else:
+        st.info("Aucun message pour le moment. Vous pouvez écrire à un candidat ci-dessous.")
+
+    other_ids = [
+        int(item["id"])
+        for item in accounts
+        if selected_id is None or int(item["id"]) != int(selected_id)
+    ]
+    if other_ids:
+        with st.expander("Écrire à un autre candidat", expanded=not option_ids):
+            pick_id = st.selectbox(
+                "Candidat",
+                options=other_ids,
+                format_func=_label_for,
+                key="admin_support_pick_user",
+            )
+            if st.button("Ouvrir cette conversation", use_container_width=True):
+                st.session_state.admin_support_open_user = int(pick_id)
+                st.session_state.admin_support_conversation = int(pick_id)
+                st.rerun()
+
+    if not selected_id:
+        return
+
+    target = account_by_id.get(int(selected_id))
+    mark_admin_support_read(int(selected_id))
+    thread = admin_support_thread(int(selected_id))
+    name = (target or {}).get("full_name") or "Candidat"
+    email = (target or {}).get("email") or ""
+    st.markdown(f"**{name}**  \n{email}")
+    st.markdown(
+        render_support_thread_html(
+            thread,
+            user_label=name,
+            admin_label="Vous (admin)",
+            empty_text="Aucun message dans cette conversation.",
+        ),
+        unsafe_allow_html=True,
+    )
+    with st.form("admin_support_reply", clear_on_submit=True):
+        body = st.text_area(
+            "Réponse",
+            height=110,
+            max_chars=4000,
+            placeholder="Votre réponse à ce candidat…",
+        )
+        sent = st.form_submit_button("Envoyer la réponse", type="primary", use_container_width=True)
+    if sent:
+        ok, message, _saved = send_admin_support_reply(
+            int(selected_id),
+            body,
+            admin_id=int(admin.get("id") or 0) or None,
+            admin_email=str(admin.get("email") or ""),
+        )
+        if ok:
+            st.success("Réponse envoyée — seul ce candidat la verra.")
+            st.rerun()
+        st.error(message)
+
+
 def main() -> None:
     _inject_admin_chrome()
     if not _boot_database():
@@ -126,6 +235,32 @@ def main() -> None:
     accounts = [public_user_record(item) for item in list_registered_users()]
     actor_id = int(user.get("id") or 0)
     deletable = [item for item in accounts if int(item["id"]) != actor_id]
+
+    support_unread = admin_support_unread()
+    admin_section = st.radio(
+        "Espace admin",
+        ("overview", "support"),
+        format_func=lambda key: (
+            f"Support · {support_unread} non lu(s)"
+            if key == "support" and support_unread
+            else "Support"
+            if key == "support"
+            else "Vue d’ensemble"
+        ),
+        horizontal=True,
+        key="admin_main_section",
+        label_visibility="collapsed",
+    )
+    if admin_section == "support":
+        _render_admin_support(user)
+        logout_col, back_col = st.columns([1, 2])
+        with logout_col:
+            if st.button("Déconnexion admin", use_container_width=True, key="admin_logout_support"):
+                st.session_state.pop("admin_user", None)
+                st.rerun()
+        with back_col:
+            st.page_link("app.py", label="Retour à l'application candidate", icon="🎯")
+        return
 
     pending = st.session_state.get("admin_delete_target")
     if pending:

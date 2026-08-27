@@ -126,6 +126,13 @@ from services.application import (
     prepare_manual_application,
     submit_application_automatically,
 )
+from services.support import (
+    mark_user_support_read,
+    render_support_thread_html,
+    send_user_support_message,
+    user_support_thread,
+    user_support_unread,
+)
 from services.matching import (
     as_str_list as _as_str_list,
     compute_ats_score as _compute_ats_score,
@@ -4267,6 +4274,54 @@ def render_applications_page(user: dict[str, Any]) -> None:
     )
 
 
+def render_support_page(user: dict[str, Any]) -> None:
+    """Private 1:1 chat with the platform administrator."""
+    _flush_analysis_notices()
+    user_id = int(user["id"])
+    render_page_hero(
+        t("hero.support.title"),
+        t("hero.support.subtitle"),
+        badge=t("hero.support.badge"),
+    )
+    st.caption(t("support.hint"))
+    mark_user_support_read(user_id)
+    messages = user_support_thread(user_id)
+    st.markdown(
+        render_support_thread_html(
+            messages,
+            user_label=t("support.you"),
+            admin_label=t("support.admin"),
+            empty_text=t("support.empty"),
+        ),
+        unsafe_allow_html=True,
+    )
+    with st.form("support_user_form", clear_on_submit=True):
+        body = st.text_area(
+            t("support.placeholder"),
+            height=110,
+            max_chars=4000,
+            label_visibility="collapsed",
+            placeholder=t("support.placeholder"),
+        )
+        send_col, refresh_col = st.columns([2, 1])
+        with send_col:
+            submitted = st.form_submit_button(
+                t("support.send"),
+                type="primary",
+                use_container_width=True,
+            )
+        with refresh_col:
+            refresh = st.form_submit_button(t("support.refresh"), use_container_width=True)
+    if refresh:
+        st.rerun()
+    if submitted:
+        ok, message, _saved = send_user_support_message(user_id, body)
+        if ok:
+            st.success(t("support.sent"))
+            st.rerun()
+        st.error(t("support.empty_error") if "vide" in message.lower() or "empty" in message.lower() else message)
+
+
 def render_history_page(user: dict[str, Any]) -> None:
     """List past analyses and reload one into the session."""
     _flush_analysis_notices()
@@ -7444,10 +7499,20 @@ def render_app() -> None:
         render_sidebar_brand(user.get("email", ""))
 
         st.markdown('<p class="sidebar-nav-label">Menu</p>', unsafe_allow_html=True)
+        support_unread = 0
+        if user.get("id"):
+            support_unread = user_support_unread(int(user["id"]))
+
+        def _sidebar_nav_label(key: str) -> str:
+            label = nav_label_with_icon(key, nav_label(key))
+            if key == "support" and support_unread:
+                return f"{label}  ({support_unread})"
+            return label
+
         page = st.radio(
             "Navigation",
             list(NAV_PAGE_KEYS),
-            format_func=lambda key: nav_label_with_icon(key, nav_label(key)),
+            format_func=_sidebar_nav_label,
             label_visibility="collapsed",
             key="main_navigation",
         )
@@ -7489,6 +7554,10 @@ def render_app() -> None:
 
     if page == "profile":
         render_profile_page(user, job_provider)
+        return
+
+    if page == "support":
+        render_support_page(user)
         return
 
     if page == "applications":

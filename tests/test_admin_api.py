@@ -67,6 +67,7 @@ def test_admin_overview_and_delete(sqlite_db, monkeypatch):
     body = overview.json()
     assert body["kpis"]["users_total"] == 1
     assert body["kpis"]["tokens_total"] == 80
+    assert "support" in body
     dashboard = client.get("/dashboard")
     assert dashboard.status_code == 200
     assert "DowsonBost" in dashboard.text

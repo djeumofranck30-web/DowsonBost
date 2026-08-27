@@ -52,6 +52,7 @@ _USER_OWNED_TABLES = (
     "password_reset_tokens",
     "user_connected_accounts",
     "llm_usage",
+    "support_messages",
 )
 
 _PERSISTENCE_SCHEMA_KEY = (
@@ -62,6 +63,7 @@ _PERSISTENCE_SCHEMA_KEY = (
     "cv_documents_v1",
     "user_connected_accounts_v2",
     "llm_usage_v1",
+    "support_messages_v1",
 )
 _persistence_initialized_for: tuple[str, ...] | None = None
 
@@ -369,6 +371,64 @@ def _migrate_user_connected_accounts_columns(conn: Any) -> None:
     )
 
 
+def _create_support_messages_table(conn: Any) -> None:
+    if database_backend() == "postgres":
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS support_messages (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                sender_role TEXT NOT NULL,
+                body TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                read_at TEXT,
+                admin_id INTEGER,
+                admin_email TEXT NOT NULL DEFAULT ''
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS support_messages_user_created_idx
+            ON support_messages (user_id, created_at ASC, id ASC)
+            """
+        )
+        conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS support_messages_unread_idx
+            ON support_messages (user_id, sender_role, read_at)
+            """
+        )
+        return
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS support_messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            sender_role TEXT NOT NULL,
+            body TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            read_at TEXT,
+            admin_id INTEGER,
+            admin_email TEXT NOT NULL DEFAULT '',
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE INDEX IF NOT EXISTS support_messages_user_created_idx
+        ON support_messages (user_id, created_at ASC, id ASC)
+        """
+    )
+    conn.execute(
+        """
+        CREATE INDEX IF NOT EXISTS support_messages_unread_idx
+        ON support_messages (user_id, sender_role, read_at)
+        """
+        )
+
+
 def _migrate_analysis_results_columns(conn: Any) -> None:
     cols = existing_columns(conn, "analysis_results")
     if "application_method" in cols:
@@ -395,6 +455,7 @@ def init_persistence_tables() -> None:
         _create_cv_documents_table(conn)
         _create_user_connected_accounts_table(conn)
         _migrate_user_connected_accounts_columns(conn)
+        _create_support_messages_table(conn)
         from services.llm_usage import ensure_llm_usage_table
 
         ensure_llm_usage_table()
@@ -1539,3 +1600,176 @@ def dashboard_status_counts(user_id: int, *, analysis_id: int | None = None) -> 
         counts[row["application_status"]] = int(row["total"])
     counts["all"] = sum(counts.values())
     return counts
+
+
+def _support_message_from_row(row: Any) -> dict[str, Any]:
+    return {
+        "id": int(row["id"]),
+        "user_id": int(row["user_id"]),
+        "sender_role": str(row["sender_role"] or ""),
+        "body": str(row["body"] or ""),
+        "created_at": str(row["created_at"] or ""),
+        "read_at": row["read_at"],
+        "admin_id": int(row["admin_id"]) if row["admin_id"] is not None else None,
+        "admin_email": str(row["admin_email"] or ""),
+    }
+
+
+def insert_support_message(
+    user_id: int,
+    sender_role: str,
+    body: str,
+    *,
+    admin_id: int | None = None,
+    admin_email: str = "",
+) -> dict[str, Any]:
+    init_persistence_tables()
+    created_at = utc_now_iso()
+    with connect() as conn:
+        if database_backend() == "postgres":
+            row = conn.execute(
+                adapt_sql(
+                    """
+                    INSERT INTO support_messages
+                        (user_id, sender_role, body, created_at, admin_id, admin_email)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    RETURNING id, user_id, sender_role, body, created_at, read_at, admin_id, admin_email
+                    """
+                ),
+                (user_id, sender_role, body, created_at, admin_id, admin_email),
+            ).fetchone()
+            return _support_message_from_row(row)
+        cur = conn.execute(
+            adapt_sql(
+                """
+                INSERT INTO support_messages
+                    (user_id, sender_role, body, created_at, admin_id, admin_email)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """
+            ),
+            (user_id, sender_role, body, created_at, admin_id, admin_email),
+        )
+        msg_id = int(cur.lastrowid)
+    return {
+        "id": msg_id,
+        "user_id": int(user_id),
+        "sender_role": sender_role,
+        "body": body,
+        "created_at": created_at,
+        "read_at": None,
+        "admin_id": admin_id,
+        "admin_email": admin_email,
+    }
+
+
+def list_support_thread(user_id: int, *, limit: int = 200) -> list[dict[str, Any]]:
+    init_persistence_tables()
+    with connect() as conn:
+        rows = conn.execute(
+            adapt_sql(
+                """
+                SELECT id, user_id, sender_role, body, created_at, read_at, admin_id, admin_email
+                FROM support_messages
+                WHERE user_id = ?
+                ORDER BY created_at ASC, id ASC
+                LIMIT ?
+                """
+            ),
+            (user_id, limit),
+        ).fetchall()
+    return [_support_message_from_row(row) for row in rows]
+
+
+def count_unread_support_messages(user_id: int, *, incoming_role: str) -> int:
+    """Unread messages in a thread whose sender_role matches incoming_role."""
+    init_persistence_tables()
+    with connect() as conn:
+        row = conn.execute(
+            adapt_sql(
+                """
+                SELECT COUNT(*) AS total
+                FROM support_messages
+                WHERE user_id = ? AND sender_role = ? AND read_at IS NULL
+                """
+            ),
+            (user_id, incoming_role),
+        ).fetchone()
+    return int((row["total"] if row else 0) or 0)
+
+
+def count_admin_unread_support() -> int:
+    init_persistence_tables()
+    with connect() as conn:
+        row = conn.execute(
+            adapt_sql(
+                """
+                SELECT COUNT(*) AS total
+                FROM support_messages
+                WHERE sender_role = 'user' AND read_at IS NULL
+                """
+            )
+        ).fetchone()
+    return int((row["total"] if row else 0) or 0)
+
+
+def mark_support_thread_read(user_id: int, *, incoming_role: str) -> None:
+    init_persistence_tables()
+    with connect() as conn:
+        conn.execute(
+            adapt_sql(
+                """
+                UPDATE support_messages
+                SET read_at = ?
+                WHERE user_id = ? AND sender_role = ? AND read_at IS NULL
+                """
+            ),
+            (utc_now_iso(), user_id, incoming_role),
+        )
+
+
+def list_support_conversations() -> list[dict[str, Any]]:
+    """One row per candidate who has a support thread, newest last message first."""
+    init_persistence_tables()
+    with connect() as conn:
+        rows = conn.execute(
+            adapt_sql(
+                """
+                SELECT u.id AS user_id,
+                       u.full_name,
+                       u.email,
+                       last_msg.body AS last_body,
+                       last_msg.created_at AS last_at,
+                       last_msg.sender_role AS last_role,
+                       COALESCE(unread.total, 0) AS unread
+                FROM users u
+                INNER JOIN (
+                    SELECT user_id, MAX(id) AS last_id
+                    FROM support_messages
+                    GROUP BY user_id
+                ) latest ON latest.user_id = u.id
+                INNER JOIN support_messages last_msg ON last_msg.id = latest.last_id
+                LEFT JOIN (
+                    SELECT user_id, COUNT(*) AS total
+                    FROM support_messages
+                    WHERE sender_role = 'user' AND read_at IS NULL
+                    GROUP BY user_id
+                ) unread ON unread.user_id = u.id
+                ORDER BY last_msg.created_at DESC, last_msg.id DESC
+                """
+            )
+        ).fetchall()
+    conversations: list[dict[str, Any]] = []
+    for row in rows:
+        conversations.append(
+            {
+                "user_id": int(row["user_id"]),
+                "full_name": str(row["full_name"] or ""),
+                "email": str(row["email"] or ""),
+                "last_body": str(row["last_body"] or ""),
+                "last_at": str(row["last_at"] or ""),
+                "last_role": str(row["last_role"] or ""),
+                "unread": int(row["unread"] or 0),
+            }
+        )
+    return conversations
+

@@ -23,6 +23,7 @@ from persistence import list_analyses as list_user_analyses
 from api.admin import router as admin_router
 from api.deps import current_user
 from api.security import create_access_token
+from api.support import router as support_router
 from services.admin import ADMIN_INDEX_PATH
 
 setup_logging()
@@ -30,6 +31,7 @@ logger = get_logger(__name__)
 
 app = FastAPI(title="DowsonBost API", version="1.0.0")
 app.include_router(admin_router)
+app.include_router(support_router)
 
 
 class LoginRequest(BaseModel):

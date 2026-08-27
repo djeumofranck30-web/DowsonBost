@@ -32,7 +32,7 @@
         radial-gradient(ellipse 60% 45% at 100% 10%, rgba(232,185,35,.18), transparent 50%),
         linear-gradient(160deg, #F4F1EA 0%, #E7F1EE 50%, #DCE8F2 100%);
     }
-    button, input { font-family: inherit; }
+    button, input, textarea, select { font-family: inherit; }
     a { color: var(--violet); }
     .shell { max-width: 1280px; margin: 0 auto; padding: 1.25rem 1.25rem 2.5rem; }
     header.top {
@@ -125,6 +125,42 @@
     .login .primary { width: 100%; margin-top: 1rem; padding: .85rem; }
     .error { color: #be123c; background: #fff1f2; border-radius: 10px; padding: .65rem .8rem; font-size: .85rem; }
     .empty { color: var(--muted); padding: 1.5rem 0; text-align: center; }
+    .support-inbox {
+      display: grid; grid-template-columns: minmax(220px, 280px) 1fr; gap: 1rem;
+      min-height: 420px; margin-top: .4rem;
+    }
+    .support-inbox-list {
+      border: 1px solid var(--line); border-radius: 14px; overflow: auto;
+      background: #fff; max-height: 560px;
+    }
+    .support-inbox-item {
+      display: block; width: 100%; text-align: left; border: 0;
+      border-bottom: 1px solid var(--line); background: transparent;
+      color: var(--ink); padding: .85rem 1rem; cursor: pointer;
+    }
+    .support-inbox-item:hover { background: #F4F1EA; }
+    .support-inbox-item.active { background: rgba(14, 116, 144, 0.12); }
+    .support-inbox-item .meta { font-size: .72rem; color: var(--muted); margin-top: .2rem; }
+    .support-thread-pane {
+      border: 1px solid var(--line); border-radius: 14px; padding: 1rem;
+      background: #fff; display: flex; flex-direction: column; gap: .7rem;
+    }
+    .support-thread { display: flex; flex-direction: column; gap: .65rem; max-height: 360px; overflow: auto; padding: .2rem; }
+    .support-bubble { max-width: 88%; padding: .7rem .9rem; border-radius: 14px; font-size: .88rem; line-height: 1.45; }
+    .support-bubble.user { align-self: flex-end; background: #0E7490; color: #fff; }
+    .support-bubble.admin { align-self: flex-start; background: #F4F1EA; color: #134E4A; border: 1px solid #D6D3CD; }
+    .support-bubble .who { font-size: .68rem; font-weight: 700; opacity: .85; margin-bottom: .2rem; }
+    .support-bubble .meta { font-size: .72rem; opacity: .75; margin-top: .35rem; }
+    .support-compose { display: flex; flex-direction: column; gap: .5rem; }
+    .support-compose textarea {
+      width: 100%; min-height: 90px; resize: vertical; border: 1.5px solid var(--line);
+      border-radius: 12px; padding: .7rem .9rem; outline: none;
+    }
+    .support-compose textarea:focus { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(14,116,144,.12); }
+    .support-compose .primary { align-self: flex-start; }
+    .support-start { display: flex; gap: .5rem; padding: .75rem; border-top: 1px solid var(--line); }
+    .support-start select { flex: 1; border: 1.5px solid var(--line); border-radius: 12px; padding: .55rem .7rem; }
+    @media (max-width: 800px) { .support-inbox { grid-template-columns: 1fr; } }
     .modal-bg {
       position: fixed; inset: 0; background: rgba(11,18,32,.45); display: grid; place-items: center;
       z-index: 40; padding: 1rem;
@@ -178,6 +214,7 @@
         <nav class="tabs">
           <button type="button" class="active" data-tab="overview">Vue d’ensemble</button>
           <button type="button" data-tab="users">Utilisateurs</button>
+          <button type="button" data-tab="support" id="tab-support-btn">Support</button>
         </nav>
         <a class="ghost" href="/" id="back-link">Retour à l’app</a>
       </div>
@@ -223,6 +260,25 @@
         <div id="users-empty" class="empty hidden">Aucun utilisateur inscrit.</div>
       </article>
     </section>
+
+    <section id="tab-support" class="hidden">
+      <article class="card" style="margin-top:1.2rem">
+        <h2>Support candidats</h2>
+        <p style="margin:0 0 .8rem;color:var(--muted);font-size:.9rem">Chaque conversation est privée : votre réponse n’est visible que par le candidat sélectionné.</p>
+        <div class="support-inbox">
+          <div>
+            <div id="support-list" class="support-inbox-list"></div>
+            <div class="support-start">
+              <select id="support-pick-user"></select>
+              <button type="button" class="ghost" id="support-open-user">Ouvrir</button>
+            </div>
+          </div>
+          <div id="support-thread-pane" class="support-thread-pane">
+            <p class="muted" style="color:var(--muted)">Sélectionnez une conversation.</p>
+          </div>
+        </div>
+      </article>
+    </section>
   </div>
 
   <div id="modal" class="modal-bg hidden">
@@ -241,7 +297,12 @@
   </script>
   <script>
     const fmt = new Intl.NumberFormat("fr-FR");
-    const state = { data: null, token: localStorage.getItem("dowsonbost_admin_token") || "", deleteId: null };
+    const state = {
+      data: null,
+      token: localStorage.getItem("dowsonbost_admin_token") || "",
+      deleteId: null,
+      supportUserId: null,
+    };
     const charts = {};
 
     function $(id) { return document.getElementById(id); }
@@ -400,17 +461,118 @@
       state.data = data;
       show($("login-view"), false);
       show($("app-view"), true);
+      const embedded = !!data.embedded;
+      const supportBtn = $("tab-support-btn");
+      const supportPanel = $("tab-support");
+      if (supportBtn) supportBtn.style.display = embedded ? "none" : "";
+      if (supportPanel && embedded) supportPanel.classList.add("hidden");
       renderKpis(data);
       renderCharts(data);
       renderUsers();
+      renderSupportBadge();
+      renderSupportInbox();
     }
 
     function setTab(name) {
+      if (name === "support" && state.data && state.data.embedded) name = "overview";
       document.querySelectorAll(".tabs button").forEach((btn) => {
         btn.classList.toggle("active", btn.dataset.tab === name);
       });
       show($("tab-overview"), name === "overview");
       show($("tab-users"), name === "users");
+      show($("tab-support"), name === "support");
+      if (name === "support") renderSupportInbox();
+    }
+
+    function renderSupportBadge() {
+      const btn = $("tab-support-btn");
+      if (!btn) return;
+      const unread = Number((state.data && state.data.support && state.data.support.unread) || 0);
+      btn.textContent = unread > 0 ? ("Support (" + unread + ")") : "Support";
+    }
+
+    function renderSupportInbox() {
+      const list = $("support-list");
+      const pick = $("support-pick-user");
+      if (!list || !pick) return;
+      const conversations = (state.data && state.data.support && state.data.support.conversations) || [];
+      const users = (state.data && state.data.users) || [];
+      if (!conversations.length) {
+        list.innerHTML = '<p class="empty" style="padding:1rem">Aucun message pour le moment.</p>';
+      } else {
+        list.innerHTML = conversations.map((c) => {
+          const name = c.full_name || c.email || ("#" + c.user_id);
+          const preview = String(c.last_body || "").slice(0, 80);
+          const badge = Number(c.unread || 0) > 0 ? (" · " + c.unread + " non lu") : "";
+          const active = Number(state.supportUserId) === Number(c.user_id) ? " active" : "";
+          return '<button type="button" class="support-inbox-item' + active + '" data-user-id="' + Number(c.user_id) + '">'
+            + '<strong>' + escapeHtml(name) + '</strong>'
+            + '<div class="meta">' + escapeHtml(c.email || "") + badge + '</div>'
+            + '<div class="meta">' + escapeHtml(preview) + '</div>'
+            + '</button>';
+        }).join("");
+        list.querySelectorAll(".support-inbox-item").forEach((btn) => {
+          btn.addEventListener("click", () => openSupportThread(Number(btn.dataset.userId)));
+        });
+      }
+      const convIds = new Set(conversations.map((c) => Number(c.user_id)));
+      pick.innerHTML = users.map((u) => {
+        const label = (u.full_name || "Sans nom") + " — " + (u.email || "");
+        return '<option value="' + Number(u.id) + '"' + (convIds.has(Number(u.id)) ? "" : "") + ">"
+          + escapeHtml(label) + "</option>";
+      }).join("");
+    }
+
+    async function openSupportThread(userId) {
+      state.supportUserId = userId;
+      setTab("support");
+      const pane = $("support-thread-pane");
+      if (!state.token) {
+        pane.innerHTML = '<p style="color:var(--muted)">Connectez-vous pour répondre depuis cette vue.</p>';
+        renderSupportInbox();
+        return;
+      }
+      const data = await api("/api/admin/support/conversations/" + encodeURIComponent(userId));
+      const user = data.user || {};
+      const messages = data.messages || [];
+      const thread = messages.length
+        ? messages.map((m) => {
+            const role = m.sender_role === "admin" ? "admin" : "user";
+            const who = role === "admin" ? "Administrateur" : (user.full_name || user.email || "Candidat");
+            return '<div class="support-bubble ' + role + '"><div class="who">' + escapeHtml(who) + '</div>'
+              + '<div>' + escapeHtml(m.body || "").replaceAll("\n", "<br>") + '</div>'
+              + '<div class="meta">' + escapeHtml(formatDate(m.created_at)) + '</div></div>';
+          }).join("")
+        : '<p style="color:var(--muted)">Aucun message dans ce fil.</p>';
+      pane.innerHTML =
+        '<div><strong>' + escapeHtml(user.full_name || user.email || ("#" + userId)) + '</strong>'
+        + '<div style="color:var(--muted);font-size:.85rem">' + escapeHtml(user.email || "") + '</div></div>'
+        + '<div class="support-thread">' + thread + '</div>'
+        + '<form class="support-compose" id="support-reply-form">'
+        + '<textarea id="support-reply-body" required maxlength="4000" placeholder="Répondre uniquement à ce candidat…"></textarea>'
+        + '<button class="primary" type="submit">Envoyer la réponse</button></form>';
+      $("support-reply-form").addEventListener("submit", (event) => sendSupportReply(event, userId));
+      try {
+        const inbox = await api("/api/admin/support/conversations");
+        if (state.data) {
+          state.data.support = state.data.support || {};
+          state.data.support.conversations = inbox.conversations || [];
+          state.data.support.unread = (inbox.conversations || []).reduce((n, c) => n + Number(c.unread || 0), 0);
+        }
+      } catch (err) { /* keep current inbox */ }
+      renderSupportBadge();
+      renderSupportInbox();
+    }
+
+    async function sendSupportReply(event, userId) {
+      event.preventDefault();
+      const body = ($("support-reply-body").value || "").trim();
+      if (!body) return;
+      await api("/api/admin/support/conversations/" + encodeURIComponent(userId), {
+        method: "POST",
+        body: JSON.stringify({ body }),
+      });
+      await openSupportThread(userId);
     }
 
     function openDelete(user) {
@@ -477,6 +639,10 @@
       btn.addEventListener("click", () => setTab(btn.dataset.tab));
     });
     $("user-search").addEventListener("input", renderUsers);
+    $("support-open-user").addEventListener("click", () => {
+      const id = Number($("support-pick-user").value);
+      if (id) openSupportThread(id);
+    });
     $("refresh-btn").addEventListener("click", async () => {
       if (window.__DOWSONBOST_ADMIN__ && window.__DOWSONBOST_ADMIN__.embedded) {
         window.location.reload();

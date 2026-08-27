@@ -105,6 +105,8 @@ def test_overview_includes_users_and_tokens(sqlite_db, monkeypatch):
     assert overview["kpis"]["tokens_total"] == 150
     jane = next(item for item in overview["users"] if item["email"] == "jane@example.com")
     assert jane["tokens_consumed"] == 150
+    assert overview["support"]["unread"] == 0
+    assert overview["support"]["conversations"] == []
     listed = list_registered_users()
     assert {row["email"] for row in listed} == {"jane@example.com"}
 
@@ -147,6 +149,7 @@ def test_dashboard_html_injects_payload(sqlite_db, monkeypatch):
     assert "window.__DOWSONBOST_ADMIN__" in html
     assert "users_total" in html
     assert '"embedded": true' in html
+    assert "data-tab=\"support\"" in html
 
 
 def test_estimate_tokens_minimum():

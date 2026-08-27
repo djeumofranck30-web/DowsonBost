@@ -37,6 +37,7 @@ NAV_ICONS: dict[str, str] = {
     "dashboard": "📊",
     "applications": "📨",
     "history": "🕘",
+    "support": "💬",
     "profile": "👤",
 }
 
@@ -261,6 +262,48 @@ def _shared_components_css(t: dict[str, str]) -> str:
         h1, h2, h3, h4 {{
             font-family: {t["font"]} !important;
             color: {t["primary_deep"]} !important;
+        }}
+        .support-thread {{
+            background: {t["surface"]};
+            border: 1px solid rgba(14, 116, 144, 0.08);
+            border-radius: {t["radius_lg"]};
+            padding: 1rem 1.1rem 1.15rem;
+            max-height: 28rem;
+            overflow-y: auto;
+            margin-bottom: 0.75rem;
+        }}
+        .support-bubble {{
+            max-width: min(86%, 36rem);
+            padding: 0.7rem 0.9rem;
+            border-radius: 16px;
+            margin: 0.45rem 0;
+        }}
+        .support-bubble.user {{
+            margin-left: auto;
+            background: linear-gradient(135deg, {t["primary"]}, {t["primary_dark"]});
+            color: #fff;
+            border-bottom-right-radius: 6px;
+        }}
+        .support-bubble.admin {{
+            margin-right: auto;
+            background: {t["surface_soft"]};
+            color: {t["primary_deep"]};
+            border: 1px solid rgba(14, 116, 144, 0.12);
+            border-bottom-left-radius: 6px;
+        }}
+        .support-bubble .meta {{
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            opacity: 0.82;
+            margin: 0 0 0.28rem;
+        }}
+        .support-bubble p {{
+            margin: 0;
+            white-space: pre-wrap;
+            line-height: 1.45;
+            font-size: 0.92rem;
         }}
     """
 
@@ -813,6 +856,61 @@ def render_app_styles() -> None:
             border: none !important;
             box-shadow: 0 6px 16px rgba(220, 38, 38, 0.28) !important;
         }}
+
+        /* —— Support chat —— */
+        .support-thread {{
+            background: {t["surface"]};
+            border: 1px solid rgba(14, 116, 144, 0.08);
+            border-radius: {t["radius_lg"]};
+            padding: 1rem 1.1rem 1.15rem;
+            box-shadow: {t["shadow_sm"]};
+            max-height: 28rem;
+            overflow-y: auto;
+            margin-bottom: 0.75rem;
+        }}
+        .support-bubble {{
+            max-width: min(86%, 36rem);
+            padding: 0.7rem 0.9rem;
+            border-radius: 16px;
+            margin: 0.45rem 0;
+            animation: db-rise 0.16s ease both;
+        }}
+        .support-bubble.user {{
+            margin-left: auto;
+            background: linear-gradient(135deg, {t["primary"]}, {t["primary_dark"]});
+            color: #fff;
+            border-bottom-right-radius: 6px;
+        }}
+        .support-bubble.admin {{
+            margin-right: auto;
+            background: {t["surface_soft"]};
+            color: {t["primary_deep"]};
+            border: 1px solid rgba(14, 116, 144, 0.12);
+            border-bottom-left-radius: 6px;
+        }}
+        .support-bubble .meta {{
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            opacity: 0.82;
+            margin: 0 0 0.28rem;
+        }}
+        .support-bubble p {{
+            margin: 0;
+            white-space: pre-wrap;
+            line-height: 1.45;
+            font-size: 0.92rem;
+        }}
+        .support-inbox-item {{
+            padding: 0.75rem 0.85rem;
+            border-radius: 14px;
+            border: 1px solid rgba(14, 116, 144, 0.1);
+            background: {t["surface"]};
+            margin-bottom: 0.5rem;
+        }}
+        .support-inbox-item strong {{ display: block; }}
+        .support-inbox-item small {{ color: {t["muted"]}; }}
 
         /* —— File uploader —— */
         [data-testid="stFileUploader"] section {{

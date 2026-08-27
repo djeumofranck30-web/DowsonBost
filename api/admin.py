@@ -9,8 +9,15 @@ from pydantic import BaseModel, EmailStr, Field
 
 from api.deps import current_admin
 from api.security import create_admin_token
-from auth import authenticate_admin
+from auth import authenticate_admin, get_user_by_id
 from services.admin import admin_delete_user, list_registered_users, platform_overview, public_user_record
+from services.support import (
+    admin_support_conversations,
+    admin_support_thread,
+    mark_admin_support_read,
+    public_support_message,
+    send_admin_support_reply,
+)
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -23,6 +30,10 @@ class AdminLoginRequest(BaseModel):
 class AdminTokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class SupportReplyRequest(BaseModel):
+    body: str = Field(min_length=1, max_length=4000)
 
 
 @router.post("/login", response_model=AdminTokenResponse)
@@ -56,3 +67,42 @@ def admin_remove_user(user_id: int, user: dict[str, Any] = Depends(current_admin
     if not ok:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
     return {"message": message}
+
+
+@router.get("/support/conversations")
+def admin_support_inbox(user: dict[str, Any] = Depends(current_admin)) -> dict[str, Any]:
+    return {"conversations": admin_support_conversations()}
+
+
+@router.get("/support/conversations/{user_id}")
+def admin_support_user_thread(
+    user_id: int,
+    user: dict[str, Any] = Depends(current_admin),
+) -> dict[str, Any]:
+    target = get_user_by_id(int(user_id))
+    if not target:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable.")
+    mark_admin_support_read(int(user_id))
+    thread = admin_support_thread(int(user_id))
+    return {
+        "user_id": int(user_id),
+        "user": public_user_record(target),
+        "messages": [public_support_message(item) for item in thread],
+    }
+
+
+@router.post("/support/conversations/{user_id}")
+def admin_support_user_reply(
+    user_id: int,
+    body: SupportReplyRequest,
+    user: dict[str, Any] = Depends(current_admin),
+) -> dict[str, Any]:
+    ok, message, saved = send_admin_support_reply(
+        int(user_id),
+        body.body,
+        admin_id=int(user.get("id") or 0) or None,
+        admin_email=str(user.get("email") or ""),
+    )
+    if not ok or not saved:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
+    return {"message": message, "item": public_support_message(saved)}
