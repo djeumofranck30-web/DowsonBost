@@ -128,6 +128,8 @@ def _render_admin_support(admin: dict) -> None:
         "Chaque conversation est privée : vous voyez quel candidat a écrit, "
         "et votre réponse n’est visible que par ce candidat."
     )
+    if st.session_state.pop("admin_reply_sent", False):
+        st.success("Réponse envoyée — seul ce candidat la verra.")
     conversations = admin_support_conversations()
     accounts = [public_user_record(item) for item in list_registered_users()]
     account_by_id = {int(item["id"]): item for item in accounts}
@@ -191,15 +193,14 @@ def _render_admin_support(admin: dict) -> None:
         ),
         unsafe_allow_html=True,
     )
-    with st.form("admin_support_reply", clear_on_submit=True):
-        body = st.text_area(
-            "Réponse",
-            height=110,
-            max_chars=4000,
-            placeholder="Votre réponse à ce candidat…",
-        )
-        sent = st.form_submit_button("Envoyer la réponse", type="primary", use_container_width=True)
-    if sent:
+    body = st.text_area(
+        "Réponse",
+        height=110,
+        max_chars=4000,
+        placeholder="Votre réponse à ce candidat…",
+        key="admin_support_reply_body",
+    )
+    if st.button("Envoyer la réponse", type="primary", use_container_width=True, key="admin_support_send"):
         ok, message, _saved = send_admin_support_reply(
             int(selected_id),
             body,
@@ -207,7 +208,10 @@ def _render_admin_support(admin: dict) -> None:
             admin_email=str(admin.get("email") or ""),
         )
         if ok:
-            st.success("Réponse envoyée — seul ce candidat la verra.")
+            st.session_state.admin_stay_on_support = True
+            st.session_state.admin_support_open_user = int(selected_id)
+            st.session_state.admin_clear_reply = True
+            st.session_state.admin_reply_sent = True
             st.rerun()
         st.error(message)
 
@@ -237,6 +241,10 @@ def main() -> None:
     deletable = [item for item in accounts if int(item["id"]) != actor_id]
 
     support_unread = admin_support_unread()
+    if st.session_state.pop("admin_stay_on_support", False):
+        st.session_state.admin_main_section = "support"
+    if st.session_state.pop("admin_clear_reply", False):
+        st.session_state.admin_support_reply_body = ""
     admin_section = st.radio(
         "Espace admin",
         ("overview", "support"),

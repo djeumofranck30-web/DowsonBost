@@ -45,6 +45,7 @@ def test_admin_dashboard_has_per_user_inbox():
     assert "def _render_admin_support" in dash
     assert "admin_support_conversations" in dash
     assert "send_admin_support_reply" in dash
+    assert "admin_support_send" in dash
     html = _read("admin/static/index.html")
     assert 'data-tab="support"' in html
     assert "tab-support" in html
