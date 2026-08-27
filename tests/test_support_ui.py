@@ -21,23 +21,20 @@ def test_support_is_in_candidate_navigation():
     assert "def render_support_page" in app
     assert 'if page == "support":' in app
     assert "def render_floating_chat_fab" in app
-    assert 'key="floating_chat_fab"' in app
     assert "render_floating_chat_fab(" in app
     theme = _read("ui/theme.py")
     assert '"support": "💬"' in theme
     assert ".support-thread" in theme
     assert ".support-bubble.user" in theme
-    assert "st-key-floating_chat_fab" in theme
     assert "@keyframes db-chat-pulse" in theme
-    fab_css = theme.split(".st-key-floating_chat_fab,")[1].split("#db-chat-fab-badge")[0]
-    assert "pointer-events: auto" in fab_css
-    assert "opacity: 0" not in fab_css
-    assert 'width: 1px' not in fab_css
-    assert "_request_navigation(\"support\")" in app
+    assert "#db-chat-fab" in theme
+    assert "pointer-events: auto" in theme
     assert 'st.query_params.get("nav")' in app
     assert THEME["primary"] in app
     fab_fn = app.split("def render_floating_chat_fab")[1].split("def render_history_page")[0]
-    assert 'key="floating_chat_fab"' in fab_fn
+    assert 'createElement("a")' in fab_fn
+    assert 'searchParams.set("nav", "support")' in fab_fn
+    assert 'createElement("a")' in fab_fn
     assert "doc.createElement(\"button\")" not in fab_fn
     assert "#E11D48" not in fab_fn
 

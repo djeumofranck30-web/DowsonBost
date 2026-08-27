@@ -380,7 +380,7 @@ def _shared_components_css(t: dict[str, str]) -> str:
             opacity: 0.35;
         }}
 
-        /* —— Floating chat logo (real Streamlit button, viewport-fixed) —— */
+        /* —— Floating chat logo (native link on document.body) —— */
         @keyframes db-chat-pulse {{
             0%, 100% {{
                 transform: scale(1);
@@ -392,63 +392,33 @@ def _shared_components_css(t: dict[str, str]) -> str:
             }}
         }}
         #db-chat-fab {{
-            display: none !important;
-            pointer-events: none !important;
-        }}
-        [data-testid="stAppViewContainer"],
-        [data-testid="stMain"],
-        .stApp,
-        .main,
-        .block-container {{
-            overflow: visible !important;
-        }}
-        div[data-testid="stElementContainer"]:has([class*="st-key-floating_chat_fab"]),
-        .stElementContainer:has([class*="st-key-floating_chat_fab"]) {{
-            position: static !important;
-            height: 0 !important;
-            min-height: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            overflow: visible !important;
-        }}
-        .st-key-floating_chat_fab,
-        div[class*="st-key-floating_chat_fab"] {{
             position: fixed !important;
             right: 20px !important;
             bottom: 20px !important;
+            z-index: 2147483647 !important;
             width: 64px !important;
             height: 64px !important;
-            opacity: 1 !important;
-            pointer-events: auto !important;
-            overflow: visible !important;
-            z-index: 2147483646 !important;
-        }}
-        .st-key-floating_chat_fab button,
-        div[class*="st-key-floating_chat_fab"] button {{
-            width: 64px !important;
-            height: 64px !important;
-            min-height: 64px !important;
-            padding: 0 !important;
+            padding: 14px !important;
             border: 0 !important;
             border-radius: 50% !important;
-            color: transparent !important;
-            font-size: 0 !important;
             cursor: pointer !important;
-            background:
-                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M18 21h28a5 5 0 0 1 5 5v18a5 5 0 0 1-5 5H29l-9 7v-7h-2a5 5 0 0 1-5-5V26a5 5 0 0 1 5-5z' fill='none' stroke='%23ffffff' stroke-width='3.2' stroke-linejoin='round'/%3E%3C/svg%3E")
-                center / 36px 36px no-repeat,
-                linear-gradient(135deg, {t["primary"]}, {t["primary_dark"]}) !important;
+            display: block !important;
+            box-sizing: border-box !important;
+            text-decoration: none !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            overflow: hidden !important;
+            background: linear-gradient(135deg, {t["primary"]}, {t["primary_dark"]}) !important;
             box-shadow: 0 0 0 3px {t["accent"]}, 0 12px 26px rgba(14, 116, 144, 0.42) !important;
             animation: db-chat-pulse 2.2s ease-in-out infinite !important;
         }}
-        .st-key-floating_chat_fab button p,
-        .st-key-floating_chat_fab button span,
-        div[class*="st-key-floating_chat_fab"] button p,
-        div[class*="st-key-floating_chat_fab"] button span {{
-            display: none !important;
+        #db-chat-fab svg {{
+            width: 100% !important;
+            height: 100% !important;
+            display: block !important;
+            pointer-events: none !important;
         }}
-        .st-key-floating_chat_fab button:hover,
-        div[class*="st-key-floating_chat_fab"] button:hover {{
+        #db-chat-fab:hover {{
             animation: none !important;
             transform: scale(1.08) !important;
         }}
@@ -456,7 +426,7 @@ def _shared_components_css(t: dict[str, str]) -> str:
             position: fixed !important;
             right: 16px !important;
             bottom: 76px !important;
-            z-index: 2147483646 !important;
+            z-index: 2147483647 !important;
             min-width: 20px;
             height: 20px;
             padding: 0 6px;
@@ -468,6 +438,13 @@ def _shared_components_css(t: dict[str, str]) -> str:
             align-items: center;
             justify-content: center;
             pointer-events: none;
+        }}
+        [data-testid="stAppViewContainer"],
+        [data-testid="stMain"],
+        .stApp,
+        .main,
+        .block-container {{
+            overflow: visible !important;
         }}
         .st-key-support_new button {{
             background: {t["primary"]} !important;
