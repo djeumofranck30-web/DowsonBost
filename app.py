@@ -4288,11 +4288,11 @@ _SCORE_CHART_BUCKETS = (
 )
 _STATUS_CHART_COLORS = (
     "#94a3b8",
-    "#7c3aed",
-    "#10b981",
-    "#f59e0b",
+    "#0E7490",
+    "#0F9F6E",
+    "#E8B923",
     "#22c55e",
-    "#ef4444",
+    "#E11D48",
     "#64748b",
 )
 
@@ -4378,7 +4378,7 @@ def _render_dashboard_insight_charts(
             st.caption(t("dashboard.chart_scores"))
             score_chart = (
                 alt.Chart(pd.DataFrame(score_rows))
-                .mark_bar(cornerRadiusEnd=8, color="#7c3aed", size=22)
+                .mark_bar(cornerRadiusEnd=8, color="#0E7490", size=22)
                 .encode(
                     x=alt.X("band:N", sort=[row["band"] for row in score_rows], title=None),
                     y=alt.Y("count:Q", title=None),
@@ -5698,22 +5698,22 @@ def _auth_time_greeting() -> tuple[str, str]:
 
 
 def _auth_illustration_svg() -> str:
-    """Night-scene SVG for the left auth panel."""
+    """Dusk city illustration for the left auth panel."""
     return """
 <svg class="auth-illustration" viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <rect width="320" height="220" fill="#6d28d9"/>
-  <circle cx="248" cy="52" r="34" fill="#fde047"/>
-  <ellipse cx="210" cy="58" rx="38" ry="18" fill="#5b21b6"/>
-  <ellipse cx="255" cy="62" rx="30" ry="14" fill="#5b21b6"/>
-  <path d="M0 150 Q80 120 160 145 T320 138 L320 220 L0 220 Z" fill="#7c3aed"/>
-  <path d="M0 170 Q90 145 180 168 T320 158 L320 220 L0 220 Z" fill="#8b5cf6"/>
-  <path d="M0 188 Q100 165 200 185 T320 176 L320 220 L0 220 Z" fill="#a78bfa"/>
-  <line x1="40" y1="28" x2="58" y2="8" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-  <line x1="120" y1="18" x2="128" y2="2" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-  <line x1="180" y1="36" x2="198" y2="16" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="90" cy="40" r="2" fill="#fff"/>
-  <circle cx="150" cy="24" r="2" fill="#fff"/>
-  <circle cx="200" cy="30" r="2" fill="#fff"/>
+  <rect width="320" height="220" fill="#155E75"/>
+  <circle cx="248" cy="52" r="34" fill="#E8B923"/>
+  <ellipse cx="210" cy="58" rx="38" ry="18" fill="#0E7490"/>
+  <ellipse cx="255" cy="62" rx="30" ry="14" fill="#0E7490"/>
+  <path d="M0 150 Q80 120 160 145 T320 138 L320 220 L0 220 Z" fill="#0B4A5C"/>
+  <path d="M0 170 Q90 145 180 168 T320 158 L320 220 L0 220 Z" fill="#0E7490"/>
+  <path d="M0 188 Q100 165 200 185 T320 176 L320 220 L0 220 Z" fill="#124E5E"/>
+  <line x1="40" y1="28" x2="58" y2="8" stroke="#F4F1EA" stroke-width="2" stroke-linecap="round"/>
+  <line x1="120" y1="18" x2="128" y2="2" stroke="#F4F1EA" stroke-width="2" stroke-linecap="round"/>
+  <line x1="180" y1="36" x2="198" y2="16" stroke="#F4F1EA" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="90" cy="40" r="2" fill="#F4F1EA"/>
+  <circle cx="150" cy="24" r="2" fill="#F4F1EA"/>
+  <circle cx="200" cy="30" r="2" fill="#F4F1EA"/>
 </svg>
 """
 

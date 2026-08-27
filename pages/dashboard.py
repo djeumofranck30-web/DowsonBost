@@ -28,8 +28,9 @@ def _inject_admin_chrome() -> None:
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         html, body, [data-testid="stAppViewContainer"] {
             background:
-                radial-gradient(ellipse 80% 50% at 8% 0%, rgba(124,58,237,.16), transparent 55%),
-                linear-gradient(160deg, #f5f3ff 0%, #eef2ff 55%, #f8fafc 100%) !important;
+                radial-gradient(ellipse 80% 50% at 8% 0%, rgba(14,116,144,.16), transparent 55%),
+                radial-gradient(ellipse 50% 40% at 100% 0%, rgba(232,185,35,.16), transparent 50%),
+                linear-gradient(160deg, #F4F1EA 0%, #E7F1EE 55%, #DCE8F2 100%) !important;
             font-family: "Plus Jakarta Sans", system-ui, sans-serif;
         }
         [data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDecoration"],
@@ -75,9 +76,9 @@ def _render_login() -> None:
     st.markdown(
         """
         <div style="max-width:420px;margin:8vh auto 0;background:#fff;border-radius:24px;
-                    padding:1.6rem 1.4rem;box-shadow:0 18px 40px rgba(76,29,149,.12);
-                    border:1px solid rgba(124,58,237,.14)">
-          <p style="margin:0;font-size:.8rem;font-weight:700;color:#7c3aed;letter-spacing:.04em">DOWSONBOST</p>
+                    padding:1.6rem 1.4rem;box-shadow:0 18px 40px rgba(11,18,32,.10);
+                    border:1px solid rgba(14,116,144,.14)">
+          <p style="margin:0;font-size:.8rem;font-weight:700;color:#0E7490;letter-spacing:.04em">DOWSONBOST</p>
           <h1 style="margin:.2rem 0 .4rem;font-size:1.6rem">Espace administrateur</h1>
           <p style="margin:0 0 1rem;color:#64748b">Accès réservé. Utilisez l’e-mail et le mot de passe ajoutés dans les secrets Streamlit (<code>ADMIN_EMAIL</code> + <code>ADMIN_PASSWORD</code>).</p>
         </div>

@@ -4,31 +4,31 @@ from __future__ import annotations
 
 import streamlit as st
 
-# Design tokens (purple SaaS — DowsonBost)
+# Career-platform tokens — LinkedIn trust + Welcome to the Jungle energy
 THEME = {
-    "bg_gradient": "linear-gradient(145deg, #ede9fe 0%, #ddd6fe 35%, #c4b5fd 70%, #a78bfa 100%)",
+    "bg_gradient": "linear-gradient(160deg, #F4F1EA 0%, #E7F1EE 48%, #DCE8F2 100%)",
     "bg_mesh": (
-        "radial-gradient(ellipse 80% 60% at 10% 20%, rgba(124,58,237,0.18), transparent 50%), "
-        "radial-gradient(ellipse 60% 50% at 90% 80%, rgba(99,102,241,0.15), transparent 45%)"
+        "radial-gradient(ellipse 70% 50% at 8% 0%, rgba(14,116,144,0.16), transparent 55%), "
+        "radial-gradient(ellipse 55% 45% at 96% 6%, rgba(232,185,35,0.20), transparent 50%)"
     ),
-    "primary": "#7c3aed",
-    "primary_dark": "#6d28d9",
-    "primary_deep": "#1e1b4b",
+    "primary": "#0E7490",
+    "primary_dark": "#155E75",
+    "primary_deep": "#0B1220",
     "surface": "#ffffff",
-    "surface_soft": "#f8fafc",
-    "surface_glass": "rgba(255, 255, 255, 0.72)",
-    "muted": "#64748b",
-    "accent": "#6366f1",
-    "success": "#10b981",
-    "warning": "#f59e0b",
-    "danger": "#ef4444",
+    "surface_soft": "#F7F5F1",
+    "surface_glass": "rgba(255, 255, 255, 0.82)",
+    "muted": "#5B6573",
+    "accent": "#E8B923",
+    "success": "#0F9F6E",
+    "warning": "#E8B923",
+    "danger": "#E11D48",
     "radius_sm": "10px",
     "radius_md": "14px",
-    "radius_lg": "20px",
+    "radius_lg": "18px",
     "radius_xl": "24px",
-    "shadow_sm": "0 2px 8px rgba(30, 27, 75, 0.06)",
-    "shadow_md": "0 12px 32px rgba(76, 29, 149, 0.12)",
-    "shadow_lg": "0 24px 48px rgba(76, 29, 149, 0.16)",
+    "shadow_sm": "0 2px 10px rgba(11, 18, 32, 0.05)",
+    "shadow_md": "0 14px 36px rgba(11, 18, 32, 0.08)",
+    "shadow_lg": "0 28px 56px rgba(11, 18, 32, 0.12)",
     "font": '"Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif',
 }
 
@@ -55,6 +55,20 @@ def _font_import() -> str:
 
 def _shared_components_css(t: dict[str, str]) -> str:
     return f"""
+        /* —— Motion —— */
+        @keyframes db-rise {{
+            from {{ opacity: 0; transform: translateY(10px); }}
+            to {{ opacity: 1; transform: translateY(0); }}
+        }}
+        @keyframes db-shine {{
+            from {{ transform: translateX(-130%) skewX(-12deg); }}
+            to {{ transform: translateX(220%) skewX(-12deg); }}
+        }}
+        @keyframes db-pulse-ring {{
+            0%, 100% {{ box-shadow: 0 0 0 0 rgba(14, 116, 144, 0.28); }}
+            50% {{ box-shadow: 0 0 0 7px rgba(14, 116, 144, 0); }}
+        }}
+
         /* —— Buttons (compact, used everywhere) —— */
         .stButton > button,
         div[data-testid="stFormSubmitButton"] button,
@@ -73,8 +87,39 @@ def _shared_components_css(t: dict[str, str]) -> str:
             min-height: 2rem !important;
             height: auto !important;
             padding: 0.22rem 0.75rem !important;
-            border-radius: 10px !important;
-            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease !important;
+            border-radius: 999px !important;
+            position: relative !important;
+            overflow: hidden !important;
+            letter-spacing: 0.01em !important;
+            transition: transform 0.18s cubic-bezier(.2,.8,.2,1), box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease !important;
+        }}
+        .stButton > button::after,
+        div[data-testid="stFormSubmitButton"] button::after,
+        .stDownloadButton > button::after,
+        .stLinkButton a::after,
+        [data-testid^="stBaseLinkButton-"]::after {{
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 42%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.38), transparent);
+            transform: translateX(-130%) skewX(-12deg);
+            pointer-events: none;
+        }}
+        .stButton > button:hover::after,
+        div[data-testid="stFormSubmitButton"] button:hover::after,
+        .stDownloadButton > button:hover::after,
+        .stLinkButton a:hover::after,
+        [data-testid^="stBaseLinkButton-"]:hover::after {{
+            animation: db-shine 0.55s ease;
+        }}
+        .stButton > button:active,
+        div[data-testid="stFormSubmitButton"] button:active,
+        .stDownloadButton > button:active,
+        .stLinkButton a:active {{
+            transform: translateY(1px) scale(0.98) !important;
         }}
         .stButton,
         .stDownloadButton,
@@ -107,25 +152,26 @@ def _shared_components_css(t: dict[str, str]) -> str:
             background: linear-gradient(135deg, {t["primary"]} 0%, {t["primary_dark"]} 100%) !important;
             color: #fff !important;
             border: none !important;
-            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35) !important;
+            box-shadow: 0 3px 10px rgba(14, 116, 144, 0.28) !important;
         }}
         .stButton > button[kind="primary"]:hover,
         div[data-testid="stFormSubmitButton"] button:hover,
         .stDownloadButton > button:hover {{
-            transform: translateY(-1px) !important;
-            box-shadow: 0 8px 22px rgba(124, 58, 237, 0.42) !important;
-            background: linear-gradient(135deg, {t["primary_dark"]} 0%, #5b21b6 100%) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 18px rgba(14, 116, 144, 0.32) !important;
+            background: linear-gradient(135deg, {t["primary_dark"]} 0%, #0B4A5C 100%) !important;
             color: #fff !important;
         }}
         .stButton > button[kind="secondary"] {{
             background: {t["surface"]} !important;
-            border: 1.5px solid rgba(124, 58, 237, 0.22) !important;
+            border: 1.5px solid rgba(14, 116, 144, 0.22) !important;
             color: {t["primary"]} !important;
         }}
         .stButton > button[kind="secondary"]:hover {{
             background: {t["surface_soft"]} !important;
             border-color: {t["primary"]} !important;
-            transform: translateY(-1px) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 14px rgba(14, 116, 144, 0.12) !important;
         }}
 
         /* —— Inputs —— */
@@ -134,13 +180,13 @@ def _shared_components_css(t: dict[str, str]) -> str:
         div[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
         div[data-testid="stMultiSelect"] div[data-baseweb="select"] > div {{
             border-radius: {t["radius_sm"]} !important;
-            border-color: rgba(124, 58, 237, 0.15) !important;
+            border-color: rgba(14, 116, 144, 0.15) !important;
             font-family: {t["font"]} !important;
         }}
         div[data-testid="stTextInput"] input:focus,
         div[data-testid="stTextArea"] textarea:focus {{
             border-color: {t["primary"]} !important;
-            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12) !important;
+            box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.12) !important;
         }}
 
         /* —— Select / multiselect labels —— */
@@ -153,7 +199,7 @@ def _shared_components_css(t: dict[str, str]) -> str:
         /* —— Metrics —— */
         [data-testid="stMetric"] {{
             background: linear-gradient(145deg, {t["surface"]} 0%, {t["surface_soft"]} 100%);
-            border: 1px solid rgba(124, 58, 237, 0.08);
+            border: 1px solid rgba(14, 116, 144, 0.08);
             border-radius: {t["radius_md"]};
             padding: 0.75rem 1rem;
             box-shadow: {t["shadow_sm"]};
@@ -182,7 +228,7 @@ def _shared_components_css(t: dict[str, str]) -> str:
         details[data-testid="stExpander"] {{
             background: {t["surface"]};
             border-radius: {t["radius_md"]};
-            border: 1px solid rgba(124, 58, 237, 0.08);
+            border: 1px solid rgba(14, 116, 144, 0.08);
             box-shadow: {t["shadow_sm"]};
         }}
 
@@ -232,7 +278,7 @@ def render_app_styles() -> None:
             backdrop-filter: blur(16px) saturate(1.2);
             -webkit-backdrop-filter: blur(16px) saturate(1.2);
             border-right: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 4px 0 32px rgba(76, 29, 149, 0.08);
+            box-shadow: 4px 0 32px rgba(11, 18, 32, 0.08);
         }}
         [data-testid="stSidebar"] > div:first-child {{
             padding-top: 1.25rem;
@@ -241,7 +287,7 @@ def render_app_styles() -> None:
             text-align: center;
             padding: 0.75rem 0.5rem 1.25rem;
             margin-bottom: 0.5rem;
-            border-bottom: 1px solid rgba(124, 58, 237, 0.08);
+            border-bottom: 1px solid rgba(14, 116, 144, 0.08);
         }}
         [data-testid="stSidebar"] .sidebar-logo {{
             width: 48px;
@@ -253,7 +299,7 @@ def render_app_styles() -> None:
             align-items: center;
             justify-content: center;
             font-size: 1.35rem;
-            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.35);
+            box-shadow: 0 8px 20px rgba(14, 116, 144, 0.35);
         }}
         [data-testid="stSidebar"] .sidebar-brand-name {{
             font-size: 1.25rem;
@@ -289,24 +335,25 @@ def render_app_styles() -> None:
         }}
         [data-testid="stSidebar"] div[data-testid="stRadio"] label {{
             background: rgba(255, 255, 255, 0.65);
-            border: 1px solid rgba(124, 58, 237, 0.1);
+            border: 1px solid rgba(14, 116, 144, 0.1);
             border-radius: 12px !important;
             padding: 0.65rem 0.9rem !important;
             font-weight: 600 !important;
             font-size: 0.9rem !important;
             color: {t["primary_deep"]} !important;
-            transition: all 0.15s ease !important;
+            transition: all 0.2s cubic-bezier(.2,.8,.2,1) !important;
         }}
         [data-testid="stSidebar"] div[data-testid="stRadio"] label:hover {{
-            border-color: rgba(124, 58, 237, 0.25);
+            border-color: rgba(14, 116, 144, 0.25);
             background: rgba(255, 255, 255, 0.9);
+            transform: translateX(3px);
         }}
         [data-testid="stSidebar"] div[data-testid="stRadio"] label[data-checked="true"],
         [data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) {{
             background: linear-gradient(135deg, {t["primary"]}, {t["primary_dark"]}) !important;
             color: #fff !important;
             border-color: transparent !important;
-            box-shadow: 0 6px 16px rgba(124, 58, 237, 0.35);
+            box-shadow: 0 6px 16px rgba(14, 116, 144, 0.35);
         }}
 
         /* —— Main —— */
@@ -328,6 +375,7 @@ def render_app_styles() -> None:
             box-shadow: {t["shadow_md"]};
             border: 1px solid rgba(255, 255, 255, 0.8);
             overflow: hidden;
+            animation: db-rise 0.45s ease both;
         }}
         .app-page-hero::before {{
             content: "";
@@ -336,7 +384,7 @@ def render_app_styles() -> None:
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, {t["primary"]}, {t["accent"]}, #a855f7);
+            background: linear-gradient(90deg, {t["primary"]}, {t["accent"]}, #E8B923);
         }}
         .app-page-hero h1 {{
             margin: 0 0 0.4rem 0;
@@ -356,7 +404,7 @@ def render_app_styles() -> None:
             display: inline-flex;
             align-items: center;
             gap: 0.35rem;
-            background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(99,102,241,0.08));
+            background: linear-gradient(135deg, rgba(14,116,144,0.1), rgba(232,185,35,0.08));
             color: {t["primary"]};
             font-size: 0.7rem;
             font-weight: 700;
@@ -365,13 +413,13 @@ def render_app_styles() -> None:
             padding: 0.3rem 0.75rem;
             border-radius: 999px;
             margin-bottom: 0.75rem;
-            border: 1px solid rgba(124, 58, 237, 0.12);
+            border: 1px solid rgba(14, 116, 144, 0.12);
         }}
 
         [data-testid="stVerticalBlockBorderWrapper"] {{
             background: {t["surface"]} !important;
             border-radius: {t["radius_lg"]} !important;
-            border: 1px solid rgba(124, 58, 237, 0.06) !important;
+            border: 1px solid rgba(14, 116, 144, 0.06) !important;
             box-shadow: {t["shadow_md"]} !important;
             padding: 0.5rem 0.65rem 0.85rem !important;
         }}
@@ -389,14 +437,16 @@ def render_app_styles() -> None:
             border-radius: {t["radius_lg"]};
             padding: 1.35rem 1.6rem 0.65rem;
             margin-bottom: 1.1rem;
-            border: 1px solid rgba(124, 58, 237, 0.08);
+            border: 1px solid rgba(14, 116, 144, 0.08);
             box-shadow: {t["shadow_sm"]};
             border-left: 4px solid {t["primary"]};
-            transition: box-shadow 0.2s ease, transform 0.2s ease;
+            transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+            animation: db-rise 0.4s ease both;
         }}
         .job-match-card:hover {{
             box-shadow: {t["shadow_md"]};
-            transform: translateY(-2px);
+            transform: translateY(-4px);
+            border-left-color: {t["accent"]};
         }}
         .job-match-card h3 {{
             color: {t["primary_deep"]};
@@ -418,8 +468,9 @@ def render_app_styles() -> None:
             margin-bottom: 1.35rem;
             border-radius: {t["radius_lg"]};
             background: {t["surface"]};
-            border: 1px solid rgba(124, 58, 237, 0.08);
+            border: 1px solid rgba(14, 116, 144, 0.08);
             box-shadow: {t["shadow_md"]};
+            animation: db-rise 0.4s ease both;
         }}
         .profile-avatar {{
             width: 68px;
@@ -433,7 +484,7 @@ def render_app_styles() -> None:
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.3);
+            box-shadow: 0 8px 20px rgba(14, 116, 144, 0.3);
         }}
         .profile-header-text h2 {{
             margin: 0 0 0.2rem 0 !important;
@@ -448,7 +499,7 @@ def render_app_styles() -> None:
             display: inline-block;
             padding: 0.28rem 0.7rem;
             border-radius: 999px;
-            background: rgba(124, 58, 237, 0.08);
+            background: rgba(14, 116, 144, 0.08);
             color: {t["primary_dark"]};
             font-size: 0.78rem;
             font-weight: 600;
@@ -469,7 +520,7 @@ def render_app_styles() -> None:
             align-items: center;
             padding: 0.28rem 0.7rem;
             border-radius: 999px;
-            background: rgba(124, 58, 237, 0.08);
+            background: rgba(14, 116, 144, 0.08);
             color: {t["primary_dark"]};
             font-size: 0.78rem;
             font-weight: 600;
@@ -489,7 +540,7 @@ def render_app_styles() -> None:
             border: 0;
             height: 1px;
             margin: 1.4rem 0 1.1rem;
-            background: linear-gradient(90deg, rgba(124,58,237,0.25), transparent);
+            background: linear-gradient(90deg, rgba(14,116,144,0.25), transparent);
         }}
         .job-match-card {{
             padding: 1.1rem 1.25rem 0.55rem;
@@ -503,7 +554,7 @@ def render_app_styles() -> None:
         }}
         .stat-card {{
             background: {t["surface"]};
-            border: 1px solid rgba(124, 58, 237, 0.1);
+            border: 1px solid rgba(14, 116, 144, 0.1);
             border-radius: {t["radius_md"]};
             padding: 1rem 1.1rem 0.95rem;
             box-shadow: {t["shadow_sm"]};
@@ -523,7 +574,7 @@ def render_app_styles() -> None:
             width: 64px;
             height: 64px;
             border-radius: 50%;
-            background: linear-gradient(135deg, rgba(124,58,237,0.12), transparent);
+            background: linear-gradient(135deg, rgba(14,116,144,0.12), transparent);
         }}
         .stat-card-label {{
             margin: 0;
@@ -551,8 +602,9 @@ def render_app_styles() -> None:
             border-radius: {t["radius_xl"]};
             padding: 2.4rem 1.5rem;
             box-shadow: {t["shadow_md"]};
-            border: 1px solid rgba(124, 58, 237, 0.08);
+            border: 1px solid rgba(14, 116, 144, 0.08);
             margin-bottom: 1rem;
+            animation: db-rise 0.45s ease both;
         }}
         .empty-panel h2 {{
             margin: 0.4rem 0 0.35rem;
@@ -578,7 +630,7 @@ def render_app_styles() -> None:
             align-items: center;
             padding: 0.22rem 0.7rem;
             border-radius: 999px;
-            background: rgba(124, 58, 237, 0.08);
+            background: rgba(14, 116, 144, 0.08);
             color: {t["primary_deep"]};
             font-size: 0.78rem;
             font-weight: 600;
@@ -599,7 +651,7 @@ def render_app_styles() -> None:
         }}
         .dash-chart-panel {{
             background: {t["surface"]};
-            border: 1px solid rgba(124, 58, 237, 0.08);
+            border: 1px solid rgba(14, 116, 144, 0.08);
             border-radius: {t["radius_lg"]};
             padding: 0.75rem 0.85rem 0.45rem;
             box-shadow: {t["shadow_sm"]};
@@ -675,7 +727,7 @@ def render_app_styles() -> None:
             padding: 0.28rem 0.65rem;
             border-radius: 999px;
             background: {t["surface_soft"]};
-            border: 1px solid rgba(124, 58, 237, 0.1);
+            border: 1px solid rgba(14, 116, 144, 0.1);
             color: {t["primary_deep"]};
             font-size: 0.78rem;
             font-weight: 700;
@@ -685,7 +737,7 @@ def render_app_styles() -> None:
             background: rgba(255,255,255,0.55);
             padding: 0.35rem;
             border-radius: 999px;
-            border: 1px solid rgba(124, 58, 237, 0.08);
+            border: 1px solid rgba(14, 116, 144, 0.08);
             margin-bottom: 0.85rem;
         }}
         .stTabs [data-baseweb="tab"] {{
@@ -696,7 +748,7 @@ def render_app_styles() -> None:
         .stTabs [aria-selected="true"] {{
             background: #fff !important;
             color: {t["primary"]} !important;
-            box-shadow: 0 4px 12px rgba(76, 29, 149, 0.1);
+            box-shadow: 0 4px 12px rgba(11, 18, 32, 0.1);
         }}
         @media (max-width: 900px) {{
             .stat-card-grid {{
@@ -745,7 +797,7 @@ def render_app_styles() -> None:
         /* —— File uploader —— */
         [data-testid="stFileUploader"] section {{
             background: {t["surface_soft"]};
-            border: 2px dashed rgba(124, 58, 237, 0.2);
+            border: 2px dashed rgba(14, 116, 144, 0.2);
             border-radius: {t["radius_lg"]};
             padding: 0.75rem;
             transition: border-color 0.2s ease;
@@ -814,8 +866,8 @@ def render_auth_styles() -> None:
         {split_right} > div {{
             background: {t["surface"]};
             border-radius: 20px;
-            box-shadow: 0 22px 50px rgba(76, 29, 149, 0.12), 0 8px 20px rgba(15, 23, 42, 0.06);
-            border: 1px solid rgba(124, 58, 237, 0.08);
+            box-shadow: 0 22px 50px rgba(11, 18, 32, 0.12), 0 8px 20px rgba(15, 23, 42, 0.06);
+            border: 1px solid rgba(14, 116, 144, 0.08);
             min-height: 580px;
             height: 100%;
             padding: 2.25rem 2.5rem 1.75rem !important;
@@ -833,14 +885,14 @@ def render_auth_styles() -> None:
         }}
         {create_row} button {{
             background: {t["surface"]} !important;
-            border: 2px solid rgba(124, 58, 237, 0.28) !important;
+            border: 2px solid rgba(14, 116, 144, 0.28) !important;
             color: {t["primary_deep"]} !important;
             font-weight: 700 !important;
             font-size: 0.84rem !important;
             border-radius: 999px !important;
             padding: 0.32rem 1rem !important;
             min-height: 2rem !important;
-            box-shadow: 0 8px 20px rgba(76, 29, 149, 0.16) !important;
+            box-shadow: 0 8px 20px rgba(11, 18, 32, 0.16) !important;
         }}
         {create_row} button:hover {{
             border-color: {t["primary"]} !important;
@@ -856,8 +908,8 @@ def render_auth_styles() -> None:
             max-width: 14rem;
             border-radius: 999px;
             background: {t["surface"]};
-            border: 1px solid rgba(124, 58, 237, 0.15);
-            box-shadow: 0 4px 14px rgba(76, 29, 149, 0.08);
+            border: 1px solid rgba(14, 116, 144, 0.15);
+            box-shadow: 0 4px 14px rgba(11, 18, 32, 0.08);
             color: {t["primary_dark"]};
             font-size: 0.76rem;
             font-weight: 700;
@@ -873,11 +925,11 @@ def render_auth_styles() -> None:
         }}
         @keyframes auth-lang-pulse {{
             0%, 100% {{
-                box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.35);
+                box-shadow: 0 0 0 0 rgba(14, 116, 144, 0.35);
                 transform: scale(1);
             }}
             50% {{
-                box-shadow: 0 0 0 7px rgba(124, 58, 237, 0);
+                box-shadow: 0 0 0 7px rgba(14, 116, 144, 0);
                 transform: scale(1.02);
             }}
         }}
@@ -949,12 +1001,12 @@ def render_auth_styles() -> None:
             align-items: center;
         }}
         .auth-illustration-wrap {{
-            background: linear-gradient(165deg, #ede9fe 0%, #ddd6fe 45%, #c4b5fd 100%);
+            background: linear-gradient(165deg, #0E7490 0%, #155E75 52%, #0B4A5C 100%);
             border-radius: 20px;
             padding: 1.35rem 1.1rem 1.5rem;
             margin-bottom: 1.35rem;
             width: min(100%, 300px);
-            box-shadow: 0 16px 36px rgba(91, 33, 182, 0.14);
+            box-shadow: 0 16px 36px rgba(14, 116, 144, 0.22);
         }}
         .auth-illustration {{
             width: min(100%, 260px);
@@ -996,14 +1048,14 @@ def render_auth_styles() -> None:
         }}
         {split_right} div[data-testid="stTextInput"] input {{
             background: {t["surface"]} !important;
-            border: 1.5px solid rgba(124, 58, 237, 0.18) !important;
+            border: 1.5px solid rgba(14, 116, 144, 0.18) !important;
             border-radius: 12px !important;
             padding: 0.65rem 0.85rem !important;
             color: {t["primary_deep"]} !important;
         }}
         {split_right} div[data-testid="stTextInput"] input:focus {{
             border-color: {t["primary"]} !important;
-            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12) !important;
+            box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.12) !important;
         }}
         {split_right} div[data-testid="stFormSubmitButton"] button {{
             width: 100%;
@@ -1069,7 +1121,7 @@ def render_auth_styles() -> None:
             color: #fff;
         }}
         .reg-wizard-step.done .reg-wizard-dot {{
-            background: #c4b5fd;
+            background: #9FD6D2;
             color: {t["primary_deep"]};
         }}
         .reg-wizard-label {{
@@ -1090,7 +1142,7 @@ def render_auth_styles() -> None:
         }}
         .reg-wizard-nav [data-testid="column"]:first-child button {{
             background: {t["surface_soft"]} !important;
-            border: 1.5px solid rgba(124, 58, 237, 0.22) !important;
+            border: 1.5px solid rgba(14, 116, 144, 0.22) !important;
             color: {t["primary_deep"]} !important;
             font-weight: 600 !important;
         }}
