@@ -106,7 +106,9 @@ def test_overview_includes_users_and_tokens(sqlite_db, monkeypatch):
     jane = next(item for item in overview["users"] if item["email"] == "jane@example.com")
     assert jane["tokens_consumed"] == 150
     assert overview["support"]["unread"] == 0
-    assert overview["support"]["conversations"] == []
+    spaces = overview["support"]["conversations"]
+    assert {item["email"] for item in spaces} == {"jane@example.com"}
+    assert spaces[0]["has_messages"] is False
     listed = list_registered_users()
     assert {row["email"] for row in listed} == {"jane@example.com"}
 

@@ -88,6 +88,7 @@ def admin_support_unread() -> int:
 
 
 def admin_support_conversations() -> list[dict[str, Any]]:
+    """Every registered candidate gets a dedicated private chat space."""
     return list_support_conversations()
 
 

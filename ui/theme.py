@@ -911,6 +911,17 @@ def render_app_styles() -> None:
         }}
         .support-inbox-item strong {{ display: block; }}
         .support-inbox-item small {{ color: {t["muted"]}; }}
+        .support-space-header {{
+            background: {t["surface"]};
+            border: 1px solid rgba(14, 116, 144, 0.12);
+            border-radius: {t["radius_lg"]};
+            padding: 0.85rem 1rem 0.95rem;
+            margin-bottom: 0.7rem;
+            box-shadow: {t["shadow_sm"]};
+        }}
+        .support-space-header strong {{ display: block; font-size: 1.05rem; }}
+        .support-space-header small {{ display: block; color: {t["muted"]}; margin: 0.15rem 0 0.35rem; }}
+        .support-space-header span {{ display: block; font-size: 0.78rem; color: {t["primary"]}; font-weight: 600; }}
 
         /* —— File uploader —— */
         [data-testid="stFileUploader"] section {{

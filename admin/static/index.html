@@ -159,7 +159,9 @@
     .support-compose textarea:focus { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(14,116,144,.12); }
     .support-compose .primary { align-self: flex-start; }
     .support-start { display: flex; gap: .5rem; padding: .75rem; border-top: 1px solid var(--line); }
-    .support-start select { flex: 1; border: 1.5px solid var(--line); border-radius: 12px; padding: .55rem .7rem; }
+    .support-start input {
+      flex: 1; width: 100%; border: 1.5px solid var(--line); border-radius: 12px; padding: .55rem .7rem;
+    }
     @media (max-width: 800px) { .support-inbox { grid-template-columns: 1fr; } }
     .modal-bg {
       position: fixed; inset: 0; background: rgba(11,18,32,.45); display: grid; place-items: center;
@@ -263,18 +265,17 @@
 
     <section id="tab-support" class="hidden">
       <article class="card" style="margin-top:1.2rem">
-        <h2>Support candidats</h2>
-        <p style="margin:0 0 .8rem;color:var(--muted);font-size:.9rem">Chaque conversation est privée : votre réponse n’est visible que par le candidat sélectionné.</p>
+        <h2>Espaces chat</h2>
+        <p style="margin:0 0 .8rem;color:var(--muted);font-size:.9rem">Chaque candidat a son propre espace. Votre réponse n’est visible que par la personne sélectionnée.</p>
         <div class="support-inbox">
           <div>
-            <div id="support-list" class="support-inbox-list"></div>
-            <div class="support-start">
-              <select id="support-pick-user"></select>
-              <button type="button" class="ghost" id="support-open-user">Ouvrir</button>
+            <div class="support-start" style="border-top:0;border-bottom:1px solid var(--line)">
+              <input id="support-user-search" placeholder="Rechercher un candidat…" />
             </div>
+            <div id="support-list" class="support-inbox-list"></div>
           </div>
           <div id="support-thread-pane" class="support-thread-pane">
-            <p class="muted" style="color:var(--muted)">Sélectionnez une conversation.</p>
+            <p class="muted" style="color:var(--muted)">Sélectionnez l’espace d’un candidat.</p>
           </div>
         </div>
       </article>
@@ -493,34 +494,57 @@
 
     function renderSupportInbox() {
       const list = $("support-list");
-      const pick = $("support-pick-user");
-      if (!list || !pick) return;
+      if (!list) return;
       const conversations = (state.data && state.data.support && state.data.support.conversations) || [];
       const users = (state.data && state.data.users) || [];
-      if (!conversations.length) {
-        list.innerHTML = '<p class="empty" style="padding:1rem">Aucun message pour le moment.</p>';
-      } else {
-        list.innerHTML = conversations.map((c) => {
-          const name = c.full_name || c.email || ("#" + c.user_id);
-          const preview = String(c.last_body || "").slice(0, 80);
-          const badge = Number(c.unread || 0) > 0 ? (" · " + c.unread + " non lu") : "";
-          const active = Number(state.supportUserId) === Number(c.user_id) ? " active" : "";
-          return '<button type="button" class="support-inbox-item' + active + '" data-user-id="' + Number(c.user_id) + '">'
-            + '<strong>' + escapeHtml(name) + '</strong>'
-            + '<div class="meta">' + escapeHtml(c.email || "") + badge + '</div>'
-            + '<div class="meta">' + escapeHtml(preview) + '</div>'
-            + '</button>';
-        }).join("");
-        list.querySelectorAll(".support-inbox-item").forEach((btn) => {
-          btn.addEventListener("click", () => openSupportThread(Number(btn.dataset.userId)));
-        });
+      const byId = {};
+      conversations.forEach((c) => { byId[Number(c.user_id)] = c; });
+      let rows = users.map((u) => {
+        const extra = byId[Number(u.id)] || {};
+        return {
+          user_id: Number(u.id),
+          full_name: u.full_name || extra.full_name || "",
+          email: u.email || extra.email || "",
+          last_body: extra.last_body || "",
+          last_at: extra.last_at || "",
+          unread: Number(extra.unread || 0),
+          has_messages: !!extra.has_messages || !!extra.last_body,
+        };
+      });
+      if (!rows.length) {
+        rows = conversations.map((c) => ({
+          user_id: Number(c.user_id),
+          full_name: c.full_name || "",
+          email: c.email || "",
+          last_body: c.last_body || "",
+          last_at: c.last_at || "",
+          unread: Number(c.unread || 0),
+          has_messages: !!c.has_messages || !!c.last_body,
+        }));
       }
-      const convIds = new Set(conversations.map((c) => Number(c.user_id)));
-      pick.innerHTML = users.map((u) => {
-        const label = (u.full_name || "Sans nom") + " — " + (u.email || "");
-        return '<option value="' + Number(u.id) + '"' + (convIds.has(Number(u.id)) ? "" : "") + ">"
-          + escapeHtml(label) + "</option>";
+      const query = (($("support-user-search") && $("support-user-search").value) || "").trim().toLowerCase();
+      if (query) {
+        rows = rows.filter((c) => ((c.full_name || "") + " " + (c.email || "")).toLowerCase().includes(query));
+      }
+      rows.sort((a, b) => (Number(b.unread) - Number(a.unread)) || String(b.last_at).localeCompare(String(a.last_at)));
+      if (!rows.length) {
+        list.innerHTML = '<p class="empty" style="padding:1rem">Aucun candidat.</p>';
+        return;
+      }
+      list.innerHTML = rows.map((c) => {
+        const name = c.full_name || c.email || ("#" + c.user_id);
+        const preview = c.last_body ? String(c.last_body).slice(0, 80) : "Aucun message — espace vide";
+        const badge = Number(c.unread || 0) > 0 ? (" · " + c.unread + " non lu") : "";
+        const active = Number(state.supportUserId) === Number(c.user_id) ? " active" : "";
+        return '<button type="button" class="support-inbox-item' + active + '" data-user-id="' + Number(c.user_id) + '">'
+          + '<strong>' + escapeHtml(name) + '</strong>'
+          + '<div class="meta">' + escapeHtml(c.email || "") + badge + '</div>'
+          + '<div class="meta">' + escapeHtml(preview) + '</div>'
+          + '</button>';
       }).join("");
+      list.querySelectorAll(".support-inbox-item").forEach((btn) => {
+        btn.addEventListener("click", () => openSupportThread(Number(btn.dataset.userId)));
+      });
     }
 
     async function openSupportThread(userId) {
@@ -545,8 +569,9 @@
           }).join("")
         : '<p style="color:var(--muted)">Aucun message dans ce fil.</p>';
       pane.innerHTML =
-        '<div><strong>' + escapeHtml(user.full_name || user.email || ("#" + userId)) + '</strong>'
-        + '<div style="color:var(--muted);font-size:.85rem">' + escapeHtml(user.email || "") + '</div></div>'
+        '<div><strong>Espace de ' + escapeHtml(user.full_name || user.email || ("#" + userId)) + '</strong>'
+        + '<div style="color:var(--muted);font-size:.85rem">' + escapeHtml(user.email || "") + '</div>'
+        + '<div style="color:#0E7490;font-size:.78rem;font-weight:600;margin-top:.25rem">Fil privé — seul ce candidat voit vos messages.</div></div>'
         + '<div class="support-thread">' + thread + '</div>'
         + '<form class="support-compose" id="support-reply-form">'
         + '<textarea id="support-reply-body" required maxlength="4000" placeholder="Répondre uniquement à ce candidat…"></textarea>'
@@ -639,10 +664,9 @@
       btn.addEventListener("click", () => setTab(btn.dataset.tab));
     });
     $("user-search").addEventListener("input", renderUsers);
-    $("support-open-user").addEventListener("click", () => {
-      const id = Number($("support-pick-user").value);
-      if (id) openSupportThread(id);
-    });
+    if ($("support-user-search")) {
+      $("support-user-search").addEventListener("input", renderSupportInbox);
+    }
     $("refresh-btn").addEventListener("click", async () => {
       if (window.__DOWSONBOST_ADMIN__ && window.__DOWSONBOST_ADMIN__.embedded) {
         window.location.reload();

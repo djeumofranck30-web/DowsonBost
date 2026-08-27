@@ -1728,7 +1728,7 @@ def mark_support_thread_read(user_id: int, *, incoming_role: str) -> None:
 
 
 def list_support_conversations() -> list[dict[str, Any]]:
-    """One row per candidate who has a support thread, newest last message first."""
+    """One private chat space per registered candidate, newest activity first."""
     init_persistence_tables()
     with connect() as conn:
         rows = conn.execute(
@@ -1742,33 +1742,39 @@ def list_support_conversations() -> list[dict[str, Any]]:
                        last_msg.sender_role AS last_role,
                        COALESCE(unread.total, 0) AS unread
                 FROM users u
-                INNER JOIN (
+                LEFT JOIN (
                     SELECT user_id, MAX(id) AS last_id
                     FROM support_messages
                     GROUP BY user_id
                 ) latest ON latest.user_id = u.id
-                INNER JOIN support_messages last_msg ON last_msg.id = latest.last_id
+                LEFT JOIN support_messages last_msg ON last_msg.id = latest.last_id
                 LEFT JOIN (
                     SELECT user_id, COUNT(*) AS total
                     FROM support_messages
                     WHERE sender_role = 'user' AND read_at IS NULL
                     GROUP BY user_id
                 ) unread ON unread.user_id = u.id
-                ORDER BY last_msg.created_at DESC, last_msg.id DESC
+                ORDER BY COALESCE(unread.total, 0) DESC,
+                         CASE WHEN last_msg.created_at IS NULL THEN 1 ELSE 0 END,
+                         last_msg.created_at DESC,
+                         LOWER(u.full_name) ASC
                 """
             )
         ).fetchall()
     conversations: list[dict[str, Any]] = []
     for row in rows:
+        last_body = str(row["last_body"] or "")
+        last_at = str(row["last_at"] or "")
         conversations.append(
             {
                 "user_id": int(row["user_id"]),
                 "full_name": str(row["full_name"] or ""),
                 "email": str(row["email"] or ""),
-                "last_body": str(row["last_body"] or ""),
-                "last_at": str(row["last_at"] or ""),
+                "last_body": last_body,
+                "last_at": last_at,
                 "last_role": str(row["last_role"] or ""),
                 "unread": int(row["unread"] or 0),
+                "has_messages": bool(last_at),
             }
         )
     return conversations

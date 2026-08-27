@@ -45,6 +45,30 @@ def _inject_admin_chrome() -> None:
         [data-testid="stSidebar"] { display: none !important; }
         .block-container { padding-top: 1.1rem !important; max-width: 1280px !important; }
         iframe { border: 0 !important; }
+        .support-space-header {
+            background: #fff;
+            border: 1px solid rgba(14, 116, 144, 0.12);
+            border-radius: 16px;
+            padding: 0.85rem 1rem 0.95rem;
+            margin-bottom: 0.7rem;
+        }
+        .support-space-header strong {
+            display: block;
+            font-size: 1.05rem;
+            color: #0B1220;
+        }
+        .support-space-header small {
+            display: block;
+            color: #5B6573;
+            margin: 0.15rem 0 0.35rem;
+        }
+        .support-space-header span {
+            display: block;
+            font-size: 0.78rem;
+            color: #0E7490;
+            font-weight: 600;
+        }
+        [data-testid="stRadio"] p { white-space: pre-line; line-height: 1.25; }
         """
         + _shared_components_css(THEME)
         + """
@@ -111,109 +135,122 @@ def _user_label(user: dict) -> str:
     return f"{user.get('full_name') or 'Sans nom'} — {user.get('email')} ({tokens} tokens)"
 
 
-def _conversation_label(item: dict) -> str:
+def _space_label(item: dict) -> str:
     unread = int(item.get("unread") or 0)
-    base = f"{item.get('full_name') or 'Sans nom'} — {item.get('email')}"
+    name = item.get("full_name") or "Sans nom"
+    email = item.get("email") or ""
     if unread:
-        return f"{base}  · {unread} non lu(s)"
-    return base
+        return f"{name}  · {unread} non lu(s)\n{email}"
+    if item.get("has_messages"):
+        return f"{name}\n{email}"
+    return f"{name}  · vide\n{email}"
 
 
 def _render_admin_support(admin: dict) -> None:
     unread = admin_support_unread()
     st.markdown(
-        f"### Support candidats{' · ' + str(unread) + ' message(s) non lu(s)' if unread else ''}"
+        f"### Espaces chat{' · ' + str(unread) + ' message(s) non lu(s)' if unread else ''}"
     )
     st.caption(
-        "Chaque conversation est privée : vous voyez quel candidat a écrit, "
-        "et votre réponse n’est visible que par ce candidat."
+        "Chaque candidat a son propre espace. Ouvrez un nom pour voir uniquement "
+        "sa conversation — votre réponse n’est visible que par cette personne."
     )
     if st.session_state.pop("admin_reply_sent", False):
         st.success("Réponse envoyée — seul ce candidat la verra.")
-    conversations = admin_support_conversations()
-    accounts = [public_user_record(item) for item in list_registered_users()]
-    account_by_id = {int(item["id"]): item for item in accounts}
-    conv_by_id = {int(item["user_id"]): item for item in conversations}
 
-    option_ids = [int(item["user_id"]) for item in conversations]
-    pending_id = st.session_state.get("admin_support_open_user")
-    if pending_id and int(pending_id) not in option_ids and int(pending_id) in account_by_id:
-        option_ids = [int(pending_id)] + option_ids
-
-    def _label_for(uid: int) -> str:
-        if uid in conv_by_id:
-            return _conversation_label(conv_by_id[uid])
-        person = account_by_id.get(uid) or {}
-        return f"{person.get('full_name') or 'Sans nom'} — {person.get('email')}"
-
-    selected_id = None
-    if option_ids:
-        selected_id = st.selectbox(
-            "Conversations",
-            options=option_ids,
-            format_func=_label_for,
-            key="admin_support_conversation",
-        )
-    else:
-        st.info("Aucun message pour le moment. Vous pouvez écrire à un candidat ci-dessous.")
-
-    other_ids = [
-        int(item["id"])
-        for item in accounts
-        if selected_id is None or int(item["id"]) != int(selected_id)
-    ]
-    if other_ids:
-        with st.expander("Écrire à un autre candidat", expanded=not option_ids):
-            pick_id = st.selectbox(
-                "Candidat",
-                options=other_ids,
-                format_func=_label_for,
-                key="admin_support_pick_user",
-            )
-            if st.button("Ouvrir cette conversation", use_container_width=True):
-                st.session_state.admin_support_open_user = int(pick_id)
-                st.session_state.admin_support_conversation = int(pick_id)
-                st.rerun()
-
-    if not selected_id:
+    spaces = admin_support_conversations()
+    if not spaces:
+        st.info("Aucun candidat inscrit pour le moment.")
         return
 
-    target = account_by_id.get(int(selected_id))
-    mark_admin_support_read(int(selected_id))
-    thread = admin_support_thread(int(selected_id))
-    name = (target or {}).get("full_name") or "Candidat"
-    email = (target or {}).get("email") or ""
-    st.markdown(f"**{name}**  \n{email}")
-    st.markdown(
-        render_support_thread_html(
-            thread,
-            user_label=name,
-            admin_label="Vous (admin)",
-            empty_text="Aucun message dans cette conversation.",
-        ),
-        unsafe_allow_html=True,
-    )
-    body = st.text_area(
-        "Réponse",
-        height=110,
-        max_chars=4000,
-        placeholder="Votre réponse à ce candidat…",
-        key="admin_support_reply_body",
-    )
-    if st.button("Envoyer la réponse", type="primary", use_container_width=True, key="admin_support_send"):
-        ok, message, _saved = send_admin_support_reply(
-            int(selected_id),
-            body,
-            admin_id=int(admin.get("id") or 0) or None,
-            admin_email=str(admin.get("email") or ""),
+    by_id = {int(item["user_id"]): item for item in spaces}
+    pending_id = st.session_state.get("admin_support_open_user")
+    if pending_id and int(pending_id) in by_id:
+        st.session_state.admin_support_conversation = int(pending_id)
+        st.session_state.pop("admin_support_open_user", None)
+    if st.session_state.get("admin_support_conversation") not in by_id:
+        preferred = next((item for item in spaces if int(item.get("unread") or 0)), spaces[0])
+        st.session_state.admin_support_conversation = int(preferred["user_id"])
+
+    list_col, chat_col = st.columns([0.4, 0.6], gap="large")
+    with list_col:
+        st.markdown("#### Candidats")
+        query = (st.text_input(
+            "Rechercher un candidat",
+            placeholder="Nom ou e-mail…",
+            key="admin_support_search",
+            label_visibility="collapsed",
+        ) or "").strip().lower()
+        filtered = []
+        for item in spaces:
+            haystack = f"{item.get('full_name') or ''} {item.get('email') or ''}".lower()
+            if not query or query in haystack:
+                filtered.append(item)
+        selected_now = st.session_state.get("admin_support_conversation")
+        if selected_now in by_id and all(int(item["user_id"]) != int(selected_now) for item in filtered):
+            filtered = [by_id[int(selected_now)]] + filtered
+        if not filtered:
+            st.info("Aucun candidat ne correspond à la recherche.")
+            option_ids = [int(st.session_state.admin_support_conversation)]
+        else:
+            option_ids = [int(item["user_id"]) for item in filtered]
+        selected_id = st.radio(
+            "Espace du candidat",
+            options=option_ids,
+            format_func=lambda uid: _space_label(by_id.get(int(uid)) or {}),
+            key="admin_support_conversation",
         )
-        if ok:
-            st.session_state.admin_stay_on_support = True
-            st.session_state.admin_support_open_user = int(selected_id)
-            st.session_state.admin_clear_reply = True
-            st.session_state.admin_reply_sent = True
-            st.rerun()
-        st.error(message)
+
+    selected_id = int(selected_id)
+    if st.session_state.get("admin_support_last_user") != selected_id:
+        st.session_state.admin_support_last_user = selected_id
+        st.session_state.admin_support_reply_body = ""
+
+    target = by_id.get(selected_id) or {}
+    mark_admin_support_read(selected_id)
+    thread = admin_support_thread(selected_id)
+    name = target.get("full_name") or "Candidat"
+    email = target.get("email") or ""
+
+    with chat_col:
+        st.markdown(
+            f'<div class="support-space-header">'
+            f"<strong>Espace de {html.escape(name)}</strong>"
+            f"<small>{html.escape(email)}</small>"
+            f"<span>Fil privé — seul ce candidat voit vos messages.</span>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            render_support_thread_html(
+                thread,
+                user_label=name,
+                admin_label="Vous (admin)",
+                empty_text="Aucun message dans cet espace. Vous pouvez écrire en premier.",
+            ),
+            unsafe_allow_html=True,
+        )
+        body = st.text_area(
+            "Réponse",
+            height=110,
+            max_chars=4000,
+            placeholder=f"Votre message à {name} uniquement…",
+            key="admin_support_reply_body",
+        )
+        if st.button("Envoyer dans cet espace", type="primary", use_container_width=True, key="admin_support_send"):
+            ok, message, _saved = send_admin_support_reply(
+                selected_id,
+                body,
+                admin_id=int(admin.get("id") or 0) or None,
+                admin_email=str(admin.get("email") or ""),
+            )
+            if ok:
+                st.session_state.admin_stay_on_support = True
+                st.session_state.admin_support_open_user = selected_id
+                st.session_state.admin_clear_reply = True
+                st.session_state.admin_reply_sent = True
+                st.rerun()
+            st.error(message)
 
 
 def main() -> None:

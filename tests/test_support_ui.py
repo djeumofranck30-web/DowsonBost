@@ -46,7 +46,10 @@ def test_admin_dashboard_has_per_user_inbox():
     assert "admin_support_conversations" in dash
     assert "send_admin_support_reply" in dash
     assert "admin_support_send" in dash
+    assert "Espace de" in dash
+    assert "Espaces chat" in dash
     html = _read("admin/static/index.html")
     assert 'data-tab="support"' in html
     assert "tab-support" in html
     assert "/api/admin/support/conversations" in html
+    assert "Espace de" in html

@@ -80,6 +80,7 @@ def test_support_threads_are_private_per_user(sqlite_db):
     assert "ali@example.com" in emails
     jane_conv = next(item for item in conversations if item["email"] == "jane@example.com")
     assert jane_conv["unread"] == 1
+    assert jane_conv["has_messages"] is True
     assert admin_support_unread() == 2
 
     mark_admin_support_read(jane_id)
@@ -87,3 +88,29 @@ def test_support_threads_are_private_per_user(sqlite_db):
     mark_user_support_read(jane_id)
     assert user_support_unread(jane_id) == 0
     assert admin_support_unread() == 1
+
+
+def test_every_registered_user_has_a_private_admin_space(sqlite_db):
+    jane = _register("jane@example.com", "Jane Doe")
+    ali = _register("ali@example.com", "Ali Martin")
+    paul = _register("paul@example.com", "Paul Vide")
+    send_user_support_message(int(jane["id"]), "Message de Jane")
+
+    spaces = admin_support_conversations()
+    by_email = {item["email"]: item for item in spaces}
+    assert set(by_email) == {"jane@example.com", "ali@example.com", "paul@example.com"}
+    assert by_email["jane@example.com"]["has_messages"] is True
+    assert by_email["ali@example.com"]["has_messages"] is False
+    assert by_email["paul@example.com"]["has_messages"] is False
+    assert by_email["paul@example.com"]["last_body"] == ""
+
+    send_admin_support_reply(int(paul["id"]), "Bonjour Paul, espace privé.")
+    assert "Bonjour Paul, espace privé." not in [
+        item["body"] for item in user_support_thread(int(jane["id"]))
+    ]
+    assert "Bonjour Paul, espace privé." not in [
+        item["body"] for item in user_support_thread(int(ali["id"]))
+    ]
+    assert [item["body"] for item in user_support_thread(int(paul["id"]))] == [
+        "Bonjour Paul, espace privé."
+    ]
