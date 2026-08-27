@@ -512,7 +512,10 @@ def render_app_styles() -> None:
             box-shadow: 8px 0 28px rgba(11, 18, 32, 0.22);
         }}
         section[data-testid="stSidebar"] > div:first-child,
-        [data-testid="stSidebarContent"] {{
+        [data-testid="stSidebarContent"],
+        [data-testid="stSidebarUserContent"] {{
+            display: flex !important;
+            flex-direction: column !important;
             height: 100% !important;
             min-height: 100vh !important;
             max-height: 100vh !important;
@@ -522,6 +525,22 @@ def render_app_styles() -> None:
             background:
                 radial-gradient(ellipse 80% 40% at 50% 0%, rgba(232,185,35,0.16), transparent 55%),
                 linear-gradient(180deg, #0B1628 0%, #0A1220 100%) !important;
+        }}
+        [data-testid="stSidebarUserContent"] {{
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            padding-top: 0;
+        }}
+        [data-testid="stSidebarUserContent"] > [data-testid="stVerticalBlock"],
+        [data-testid="stSidebarContent"] > div > [data-testid="stVerticalBlock"] {{
+            display: flex !important;
+            flex-direction: column !important;
+            flex: 1 1 auto !important;
+            min-height: 100% !important;
+        }}
+        [data-testid="stSidebar"] [data-testid="stElementContainer"]:has(.sidebar-flex-spacer) {{
+            flex: 1 1 auto !important;
+            min-height: 1.25rem !important;
         }}
         [data-testid="stSidebar"] .sidebar-brand {{
             text-align: center;
@@ -1201,11 +1220,16 @@ def render_app_styles() -> None:
 
         /* Late overrides — beat compact button styles */
         [data-testid="stSidebar"] [class*="st-key-sidebar_locale_select"] {{
-            margin-top: auto !important;
-            padding-top: 1.1rem;
+            padding-top: 0.85rem;
         }}
         [data-testid="stSidebar"] [class*="st-key-logout_button"] {{
-            padding: 0.55rem 0 0.85rem;
+            margin-top: auto !important;
+            margin-bottom: 0 !important;
+            padding: 0.85rem 0 1.15rem;
+            position: sticky;
+            bottom: 0;
+            z-index: 3;
+            background: linear-gradient(180deg, rgba(10, 18, 32, 0) 0%, #0A1220 32%);
         }}
         [data-testid="stSidebar"] [class*="st-key-logout_button"] button,
         [data-testid="stSidebar"] [class*="st-key-logout_button"] [data-testid="stBaseButton-secondary"],

@@ -7945,6 +7945,7 @@ def render_app() -> None:
             st.session_state.analysis_depth = analysis_depth
 
         render_language_selector(key_prefix="sidebar_locale", persist_user=True)
+        st.markdown('<div class="sidebar-flex-spacer" aria-hidden="true"></div>', unsafe_allow_html=True)
 
         if st.button(t("app.logout"), use_container_width=True, key="logout_button"):
             st.session_state.authenticated = False
