@@ -32,10 +32,10 @@ def test_support_is_in_candidate_navigation():
     assert 'st.query_params.get("nav")' in app
     assert THEME["primary"] in app
     fab_fn = app.split("def render_floating_chat_fab")[1].split("def render_history_page")[0]
-    assert 'createElement("a")' in fab_fn
-    assert 'searchParams.set("nav", "support")' in fab_fn
-    assert 'createElement("a")' in fab_fn
-    assert "doc.createElement(\"button\")" not in fab_fn
+    assert 'createElement("button")' in fab_fn
+    assert "st-key-main_navigation" in fab_fn
+    assert "Messagerie" in fab_fn
+    assert "Inbox" in fab_fn
     assert "#E11D48" not in fab_fn
 
 

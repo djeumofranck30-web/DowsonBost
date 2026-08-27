@@ -4470,6 +4470,40 @@ def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None
     primary = THEME["primary"]
     primary_dark = THEME["primary_dark"]
     accent = THEME["accent"]
+    nav_script = json.dumps(
+        """
+(function(){
+  function openMessaging(){
+    var root = document.querySelector('[class*="st-key-main_navigation"]')
+      || document.querySelector('[data-testid="stSidebar"]');
+    if (!root) return false;
+    var labels = root.querySelectorAll('label');
+    for (var i = 0; i < labels.length; i++) {
+      var text = labels[i].textContent || '';
+      if (text.indexOf('Messagerie') !== -1 || text.indexOf('Inbox') !== -1) {
+        var input = labels[i].querySelector('input');
+        if (input) { input.click(); return true; }
+        labels[i].click();
+        return true;
+      }
+    }
+    var radios = root.querySelectorAll('input[type="radio"]');
+    if (radios.length >= 5) { radios[4].click(); return true; }
+    return false;
+  }
+  if (!window.__dbChatFabNav) {
+    window.__dbChatFabNav = true;
+    document.addEventListener('click', function(ev) {
+      var target = ev.target && ev.target.closest && ev.target.closest('#db-chat-fab');
+      if (!target) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      openMessaging();
+    }, true);
+  }
+})();
+        """.strip()
+    )
     components.html(
         f"""
 <script>
@@ -4479,18 +4513,22 @@ def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None
   const unread = {unread_n};
   const svg = '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M18 21h28a5 5 0 0 1 5 5v18a5 5 0 0 1-5 5H29l-9 7v-7h-2a5 5 0 0 1-5-5V26a5 5 0 0 1 5-5z" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linejoin="round"/></svg>';
   let fab = doc.getElementById("db-chat-fab");
-  if (!fab || fab.tagName !== "A") {{
+  if (!fab || fab.tagName !== "BUTTON") {{
     if (fab) fab.remove();
-    fab = doc.createElement("a");
+    fab = doc.createElement("button");
     fab.id = "db-chat-fab";
+    fab.type = "button";
     doc.body.appendChild(fab);
   }}
-  const url = new URL(window.parent.location.href);
-  url.searchParams.set("nav", "support");
-  fab.setAttribute("href", url.toString());
   fab.innerHTML = svg;
   fab.setAttribute("aria-label", label);
   fab.title = label;
+  if (!doc.getElementById("db-chat-fab-nav-script")) {{
+    const script = doc.createElement("script");
+    script.id = "db-chat-fab-nav-script";
+    script.textContent = {nav_script};
+    doc.documentElement.appendChild(script);
+  }}
   let badge = doc.getElementById("db-chat-fab-badge");
   if (unread) {{
     if (!badge) {{
@@ -4558,7 +4596,7 @@ def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None
     @keyframes dbChatPulse {{
       0%, 100% {{
         transform: scale(1);
-        box-shadow: 0 0 0 3px {accent}, 0 12px 26px rgba(14, 116, 144, 0.42), 0 0 0 0 rgba(14, 116, 144, 0.35);
+        box-shadow: 0 0 0 3px {accent}, 0 16px 32px rgba(14, 116, 144, 0.42), 0 0 0 0 rgba(14, 116, 144, 0.35);
       }}
       50% {{
         transform: scale(1.07);
