@@ -4492,12 +4492,14 @@ def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None
     fab = doc.createElement("button");
     fab.id = "db-chat-fab";
     fab.type = "button";
-    fab.addEventListener("click", function() {{
-      const hidden = doc.querySelector('[class*="st-key-floating_chat_fab"] button');
-      if (hidden) hidden.click();
-    }});
     doc.body.appendChild(fab);
   }}
+  fab.onclick = function(ev) {{
+    if (ev) {{ ev.preventDefault(); ev.stopPropagation(); }}
+    const url = new URL(window.parent.location.href);
+    url.searchParams.set("nav", "support");
+    window.parent.location.assign(url.toString());
+  }};
   fab.innerHTML = svg;
   fab.setAttribute("aria-label", label);
   fab.title = label;
@@ -5438,6 +5440,19 @@ def init_session_state() -> None:
 def _apply_pending_navigation() -> None:
     """Apply programmatic navigation before the sidebar radio is rendered."""
     pending = st.session_state.pop("_pending_navigation", None)
+    try:
+        nav_q = st.query_params.get("nav")
+    except Exception:
+        nav_q = None
+    if isinstance(nav_q, list):
+        nav_q = nav_q[0] if nav_q else None
+    if nav_q in NAV_PAGE_KEYS:
+        st.session_state.main_navigation = nav_q
+        try:
+            del st.query_params["nav"]
+        except Exception:
+            pass
+        return
     if pending in NAV_PAGE_KEYS:
         st.session_state.main_navigation = pending
 

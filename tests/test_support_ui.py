@@ -31,6 +31,8 @@ def test_support_is_in_candidate_navigation():
     assert "@keyframes db-chat-pulse" in theme
     assert "db-chat-fab" in app
     assert "doc.body.appendChild(fab)" in app
+    assert 'searchParams.set("nav", "support")' in app
+    assert 'st.query_params.get("nav")' in app
     assert THEME["primary"] in app
     assert "#E11D48" not in app.split("def render_floating_chat_fab")[1].split("def render_history_page")[0]
 
