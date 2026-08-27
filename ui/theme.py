@@ -189,7 +189,29 @@ def _shared_components_css(t: dict[str, str]) -> str:
             box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.12) !important;
         }}
 
-        /* —— Select / multiselect labels —— */
+        span[data-baseweb="tag"],
+        [data-baseweb="tag"] {{
+            background: rgba(14, 116, 144, 0.12) !important;
+            color: {t["primary_dark"]} !important;
+        }}
+        [data-baseweb="tag"] span {{
+            color: {t["primary_dark"]} !important;
+        }}
+        [data-testid="stSlider"] [role="slider"] {{
+            background: {t["primary"]} !important;
+        }}
+        input[type="checkbox"],
+        input[type="radio"],
+        input[type="range"] {{
+            accent-color: {t["primary"]} !important;
+        }}
+        [data-baseweb="checkbox"] > div:first-child {{
+            border-color: {t["primary"]} !important;
+        }}
+        [data-baseweb="radio"] div[aria-checked="true"] {{
+            background: {t["primary"]} !important;
+            border-color: {t["primary"]} !important;
+        }}
         label[data-testid="stWidgetLabel"] {{
             font-weight: 600 !important;
             color: {t["primary_deep"]} !important;
