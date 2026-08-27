@@ -135,6 +135,7 @@ from services.support import (
 )
 from services.profile_photo import (
     cached_profile_photo_data_url,
+    cached_sidebar_photo_data_url,
     clear_profile_photo_cache,
     remove_profile_photo,
     save_profile_photo,
@@ -293,6 +294,8 @@ from persistence import (
     get_active_cv_document,
     get_analysis,
     get_analysis_apply_context,
+    get_analysis_result,
+    get_analysis_results_by_ids,
     get_connected_job_account,
     get_notification_settings,
     is_auto_search_due,
@@ -3392,6 +3395,32 @@ def run_full_analysis(
 # ---------------------------------------------------------------------------
 
 
+def _hydrate_analysis_result(
+    user_id: int | None,
+    result_id: int | None,
+    job: dict[str, Any],
+    match: dict[str, Any],
+    cover_letter_text: str | None,
+    adapted_cv_text: str | None,
+) -> tuple[dict[str, Any], dict[str, Any], str | None, str | None]:
+    """Load full job/match/documents when a collapsed card is opened or applied to."""
+    if not user_id or not result_id:
+        return job, match, cover_letter_text, adapted_cv_text
+    if "description" in job and "analyse_competences" in match:
+        return job, match, cover_letter_text, adapted_cv_text
+    full = get_analysis_result(int(user_id), int(result_id))
+    if not full:
+        return job, match, cover_letter_text, adapted_cv_text
+    return (
+        full.get("job") or job,
+        full.get("match") or match,
+        full.get("cover_letter_text")
+        if full.get("cover_letter_text") is not None
+        else cover_letter_text,
+        full.get("adapted_cv_text") if full.get("adapted_cv_text") is not None else adapted_cv_text,
+    )
+
+
 def render_page_hero(title: str, subtitle: str, badge: str = "") -> None:
     """Top hero block for each main page."""
     badge_html = f'<span class="app-badge">{html.escape(badge)}</span>' if badge else ""
@@ -3654,6 +3683,18 @@ def render_job_card(
 
     details_key = f"job_open_{result_id or rank}"
     show_details = bool(st.session_state.get(details_key))
+    if show_details:
+        job, match, cover_letter_text, adapted_cv_text = _hydrate_analysis_result(
+            user_id,
+            result_id,
+            job,
+            match,
+            cover_letter_text,
+            adapted_cv_text,
+        )
+        score = int(match.get("score_correspondance", score))
+        skills = match.get("analyse_competences") or {}
+        exp_analysis = match.get("analyse_experiences") or {}
     if st.button(
         t("job.hide_details") if show_details else t("job.toggle_details"),
         key=f"toggle_{details_key}",
@@ -3762,6 +3803,14 @@ def render_job_card(
                 use_container_width=True,
                 help=t("job.apply_auto_help"),
             ):
+                job, match, cover_letter_text, adapted_cv_text = _hydrate_analysis_result(
+                    user_id,
+                    result_id,
+                    job,
+                    match,
+                    cover_letter_text,
+                    adapted_cv_text,
+                )
                 with st.spinner(t("job.apply_auto_running")):
                     current_letter = st.session_state.get(f"cover_{result_id}") or cover_letter_text
                     current_cv = st.session_state.get(f"adapted_{result_id}") or adapted_cv_text
@@ -4102,7 +4151,6 @@ def persist_completed_analysis(
         stored = get_analysis(int(user["id"]), analysis_id)
         if stored:
             session_analysis = analysis_to_session_dict(stored)
-            session_analysis["report_pdf"] = analysis.get("report_pdf")
             return session_analysis
     except Exception as exc:  # noqa: BLE001
         st.session_state.analysis_notices.append(
@@ -4247,7 +4295,17 @@ def _render_applications_list(
         page_size=JOB_CARDS_PER_PAGE,
         filter_signature=key_prefix,
     )
+    full_by_id = get_analysis_results_by_ids(
+        user_id,
+        [int(entry["result_id"]) for entry in visible if entry.get("result_id")],
+    )
     for entry in visible:
+        payload = full_by_id.get(int(entry["result_id"]))
+        if payload:
+            entry["job"] = payload.get("job") or entry.get("job")
+            entry["match"] = payload.get("match") or entry.get("match")
+            entry["cover_letter_text"] = payload.get("cover_letter_text")
+            entry["adapted_cv_text"] = payload.get("adapted_cv_text")
         _render_application_entry(
             entry,
             user_id,
@@ -4302,6 +4360,9 @@ def render_support_page(user: dict[str, Any]) -> None:
     )
     st.caption(t("support.hint"))
     mark_user_support_read(user_id)
+    st.session_state._support_unread = 0
+    st.session_state._support_unread_uid = user_id
+    st.session_state._support_unread_at = time.time()
     messages = user_support_thread(user_id)
     st.markdown(
         render_support_thread_html(
@@ -7542,28 +7603,48 @@ def render_config_tests_panel(*, show_clear_cache: bool = True, expanded: bool =
             st.rerun()
 
 
+def _cached_support_unread(user_id: int) -> int:
+    now = time.time()
+    if (
+        st.session_state.get("_support_unread_uid") == int(user_id)
+        and (now - float(st.session_state.get("_support_unread_at") or 0)) < 15
+    ):
+        return int(st.session_state.get("_support_unread") or 0)
+    count = user_support_unread(int(user_id))
+    st.session_state._support_unread_uid = int(user_id)
+    st.session_state._support_unread_at = now
+    st.session_state._support_unread = count
+    return count
+
+
+def _sidebar_job_provider() -> str:
+    stored = st.session_state.get("job_provider")
+    if stored in JOB_PROVIDER_SIDEBAR_ORDER:
+        return str(stored)
+    provider = default_job_provider(secrets=provider_secrets_from_getter(get_secret))
+    st.session_state.job_provider = provider
+    return provider
+
+
 def render_app() -> None:
     """Main application shell with navigation."""
     render_app_styles()
     _apply_pending_navigation()
     user = st.session_state.user or {}
     user_name = user.get("full_name") or t("common.user")
-
-    provider_secrets = provider_secrets_from_getter(get_secret)
-    default_provider = default_job_provider(secrets=provider_secrets)
-    default_provider_index = JOB_PROVIDER_SIDEBAR_ORDER.index(default_provider)
-    job_provider = default_provider
+    job_provider = _sidebar_job_provider()
+    analysis_depth = st.session_state.get("analysis_depth", "standard")
 
     with st.sidebar:
         photo_url = None
         if user.get("id"):
-            photo_url = cached_profile_photo_data_url(int(user["id"]), st.session_state)
+            photo_url = cached_sidebar_photo_data_url(int(user["id"]), st.session_state)
         render_sidebar_brand(user, photo_url)
 
         st.markdown('<p class="sidebar-nav-label">Menu</p>', unsafe_allow_html=True)
         support_unread = 0
         if user.get("id"):
-            support_unread = user_support_unread(int(user["id"]))
+            support_unread = _cached_support_unread(int(user["id"]))
 
         def _sidebar_nav_label(key: str) -> str:
             label = nav_label_with_icon(key, nav_label(key))
@@ -7588,18 +7669,20 @@ def render_app() -> None:
             st.session_state.pdf_fingerprint = None
             st.rerun()
 
-        st.markdown("---")
-
-        job_provider = st.selectbox(
-            t("app.job_provider"),
-            JOB_PROVIDER_SIDEBAR_ORDER,
-            index=default_provider_index,
-            format_func=job_provider_label,
-            help=t("app.job_provider_help"),
-        )
-
-        analysis_depth = st.session_state.get("analysis_depth", "standard")
         if page == "analysis":
+            st.markdown("---")
+            options = JOB_PROVIDER_SIDEBAR_ORDER
+            current = job_provider if job_provider in options else options[0]
+            job_provider = st.selectbox(
+                t("app.job_provider"),
+                options,
+                index=options.index(current),
+                format_func=job_provider_label,
+                help=t("app.job_provider_help"),
+                key="sidebar_job_provider",
+            )
+            st.session_state.job_provider = job_provider
+
             current_depth = st.session_state.get("analysis_depth", "standard")
             if current_depth not in ANALYSIS_DEPTH_OPTIONS:
                 current_depth = "standard"

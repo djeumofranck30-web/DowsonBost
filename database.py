@@ -17,6 +17,7 @@ _database_url: str = ""
 _database_password: str = ""
 _configured = False
 _pg_local = threading.local()
+_sqlite_local = threading.local()
 
 
 class DatabaseConfigError(ValueError):
@@ -121,6 +122,7 @@ def configure_database(url: str = "", password: str = "") -> str:
         if _database_password and not urlparse(_database_url).password:
             _database_url = _merge_password_into_url(_database_url, _database_password)
         _backend = "postgres"
+        _close_sqlite_connection()
     else:
         _database_url = ""
         _database_password = ""
@@ -137,6 +139,16 @@ def _close_postgres_connection() -> None:
     with suppress(Exception):
         conn.close()
     _pg_local.conn = None
+
+
+def _close_sqlite_connection() -> None:
+    conn = getattr(_sqlite_local, "conn", None)
+    if conn is None:
+        return
+    with suppress(Exception):
+        conn.close()
+    _sqlite_local.conn = None
+    _sqlite_local.path = None
 
 
 def ensure_configured() -> None:
@@ -314,13 +326,23 @@ def connect() -> Iterator[Any]:
             ) from exc
     else:
         SQLITE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        conn = sqlite3.connect(str(SQLITE_PATH), check_same_thread=False)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA foreign_keys = ON")
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA synchronous=NORMAL")
+        path = str(SQLITE_PATH)
+        conn = getattr(_sqlite_local, "conn", None)
+        if conn is None or getattr(_sqlite_local, "path", None) != path:
+            if conn is not None:
+                with suppress(Exception):
+                    conn.close()
+            conn = sqlite3.connect(path, check_same_thread=False)
+            conn.row_factory = sqlite3.Row
+            conn.execute("PRAGMA foreign_keys = ON")
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("PRAGMA synchronous=NORMAL")
+            _sqlite_local.conn = conn
+            _sqlite_local.path = path
         try:
             yield conn
             conn.commit()
-        finally:
-            conn.close()
+        except Exception:
+            with suppress(Exception):
+                conn.rollback()
+            raise

@@ -8,7 +8,11 @@ from typing import Any
 
 from PIL import Image, UnidentifiedImageError
 
-from constants import PROFILE_PHOTO_MAX_UPLOAD_BYTES, PROFILE_PHOTO_SIZE_PX
+from constants import (
+    PROFILE_PHOTO_MAX_UPLOAD_BYTES,
+    PROFILE_PHOTO_SIDEBAR_PX,
+    PROFILE_PHOTO_SIZE_PX,
+)
 from persistence import (
     delete_user_profile_photo,
     get_user_profile_photo,
@@ -61,30 +65,69 @@ def remove_profile_photo(user_id: int) -> None:
     delete_user_profile_photo(int(user_id))
 
 
-def profile_photo_data_url(user_id: int) -> str | None:
+def _jpeg_data_url(image_bytes: bytes, mime: str, size_px: int | None = None) -> str:
+    payload = image_bytes
+    out_mime = mime or "image/jpeg"
+    if size_px and size_px < PROFILE_PHOTO_SIZE_PX:
+        image = Image.open(BytesIO(image_bytes))
+        image = image.convert("RGB")
+        image.thumbnail((size_px, size_px), Image.Resampling.LANCZOS)
+        buffer = BytesIO()
+        image.save(buffer, format="JPEG", quality=70, optimize=True)
+        payload = buffer.getvalue()
+        out_mime = "image/jpeg"
+    encoded = base64.b64encode(payload).decode("ascii")
+    return f"data:{out_mime};base64,{encoded}"
+
+
+def profile_photo_data_url(user_id: int, *, size_px: int | None = None) -> str | None:
     record = get_user_profile_photo(int(user_id))
     if not record:
         return None
-    encoded = base64.b64encode(record["image_data"]).decode("ascii")
     mime = record.get("mime_type") or "image/jpeg"
-    return f"data:{mime};base64,{encoded}"
+    return _jpeg_data_url(record["image_data"], mime, size_px=size_px)
 
 
-def cached_profile_photo_data_url(user_id: int, session: dict[str, Any] | None = None) -> str | None:
+def _photo_cache_key(size_px: int | None) -> str:
+    if size_px:
+        return f"{_SESSION_URL_KEY}_{int(size_px)}"
+    return _SESSION_URL_KEY
+
+
+def cached_profile_photo_data_url(
+    user_id: int,
+    session: dict[str, Any] | None = None,
+    *,
+    size_px: int | None = None,
+) -> str | None:
     store = session if session is not None else {}
-    if store.get(_SESSION_USER_KEY) == int(user_id) and _SESSION_URL_KEY in store:
-        value = store.get(_SESSION_URL_KEY)
+    cache_key = _photo_cache_key(size_px)
+    if store.get(_SESSION_USER_KEY) == int(user_id) and cache_key in store:
+        value = store.get(cache_key)
         return str(value) if value else None
-    url = profile_photo_data_url(int(user_id))
+    url = profile_photo_data_url(int(user_id), size_px=size_px)
     store[_SESSION_USER_KEY] = int(user_id)
-    store[_SESSION_URL_KEY] = url or ""
+    store[cache_key] = url or ""
     return url
+
+
+def cached_sidebar_photo_data_url(
+    user_id: int,
+    session: dict[str, Any] | None = None,
+) -> str | None:
+    return cached_profile_photo_data_url(
+        user_id,
+        session,
+        size_px=PROFILE_PHOTO_SIDEBAR_PX,
+    )
 
 
 def clear_profile_photo_cache(session: dict[str, Any] | None = None) -> None:
     if session is None:
         return
-    session.pop(_SESSION_URL_KEY, None)
+    for key in list(session.keys()):
+        if key == _SESSION_URL_KEY or str(key).startswith(f"{_SESSION_URL_KEY}_"):
+            session.pop(key, None)
     session.pop(_SESSION_USER_KEY, None)
 
 

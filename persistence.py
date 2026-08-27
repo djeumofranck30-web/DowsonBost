@@ -592,6 +592,139 @@ def _json_loads(value: str | None, default: Any = None) -> Any:
         return default if default is not None else {}
 
 
+_JSON_KEY_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
+
+def _sql_json_text(column: str, key: str) -> str:
+    """SQL snippet that reads a top-level JSON string field on SQLite and Postgres."""
+    if not _JSON_KEY_RE.match(key) or not _JSON_KEY_RE.match(column.replace(".", "_")):
+        raise ValueError("invalid json extract identifier")
+    if database_backend() == "postgres":
+        return f"({column}::json)->>'{key}'"
+    return f"json_extract({column}, '$.{key}')"
+
+
+def _optional_int(value: Any) -> int | None:
+    if value is None or value == "":
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def job_card_preview(job: dict[str, Any] | None) -> dict[str, Any]:
+    """Keep only the fields needed to render a collapsed job card."""
+    data = job or {}
+    return {
+        "title": data.get("title") or "",
+        "company": data.get("company") or "",
+        "location": data.get("location") or "",
+        "url": data.get("url") or "",
+        "source": data.get("source") or "",
+        "published_at": data.get("published_at") or "",
+        "contract_type": data.get("contract_type") or "",
+        "inferred_contract": data.get("inferred_contract") or "",
+    }
+
+
+def match_card_preview(
+    match: dict[str, Any] | None,
+    *,
+    score: int | None = None,
+) -> dict[str, Any]:
+    """Keep ATS scores and summary; drop skill/experience blobs until details open."""
+    data = match or {}
+    preview_score = _optional_int(data.get("score_correspondance"))
+    if preview_score is None:
+        preview_score = int(score or 0)
+
+    def _score_field(key: str) -> int:
+        value = _optional_int(data.get(key))
+        return preview_score if value is None else value
+
+    return {
+        "score_correspondance": preview_score,
+        "score_competences": _score_field("score_competences"),
+        "score_experiences": _score_field("score_experiences"),
+        "score_titre": _score_field("score_titre"),
+        "score_localisation": _score_field("score_localisation"),
+        "synthese_ats": data.get("synthese_ats") or "",
+        "titre_cv_recommande": data.get("titre_cv_recommande") or "",
+    }
+
+
+def _job_preview_from_row(row: Any) -> dict[str, Any]:
+    return {
+        "title": row["job_title"] or "",
+        "company": row["job_company"] or "",
+        "location": row["job_location"] or "",
+        "url": row["job_url"] or "",
+        "source": row["job_source"] or "",
+        "published_at": row["job_published_at"] or "",
+        "contract_type": row["job_contract_type"] or "",
+        "inferred_contract": row["job_inferred_contract"] or "",
+    }
+
+
+def _match_preview_from_row(row: Any) -> dict[str, Any]:
+    score = int(row["score"] or 0)
+
+    def _score_field(column: str) -> int:
+        value = _optional_int(row[column])
+        return score if value is None else value
+
+    return {
+        "score_correspondance": score,
+        "score_competences": _score_field("match_score_competences"),
+        "score_experiences": _score_field("match_score_experiences"),
+        "score_titre": _score_field("match_score_titre"),
+        "score_localisation": _score_field("match_score_localisation"),
+        "synthese_ats": row["match_synthese_ats"] or "",
+        "titre_cv_recommande": row["match_titre_cv_recommande"] or "",
+    }
+
+
+def _analysis_result_select_preview_sql() -> str:
+    job = "ar.job_json"
+    match = "ar.match_json"
+    return f"""
+        {_sql_json_text(job, "title")} AS job_title,
+        {_sql_json_text(job, "company")} AS job_company,
+        {_sql_json_text(job, "location")} AS job_location,
+        {_sql_json_text(job, "url")} AS job_url,
+        {_sql_json_text(job, "source")} AS job_source,
+        {_sql_json_text(job, "published_at")} AS job_published_at,
+        {_sql_json_text(job, "contract_type")} AS job_contract_type,
+        {_sql_json_text(job, "inferred_contract")} AS job_inferred_contract,
+        {_sql_json_text(match, "score_competences")} AS match_score_competences,
+        {_sql_json_text(match, "score_experiences")} AS match_score_experiences,
+        {_sql_json_text(match, "score_titre")} AS match_score_titre,
+        {_sql_json_text(match, "score_localisation")} AS match_score_localisation,
+        {_sql_json_text(match, "synthese_ats")} AS match_synthese_ats,
+        {_sql_json_text(match, "titre_cv_recommande")} AS match_titre_cv_recommande
+    """
+
+
+def _row_to_analysis_result(row: Any) -> dict[str, Any]:
+    return {
+        "result_id": row["result_id"],
+        "analysis_id": row["analysis_id"],
+        "job_key": row["job_key"] if "job_key" in row.keys() else "",
+        "job": _json_loads(row["job_json"], {}),
+        "match": _json_loads(row["match_json"], {}),
+        "score": row["score"],
+        "application_status": row["application_status"],
+        "status_updated_at": row["status_updated_at"],
+        "notes": row["notes"] or "",
+        "cover_letter_text": row["cover_letter_text"],
+        "adapted_cv_text": row["adapted_cv_text"],
+        "documents_generated_at": row["documents_generated_at"]
+        if "documents_generated_at" in row.keys()
+        else None,
+    }
+
+
 def save_analysis(
     user_id: int,
     analysis: dict[str, Any],
@@ -1034,12 +1167,15 @@ def analysis_to_session_dict(stored: dict[str, Any]) -> dict[str, Any]:
             {
                 "result_id": entry["result_id"],
                 "job_key": entry["job_key"],
-                "job": entry["job"],
-                "match": entry["match"],
+                "job": job_card_preview(entry.get("job")),
+                "match": match_card_preview(
+                    entry.get("match"),
+                    score=entry.get("match", {}).get("score_correspondance")
+                    if isinstance(entry.get("match"), dict)
+                    else None,
+                ),
                 "application_status": entry.get("application_status", "new"),
                 "notes": entry.get("notes", ""),
-                "cover_letter_text": entry.get("cover_letter_text"),
-                "adapted_cv_text": entry.get("adapted_cv_text"),
             }
             for entry in stored["results"]
         ],
@@ -1066,8 +1202,9 @@ def list_dashboard_results(
     if status_filter and status_filter != "all":
         clauses.append("ar.application_status = ?")
         params.append(status_filter)
+    company_sql = _sql_json_text("ar.job_json", "company")
     if company_query.strip():
-        clauses.append("LOWER(ar.job_json) LIKE ?")
+        clauses.append(f"LOWER(COALESCE({company_sql}, '')) LIKE ?")
         params.append(f"%{company_query.strip().lower()}%")
 
     order_map = {
@@ -1075,20 +1212,21 @@ def list_dashboard_results(
         "score_asc": "ar.score ASC, a.created_at DESC",
         "date_desc": "a.created_at DESC, ar.score DESC",
         "date_asc": "a.created_at ASC, ar.score DESC",
-        "company_asc": "ar.job_json ASC",
+        "company_asc": f"LOWER(COALESCE({company_sql}, '')) ASC",
     }
     order_sql = order_map.get(sort_by, order_map["score_desc"])
     where_sql = " AND ".join(clauses)
+    preview_sql = _analysis_result_select_preview_sql()
 
     with connect() as conn:
         rows = conn.execute(
             adapt_sql(
                 f"""
-                SELECT ar.id AS result_id, ar.analysis_id, ar.job_key, ar.job_json,
-                       ar.match_json, ar.score, ar.application_status, ar.status_updated_at,
-                       ar.notes, ar.cover_letter_text, ar.adapted_cv_text,
-                       ar.documents_generated_at, a.created_at AS analysis_created_at,
-                       a.target_job_title, a.job_provider
+                SELECT ar.id AS result_id, ar.analysis_id, ar.job_key,
+                       ar.score, ar.application_status, ar.status_updated_at,
+                       ar.notes, ar.documents_generated_at, a.created_at AS analysis_created_at,
+                       a.target_job_title, a.job_provider,
+                       {preview_sql}
                 FROM analysis_results ar
                 JOIN analyses a ON a.id = ar.analysis_id
                 WHERE {where_sql}
@@ -1101,20 +1239,17 @@ def list_dashboard_results(
 
     results: list[dict[str, Any]] = []
     for row in rows:
-        job = _json_loads(row["job_json"], {})
         results.append(
             {
                 "result_id": row["result_id"],
                 "analysis_id": row["analysis_id"],
                 "job_key": row["job_key"],
-                "job": job,
-                "match": _json_loads(row["match_json"], {}),
+                "job": _job_preview_from_row(row),
+                "match": _match_preview_from_row(row),
                 "score": row["score"],
                 "application_status": row["application_status"],
                 "status_updated_at": row["status_updated_at"],
                 "notes": row["notes"] or "",
-                "cover_letter_text": row["cover_letter_text"],
-                "adapted_cv_text": row["adapted_cv_text"],
                 "documents_generated_at": row["documents_generated_at"],
                 "analysis_created_at": row["analysis_created_at"],
                 "target_job_title": row["target_job_title"],
@@ -1209,12 +1344,11 @@ def list_user_applications(user_id: int) -> list[dict[str, Any]]:
     with connect() as conn:
         rows = conn.execute(
             adapt_sql(
-                """
+                f"""
                 SELECT ar.id AS result_id, ar.analysis_id, ar.application_status,
                        ar.application_method, ar.status_updated_at, ar.notes,
-                       ar.score, ar.job_json, ar.match_json,
-                       ar.cover_letter_text, ar.adapted_cv_text,
-                       a.target_job_title, a.created_at AS analysis_created_at
+                       ar.score, a.target_job_title, a.created_at AS analysis_created_at,
+                       {_analysis_result_select_preview_sql()}
                 FROM analysis_results ar
                 INNER JOIN analyses a ON a.id = ar.analysis_id
                 WHERE ar.user_id = ?
@@ -1230,8 +1364,6 @@ def list_user_applications(user_id: int) -> list[dict[str, Any]]:
 
     results: list[dict[str, Any]] = []
     for row in rows:
-        job = _json_loads(row["job_json"], {})
-        match = _json_loads(row["match_json"], {})
         method = row["application_method"]
         status = row["application_status"]
         if method in ("auto_email", "auto_prepared"):
@@ -1250,12 +1382,10 @@ def list_user_applications(user_id: int) -> list[dict[str, Any]]:
                 "status_updated_at": row["status_updated_at"],
                 "notes": row["notes"] or "",
                 "score": row["score"],
-                "job": job,
-                "match": match,
+                "job": _job_preview_from_row(row),
+                "match": _match_preview_from_row(row),
                 "target_job_title": row["target_job_title"],
                 "analysis_created_at": row["analysis_created_at"],
-                "cover_letter_text": row["cover_letter_text"],
-                "adapted_cv_text": row["adapted_cv_text"],
             }
         )
     return results
@@ -1327,6 +1457,39 @@ def get_application_result(user_id: int, result_id: int) -> dict[str, Any] | Non
         "cover_letter_text": row["cover_letter_text"],
         "adapted_cv_text": row["adapted_cv_text"],
     }
+
+
+def get_analysis_result(user_id: int, result_id: int) -> dict[str, Any] | None:
+    """Load one job result with full job, match, and generated documents."""
+    payloads = get_analysis_results_by_ids(user_id, [result_id])
+    return payloads.get(int(result_id))
+
+
+def get_analysis_results_by_ids(
+    user_id: int,
+    result_ids: list[int],
+) -> dict[int, dict[str, Any]]:
+    """Batch-load full analysis results for expanded cards or apply actions."""
+    ids = [int(item) for item in result_ids if item]
+    if not ids:
+        return {}
+    init_persistence_tables()
+    placeholders = ", ".join("?" for _ in ids)
+    with connect() as conn:
+        rows = conn.execute(
+            adapt_sql(
+                f"""
+                SELECT ar.id AS result_id, ar.analysis_id, ar.job_key, ar.job_json,
+                       ar.match_json, ar.score, ar.application_status, ar.status_updated_at,
+                       ar.notes, ar.cover_letter_text, ar.adapted_cv_text,
+                       ar.documents_generated_at
+                FROM analysis_results ar
+                WHERE ar.user_id = ? AND ar.id IN ({placeholders})
+                """
+            ),
+            (user_id, *ids),
+        ).fetchall()
+    return {int(row["result_id"]): _row_to_analysis_result(row) for row in rows}
 
 
 def save_generated_documents(
