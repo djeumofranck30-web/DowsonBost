@@ -29,12 +29,17 @@ def test_support_is_in_candidate_navigation():
     assert ".support-bubble.user" in theme
     assert "st-key-floating_chat_fab" in theme
     assert "@keyframes db-chat-pulse" in theme
-    assert "db-chat-fab" in app
-    assert "doc.body.appendChild(fab)" in app
-    assert 'searchParams.set("nav", "support")' in app
+    fab_css = theme.split(".st-key-floating_chat_fab,")[1].split("#db-chat-fab-badge")[0]
+    assert "pointer-events: auto" in fab_css
+    assert "opacity: 0" not in fab_css
+    assert 'width: 1px' not in fab_css
+    assert "_request_navigation(\"support\")" in app
     assert 'st.query_params.get("nav")' in app
     assert THEME["primary"] in app
-    assert "#E11D48" not in app.split("def render_floating_chat_fab")[1].split("def render_history_page")[0]
+    fab_fn = app.split("def render_floating_chat_fab")[1].split("def render_history_page")[0]
+    assert 'key="floating_chat_fab"' in fab_fn
+    assert "doc.createElement(\"button\")" not in fab_fn
+    assert "#E11D48" not in fab_fn
 
 
 def test_support_locale_keys_exist():

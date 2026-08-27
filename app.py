@@ -4475,35 +4475,22 @@ def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None
         _request_navigation("support")
 
     unread_n = int(unread or 0)
-    help_label = json.dumps(t("support.fab_help"), ensure_ascii=False)
-    primary = THEME["primary"]
-    primary_dark = THEME["primary_dark"]
-    accent = THEME["accent"]
     components.html(
         f"""
 <script>
 (function() {{
   const doc = window.parent.document;
-  const label = {help_label};
-  const unread = {unread_n};
-  const svg = '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M18 21h28a5 5 0 0 1 5 5v18a5 5 0 0 1-5 5H29l-9 7v-7h-2a5 5 0 0 1-5-5V26a5 5 0 0 1 5-5z" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linejoin="round"/></svg>';
-  let fab = doc.getElementById("db-chat-fab");
-  if (!fab) {{
-    fab = doc.createElement("button");
-    fab.id = "db-chat-fab";
-    fab.type = "button";
-    doc.body.appendChild(fab);
-  }}
-  fab.onclick = function(ev) {{
-    if (ev) {{ ev.preventDefault(); ev.stopPropagation(); }}
-    const url = new URL(window.parent.location.href);
-    url.searchParams.set("nav", "support");
-    window.parent.location.assign(url.toString());
-  }};
-  fab.innerHTML = svg;
-  fab.setAttribute("aria-label", label);
-  fab.title = label;
+  const leftover = doc.getElementById("db-chat-fab");
+  if (leftover) leftover.remove();
+  const wraps = Array.from(doc.querySelectorAll('[class*="st-key-floating_chat_fab"]'));
+  if (!wraps.length) return;
+  const wrap = wraps[wraps.length - 1];
+  wraps.slice(0, -1).forEach(function(node) {{
+    if (node !== wrap) node.remove();
+  }});
+  wrap.setAttribute("data-db-chat-fab", "1");
   let badge = doc.getElementById("db-chat-fab-badge");
+  const unread = {unread_n};
   if (unread) {{
     if (!badge) {{
       badge = doc.createElement("span");
@@ -4514,66 +4501,6 @@ def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None
   }} else if (badge) {{
     badge.remove();
   }}
-  let style = doc.getElementById("db-chat-fab-style");
-  if (!style) {{
-    style = doc.createElement("style");
-    style.id = "db-chat-fab-style";
-    doc.head.appendChild(style);
-  }}
-  style.textContent = `
-    #db-chat-fab {{
-      position: fixed !important;
-      right: 20px !important;
-      bottom: 20px !important;
-      z-index: 2147483647 !important;
-      width: 64px !important;
-      height: 64px !important;
-      padding: 14px !important;
-      border: 0 !important;
-      border-radius: 50% !important;
-      cursor: pointer !important;
-      background: linear-gradient(135deg, {primary}, {primary_dark}) !important;
-      box-shadow: 0 0 0 3px {accent}, 0 12px 26px rgba(14, 116, 144, 0.42) !important;
-      overflow: hidden !important;
-      animation: dbChatPulse 2.2s ease-in-out infinite !important;
-    }}
-    #db-chat-fab svg {{
-      width: 100% !important;
-      height: 100% !important;
-      display: block !important;
-    }}
-    #db-chat-fab:hover {{
-      animation: none !important;
-      transform: scale(1.08) !important;
-    }}
-    #db-chat-fab-badge {{
-      position: fixed !important;
-      right: 16px !important;
-      bottom: 76px !important;
-      z-index: 2147483647 !important;
-      min-width: 20px;
-      height: 20px;
-      padding: 0 6px;
-      border-radius: 999px;
-      background: {accent};
-      color: #0B1220;
-      font: 800 11px/20px system-ui, sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-    }}
-    @keyframes dbChatPulse {{
-      0%, 100% {{
-        transform: scale(1);
-        box-shadow: 0 0 0 3px {accent}, 0 12px 26px rgba(14, 116, 144, 0.42), 0 0 0 0 rgba(14, 116, 144, 0.35);
-      }}
-      50% {{
-        transform: scale(1.07);
-        box-shadow: 0 0 0 3px {accent}, 0 16px 32px rgba(14, 116, 144, 0.5), 0 0 0 10px rgba(14, 116, 144, 0);
-      }}
-    }}
-  `;
 }})();
 </script>
         """,
