@@ -6775,33 +6775,27 @@ def _render_auth_register_form() -> None:
                 key="register_wiz_last_name",
                 placeholder="Dupont",
             )
-        contact_col1, contact_col2 = st.columns(2)
-        with contact_col1:
-            st.text_input(
-                t("common.email"),
-                key="register_wiz_email",
-                placeholder=t("placeholder.email"),
-            )
-        with contact_col2:
-            st.text_input(
-                t("common.phone"),
-                key="register_wiz_phone",
-                placeholder="+33 6 12 34 56 78",
-            )
-        pass_col1, pass_col2 = st.columns(2)
-        with pass_col1:
-            st.text_input(
-                t("common.password"),
-                type="password",
-                key="register_wiz_password",
-                placeholder=t("placeholder.password_min"),
-            )
-        with pass_col2:
-            st.text_input(
-                t("auth.register.password_confirm"),
-                type="password",
-                key="register_wiz_password2",
-            )
+        st.text_input(
+            t("common.email"),
+            key="register_wiz_email",
+            placeholder=t("placeholder.email"),
+        )
+        st.text_input(
+            t("common.phone"),
+            key="register_wiz_phone",
+            placeholder="+33 6 12 34 56 78",
+        )
+        st.text_input(
+            t("common.password"),
+            type="password",
+            key="register_wiz_password",
+            placeholder=t("placeholder.password_min"),
+        )
+        st.text_input(
+            t("auth.register.password_confirm"),
+            type="password",
+            key="register_wiz_password2",
+        )
     elif step == 3:
         st.markdown(
             f'<p class="auth-form-title">{html.escape(t("auth.register.step1"))}</p>',
@@ -6828,37 +6822,34 @@ def _render_auth_register_form() -> None:
             f'<p class="auth-form-title">{html.escape(t("auth.register.prefs"))}</p>',
             unsafe_allow_html=True,
         )
-        pref_col1, pref_col2 = st.columns(2)
-        with pref_col1:
-            st.selectbox(
-                t("auth.register.contract"),
-                CONTRACT_TYPES,
-                index=0,
-                key="register_wiz_contract",
-            )
-            st.selectbox(
-                t("auth.register.experience"),
-                EXPERIENCE_LEVELS,
-                index=1,
-                format_func=experience_label,
-                key="register_wiz_experience",
-            )
-        with pref_col2:
-            geo_mode = st.selectbox(
-                t("auth.register.geo_mode"),
-                GEO_FILTER_MODES,
-                index=1,
-                format_func=lambda value: geo_mode_label(value, register=True),
-                key="register_wiz_geo_mode",
-            )
-            st.slider(
-                t("auth.register.radius"),
-                5,
-                100,
-                20,
-                disabled=(geo_mode != "rayon"),
-                key="register_wiz_radius",
-            )
+        st.selectbox(
+            t("auth.register.contract"),
+            CONTRACT_TYPES,
+            index=0,
+            key="register_wiz_contract",
+        )
+        st.selectbox(
+            t("auth.register.experience"),
+            EXPERIENCE_LEVELS,
+            index=1,
+            format_func=experience_label,
+            key="register_wiz_experience",
+        )
+        geo_mode = st.selectbox(
+            t("auth.register.geo_mode"),
+            GEO_FILTER_MODES,
+            index=1,
+            format_func=lambda value: geo_mode_label(value, register=True),
+            key="register_wiz_geo_mode",
+        )
+        st.slider(
+            t("auth.register.radius"),
+            5,
+            100,
+            20,
+            disabled=(geo_mode != "rayon"),
+            key="register_wiz_radius",
+        )
         st.multiselect(
             t("auth.register.sectors"),
             SECTOR_OPTIONS,
@@ -6922,9 +6913,14 @@ def _render_auth_register_form() -> None:
 
 
 def render_auth_page() -> None:
-    """Split-screen login, registration and password reset."""
+    """Split-screen login / reset, or a full-page registration wizard."""
     render_auth_styles()
     view = st.session_state.get("auth_view", "login")
+
+    if view == "register":
+        st.markdown('<div id="auth-fullpage"></div>', unsafe_allow_html=True)
+        _render_auth_register_form()
+        return
 
     _spacer_left, card_col, _spacer_right = st.columns([0.12, 1.76, 0.12])
     with card_col:
@@ -6936,12 +6932,9 @@ def render_auth_page() -> None:
 
         with panel_right:
             st.markdown('<div class="auth-panel-right-inner">', unsafe_allow_html=True)
-            if view != "register":
-                _render_auth_language_bar()
+            _render_auth_language_bar()
             if view == "login":
                 _render_auth_login_form()
-            elif view == "register":
-                _render_auth_register_form()
             else:
                 _render_auth_reset_form()
                 st.markdown('<div class="auth-back-link-marker"></div>', unsafe_allow_html=True)

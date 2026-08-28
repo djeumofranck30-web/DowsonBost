@@ -31,14 +31,49 @@ def test_auth_styles_drop_overlay_and_size_the_primary_cta():
     assert "auth-create-between-marker" not in css
     assert "auth-lang-pulse" not in css
     assert "st-key-auth_login_submit" in css
-    assert "min-height: 2.9rem !important" in css
-    assert "border-radius: 14px !important" in css
+    assert "min-height: 3.15rem !important" in css
+    assert "border-radius: 12px !important" in css
+    assert "stTextInputRootElement" in css
+    assert "react-aria-Group" in css
+    assert "#D0D5DD" in css
+    assert "#E5E7EB" in css
+    assert "auth-fullpage" in css
+    assert "96vw" in css
     assert "auth-signup-row-marker" in css
     assert "st-key-auth_go_register" in css
     assert 'data-testid="stColumn"' in css
     assert "has(#auth-split-screen)" in css
     assert "stLayoutWrapper" in css
     assert "stElementContainer" in css
+
+
+def test_register_opens_as_full_page_form():
+    source = (ROOT / "app.py").read_text(encoding="utf-8")
+    page_fn = source[
+        source.index("def render_auth_page()") : source.index(
+            "def _reset_session_after_account_deletion"
+        )
+    ]
+    assert 'id="auth-fullpage"' in page_fn
+    assert 'if view == "register":' in page_fn
+    assert page_fn.index('if view == "register":') < page_fn.index('id="auth-fullpage"')
+    assert page_fn.index('id="auth-fullpage"') < page_fn.index('id="auth-split-screen"')
+
+    register_fn = source[
+        source.index("def _render_auth_register_form()") : source.index("def render_auth_page()")
+    ]
+    assert "pref_col1" not in register_fn
+    assert 'key="register_wiz_email"' in register_fn
+    assert 'key="register_wiz_phone"' in register_fn
+    assert 'key="register_wiz_password"' in register_fn
+    assert 'key="register_wiz_contract"' in register_fn
+    # Contact + password fields are stacked, not squeezed into a second column.
+    email_idx = register_fn.index('key="register_wiz_email"')
+    phone_idx = register_fn.index('key="register_wiz_phone"')
+    password_idx = register_fn.index('key="register_wiz_password"')
+    assert email_idx < phone_idx < password_idx
+    squeezed = register_fn[email_idx:password_idx]
+    assert "st.columns(" not in squeezed
 
 
 def test_auth_footer_locale_keys_exist():

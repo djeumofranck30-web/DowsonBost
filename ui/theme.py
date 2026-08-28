@@ -1474,7 +1474,7 @@ def render_auth_styles() -> None:
         {_font_import()}
 
         [data-testid="stAppViewContainer"] {{
-            background: {t["bg_mesh"]}, {t["bg_gradient"]};
+            background: linear-gradient(180deg, #F5F7F8 0%, #EEF2F4 100%);
             font-family: {t["font"]};
         }}
         [data-testid="stHeader"], [data-testid="stToolbar"], footer,
@@ -1491,11 +1491,28 @@ def render_auth_styles() -> None:
             max-width: 1080px;
         }}
         #auth-split-screen,
+        #auth-fullpage,
         .auth-lang-bar-marker,
         .auth-forgot-row-marker,
         .auth-signup-row-marker,
         .auth-back-link-marker {{
             display: none;
+        }}
+        [data-testid="stAppViewContainer"]:has(#auth-fullpage) .block-container {{
+            max-width: 96vw !important;
+            width: 96vw !important;
+            padding: 1.35rem 3vw 1.7rem !important;
+            background: #ffffff;
+            border: 1px solid #E5E7EB;
+            border-radius: 20px;
+            box-shadow: 0 16px 44px rgba(15, 23, 42, 0.06);
+            min-height: calc(100vh - 1.4rem);
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }}
+        [data-testid="stAppViewContainer"]:has(#auth-fullpage) .auth-greeting-sub {{
+            font-size: 2.05rem;
+            margin-bottom: 0.85rem;
         }}
         {split} {{
             gap: 1.75rem !important;
@@ -1518,10 +1535,10 @@ def render_auth_styles() -> None:
             padding: 0.5rem 0 !important;
         }}
         {split_right} {{
-            background: {t["surface"]} !important;
+            background: #ffffff !important;
             border-radius: 24px;
-            box-shadow: 0 24px 56px rgba(11, 18, 32, 0.12), 0 8px 22px rgba(15, 23, 42, 0.06);
-            border: 1px solid rgba(14, 116, 144, 0.08);
+            box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+            border: 1px solid #E5E7EB;
         }}
         {split_right} > div {{
             background: transparent !important;
@@ -1539,11 +1556,11 @@ def render_auth_styles() -> None:
             margin: 0 0 1rem auto !important;
             max-width: 11.75rem;
         }}
-        {split_right} [class*="st-key-auth_top_locale_select"] [data-baseweb="select"] > div {{
-            min-height: 2.2rem !important;
+        {split_right} [class*="st-key-auth_top_locale_select"] .react-aria-Group {{
+            min-height: 3.15rem !important;
             border-radius: 12px !important;
-            background: {t["surface_soft"]} !important;
-            border-color: rgba(14, 116, 144, 0.14) !important;
+            background: #ffffff !important;
+            border: 1px solid #D0D5DD !important;
         }}
         .auth-panel-right-inner {{
             display: flex;
@@ -1560,8 +1577,8 @@ def render_auth_styles() -> None:
         .auth-no-account {{
             margin: 1.35rem 0 0.1rem;
             padding-top: 1.15rem;
-            border-top: 1px solid rgba(14, 116, 144, 0.12);
-            color: {t["muted"]};
+            border-top: 1px solid #E5E7EB;
+            color: #667085;
             font-size: 0.9rem;
             font-weight: 500;
             text-align: center;
@@ -1627,26 +1644,14 @@ def render_auth_styles() -> None:
             line-height: 1.4;
         }}
         {split_right} [data-testid="stWidgetLabel"] p {{
-            font-size: 0.8rem !important;
+            font-size: 0.82rem !important;
             font-weight: 650 !important;
             color: {t["primary_deep"]} !important;
             letter-spacing: 0.01em;
         }}
         {split_right} div[data-testid="stTextInput"] {{
             margin-bottom: 0.85rem;
-        }}
-        {split_right} div[data-testid="stTextInput"] input {{
-            background: {t["surface"]} !important;
-            border: 1.5px solid rgba(14, 116, 144, 0.18) !important;
-            border-radius: 14px !important;
-            min-height: 2.85rem !important;
-            padding: 0.7rem 0.95rem !important;
-            font-size: 0.95rem !important;
-            color: {t["primary_deep"]} !important;
-        }}
-        {split_right} div[data-testid="stTextInput"] input:focus {{
-            border-color: {t["primary"]} !important;
-            box-shadow: 0 0 0 4px rgba(14, 116, 144, 0.12) !important;
+            width: 100% !important;
         }}
         {split_right} div[data-testid="stFormSubmitButton"] button {{
             width: 100%;
@@ -1705,6 +1710,80 @@ def render_auth_styles() -> None:
         }}
         {_shared_components_css(t)}
 
+        /* Auth fields — paint Streamlit 1.62 chrome (RootElement / react-aria-Group),
+           not the inner input, or a second mismatched box appears. */
+        div[data-testid="stTextInput"],
+        div[data-testid="stSelectbox"],
+        div[data-testid="stMultiSelect"],
+        div[data-testid="stNumberInput"],
+        div[data-testid="stTextArea"] {{
+            width: 100% !important;
+            max-width: 100% !important;
+        }}
+        div[data-testid="stTextInput"] > div,
+        div[data-testid="stSelectbox"] > div,
+        div[data-testid="stMultiSelect"] > div,
+        div[data-testid="stNumberInput"] > div {{
+            width: 100% !important;
+        }}
+        [data-testid="stWidgetLabel"] p {{
+            font-size: 0.84rem !important;
+            font-weight: 650 !important;
+            color: #0B1220 !important;
+        }}
+        [data-testid="stTextInputRootElement"],
+        [data-testid="stNumberInputContainer"],
+        [data-testid="stTextAreaRootElement"],
+        [data-testid="stSelectbox"] .react-aria-Group,
+        [data-testid="stMultiSelect"] .react-aria-Group {{
+            width: 100% !important;
+            min-height: 3.15rem !important;
+            height: 3.15rem !important;
+            background: #ffffff !important;
+            color: #0B1220 !important;
+            border: 1px solid #D0D5DD !important;
+            border-radius: 12px !important;
+            box-shadow: none !important;
+            box-sizing: border-box !important;
+        }}
+        [data-testid="stTextAreaRootElement"],
+        [data-testid="stMultiSelect"] .react-aria-Group {{
+            height: auto !important;
+            min-height: 3.15rem !important;
+        }}
+        [data-testid="stTextAreaRootElement"] {{
+            min-height: 6.5rem !important;
+        }}
+        [data-testid="stTextInputField"],
+        [data-testid="stNumberInputField"],
+        [data-testid="stTextInput"] input,
+        [data-testid="stNumberInput"] input,
+        [data-testid="stSelectbox"] .react-aria-Input,
+        [data-testid="stMultiSelect"] .react-aria-Input,
+        [data-testid="stTextArea"] textarea {{
+            width: 100% !important;
+            min-height: calc(3.15rem - 2px) !important;
+            background: transparent !important;
+            color: #0B1220 !important;
+            border: none !important;
+            box-shadow: none !important;
+            font-size: 0.98rem !important;
+            padding: 0.78rem 1rem !important;
+        }}
+        [data-testid="stTextArea"] textarea {{
+            min-height: 6.5rem !important;
+            height: auto !important;
+        }}
+        [data-testid="stTextInputRootElement"]:focus-within,
+        [data-testid="stNumberInputContainer"]:focus-within,
+        [data-testid="stTextAreaRootElement"]:focus-within,
+        [data-testid="stSelectbox"] .react-aria-Group[data-focus-within],
+        [data-testid="stSelectbox"] .react-aria-Group:focus-within,
+        [data-testid="stMultiSelect"] .react-aria-Group:focus-within {{
+            border-color: {t["primary"]} !important;
+            box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.14) !important;
+        }}
+
         /* Auth form actions — beat compact global pills */
         [class*="st-key-auth_go_reset"],
         [class*="st-key-auth_go_reset"] .stButton,
@@ -1743,21 +1822,24 @@ def render_auth_styles() -> None:
         [class*="st-key-auth_login_submit"] button,
         [class*="st-key-auth_login_submit"] [data-testid="stBaseButton-primary"] {{
             width: 100% !important;
-            min-height: 2.9rem !important;
+            min-height: 3.15rem !important;
             height: auto !important;
             margin-top: 0.55rem !important;
-            padding: 0.72rem 1.1rem !important;
-            border-radius: 14px !important;
-            font-size: 0.95rem !important;
+            padding: 0.78rem 1.1rem !important;
+            border-radius: 12px !important;
+            font-size: 1rem !important;
             font-weight: 700 !important;
             letter-spacing: 0.01em !important;
-            box-shadow: 0 8px 20px rgba(14, 116, 144, 0.28) !important;
+            background: {t["primary"]} !important;
+            box-shadow: 0 6px 16px rgba(14, 116, 144, 0.22) !important;
         }}
-        {split_right} div[data-testid="stFormSubmitButton"] button {{
-            min-height: 2.75rem !important;
-            padding: 0.65rem 1rem !important;
-            border-radius: 14px !important;
-            font-size: 0.92rem !important;
+        {split_right} div[data-testid="stFormSubmitButton"] button,
+        [data-testid="stAppViewContainer"]:has(#auth-fullpage) div[data-testid="stFormSubmitButton"] button {{
+            min-height: 3.15rem !important;
+            padding: 0.78rem 1rem !important;
+            border-radius: 12px !important;
+            font-size: 0.98rem !important;
+            background: {t["primary"]} !important;
         }}
         [class*="st-key-auth_go_register"],
         [class*="st-key-auth_go_register"] .stButton,
@@ -1801,19 +1883,38 @@ def render_auth_styles() -> None:
             min-height: 0 !important;
             justify-content: flex-start !important;
         }}
-        .reg-wizard-nav button {{
-            min-height: 2.45rem !important;
+        [class*="st-key-register_wizard_next"] button,
+        [class*="st-key-register_wizard_submit"] button,
+        [class*="st-key-register_wizard_back"] button,
+        [class*="st-key-auth_register_back_login"] button {{
+            min-height: 3.15rem !important;
+            height: auto !important;
             border-radius: 12px !important;
+            width: 100% !important;
+            padding: 0.78rem 1.1rem !important;
+            font-size: 1rem !important;
+            font-weight: 700 !important;
         }}
-        .reg-wizard-nav [data-testid="stColumn"]:first-child button {{
-            background: {t["surface_soft"]} !important;
-            border: 1.5px solid rgba(14, 116, 144, 0.22) !important;
+        [class*="st-key-register_wizard_next"] button,
+        [class*="st-key-register_wizard_submit"] button {{
+            background: {t["primary"]} !important;
+            color: #fff !important;
+            border: none !important;
+            box-shadow: 0 6px 16px rgba(14, 116, 144, 0.22) !important;
+        }}
+        [class*="st-key-register_wizard_back"] button,
+        [class*="st-key-auth_register_back_login"] button {{
+            background: #ffffff !important;
+            border: 1.5px solid #D0D5DD !important;
             color: {t["primary_deep"]} !important;
-            font-weight: 600 !important;
+            font-weight: 650 !important;
+            box-shadow: none !important;
         }}
-        .reg-wizard-nav [data-testid="stColumn"]:first-child button:hover {{
+        [class*="st-key-register_wizard_back"] button:hover,
+        [class*="st-key-auth_register_back_login"] button:hover {{
             border-color: {t["primary"]} !important;
             color: {t["primary"]} !important;
+            transform: none !important;
         }}
         @media (max-width: 768px) {{
             .block-container {{
