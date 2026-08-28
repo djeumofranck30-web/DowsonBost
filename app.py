@@ -7719,12 +7719,14 @@ def render_cv_analysis(
     analysis_depth: str = "standard",
 ) -> None:
     """CV upload and matching workflow."""
+    user_profile = get_user_by_id(user["id"]) or user
+    _sync_analysis_job_into_session(int(user["id"]))
+    active_job = get_active_analysis_job(int(user["id"]))
     ready, _ = ai_setup_status()
-    if not ready:
+    if not ready and not active_job:
         render_ai_setup_help()
         return
 
-    user_profile = get_user_by_id(user["id"]) or user
     profile_ok, profile_msg = profile_ready_for_matching(user_profile)
     if not profile_ok:
         st.warning(profile_msg)
@@ -7737,8 +7739,6 @@ def render_cv_analysis(
     region_text, dept_text, city_text = format_profile_geo_summary(user_profile)
     publication_filter = normalize_job_max_age_days(user_profile.get("job_max_age_days"))
     depth_key = analysis_depth if analysis_depth in ANALYSIS_DEPTH_POOL else "standard"
-    _sync_analysis_job_into_session(int(user["id"]))
-    active_job = get_active_analysis_job(int(user["id"]))
 
     notify_settings = get_notification_settings(int(user["id"]))
     if is_auto_search_due(notify_settings) and notify_settings.get("auto_search_enabled"):
