@@ -253,6 +253,37 @@ def send_application_email(
         return False, str(exc)
 
 
+def send_password_reset_code_email(
+    user_email: str,
+    code: str,
+    *,
+    locale: str | None = None,
+) -> tuple[bool, str]:
+    """Send a short-lived 8-character password reset code."""
+    lang = locale or get_locale()
+    if not email_configured():
+        return False, t("email.service_not_configured", locale=lang)
+    safe_code = html.escape(str(code or "").strip().upper())
+    subject = t("email.reset_code_subject", locale=lang)
+    html_body = f"""
+    <html><body style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.5;color:#0B1220">
+      <p>{t("email.reset_code_intro", locale=lang)}</p>
+      <p style="margin:1.2rem 0;padding:1rem 1.15rem;background:#F5F7F8;border:1px solid #E5E7EB;border-radius:12px;text-align:center;font-size:1.65rem;letter-spacing:0.28em;font-weight:800;font-family:ui-monospace,SFMono-Regular,Menlo,monospace">{safe_code}</p>
+      <p>{t("email.reset_code_ttl", locale=lang)}</p>
+      <p style="color:#64748b;font-size:12px">{t("email.reset_code_footer", locale=lang)}</p>
+    </body></html>
+    """
+    text_body = (
+        f"{t('email.reset_code_intro', locale=lang)}\n\n"
+        f"{code}\n\n"
+        f"{t('email.reset_code_ttl', locale=lang)}\n"
+        f"{t('email.reset_code_footer', locale=lang)}\n"
+    )
+    return send_alert_email(
+        user_email, subject, html_body, text_body=text_body, locale=lang
+    )
+
+
 def send_password_reset_email(user_email: str, reset_url: str, *, locale: str | None = None) -> tuple[bool, str]:
     """Send password reset link."""
     lang = locale or get_locale()

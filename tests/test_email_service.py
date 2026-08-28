@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from email_service import send_application_confirmation_email, send_welcome_email
+from email_service import (
+    send_application_confirmation_email,
+    send_password_reset_code_email,
+    send_welcome_email,
+)
 
 
 @patch("email_service.send_alert_email", return_value=(True, "ok"))
@@ -49,6 +53,18 @@ def test_send_application_confirmation_email_builds_message(_configured: object,
     assert "Acme" in html
     assert "recrutement@acme.fr" in html
     assert "https://example.com/jobs/1" in html
+
+
+@patch("email_service.send_alert_email", return_value=(True, "ok"))
+@patch("email_service.email_configured", return_value=True)
+def test_send_password_reset_code_email_shows_code(_configured: object, send: object):
+    ok, _ = send_password_reset_code_email("jane@example.com", "AB23K7NP", locale="fr")
+    assert ok
+    to_email, subject, html = send.call_args.args[:3]
+    assert to_email == "jane@example.com"
+    assert "AB23K7NP" in html
+    assert "2 minutes" in html
+    assert "réinitialisation" in subject.lower() or "code" in subject.lower()
 
 
 @patch("email_service.email_configured", return_value=False)

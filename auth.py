@@ -12,7 +12,15 @@ from typing import Any, Iterator
 
 import bcrypt
 
-from constants import PASSWORD_RESET_TOKEN_TTL_HOURS
+from constants import (
+    PASSWORD_RESET_CODE_ALPHABET,
+    PASSWORD_RESET_CODE_LENGTH,
+    PASSWORD_RESET_CODE_MAX_ATTEMPTS,
+    PASSWORD_RESET_CODE_RESEND_COOLDOWN_SECONDS,
+    PASSWORD_RESET_CODE_TTL_SECONDS,
+    PASSWORD_RESET_TOKEN_TTL_HOURS,
+    PASSWORD_RESET_VERIFIED_TTL_SECONDS,
+)
 from database import adapt_sql, connect, database_backend, existing_columns, is_unique_violation
 from i18n import normalize_locale, t
 from france_geo import (
@@ -301,6 +309,51 @@ def _create_password_reset_tokens_table(conn: Any) -> None:
     )
 
 
+def _create_password_reset_codes_table(conn: Any) -> None:
+    if database_backend() == "postgres":
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS password_reset_codes (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                code_hash TEXT NOT NULL UNIQUE,
+                expires_at TEXT NOT NULL,
+                used_at TEXT,
+                verified_at TEXT,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS password_reset_codes_user_idx
+            ON password_reset_codes (user_id)
+            """
+        )
+        return
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS password_reset_codes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            code_hash TEXT NOT NULL UNIQUE,
+            expires_at TEXT NOT NULL,
+            used_at TEXT,
+            verified_at TEXT,
+            attempts INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE INDEX IF NOT EXISTS password_reset_codes_user_idx
+        ON password_reset_codes (user_id)
+        """
+    )
+
+
 def _hash_reset_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
@@ -397,15 +450,228 @@ def request_password_reset_email(email: str) -> tuple[bool, str]:
     return True, message
 
 
+def _parse_iso_datetime(value: str) -> datetime:
+    raw = str(value or "").strip()
+    if raw.endswith("Z"):
+        raw = raw[:-1] + "+00:00"
+    parsed = datetime.fromisoformat(raw)
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _generate_reset_code() -> str:
+    return "".join(
+        secrets.choice(PASSWORD_RESET_CODE_ALPHABET)
+        for _ in range(PASSWORD_RESET_CODE_LENGTH)
+    )
+
+
+def _normalize_reset_code(code: str) -> str:
+    return re.sub(r"[^A-Za-z0-9]", "", str(code or "")).upper()
+
+
+def reset_code_seconds_remaining(expires_at: str) -> int:
+    """Seconds left before an issued reset code expires."""
+    try:
+        remaining = int(
+            (_parse_iso_datetime(expires_at) - datetime.now(timezone.utc)).total_seconds()
+        )
+    except ValueError:
+        return 0
+    return max(0, remaining)
+
+
+def _latest_reset_code_row(conn: Any, user_id: int):
+    return conn.execute(
+        adapt_sql(
+            """
+            SELECT id, code_hash, expires_at, used_at, verified_at, attempts, created_at
+            FROM password_reset_codes
+            WHERE user_id = ?
+            ORDER BY id DESC
+            LIMIT 1
+            """
+        ),
+        (user_id,),
+    ).fetchone()
+
+
+def request_password_reset_code(email: str, full_name: str) -> tuple[bool, str, str]:
+    """Verify identity, e-mail an 8-character code that expires in two minutes."""
+    email = email.strip().lower()
+    full_name_norm = _normalize_name(full_name)
+    if not EMAIL_PATTERN.match(email):
+        return False, t("auth.email.invalid"), ""
+    if len(full_name_norm) < 2:
+        return False, t("auth.name.min"), ""
+
+    from email_service import email_configured, send_password_reset_code_email
+
+    if not email_configured():
+        return False, t("email.service_not_configured"), ""
+
+    init_db()
+    with _connect() as conn:
+        row = conn.execute(
+            adapt_sql("SELECT id, full_name FROM users WHERE email = ?"),
+            (email,),
+        ).fetchone()
+    if not row:
+        return False, t("auth.reset.not_found"), ""
+    if _normalize_name(row["full_name"]) != full_name_norm:
+        return False, t("auth.reset.name_mismatch"), ""
+
+    user_id = int(row["id"])
+    now = datetime.now(timezone.utc)
+    with _connect() as conn:
+        latest = _latest_reset_code_row(conn, user_id)
+        if latest and not latest["used_at"]:
+            created = _parse_iso_datetime(str(latest["created_at"]))
+            expires = _parse_iso_datetime(str(latest["expires_at"]))
+            wait = PASSWORD_RESET_CODE_RESEND_COOLDOWN_SECONDS - (now - created).total_seconds()
+            if expires > now and wait > 0:
+                return False, t("auth.reset.code_wait", seconds=max(1, int(wait))), ""
+        conn.execute(
+            adapt_sql(
+                """
+                UPDATE password_reset_codes
+                SET used_at = ?
+                WHERE user_id = ? AND used_at IS NULL
+                """
+            ),
+            (now.isoformat(), user_id),
+        )
+        code = _generate_reset_code()
+        expires = now + timedelta(seconds=PASSWORD_RESET_CODE_TTL_SECONDS)
+        conn.execute(
+            adapt_sql(
+                """
+                INSERT INTO password_reset_codes
+                    (user_id, code_hash, expires_at, created_at, attempts)
+                VALUES (?, ?, ?, ?, 0)
+                """
+            ),
+            (
+                user_id,
+                _hash_reset_token(code),
+                expires.isoformat(),
+                now.isoformat(),
+            ),
+        )
+
+    sent, send_msg = send_password_reset_code_email(email, code)
+    if not sent:
+        with _connect() as conn:
+            conn.execute(
+                adapt_sql(
+                    """
+                    UPDATE password_reset_codes
+                    SET used_at = ?
+                    WHERE user_id = ? AND used_at IS NULL
+                    """
+                ),
+                (datetime.now(timezone.utc).isoformat(), user_id),
+            )
+        return False, send_msg or t("email.service_not_configured"), ""
+    return True, t("auth.reset.code_sent"), expires.isoformat()
+
+
+def verify_password_reset_code(email: str, code: str) -> tuple[bool, str, int | None]:
+    """Validate the e-mailed code. Password fields stay locked until this succeeds."""
+    email = email.strip().lower()
+    normalized = _normalize_reset_code(code)
+    if not EMAIL_PATTERN.match(email):
+        return False, t("auth.email.invalid"), None
+    if len(normalized) != PASSWORD_RESET_CODE_LENGTH:
+        return False, t("auth.reset.code_invalid"), None
+
+    init_db()
+    now = datetime.now(timezone.utc)
+    with _connect() as conn:
+        user = conn.execute(
+            adapt_sql("SELECT id FROM users WHERE email = ?"),
+            (email,),
+        ).fetchone()
+        if not user:
+            return False, t("auth.reset.code_invalid"), None
+        row = _latest_reset_code_row(conn, int(user["id"]))
+        if not row or row["used_at"]:
+            return False, t("auth.reset.code_invalid"), None
+        if _parse_iso_datetime(str(row["expires_at"])) <= now:
+            return False, t("auth.reset.code_expired"), None
+        attempts = int(row["attempts"] or 0)
+        if attempts >= PASSWORD_RESET_CODE_MAX_ATTEMPTS:
+            return False, t("auth.reset.code_locked"), None
+        expected = str(row["code_hash"] or "")
+        given = _hash_reset_token(normalized)
+        if not hmac.compare_digest(expected, given):
+            conn.execute(
+                adapt_sql("UPDATE password_reset_codes SET attempts = ? WHERE id = ?"),
+                (attempts + 1, int(row["id"])),
+            )
+            remaining = PASSWORD_RESET_CODE_MAX_ATTEMPTS - attempts - 1
+            if remaining <= 0:
+                return False, t("auth.reset.code_locked"), None
+            return False, t("auth.reset.code_invalid"), None
+        conn.execute(
+            adapt_sql("UPDATE password_reset_codes SET verified_at = ? WHERE id = ?"),
+            (now.isoformat(), int(row["id"])),
+        )
+    return True, t("auth.reset.code_ok"), int(user["id"])
+
+
+def complete_verified_password_reset(user_id: int, new_password: str) -> tuple[bool, str]:
+    """Set a new password only after a still-valid verified reset code."""
+    new_password = new_password.strip()
+    valid_pw, pw_msg = _validate_password(new_password)
+    if not valid_pw:
+        return False, pw_msg
+    if user_id <= 0:
+        return False, t("auth.reset.code_required")
+
+    init_db()
+    now = datetime.now(timezone.utc)
+    with _connect() as conn:
+        row = conn.execute(
+            adapt_sql(
+                """
+                SELECT id, verified_at, used_at
+                FROM password_reset_codes
+                WHERE user_id = ? AND used_at IS NULL AND verified_at IS NOT NULL
+                ORDER BY id DESC
+                LIMIT 1
+                """
+            ),
+            (user_id,),
+        ).fetchone()
+        if not row:
+            return False, t("auth.reset.code_required")
+        verified_at = _parse_iso_datetime(str(row["verified_at"]))
+        if verified_at + timedelta(seconds=PASSWORD_RESET_VERIFIED_TTL_SECONDS) <= now:
+            return False, t("auth.reset.code_expired")
+        conn.execute(
+            adapt_sql("UPDATE users SET password_hash = ? WHERE id = ?"),
+            (_hash_password(new_password), user_id),
+        )
+        conn.execute(
+            adapt_sql("UPDATE password_reset_codes SET used_at = ? WHERE id = ?"),
+            (now.isoformat(), int(row["id"])),
+        )
+    return True, t("auth.reset.success")
+
+
 def init_db() -> None:
     """Create users table if it does not exist (once per process / schema version)."""
     global _db_initialized_for
-    if _db_initialized_for == _DB_SCHEMA_KEY:
-        return
     with _connect() as conn:
+        _create_password_reset_codes_table(conn)
+        if _db_initialized_for == _DB_SCHEMA_KEY:
+            return
         _create_users_table(conn)
         _migrate_users(conn)
         _create_password_reset_tokens_table(conn)
+        _create_password_reset_codes_table(conn)
     from persistence import init_persistence_tables
 
     init_persistence_tables()
@@ -1156,38 +1422,8 @@ def change_password(
 
 
 def reset_password(email: str, full_name: str, new_password: str) -> tuple[bool, str]:
-    """
-    Reset password after verifying e-mail and full name (no e-mail SMTP required).
-    """
-    email = email.strip().lower()
-    full_name_norm = _normalize_name(full_name)
-    new_password = new_password.strip()
-
-    valid_pw, pw_msg = _validate_password(new_password)
-    if not valid_pw:
-        return False, pw_msg
-    if not EMAIL_PATTERN.match(email):
-        return False, t("auth.email.invalid")
-
-    init_db()
-    with _connect() as conn:
-        row = conn.execute(
-            adapt_sql("SELECT id, full_name FROM users WHERE email = ?"),
-            (email,),
-        ).fetchone()
-
-    if not row:
-        return False, t("auth.reset.not_found")
-    if _normalize_name(row["full_name"]) != full_name_norm:
-        return False, t("auth.reset.name_mismatch")
-
-    with _connect() as conn:
-        conn.execute(
-            adapt_sql("UPDATE users SET password_hash = ? WHERE id = ?"),
-            (_hash_password(new_password), row["id"]),
-        )
-
-    return True, t("auth.reset.success")
+    """Legacy helper — password changes now require the e-mailed 8-character code."""
+    return False, t("auth.reset.code_required")
 
 
 def delete_user_account(user_id: int) -> tuple[bool, str]:

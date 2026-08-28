@@ -50,6 +50,7 @@ _USER_OWNED_TABLES = (
     "cv_documents",
     "user_notification_settings",
     "password_reset_tokens",
+    "password_reset_codes",
     "user_connected_accounts",
     "llm_usage",
     "support_messages",

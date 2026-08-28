@@ -1820,7 +1820,10 @@ def render_auth_styles() -> None:
             box-shadow: none !important;
         }}
         [class*="st-key-auth_login_submit"] button,
-        [class*="st-key-auth_login_submit"] [data-testid="stBaseButton-primary"] {{
+        [class*="st-key-auth_login_submit"] [data-testid="stBaseButton-primary"],
+        [class*="st-key-reset_send_code"] button,
+        [class*="st-key-reset_verify_code"] button,
+        [class*="st-key-reset_submit_password"] button {{
             width: 100% !important;
             min-height: 3.15rem !important;
             height: auto !important;
@@ -1871,6 +1874,18 @@ def render_auth_styles() -> None:
             text-underline-offset: 3px !important;
             box-shadow: none !important;
             background: transparent !important;
+        }}
+        [class*="st-key-reset_resend_code"] button {{
+            min-height: 3.15rem !important;
+            height: auto !important;
+            border-radius: 12px !important;
+            width: 100% !important;
+            margin-top: 0.45rem !important;
+            background: #ffffff !important;
+            border: 1.5px solid #D0D5DD !important;
+            color: {t["primary_deep"]} !important;
+            font-weight: 650 !important;
+            box-shadow: none !important;
         }}
         [class*="st-key-auth_go_login"] button {{
             background: transparent !important;

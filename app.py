@@ -261,16 +261,19 @@ from auth import (
     EMAIL_PATTERN,
     authenticate_user,
     change_password,
+    complete_verified_password_reset,
     delete_user_account,
     format_member_since,
     get_user_by_id,
     init_db,
     join_full_name,
     register_user,
-    reset_password,
+    request_password_reset_code,
+    reset_code_seconds_remaining,
     split_full_name,
     update_user_preferred_language,
     update_user_profile,
+    verify_password_reset_code,
 )
 from database import DatabaseConfigError, configure_database, database_connection_hint, database_status
 from document_generation import generate_adapted_cv, generate_cover_letter
@@ -6477,6 +6480,7 @@ def _render_auth_login_form() -> None:
     )
     st.markdown('<div class="auth-forgot-row-marker"></div>', unsafe_allow_html=True)
     if st.button(t("auth.login.forgot"), key="auth_go_reset"):
+        _clear_auth_reset_flow()
         st.session_state.auth_view = "reset"
         st.rerun()
     if st.button(
@@ -6520,38 +6524,151 @@ def _render_auth_login_form() -> None:
         st.rerun()
 
 
+def _clear_auth_reset_flow(*, keep_identity: bool = False) -> None:
+    for key in (
+        "reset_step",
+        "reset_verified_user_id",
+        "reset_code_expires_at",
+        "reset_code",
+        "reset_password_1",
+        "reset_password_2",
+    ):
+        st.session_state.pop(key, None)
+    if not keep_identity:
+        st.session_state.pop("reset_email", None)
+        st.session_state.pop("reset_full_name", None)
+
+
 def _render_auth_reset_form() -> None:
-    """Password reset form."""
+    """Password reset: identity → e-mailed 8-character code → new password."""
+    step = st.session_state.get("reset_step", "identify")
+    verified_user_id = int(st.session_state.get("reset_verified_user_id") or 0)
+    if step == "password" and verified_user_id <= 0:
+        step = "code"
+        st.session_state.reset_step = "code"
+
     st.markdown(f'<p class="auth-greeting-main">{html.escape(t("auth.reset.title"))}</p>', unsafe_allow_html=True)
     st.markdown(
         f'<p class="auth-greeting-sub">{html.escape(t("auth.reset.subtitle"))}</p>',
         unsafe_allow_html=True,
     )
+    if step == "identify":
+        st.markdown(
+            f'<p class="auth-form-title">{html.escape(t("auth.reset.form_title"))}</p>',
+            unsafe_allow_html=True,
+        )
+        st.text_input(t("common.email"), placeholder=t("placeholder.email"), key="reset_email")
+        st.text_input(t("common.full_name"), placeholder=t("placeholder.name"), key="reset_full_name")
+        if st.button(
+            t("auth.reset.send_code"),
+            type="primary",
+            use_container_width=True,
+            key="reset_send_code",
+        ):
+            ok, message, expires_at = request_password_reset_code(
+                st.session_state.get("reset_email", ""),
+                st.session_state.get("reset_full_name", ""),
+            )
+            if ok:
+                st.session_state.reset_step = "code"
+                st.session_state.reset_code_expires_at = expires_at
+                st.session_state.pop("reset_code", None)
+                st.session_state.pop("reset_verified_user_id", None)
+                st.success(message)
+                st.rerun()
+            else:
+                st.error(message)
+        return
+
+    if step == "code":
+        remaining = reset_code_seconds_remaining(
+            str(st.session_state.get("reset_code_expires_at") or "")
+        )
+        st.markdown(
+            f'<p class="auth-form-title">{html.escape(t("auth.reset.code_title"))}</p>',
+            unsafe_allow_html=True,
+        )
+        if remaining <= 0:
+            st.warning(t("auth.reset.code_expired_hint"))
+        else:
+            st.caption(t("auth.reset.code_ttl", seconds=remaining))
+        st.text_input(
+            t("auth.reset.code"),
+            placeholder=t("auth.reset.code_ph"),
+            max_chars=12,
+            key="reset_code",
+        )
+        if st.button(
+            t("auth.reset.verify_code"),
+            type="primary",
+            use_container_width=True,
+            key="reset_verify_code",
+        ):
+            ok, message, user_id = verify_password_reset_code(
+                st.session_state.get("reset_email", ""),
+                st.session_state.get("reset_code", ""),
+            )
+            if ok and user_id:
+                st.session_state.reset_verified_user_id = int(user_id)
+                st.session_state.reset_step = "password"
+                st.session_state.pop("reset_code", None)
+                st.success(message)
+                st.rerun()
+            else:
+                st.error(message)
+        if st.button(
+            t("auth.reset.resend_code"),
+            use_container_width=True,
+            key="reset_resend_code",
+        ):
+            ok, message, expires_at = request_password_reset_code(
+                st.session_state.get("reset_email", ""),
+                st.session_state.get("reset_full_name", ""),
+            )
+            if ok:
+                st.session_state.reset_code_expires_at = expires_at
+                st.session_state.pop("reset_code", None)
+                st.session_state.pop("reset_verified_user_id", None)
+                st.success(message)
+                st.rerun()
+            else:
+                st.error(message)
+        return
+
     st.markdown(
-        f'<p class="auth-form-title">{html.escape(t("auth.reset.form_title"))}</p>',
+        f'<p class="auth-form-title">{html.escape(t("auth.reset.password_title"))}</p>',
         unsafe_allow_html=True,
     )
-    with st.form("reset_form", clear_on_submit=False):
-        reset_email = st.text_input(t("common.email"), placeholder=t("placeholder.email"))
-        reset_name = st.text_input(t("common.full_name"), placeholder=t("placeholder.name"))
-        reset_password_1 = st.text_input(
-            t("auth.reset.new_password"), type="password", placeholder=t("placeholder.password_min")
-        )
-        reset_password_2 = st.text_input(
-            t("auth.reset.confirm"), type="password"
-        )
-        if st.form_submit_button(
-            t("auth.reset.submit"), use_container_width=True
-        ):
-            if reset_password_1 != reset_password_2:
-                st.error(t("auth.register.password_mismatch"))
+    st.text_input(
+        t("auth.reset.new_password"),
+        type="password",
+        placeholder=t("placeholder.password_min"),
+        key="reset_password_1",
+    )
+    st.text_input(
+        t("auth.reset.confirm"),
+        type="password",
+        key="reset_password_2",
+    )
+    if st.button(
+        t("auth.reset.submit"),
+        type="primary",
+        use_container_width=True,
+        key="reset_submit_password",
+    ):
+        password_1 = str(st.session_state.get("reset_password_1") or "")
+        password_2 = str(st.session_state.get("reset_password_2") or "")
+        if password_1 != password_2:
+            st.error(t("auth.register.password_mismatch"))
+        else:
+            ok, message = complete_verified_password_reset(verified_user_id, password_1)
+            if ok:
+                _clear_auth_reset_flow()
+                st.session_state.auth_view = "login"
+                st.success(message)
+                st.rerun()
             else:
-                ok, message = reset_password(reset_email, reset_name, reset_password_1)
-                if ok:
-                    st.success(message)
-                    st.session_state.auth_view = "login"
-                else:
-                    st.error(message)
+                st.error(message)
 
 
 REGISTER_WIZARD_STEPS = (
@@ -6941,6 +7058,7 @@ def render_auth_page() -> None:
                 if st.button(t("auth.footer.back_login"), key="auth_go_login"):
                     st.session_state.auth_view = "login"
                     _reset_register_wizard()
+                    _clear_auth_reset_flow()
                     st.rerun()
 
             st.markdown("</div>", unsafe_allow_html=True)
