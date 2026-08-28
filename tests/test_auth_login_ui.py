@@ -41,6 +41,8 @@ def test_auth_styles_drop_overlay_and_size_the_primary_cta():
     assert "96vw" in css
     assert "auth-signup-row-marker" in css
     assert "st-key-auth_go_register" in css
+    assert "st-key-auth_register_back_login" in css
+    assert "max-width: 16.5rem !important" in css
     assert 'data-testid="stColumn"' in css
     assert "has(#auth-split-screen)" in css
     assert "stLayoutWrapper" in css
@@ -74,6 +76,8 @@ def test_register_opens_as_full_page_form():
     assert email_idx < phone_idx < password_idx
     squeezed = register_fn[email_idx:password_idx]
     assert "st.columns(" not in squeezed
+    assert "st.columns([1.25, 1.05, 1.05, 1.25])" in register_fn
+    assert "nav_back, nav_next = st.columns(2)" not in register_fn
 
 
 def test_auth_footer_locale_keys_exist():

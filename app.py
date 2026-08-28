@@ -6867,7 +6867,7 @@ def _render_auth_register_form() -> None:
         )
 
     st.markdown('<div class="reg-wizard-nav">', unsafe_allow_html=True)
-    nav_back, nav_next = st.columns(2)
+    _nav_sp_l, nav_back, nav_next, _nav_sp_r = st.columns([1.25, 1.05, 1.05, 1.25])
     with nav_back:
         if step > 0:
             if st.button(

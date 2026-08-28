@@ -1883,16 +1883,25 @@ def render_auth_styles() -> None:
             min-height: 0 !important;
             justify-content: flex-start !important;
         }}
+        [class*="st-key-register_wizard_next"],
+        [class*="st-key-register_wizard_submit"],
+        [class*="st-key-register_wizard_back"],
+        [class*="st-key-auth_register_back_login"] {{
+            display: flex !important;
+            justify-content: center !important;
+        }}
         [class*="st-key-register_wizard_next"] button,
         [class*="st-key-register_wizard_submit"] button,
         [class*="st-key-register_wizard_back"] button,
         [class*="st-key-auth_register_back_login"] button {{
-            min-height: 3.15rem !important;
+            min-height: 2.85rem !important;
             height: auto !important;
             border-radius: 12px !important;
-            width: 100% !important;
-            padding: 0.78rem 1.1rem !important;
-            font-size: 1rem !important;
+            width: auto !important;
+            min-width: 11.5rem !important;
+            max-width: 16.5rem !important;
+            padding: 0.55rem 1.15rem !important;
+            font-size: 0.92rem !important;
             font-weight: 700 !important;
         }}
         [class*="st-key-register_wizard_next"] button,
