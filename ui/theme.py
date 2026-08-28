@@ -1456,8 +1456,12 @@ def render_auth_styles() -> None:
     """Split-screen login / register styles — 2026 form rhythm."""
     t = THEME
     split = (
+        ":is("
         '[data-testid="stElementContainer"]:has(#auth-split-screen) '
-        '+ div[data-testid="stHorizontalBlock"]'
+        '+ [data-testid="stLayoutWrapper"] [data-testid="stHorizontalBlock"], '
+        '[data-testid="stElementContainer"]:has(#auth-split-screen) '
+        '+ [data-testid="stHorizontalBlock"]'
+        ")"
     )
     split_left = f'{split} > div[data-testid="stColumn"]:first-child'
     split_right = f'{split} > div[data-testid="stColumn"]:last-child'

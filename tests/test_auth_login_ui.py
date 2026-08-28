@@ -37,6 +37,7 @@ def test_auth_styles_drop_overlay_and_size_the_primary_cta():
     assert "st-key-auth_go_register" in css
     assert 'data-testid="stColumn"' in css
     assert "has(#auth-split-screen)" in css
+    assert "stLayoutWrapper" in css
     assert "stElementContainer" in css
 
 
