@@ -542,7 +542,7 @@ def request_password_reset_code(email: str, full_name: str) -> tuple[bool, str, 
             ),
             (now.isoformat(), user_id),
         )
-        code = _generate_reset_code()
+        code = _normalize_reset_code(_generate_reset_code())
         expires = now + timedelta(seconds=PASSWORD_RESET_CODE_TTL_SECONDS)
         conn.execute(
             adapt_sql(

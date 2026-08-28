@@ -10,6 +10,7 @@ from auth import (
     complete_verified_password_reset,
     register_user,
     request_password_reset_code,
+    reset_password,
     verify_password_reset_code,
 )
 from database import adapt_sql, connect
@@ -52,7 +53,7 @@ def test_reset_code_is_required_before_new_password(configured, send, sqlite_db,
     assert row is not None
     assert "AB23K7NP" not in str(row["code_hash"]).upper()
 
-    ok, _, user_id = verify_password_reset_code("jane@example.com", "wrongcode")
+    ok, _, user_id = verify_password_reset_code("jane@example.com", "ZZZZZZZZ")
     assert not ok
     assert user_id is None
 
@@ -64,6 +65,125 @@ def test_reset_code_is_required_before_new_password(configured, send, sqlite_db,
     assert ok, msg
     assert authenticate_user("jane@example.com", "Secret123!")[0] is False
     assert authenticate_user("jane@example.com", "NewSecret456!")[0] is True
+
+
+@patch("email_service.send_password_reset_code_email", return_value=(True, "ok"))
+@patch("email_service.email_configured", return_value=True)
+def test_legacy_reset_password_cannot_bypass_code(configured, send, sqlite_db):
+    _register()
+    ok, msg = reset_password("jane@example.com", "Jane Doe", "HackedPass1!")
+    assert not ok
+    assert authenticate_user("jane@example.com", "Secret123!")[0] is True
+    assert authenticate_user("jane@example.com", "HackedPass1!")[0] is False
+
+
+@patch("email_service.send_password_reset_code_email", return_value=(True, "ok"))
+@patch("email_service.email_configured", return_value=True)
+def test_password_cannot_change_until_code_is_verified(configured, send, sqlite_db, monkeypatch):
+    _register()
+    monkeypatch.setattr("auth._generate_reset_code", lambda: "AB23K7NP")
+    ok, msg, _ = request_password_reset_code("jane@example.com", "Jane Doe")
+    assert ok, msg
+    ok, msg = complete_verified_password_reset(1, "NewSecret456!")
+    assert not ok
+    assert authenticate_user("jane@example.com", "Secret123!")[0] is True
+
+
+@patch("email_service.send_password_reset_code_email", return_value=(True, "ok"))
+@patch("email_service.email_configured", return_value=True)
+def test_code_accepts_spaces_and_mixed_case(configured, send, sqlite_db, monkeypatch):
+    _register()
+    monkeypatch.setattr("auth._generate_reset_code", lambda: "AB23K7NP")
+    ok, msg, _ = request_password_reset_code("  Jane@Example.com  ", "  Jane   Doe  ")
+    assert ok, msg
+    ok, _, user_id = verify_password_reset_code("jane@example.com", " ab-23 k7 np ")
+    assert ok
+    assert user_id
+
+
+@patch("email_service.send_password_reset_code_email", return_value=(True, "ok"))
+@patch("email_service.email_configured", return_value=True)
+def test_resend_invalidates_the_previous_code(configured, send, sqlite_db, monkeypatch):
+    _register()
+    codes = iter(["AB23K7NP", "ZX98Q3WM"])
+    monkeypatch.setattr("auth._generate_reset_code", lambda: next(codes))
+    monkeypatch.setattr("auth.PASSWORD_RESET_CODE_RESEND_COOLDOWN_SECONDS", 0)
+    ok, msg, _ = request_password_reset_code("jane@example.com", "Jane Doe")
+    assert ok, msg
+    ok, msg, _ = request_password_reset_code("jane@example.com", "Jane Doe")
+    assert ok, msg
+    ok, _, user_id = verify_password_reset_code("jane@example.com", "AB23K7NP")
+    assert not ok
+    assert user_id is None
+    ok, _, user_id = verify_password_reset_code("jane@example.com", "ZX98Q3WM")
+    assert ok
+    assert user_id
+
+
+@patch("email_service.send_password_reset_code_email", return_value=(True, "ok"))
+@patch("email_service.email_configured", return_value=True)
+def test_resend_is_rate_limited(configured, send, sqlite_db, monkeypatch):
+    _register()
+    monkeypatch.setattr("auth._generate_reset_code", lambda: "AB23K7NP")
+    ok, msg, _ = request_password_reset_code("jane@example.com", "Jane Doe")
+    assert ok, msg
+    ok, msg, expires = request_password_reset_code("jane@example.com", "Jane Doe")
+    assert not ok
+    assert expires == ""
+    assert send.call_count == 1
+
+
+@patch("email_service.send_password_reset_code_email", return_value=(True, "ok"))
+@patch("email_service.email_configured", return_value=True)
+def test_five_wrong_codes_lock_until_a_new_code_is_sent(configured, send, sqlite_db, monkeypatch):
+    _register()
+    codes = iter(["AB23K7NP", "ZX98Q3WM"])
+    monkeypatch.setattr("auth._generate_reset_code", lambda: next(codes))
+    monkeypatch.setattr("auth.PASSWORD_RESET_CODE_RESEND_COOLDOWN_SECONDS", 0)
+    ok, msg, _ = request_password_reset_code("jane@example.com", "Jane Doe")
+    assert ok, msg
+    for _ in range(5):
+        ok, msg, user_id = verify_password_reset_code("jane@example.com", "ZZZZZZZZ")
+        assert not ok
+        assert user_id is None
+    ok, msg, user_id = verify_password_reset_code("jane@example.com", "AB23K7NP")
+    assert not ok
+    assert user_id is None
+    ok, msg, _ = request_password_reset_code("jane@example.com", "Jane Doe")
+    assert ok, msg
+    ok, _, user_id = verify_password_reset_code("jane@example.com", "ZX98Q3WM")
+    assert ok
+    assert user_id
+
+
+@patch("email_service.send_password_reset_code_email", return_value=(False, "smtp down"))
+@patch("email_service.email_configured", return_value=True)
+def test_failed_email_does_not_leave_a_usable_code(configured, send, sqlite_db, monkeypatch):
+    _register()
+    monkeypatch.setattr("auth._generate_reset_code", lambda: "AB23K7NP")
+    ok, msg, expires = request_password_reset_code("jane@example.com", "Jane Doe")
+    assert not ok
+    assert expires == ""
+    ok, _, user_id = verify_password_reset_code("jane@example.com", "AB23K7NP")
+    assert not ok
+    assert user_id is None
+
+
+@patch("email_service.send_password_reset_code_email", return_value=(True, "ok"))
+@patch("email_service.email_configured", return_value=True)
+def test_used_code_cannot_reset_password_twice(configured, send, sqlite_db, monkeypatch):
+    _register()
+    monkeypatch.setattr("auth._generate_reset_code", lambda: "AB23K7NP")
+    ok, msg, _ = request_password_reset_code("jane@example.com", "Jane Doe")
+    assert ok, msg
+    ok, _, user_id = verify_password_reset_code("jane@example.com", "AB23K7NP")
+    assert ok
+    ok, msg = complete_verified_password_reset(int(user_id), "NewSecret456!")
+    assert ok, msg
+    ok, msg = complete_verified_password_reset(int(user_id), "AnotherPass1!")
+    assert not ok
+    assert authenticate_user("jane@example.com", "NewSecret456!")[0] is True
+    assert authenticate_user("jane@example.com", "AnotherPass1!")[0] is False
 
 
 @patch("email_service.send_password_reset_code_email", return_value=(True, "ok"))
@@ -81,6 +201,9 @@ def test_expired_reset_code_cannot_unlock_password(configured, send, sqlite_db, 
     assert not ok
     assert user_id is None
     assert "expir" in msg.lower() or "expir" in msg
+    ok, msg = complete_verified_password_reset(1, "NewSecret456!")
+    assert not ok
+    assert authenticate_user("jane@example.com", "Secret123!")[0] is True
 
 
 @patch("email_service.email_configured", return_value=True)

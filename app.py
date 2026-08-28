@@ -6541,8 +6541,11 @@ def _clear_auth_reset_flow(*, keep_identity: bool = False) -> None:
 
 def _render_auth_reset_form() -> None:
     """Password reset: identity → e-mailed 8-character code → new password."""
-    step = st.session_state.get("reset_step", "identify")
+    step = str(st.session_state.get("reset_step") or "identify")
     verified_user_id = int(st.session_state.get("reset_verified_user_id") or 0)
+    if step not in {"identify", "code", "password"}:
+        step = "identify"
+        st.session_state.reset_step = "identify"
     if step == "password" and verified_user_id <= 0:
         step = "code"
         st.session_state.reset_step = "code"

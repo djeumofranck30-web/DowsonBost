@@ -22,9 +22,14 @@ def test_reset_form_is_a_three_step_code_flow():
     assert 'key="reset_submit_password"' in fn
     identify_end = fn.index('return')
     assert 'key="reset_password_1"' not in fn[:identify_end]
+    code_end = fn.index('return', identify_end + 1)
+    assert 'key="reset_password_1"' not in fn[:code_end]
+    assert 'key="reset_password_2"' not in fn[:code_end]
     password_idx = fn.index('key="reset_password_1"')
     verify_idx = fn.index("verify_password_reset_code")
     assert verify_idx < password_idx
+    assert 'step not in {"identify", "code", "password"}' in fn
+    assert 'key="reset_submit_password"' in fn[password_idx:]
 
 
 def test_reset_code_locale_keys_exist():
