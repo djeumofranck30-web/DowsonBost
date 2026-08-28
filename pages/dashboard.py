@@ -9,7 +9,9 @@ import streamlit.components.v1 as components
 
 from auth import authenticate_admin, init_db, user_is_admin
 from config import get_secret
+from constants import APP_NAME
 from database import DatabaseConfigError, configure_database
+from i18n import t
 from services.admin import admin_delete_user, dashboard_html, list_registered_users, platform_overview, public_user_record
 from services.support import (
     admin_support_conversations,
@@ -20,7 +22,8 @@ from services.support import (
     send_admin_support_reply,
     start_admin_support_conversation,
 )
-from ui.theme import THEME, _shared_components_css
+from ui.auth_chrome import auth_left_panel_html, auth_time_greeting
+from ui.theme import THEME, _shared_components_css, render_auth_styles
 
 st.set_page_config(
     page_title="Admin · DowsonBost",
@@ -105,30 +108,74 @@ def _current_user() -> dict | None:
 
 
 def _render_login() -> None:
+    """Same split-screen login chrome as the candidate sign-in page."""
+    render_auth_styles()
     st.markdown(
         """
-        <div style="max-width:420px;margin:8vh auto 0;background:#fff;border-radius:24px;
-                    padding:1.6rem 1.4rem;box-shadow:0 18px 40px rgba(11,18,32,.10);
-                    border:1px solid rgba(14,116,144,.14)">
-          <p style="margin:0;font-size:.8rem;font-weight:700;color:#0E7490;letter-spacing:.04em">DOWSONBOST</p>
-          <h1 style="margin:.2rem 0 .4rem;font-size:1.6rem">Espace administrateur</h1>
-          <p style="margin:0 0 1rem;color:#64748b">Accès réservé. Utilisez l’e-mail et le mot de passe ajoutés dans les secrets Streamlit (<code>ADMIN_EMAIL</code> + <code>ADMIN_PASSWORD</code>).</p>
-        </div>
+        <style>
+        [data-testid="stSidebar"],
+        [data-testid="stSidebarNav"],
+        [data-testid="stSidebarCollapsedControl"] {
+            display: none !important;
+        }
+        </style>
         """,
         unsafe_allow_html=True,
     )
-    with st.form("admin_login"):
-        email = st.text_input("E-mail")
-        password = st.text_input("Mot de passe", type="password")
-        submitted = st.form_submit_button("Se connecter", type="primary", use_container_width=True)
-    if not submitted:
-        return
-    ok, message, user = authenticate_admin(email, password)
-    if not ok or not user:
-        st.error(message)
-        return
-    st.session_state.admin_user = user
-    st.rerun()
+    headline, _sub = auth_time_greeting()
+    _spacer_left, card_col, _spacer_right = st.columns([0.12, 1.76, 0.12])
+    with card_col:
+        st.markdown('<div id="auth-split-screen"></div>', unsafe_allow_html=True)
+        panel_left, panel_right = st.columns([0.94, 1.06], gap="large")
+        with panel_left:
+            st.markdown(
+                auth_left_panel_html(
+                    title=t("auth.admin.left.title", app_name=APP_NAME),
+                    tip=t("auth.admin.left.tip"),
+                ),
+                unsafe_allow_html=True,
+            )
+        with panel_right:
+            st.markdown('<div class="auth-panel-right-inner">', unsafe_allow_html=True)
+            st.markdown(
+                f'<p class="auth-greeting-main">{html.escape(headline)}</p>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                f'<p class="auth-greeting-sub">{html.escape(t("auth.admin.subtitle"))}</p>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                f'<p class="auth-form-title">{html.escape(t("auth.admin.title"))}</p>',
+                unsafe_allow_html=True,
+            )
+            st.text_input(
+                t("common.email"),
+                placeholder=t("placeholder.email"),
+                key="admin_login_email",
+            )
+            st.text_input(
+                t("common.password"),
+                type="password",
+                placeholder=t("placeholder.password"),
+                key="admin_login_password",
+            )
+            if st.button(
+                t("auth.login.submit"),
+                type="primary",
+                use_container_width=True,
+                key="admin_login_submit",
+            ):
+                ok, message, user = authenticate_admin(
+                    st.session_state.get("admin_login_email", ""),
+                    st.session_state.get("admin_login_password", ""),
+                )
+                if not ok or not user:
+                    st.error(message)
+                else:
+                    st.session_state.admin_user = user
+                    st.rerun()
+            st.markdown("</div>", unsafe_allow_html=True)
 
 
 def _user_label(user: dict) -> str:
@@ -308,14 +355,16 @@ def _render_admin_support(admin: dict) -> None:
 
 
 def main() -> None:
-    _inject_admin_chrome()
     if not _boot_database():
+        _inject_admin_chrome()
         return
 
     user = _current_user()
     if not user:
         _render_login()
         return
+
+    _inject_admin_chrome()
     if not user_is_admin(user):
         st.error("Accès réservé aux administrateurs.")
         st.page_link("app.py", label="Retour à l'application", icon="🎯")

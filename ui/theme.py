@@ -1820,7 +1820,9 @@ def render_auth_styles() -> None:
             box-shadow: none !important;
         }}
         [class*="st-key-auth_login_submit"] button,
-        [class*="st-key-auth_login_submit"] [data-testid="stBaseButton-primary"] {{
+        [class*="st-key-auth_login_submit"] [data-testid="stBaseButton-primary"],
+        [class*="st-key-admin_login_submit"] button,
+        [class*="st-key-admin_login_submit"] [data-testid="stBaseButton-primary"] {{
             width: 100% !important;
             min-height: 3.15rem !important;
             height: auto !important;
