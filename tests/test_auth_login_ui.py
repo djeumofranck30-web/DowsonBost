@@ -10,9 +10,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_login_form_stacks_actions_inside_the_card():
     source = (ROOT / "app.py").read_text(encoding="utf-8")
-    assert 'id="auth-create-between-marker"' not in source
     assert "auth-forgot-row-marker" in source
     assert "auth-signup-row-marker" in source
+    assert "_forgot_spacer" not in source
+    assert 'id="auth-create-between-marker"' not in source
     assert 'key="auth_go_register"' in source
     assert 'key="auth_login_submit"' in source
     assert 'key="auth_go_reset"' in source

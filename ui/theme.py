@@ -1518,11 +1518,11 @@ def render_auth_styles() -> None:
             flex-direction: column;
         }}
         {lang_row} {{
-            margin: 0 0 1.15rem !important;
-            align-items: center !important;
+            margin: 0 0 0.35rem !important;
         }}
         {split_right} [class*="st-key-auth_top_locale_select"] {{
-            margin: 0 !important;
+            margin: 0 0 1rem auto !important;
+            max-width: 11.75rem;
         }}
         {split_right} [class*="st-key-auth_top_locale_select"] [data-baseweb="select"] > div {{
             min-height: 2.2rem !important;
@@ -1537,23 +1537,20 @@ def render_auth_styles() -> None:
             min-height: 100%;
         }}
         {forgot_row} {{
-            margin: 0.15rem 0 0.35rem !important;
-            align-items: center !important;
+            margin: 0.05rem 0 0.15rem !important;
         }}
         {signup_row} {{
-            margin-top: 1.35rem !important;
-            padding-top: 1.1rem;
-            border-top: 1px solid rgba(14, 116, 144, 0.12);
-            align-items: center !important;
+            margin: 0 !important;
         }}
         .auth-no-account {{
-            margin: 0;
+            margin: 1.35rem 0 0.1rem;
+            padding-top: 1.15rem;
+            border-top: 1px solid rgba(14, 116, 144, 0.12);
             color: {t["muted"]};
             font-size: 0.9rem;
             font-weight: 500;
-            text-align: right;
+            text-align: center;
             line-height: 1.3;
-            padding: 0.15rem 0.2rem 0 0;
         }}
         .auth-left-panel {{
             color: {t["primary_deep"]};
@@ -1694,6 +1691,11 @@ def render_auth_styles() -> None:
         {_shared_components_css(t)}
 
         /* Auth form actions — beat compact global pills */
+        {forgot_row} .stButton,
+        [class*="st-key-auth_go_reset"] {{
+            display: flex !important;
+            justify-content: flex-end !important;
+        }}
         {forgot_row} .stButton > button,
         {forgot_row} [data-testid="stBaseButton-secondary"],
         [class*="st-key-auth_go_reset"] button {{
@@ -1708,7 +1710,7 @@ def render_auth_styles() -> None:
             height: auto !important;
             border-radius: 0 !important;
             text-decoration: none !important;
-            width: 100%;
+            width: auto !important;
             justify-content: flex-end !important;
         }}
         {forgot_row} .stButton > button:hover,
@@ -1738,6 +1740,10 @@ def render_auth_styles() -> None:
             border-radius: 14px !important;
             font-size: 0.92rem !important;
         }}
+        [class*="st-key-auth_go_register"] {{
+            display: flex !important;
+            justify-content: center !important;
+        }}
         [class*="st-key-auth_go_register"] button,
         [class*="st-key-auth_go_register"] [data-testid="stBaseButton-secondary"] {{
             background: transparent !important;
@@ -1751,7 +1757,7 @@ def render_auth_styles() -> None:
             height: auto !important;
             border-radius: 0 !important;
             width: auto !important;
-            justify-content: flex-start !important;
+            justify-content: center !important;
         }}
         [class*="st-key-auth_go_register"] button:hover {{
             color: {t["primary_dark"]} !important;
@@ -1809,7 +1815,7 @@ def render_auth_styles() -> None:
                 font-size: 1.55rem;
             }}
             .auth-no-account {{
-                text-align: left;
+                text-align: center;
             }}
             .reg-wizard-track {{
                 flex-wrap: wrap;
