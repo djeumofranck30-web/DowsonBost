@@ -67,6 +67,7 @@
   "auth.register.experience": "تجربہ کی سطح کی تلاش کی گئی۔",
   "auth.register.publication": "سے شائع کردہ پیشکشوں کی تلاش کریں:",
   "auth.footer.create": "ایک اکاؤنٹ بنائیں",
+  "auth.footer.no_account": "اکاؤنٹ نہیں ہے؟",
   "auth.register.publication_help": "صرف اس مدت کے اندر شائع ہونے والی پیشکشوں کو تلاش کیا جائے گا۔",
   "auth.register.sectors": "سرگرمی کے ھدف بنائے گئے شعبے (اختیاری)",
   "auth.register.email_exists": "اس ای میل کے ساتھ ایک اکاؤنٹ پہلے سے موجود ہے۔",

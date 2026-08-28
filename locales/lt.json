@@ -70,6 +70,7 @@
   "auth.register.success": "Paskyra sėkmingai sukurta. Galite prisijungti.",
   "auth.register.email_exists": "Paskyra su šiuo el. pašto adresu jau yra.",
   "auth.footer.create": "Susikurti paskyrą",
+  "auth.footer.no_account": "Dar neturite paskyros?",
   "auth.footer.back_login": "← Grįžti į prisijungimą",
   "auth.reset.title": "Nustatyti iš naujo",
   "auth.reset.subtitle": "Naujas slaptažodis",

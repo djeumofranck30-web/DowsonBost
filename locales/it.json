@@ -69,6 +69,7 @@
   "auth.register.password_mismatch": "Le password non corrispondono.",
   "auth.register.success": "Account creato con successo. Puoi accedere.",
   "auth.footer.create": "Creare un account",
+  "auth.footer.no_account": "Non hai un account?",
   "auth.footer.back_login": "← Torna al login",
   "auth.register.email_exists": "Esiste già un account con questa email.",
   "auth.reset.title": "Reset",

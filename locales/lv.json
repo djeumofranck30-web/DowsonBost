@@ -65,6 +65,7 @@
   "auth.register.geo_mode": "Ģeogrāfiskais apjoms",
   "auth.register.password_mismatch": "Paroles nesakrīt.",
   "auth.footer.create": "Izveidojiet kontu",
+  "auth.footer.no_account": "Vēl nav konta?",
   "auth.register.publication_help": "Tiks meklēti tikai šajā periodā publicētie piedāvājumi.",
   "auth.register.email_exists": "Konts ar šo e-pasta adresi jau pastāv.",
   "auth.register.success": "Konts veiksmīgi izveidots. Jūs varat pieteikties.",

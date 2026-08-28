@@ -76,6 +76,7 @@
   "auth.reset.new_password": "Nova Senha",
   "auth.reset.submit": "Redefinir senha",
   "auth.footer.create": "Crie uma conta",
+  "auth.footer.no_account": "Ainda não tem uma conta?",
   "auth.reset.confirm": "Confirme a nova senha",
   "auth.reset.success": "Redefinição de senha. Você pode fazer login.",
   "auth.reset.not_found": "Nenhuma conta encontrada com este e-mail.",

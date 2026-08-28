@@ -68,6 +68,7 @@
   "auth.register.publication_help": "Chỉ những ưu đãi được công bố trong khoảng thời gian này mới được tìm kiếm.",
   "auth.register.submit": "Tạo tài khoản của tôi",
   "auth.footer.create": "Tạo một tài khoản",
+  "auth.footer.no_account": "Chưa có tài khoản?",
   "auth.reset.title": "Cài lại",
   "auth.reset.subtitle": "Mật khẩu mới",
   "auth.register.email_exists": "Một tài khoản đã tồn tại với email này.",

@@ -84,6 +84,7 @@ MESSAGES: dict[str, str] = {
     "auth.register.success": "Compte créé avec succès. Vous pouvez vous connecter.",
     "auth.register.email_exists": "Un compte existe déjà avec cet e-mail.",
     "auth.footer.create": "Créer un compte",
+    "auth.footer.no_account": "Pas de compte ?",
     "auth.footer.back_login": "← Retour à la connexion",
     "auth.reset.title": "Réinitialisation",
     "auth.reset.subtitle": "Nouveau mot de passe",

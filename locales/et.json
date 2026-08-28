@@ -70,6 +70,7 @@
   "auth.register.success": "Konto loomine õnnestus. Saate sisse logida.",
   "auth.register.email_exists": "Selle e-postiga konto on juba olemas.",
   "auth.footer.create": "Loo konto",
+  "auth.footer.no_account": "Konto puudub?",
   "auth.footer.back_login": "← Tagasi sisselogimise juurde",
   "auth.reset.title": "Lähtesta",
   "auth.reset.subtitle": "Uus parool",

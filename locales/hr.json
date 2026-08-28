@@ -70,6 +70,7 @@
   "auth.register.success": "Račun je uspješno kreiran. Možete se prijaviti.",
   "auth.register.email_exists": "Račun s ovom e-poštom već postoji.",
   "auth.footer.create": "Napravi račun",
+  "auth.footer.no_account": "Nemate račun?",
   "auth.footer.back_login": "← Natrag na prijavu",
   "auth.reset.title": "Resetiraj",
   "auth.reset.subtitle": "Nova lozinka",

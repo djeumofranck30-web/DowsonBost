@@ -67,6 +67,7 @@
   "auth.register.password_mismatch": "Kata laluan tidak sepadan.",
   "auth.register.password_confirm": "Sahkan kata laluan",
   "auth.footer.create": "Buat akaun",
+  "auth.footer.no_account": "Belum ada akaun?",
   "auth.reset.title": "Tetapkan semula",
   "auth.register.email_exists": "Akaun sudah wujud dengan e-mel ini.",
   "auth.register.success": "Akaun berjaya dibuat. Anda boleh log masuk.",

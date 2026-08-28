@@ -71,6 +71,7 @@
   "auth.register.success": "Račun je bil uspešno ustvarjen. Lahko se prijavite.",
   "auth.reset.title": "Ponastavi",
   "auth.footer.create": "Ustvari račun",
+  "auth.footer.no_account": "Nimate računa?",
   "auth.footer.back_login": "← Nazaj na prijavo",
   "auth.reset.subtitle": "Novo geslo",
   "auth.reset.new_password": "Novo geslo",

@@ -68,6 +68,7 @@
   "auth.register.publication_help": "Alleen aanbiedingen die binnen deze periode zijn gepubliceerd, worden doorzocht.",
   "auth.register.success": "Account aangemaakt. U kunt inloggen.",
   "auth.footer.create": "Maak een account aan",
+  "auth.footer.no_account": "Nog geen account?",
   "auth.register.email_exists": "Er bestaat al een account met dit e-mailadres.",
   "auth.reset.title": "Opnieuw instellen",
   "auth.footer.back_login": "← Terug naar inloggen",

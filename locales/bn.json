@@ -70,6 +70,7 @@
   "auth.register.success": "অ্যাকাউন্ট সফলভাবে তৈরি করা হয়েছে। আপনি লগ ইন করতে পারেন.",
   "auth.register.email_exists": "এই ইমেলের সাথে একটি অ্যাকাউন্ট ইতিমধ্যেই বিদ্যমান।",
   "auth.footer.create": "একটি অ্যাকাউন্ট তৈরি করুন",
+  "auth.footer.no_account": "এখনও অ্যাকাউন্ট নেই?",
   "auth.footer.back_login": "← লগইন এ ফিরে যান",
   "auth.reset.title": "রিসেট করুন",
   "auth.reset.subtitle": "নতুন পাসওয়ার্ড",

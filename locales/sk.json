@@ -66,6 +66,7 @@
   "auth.register.password_confirm": "Potvrďte heslo",
   "auth.register.sectors": "Cieľové sektory činnosti (voliteľné)",
   "auth.footer.create": "Vytvorte si účet",
+  "auth.footer.no_account": "Ešte nemáte účet?",
   "auth.register.password_mismatch": "Heslá sa nezhodujú.",
   "auth.register.publication": "Hľadať ponuky zverejnené z:",
   "auth.reset.title": "Resetovať",

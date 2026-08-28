@@ -70,6 +70,7 @@
   "auth.register.success": "Konto oprettet. Du kan logge ind.",
   "auth.register.email_exists": "Der findes allerede en konto med denne e-mail.",
   "auth.footer.create": "Opret en konto",
+  "auth.footer.no_account": "Har du ingen konto?",
   "auth.footer.back_login": "← Tilbage til login",
   "auth.reset.title": "Nulstil",
   "auth.reset.subtitle": "Ny adgangskode",

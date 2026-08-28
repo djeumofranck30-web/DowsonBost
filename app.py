@@ -6439,21 +6439,14 @@ def _auth_left_panel_html() -> str:
 
 
 def _render_auth_language_bar() -> None:
-    """Top-left language selector with animated hint."""
-    st.markdown(
-        f"""
-        <div class="auth-lang-hint-badge">
-            <span class="auth-lang-hint-icon">🌐</span>
-            <span class="auth-lang-hint-text">{html.escape(t("auth.language.hint"))}</span>
-            <span class="auth-lang-arrow" aria-hidden="true">→</span>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-    render_language_selector(
-        key_prefix="auth_top_locale",
-        label_visibility="collapsed",
-    )
+    """Quiet language control, top-right of the login card."""
+    st.markdown('<div class="auth-lang-bar-marker"></div>', unsafe_allow_html=True)
+    _lang_spacer, lang_col = st.columns([1.65, 1])
+    with lang_col:
+        render_language_selector(
+            key_prefix="auth_top_locale",
+            label_visibility="collapsed",
+        )
 
 
 def _render_account_deleted_notice() -> None:
@@ -6462,11 +6455,17 @@ def _render_account_deleted_notice() -> None:
 
 
 def _render_auth_login_form() -> None:
-    """Login form in the right panel."""
+    """Login form stacked like a 2026 sign-in card."""
     _render_account_deleted_notice()
     headline, sub = _auth_time_greeting()
-    st.markdown(f'<p class="auth-greeting-main">{headline}</p>', unsafe_allow_html=True)
-    st.markdown(f'<p class="auth-greeting-sub">{sub}</p>', unsafe_allow_html=True)
+    st.markdown(
+        f'<p class="auth-greeting-main">{html.escape(headline)}</p>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f'<p class="auth-greeting-sub">{html.escape(sub)}</p>',
+        unsafe_allow_html=True,
+    )
     st.markdown(
         f'<p class="auth-form-title">{html.escape(t("auth.login.title"))}</p>',
         unsafe_allow_html=True,
@@ -6478,6 +6477,12 @@ def _render_auth_login_form() -> None:
         placeholder=t("placeholder.password"),
         key="login_password",
     )
+    st.markdown('<div class="auth-forgot-row-marker"></div>', unsafe_allow_html=True)
+    _forgot_spacer, forgot_col = st.columns([1.15, 1])
+    with forgot_col:
+        if st.button(t("auth.login.forgot"), key="auth_go_reset"):
+            st.session_state.auth_view = "reset"
+            st.rerun()
     if st.button(
         t("auth.login.submit"),
         type="primary",
@@ -6508,14 +6513,17 @@ def _render_auth_login_form() -> None:
         else:
             st.error(message)
 
-    st.markdown('<div class="auth-forgot-row-marker"></div>', unsafe_allow_html=True)
-    _forgot_spacer, _forgot_col, _forgot_spacer2 = st.columns([1, 1.2, 1])
-    with _forgot_col:
-        if st.button(
-            t("auth.login.forgot"),
-            key="auth_go_reset",
-        ):
-            st.session_state.auth_view = "reset"
+    st.markdown('<div class="auth-signup-row-marker"></div>', unsafe_allow_html=True)
+    copy_col, action_col = st.columns([1.05, 1])
+    with copy_col:
+        st.markdown(
+            f'<p class="auth-no-account">{html.escape(t("auth.footer.no_account"))}</p>',
+            unsafe_allow_html=True,
+        )
+    with action_col:
+        if st.button(t("auth.footer.create"), key="auth_go_register"):
+            st.session_state.auth_view = "register"
+            _reset_register_wizard()
             st.rerun()
 
 
@@ -6925,45 +6933,31 @@ def render_auth_page() -> None:
     render_auth_styles()
     view = st.session_state.get("auth_view", "login")
 
-    _spacer_left, card_col, _spacer_right = st.columns([0.15, 1.7, 0.15])
+    _spacer_left, card_col, _spacer_right = st.columns([0.12, 1.76, 0.12])
     with card_col:
-        if view != "register":
-            _render_auth_language_bar()
         st.markdown('<div id="auth-split-screen"></div>', unsafe_allow_html=True)
-        panel_left, panel_right = st.columns(2, gap="medium")
+        panel_left, panel_right = st.columns([0.94, 1.06], gap="large")
 
         with panel_left:
             st.markdown(_auth_left_panel_html(), unsafe_allow_html=True)
 
         with panel_right:
             st.markdown('<div class="auth-panel-right-inner">', unsafe_allow_html=True)
+            if view != "register":
+                _render_auth_language_bar()
             if view == "login":
                 _render_auth_login_form()
             elif view == "register":
                 _render_auth_register_form()
             else:
                 _render_auth_reset_form()
-                st.markdown('<div class="auth-back-link">', unsafe_allow_html=True)
+                st.markdown('<div class="auth-back-link-marker"></div>', unsafe_allow_html=True)
                 if st.button(t("auth.footer.back_login"), key="auth_go_login"):
                     st.session_state.auth_view = "login"
                     _reset_register_wizard()
                     st.rerun()
-                st.markdown("</div>", unsafe_allow_html=True)
 
             st.markdown("</div>", unsafe_allow_html=True)
-
-        if view == "login":
-            st.markdown('<div id="auth-create-between-marker"></div>', unsafe_allow_html=True)
-            _, create_col, _ = st.columns([1, 1.35, 1])
-            with create_col:
-                if st.button(
-                    t("auth.footer.create"),
-                    key="auth_go_register",
-                    use_container_width=True,
-                ):
-                    st.session_state.auth_view = "register"
-                    _reset_register_wizard()
-                    st.rerun()
 
 
 def _reset_session_after_account_deletion(*, recreate_email: str = "") -> None:

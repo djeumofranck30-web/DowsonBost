@@ -1453,20 +1453,21 @@ def render_app_styles() -> None:
 
 
 def render_auth_styles() -> None:
-    """Split-screen login / register styles."""
+    """Split-screen login / register styles — 2026 form rhythm."""
     t = THEME
     split = '#auth-split-screen + div[data-testid="stHorizontalBlock"]'
     split_left = f'{split} > div[data-testid="column"]:first-child'
     split_right = f'{split} > div[data-testid="column"]:last-child'
-    create_row = '#auth-create-between-marker + div[data-testid="stHorizontalBlock"]'
+    lang_row = '.auth-lang-bar-marker + div[data-testid="stHorizontalBlock"]'
     forgot_row = '.auth-forgot-row-marker + div[data-testid="stHorizontalBlock"]'
+    signup_row = '.auth-signup-row-marker + div[data-testid="stHorizontalBlock"]'
     st.markdown(
         f"""
         <style>
         {_font_import()}
 
         [data-testid="stAppViewContainer"] {{
-            background: {t["bg_gradient"]};
+            background: {t["bg_mesh"]}, {t["bg_gradient"]};
             font-family: {t["font"]};
         }}
         [data-testid="stHeader"], [data-testid="stToolbar"], footer {{
@@ -1474,22 +1475,25 @@ def render_auth_styles() -> None:
             height: 0;
         }}
         .block-container {{
-            padding-top: 2rem;
-            padding-bottom: 2rem;
-            max-width: 960px;
+            padding-top: 4.5vh;
+            padding-bottom: 4.5vh;
+            max-width: 1080px;
         }}
         #auth-split-screen,
-        #auth-create-between-marker {{
+        .auth-lang-bar-marker,
+        .auth-forgot-row-marker,
+        .auth-signup-row-marker,
+        .auth-back-link-marker {{
             display: none;
         }}
         {split} {{
-            gap: 1.25rem !important;
+            gap: 1.75rem !important;
             position: relative;
             align-items: stretch !important;
             border-radius: 0;
             overflow: visible;
             box-shadow: none;
-            padding-bottom: 3.25rem;
+            padding-bottom: 0;
             background: transparent !important;
         }}
         {split} > div[data-testid="column"] {{
@@ -1498,83 +1502,33 @@ def render_auth_styles() -> None:
         {split_left} > div {{
             background: transparent !important;
             border-radius: 0;
-            min-height: 580px;
+            min-height: 620px;
             height: 100%;
-            padding: 0.75rem 0 !important;
+            padding: 0.5rem 0 !important;
         }}
         {split_right} > div {{
             background: {t["surface"]};
-            border-radius: 20px;
-            box-shadow: 0 22px 50px rgba(11, 18, 32, 0.12), 0 8px 20px rgba(15, 23, 42, 0.06);
+            border-radius: 24px;
+            box-shadow: 0 24px 56px rgba(11, 18, 32, 0.12), 0 8px 22px rgba(15, 23, 42, 0.06);
             border: 1px solid rgba(14, 116, 144, 0.08);
-            min-height: 580px;
+            min-height: 620px;
             height: 100%;
-            padding: 2.25rem 2.5rem 1.75rem !important;
+            padding: 1.65rem 2.35rem 2rem !important;
             display: flex;
             flex-direction: column;
         }}
-        {create_row} {{
-            margin-top: -2.75rem;
-            position: relative;
-            z-index: 6;
-            pointer-events: none;
+        {lang_row} {{
+            margin: 0 0 1.15rem !important;
+            align-items: center !important;
         }}
-        {create_row} [data-testid="column"] {{
-            pointer-events: auto;
+        {split_right} [class*="st-key-auth_top_locale_select"] {{
+            margin: 0 !important;
         }}
-        {create_row} button {{
-            background: {t["surface"]} !important;
-            border: 2px solid rgba(14, 116, 144, 0.28) !important;
-            color: {t["primary_deep"]} !important;
-            font-weight: 700 !important;
-            font-size: 0.84rem !important;
-            border-radius: 999px !important;
-            padding: 0.32rem 1rem !important;
-            min-height: 2rem !important;
-            box-shadow: 0 8px 20px rgba(11, 18, 32, 0.16) !important;
-        }}
-        {create_row} button:hover {{
-            border-color: {t["primary"]} !important;
-            color: {t["primary"]} !important;
-            transform: translateY(-1px);
-        }}
-        .auth-lang-hint-badge {{
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.32rem 0.7rem;
-            margin: 0 0 0.35rem 0;
-            max-width: 14rem;
-            border-radius: 999px;
-            background: {t["surface"]};
-            border: 1px solid rgba(14, 116, 144, 0.15);
-            box-shadow: 0 4px 14px rgba(11, 18, 32, 0.08);
-            color: {t["primary_dark"]};
-            font-size: 0.76rem;
-            font-weight: 700;
-            animation: auth-lang-pulse 2.2s ease-in-out infinite;
-        }}
-        .auth-lang-hint-icon {{
-            font-size: 0.95rem;
-            line-height: 1;
-        }}
-        .auth-lang-arrow {{
-            display: inline-block;
-            animation: auth-lang-nudge 1.3s ease-in-out infinite;
-        }}
-        @keyframes auth-lang-pulse {{
-            0%, 100% {{
-                box-shadow: 0 0 0 0 rgba(14, 116, 144, 0.35);
-                transform: scale(1);
-            }}
-            50% {{
-                box-shadow: 0 0 0 7px rgba(14, 116, 144, 0);
-                transform: scale(1.02);
-            }}
-        }}
-        @keyframes auth-lang-nudge {{
-            0%, 100% {{ transform: translateX(0); opacity: 0.85; }}
-            50% {{ transform: translateX(4px); opacity: 1; }}
+        {split_right} [class*="st-key-auth_top_locale_select"] [data-baseweb="select"] > div {{
+            min-height: 2.2rem !important;
+            border-radius: 12px !important;
+            background: {t["surface_soft"]} !important;
+            border-color: rgba(14, 116, 144, 0.14) !important;
         }}
         .auth-panel-right-inner {{
             display: flex;
@@ -1582,57 +1536,29 @@ def render_auth_styles() -> None:
             flex: 1;
             min-height: 100%;
         }}
-        .auth-forgot-row-marker {{
-            display: none;
-        }}
         {forgot_row} {{
-            margin-top: 0.65rem;
+            margin: 0.15rem 0 0.35rem !important;
+            align-items: center !important;
         }}
-        {forgot_row} .stButton > button {{
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            color: {t["accent"]} !important;
-            font-size: 0.84rem !important;
-            font-weight: 600 !important;
-            padding: 0 !important;
-            min-height: 0 !important;
-            text-decoration: underline;
-            text-underline-offset: 2px;
-            width: 100%;
+        {signup_row} {{
+            margin-top: 1.35rem !important;
+            padding-top: 1.1rem;
+            border-top: 1px solid rgba(14, 116, 144, 0.12);
+            align-items: center !important;
         }}
-        {forgot_row} .stButton > button:hover {{
-            color: {t["primary"]} !important;
-            transform: none !important;
-        }}
-        .auth-login-forgot-centered {{
-            display: flex;
-            justify-content: center;
-            margin-top: 0.65rem;
-        }}
-        .auth-login-forgot-centered .stButton {{
-            margin: 0 !important;
-        }}
-        .auth-login-forgot-centered .stButton > button {{
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            color: {t["accent"]} !important;
-            font-size: 0.84rem !important;
-            font-weight: 600 !important;
-            padding: 0 !important;
-            min-height: 0 !important;
-            text-decoration: underline;
-            text-underline-offset: 2px;
-        }}
-        .auth-login-forgot-centered .stButton > button:hover {{
-            color: {t["primary"]} !important;
-            transform: none !important;
+        .auth-no-account {{
+            margin: 0;
+            color: {t["muted"]};
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: right;
+            line-height: 1.3;
+            padding: 0.15rem 0.2rem 0 0;
         }}
         .auth-left-panel {{
             color: {t["primary_deep"]};
             text-align: center;
-            padding: 1.5rem 1.25rem 2rem;
+            padding: 1.75rem 1.15rem 2rem;
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -1641,89 +1567,78 @@ def render_auth_styles() -> None:
         }}
         .auth-illustration-wrap {{
             background: linear-gradient(165deg, #0E7490 0%, #155E75 52%, #0B4A5C 100%);
-            border-radius: 20px;
-            padding: 1.35rem 1.1rem 1.5rem;
-            margin-bottom: 1.35rem;
-            width: min(100%, 300px);
-            box-shadow: 0 16px 36px rgba(14, 116, 144, 0.22);
+            border-radius: 22px;
+            padding: 1.4rem 1.15rem 1.55rem;
+            margin-bottom: 1.45rem;
+            width: min(100%, 320px);
+            box-shadow: 0 18px 40px rgba(14, 116, 144, 0.22);
         }}
         .auth-illustration {{
-            width: min(100%, 260px);
+            width: min(100%, 270px);
             margin: 0 auto;
             display: block;
             border-radius: 12px;
         }}
         .auth-left-title {{
-            font-size: 1.05rem;
+            font-size: 1.08rem;
             line-height: 1.5;
             font-weight: 700;
-            margin: 0 0 0.65rem;
+            margin: 0 0 0.7rem;
             color: {t["primary_deep"]};
-            max-width: 18rem;
+            max-width: 19rem;
         }}
         .auth-left-tip {{
-            font-size: 0.84rem;
+            font-size: 0.86rem;
             line-height: 1.5;
             color: {t["muted"]};
-            max-width: 16rem;
+            max-width: 17rem;
         }}
         .auth-greeting-main {{
-            font-size: 0.92rem;
-            font-weight: 500;
+            font-size: 0.88rem;
+            font-weight: 600;
+            letter-spacing: 0.01em;
             color: {t["muted"]};
-            margin: 0 0 0.15rem;
+            margin: 0 0 0.2rem;
         }}
         .auth-greeting-sub {{
-            font-size: 2rem;
+            font-size: 1.85rem;
             font-weight: 800;
             color: {t["primary_deep"]};
-            margin: 0 0 1.25rem;
-            letter-spacing: -0.03em;
+            margin: 0 0 0.55rem;
+            letter-spacing: -0.035em;
+            line-height: 1.15;
         }}
         .auth-form-title {{
-            font-size: 0.92rem;
+            font-size: 0.95rem;
             color: {t["muted"]};
-            margin: 0 0 1.25rem;
+            margin: 0 0 1.35rem;
+            line-height: 1.4;
+        }}
+        {split_right} [data-testid="stWidgetLabel"] p {{
+            font-size: 0.8rem !important;
+            font-weight: 650 !important;
+            color: {t["primary_deep"]} !important;
+            letter-spacing: 0.01em;
+        }}
+        {split_right} div[data-testid="stTextInput"] {{
+            margin-bottom: 0.85rem;
         }}
         {split_right} div[data-testid="stTextInput"] input {{
             background: {t["surface"]} !important;
             border: 1.5px solid rgba(14, 116, 144, 0.18) !important;
-            border-radius: 12px !important;
-            padding: 0.65rem 0.85rem !important;
+            border-radius: 14px !important;
+            min-height: 2.85rem !important;
+            padding: 0.7rem 0.95rem !important;
+            font-size: 0.95rem !important;
             color: {t["primary_deep"]} !important;
         }}
         {split_right} div[data-testid="stTextInput"] input:focus {{
             border-color: {t["primary"]} !important;
-            box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.12) !important;
+            box-shadow: 0 0 0 4px rgba(14, 116, 144, 0.12) !important;
         }}
         {split_right} div[data-testid="stFormSubmitButton"] button {{
             width: 100%;
-            padding: 0.38rem 1rem !important;
-            min-height: 2.15rem !important;
-            margin-top: 0.25rem;
-        }}
-        .auth-link-row button,
-        .auth-footer-link button,
-        .auth-back-link button {{
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-        }}
-        .auth-link-row button {{
-            color: {t["accent"]} !important;
-            font-size: 0.82rem !important;
-        }}
-        .auth-footer-link button {{
-            color: {t["muted"]} !important;
-        }}
-        .auth-footer-link button:hover {{
-            color: {t["primary"]} !important;
-        }}
-        .auth-back-link button {{
-            color: {t["primary"]} !important;
-            font-weight: 600 !important;
-            font-size: 0.84rem !important;
-            padding-left: 0 !important;
+            margin-top: 0.35rem;
         }}
         .reg-wizard-track {{
             display: flex;
@@ -1776,8 +1691,90 @@ def render_auth_styles() -> None:
         .reg-wizard-nav {{
             margin-top: 0.85rem;
         }}
+        {_shared_components_css(t)}
+
+        /* Auth form actions — beat compact global pills */
+        {forgot_row} .stButton > button,
+        {forgot_row} [data-testid="stBaseButton-secondary"],
+        [class*="st-key-auth_go_reset"] button {{
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: {t["primary"]} !important;
+            font-size: 0.82rem !important;
+            font-weight: 650 !important;
+            padding: 0.15rem 0 !important;
+            min-height: 0 !important;
+            height: auto !important;
+            border-radius: 0 !important;
+            text-decoration: none !important;
+            width: 100%;
+            justify-content: flex-end !important;
+        }}
+        {forgot_row} .stButton > button:hover,
+        [class*="st-key-auth_go_reset"] button:hover {{
+            color: {t["primary_dark"]} !important;
+            transform: none !important;
+            text-decoration: underline !important;
+            text-underline-offset: 3px !important;
+            box-shadow: none !important;
+        }}
+        [class*="st-key-auth_login_submit"] button,
+        [class*="st-key-auth_login_submit"] [data-testid="stBaseButton-primary"] {{
+            width: 100% !important;
+            min-height: 2.9rem !important;
+            height: auto !important;
+            margin-top: 0.55rem !important;
+            padding: 0.72rem 1.1rem !important;
+            border-radius: 14px !important;
+            font-size: 0.95rem !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.01em !important;
+            box-shadow: 0 8px 20px rgba(14, 116, 144, 0.28) !important;
+        }}
+        {split_right} div[data-testid="stFormSubmitButton"] button {{
+            min-height: 2.75rem !important;
+            padding: 0.65rem 1rem !important;
+            border-radius: 14px !important;
+            font-size: 0.92rem !important;
+        }}
+        [class*="st-key-auth_go_register"] button,
+        [class*="st-key-auth_go_register"] [data-testid="stBaseButton-secondary"] {{
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: {t["primary"]} !important;
+            font-size: 0.9rem !important;
+            font-weight: 750 !important;
+            padding: 0.15rem 0 !important;
+            min-height: 0 !important;
+            height: auto !important;
+            border-radius: 0 !important;
+            width: auto !important;
+            justify-content: flex-start !important;
+        }}
+        [class*="st-key-auth_go_register"] button:hover {{
+            color: {t["primary_dark"]} !important;
+            transform: none !important;
+            text-decoration: underline !important;
+            text-underline-offset: 3px !important;
+            box-shadow: none !important;
+            background: transparent !important;
+        }}
+        [class*="st-key-auth_go_login"] button {{
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: {t["primary"]} !important;
+            font-weight: 650 !important;
+            font-size: 0.88rem !important;
+            padding: 0.35rem 0 !important;
+            min-height: 0 !important;
+            justify-content: flex-start !important;
+        }}
         .reg-wizard-nav button {{
-            min-height: 2rem !important;
+            min-height: 2.45rem !important;
+            border-radius: 12px !important;
         }}
         .reg-wizard-nav [data-testid="column"]:first-child button {{
             background: {t["surface_soft"]} !important;
@@ -1789,20 +1786,30 @@ def render_auth_styles() -> None:
             border-color: {t["primary"]} !important;
             color: {t["primary"]} !important;
         }}
-        {_shared_components_css(t)}
         @media (max-width: 768px) {{
+            .block-container {{
+                padding-top: 1.25rem;
+                padding-bottom: 1.5rem;
+            }}
             {split} {{
                 gap: 1rem !important;
             }}
-            {split_left} > div {{
+            {split_left} > div,
+            {split_right} > div {{
                 min-height: auto;
             }}
             {split_right} > div {{
                 border-radius: 20px;
-                min-height: auto;
+                padding: 1.25rem 1.2rem 1.5rem !important;
             }}
             .auth-illustration-wrap {{
                 width: min(100%, 260px);
+            }}
+            .auth-greeting-sub {{
+                font-size: 1.55rem;
+            }}
+            .auth-no-account {{
+                text-align: left;
             }}
             .reg-wizard-track {{
                 flex-wrap: wrap;

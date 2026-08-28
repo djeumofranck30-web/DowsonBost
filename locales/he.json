@@ -70,6 +70,7 @@
   "auth.register.success": "החשבון נוצר בהצלחה. אתה יכול להיכנס.",
   "auth.register.email_exists": "חשבון כבר קיים עם האימייל הזה.",
   "auth.footer.create": "צור חשבון",
+  "auth.footer.no_account": "אין לך חשבון?",
   "auth.footer.back_login": "← חזרה לכניסה",
   "auth.reset.title": "אִתחוּל",
   "auth.reset.subtitle": "סיסמה חדשה",

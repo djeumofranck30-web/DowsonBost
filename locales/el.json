@@ -73,6 +73,7 @@
   "auth.reset.form_title": "Email και πλήρες όνομα ίδια με την εγγραφή",
   "auth.register.success": "Ο λογαριασμός δημιουργήθηκε με επιτυχία. Μπορείτε να συνδεθείτε.",
   "auth.footer.create": "Δημιουργία λογαριασμού",
+  "auth.footer.no_account": "Δεν έχετε λογαριασμό;",
   "auth.footer.back_login": "← Επιστροφή στη σύνδεση",
   "auth.reset.new_password": "Νέος κωδικός πρόσβασης",
   "auth.reset.success": "Επαναφορά κωδικού πρόσβασης. Μπορείτε να συνδεθείτε.",

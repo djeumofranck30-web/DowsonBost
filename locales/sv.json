@@ -68,6 +68,7 @@
   "auth.register.publication": "Sök efter erbjudanden publicerade från:",
   "auth.register.publication_help": "Endast erbjudanden publicerade inom denna period kommer att sökas.",
   "auth.footer.create": "Skapa ett konto",
+  "auth.footer.no_account": "Inget konto än?",
   "auth.reset.title": "Återställa",
   "auth.reset.subtitle": "Nytt lösenord",
   "auth.reset.new_password": "Nytt lösenord",

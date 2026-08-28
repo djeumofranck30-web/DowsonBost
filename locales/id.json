@@ -70,6 +70,7 @@
   "auth.register.success": "Akun berhasil dibuat. Anda dapat masuk.",
   "auth.register.email_exists": "Akun sudah ada dengan email ini.",
   "auth.footer.create": "Buat akun",
+  "auth.footer.no_account": "Belum punya akun?",
   "auth.footer.back_login": "← Kembali untuk masuk",
   "auth.reset.title": "Mengatur ulang",
   "auth.reset.subtitle": "Kata Sandi Baru",

@@ -70,6 +70,7 @@
   "auth.register.success": "สร้างบัญชีสำเร็จแล้ว คุณสามารถเข้าสู่ระบบได้",
   "auth.register.email_exists": "มีบัญชีอยู่แล้วกับอีเมลนี้",
   "auth.footer.create": "สร้างบัญชี",
+  "auth.footer.no_account": "ยังไม่มีบัญชี?",
   "auth.footer.back_login": "← กลับสู่การเข้าสู่ระบบ",
   "auth.reset.title": "รีเซ็ต",
   "auth.reset.subtitle": "รหัสผ่านใหม่",

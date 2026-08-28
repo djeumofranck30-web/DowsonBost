@@ -67,6 +67,7 @@
   "auth.register.publication": "Szukaj ofert opublikowanych z:",
   "auth.register.success": "Konto utworzone pomyślnie. Możesz się zalogować.",
   "auth.footer.create": "Utwórz konto",
+  "auth.footer.no_account": "Nie masz konta?",
   "auth.footer.back_login": "← Powrót do logowania",
   "auth.register.email_exists": "Konto z tym adresem e-mail już istnieje.",
   "auth.register.job_title_ph": "Były. Programista Pythona, technik sieciowy…",

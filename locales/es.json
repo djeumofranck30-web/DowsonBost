@@ -68,6 +68,7 @@
   "auth.register.success": "Cuenta creada exitosamente. Puedes iniciar sesión.",
   "auth.register.password_confirm": "Confirmar Contraseña",
   "auth.footer.create": "Crea una cuenta",
+  "auth.footer.no_account": "¿Aún no tienes cuenta?",
   "auth.register.email_exists": "Ya existe una cuenta con este correo electrónico.",
   "auth.footer.back_login": "← Volver al inicio de sesión",
   "auth.register.password_mismatch": "Las contraseñas no coinciden.",

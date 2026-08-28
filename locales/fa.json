@@ -70,6 +70,7 @@
   "auth.register.success": "حساب با موفقیت ایجاد شد. می توانید وارد شوید.",
   "auth.register.email_exists": "یک حساب از قبل با این ایمیل وجود دارد.",
   "auth.footer.create": "یک حساب کاربری ایجاد کنید",
+  "auth.footer.no_account": "حساب کاربری ندارید؟",
   "auth.footer.back_login": "← بازگشت به ورود",
   "auth.reset.title": "بازنشانی کنید",
   "auth.reset.subtitle": "رمز عبور جدید",

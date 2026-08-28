@@ -70,6 +70,7 @@
   "auth.register.success": "Акаунтът е създаден успешно. Можете да влезете.",
   "auth.register.email_exists": "Вече съществува акаунт с този имейл.",
   "auth.footer.create": "Създайте акаунт",
+  "auth.footer.no_account": "Нямате акаунт?",
   "auth.footer.back_login": "← Назад към влизане",
   "auth.reset.title": "Нулиране",
   "auth.reset.subtitle": "Нова парола",

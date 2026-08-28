@@ -90,6 +90,7 @@
   "auth.register.email_exists": "An account already exists with this email.",
   "auth.register.step2": "Step 2 — Your search profile",
   "auth.footer.create": "Create an account",
+  "auth.footer.no_account": "No account yet?",
   "auth.register.success": "Account created successfully. You can log in.",
   "auth.register.success_email_sent": "Account created successfully. A confirmation email has been sent to you.",
   "auth.footer.back_login": "← Back to login",

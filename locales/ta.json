@@ -70,6 +70,7 @@
   "auth.register.success": "கணக்கு வெற்றிகரமாக உருவாக்கப்பட்டது. நீங்கள் உள்நுழையலாம்.",
   "auth.register.email_exists": "இந்த மின்னஞ்சலில் கணக்கு ஏற்கனவே உள்ளது.",
   "auth.footer.create": "ஒரு கணக்கை உருவாக்கவும்",
+  "auth.footer.no_account": "கணக்கு இல்லையா?",
   "auth.footer.back_login": "← உள்நுழைவுக்குத் திரும்பு",
   "auth.reset.title": "மீட்டமை",
   "auth.reset.subtitle": "புதிய கடவுச்சொல்",

@@ -70,6 +70,7 @@
   "auth.register.password_mismatch": "パスワードが一致しません。",
   "auth.register.submit": "アカウントを作成する",
   "auth.footer.create": "アカウントを作成する",
+  "auth.footer.no_account": "アカウントをお持ちでないですか？",
   "auth.reset.subtitle": "新しいパスワード",
   "auth.reset.title": "リセット",
   "auth.reset.new_password": "新しいパスワード",

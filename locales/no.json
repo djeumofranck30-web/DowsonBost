@@ -67,6 +67,7 @@
   "auth.register.publication_help": "Kun tilbud publisert innenfor denne perioden vil bli søkt.",
   "auth.register.experience": "Erfaringsnivå ettersøkt",
   "auth.footer.create": "Opprett en konto",
+  "auth.footer.no_account": "Har du ingen konto?",
   "auth.reset.title": "Tilbakestill",
   "auth.register.password_confirm": "Bekreft passord",
   "auth.reset.form_title": "E-post og fullt navn samme som registrering",

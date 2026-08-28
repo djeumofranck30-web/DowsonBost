@@ -67,6 +67,7 @@
   "auth.register.publication": "البحث عن العروض المنشورة من:",
   "auth.register.publication_help": "سيتم البحث فقط في العروض المنشورة خلال هذه الفترة.",
   "auth.footer.create": "إنشاء حساب",
+  "auth.footer.no_account": "ليس لديك حساب؟",
   "auth.footer.back_login": "← العودة لتسجيل الدخول",
   "auth.register.email_exists": "يوجد حساب بالفعل بهذا البريد الإلكتروني.",
   "auth.reset.title": "إعادة ضبط",

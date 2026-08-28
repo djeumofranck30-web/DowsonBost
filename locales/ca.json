@@ -70,6 +70,7 @@
   "auth.register.success": "Compte creat correctament. Podeu iniciar sessió.",
   "auth.register.email_exists": "Ja existeix un compte amb aquest correu electrònic.",
   "auth.footer.create": "Creeu un compte",
+  "auth.footer.no_account": "Encara no tens un compte?",
   "auth.footer.back_login": "← Torna a iniciar sessió",
   "auth.reset.title": "Restableix",
   "auth.reset.subtitle": "Contrasenya nova",

@@ -66,6 +66,7 @@
   "auth.register.publication_help": "Поиску подлежат только предложения, опубликованные в течение этого периода.",
   "auth.register.password_mismatch": "Пароли не совпадают.",
   "auth.footer.create": "Завести аккаунт",
+  "auth.footer.no_account": "Нет аккаунта?",
   "auth.register.email_exists": "Аккаунт с этим адресом электронной почты уже существует.",
   "auth.register.submit": "Создать мою учетную запись",
   "auth.register.password_confirm": "Подтвердите пароль",

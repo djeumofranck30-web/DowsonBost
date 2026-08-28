@@ -68,6 +68,7 @@
   "auth.reset.subtitle": "Parolă Nouă",
   "auth.reset.title": "Resetați",
   "auth.footer.create": "Creați un cont",
+  "auth.footer.no_account": "Nu ai un cont?",
   "auth.register.password_confirm": "Confirmați parola",
   "auth.register.success": "Cont creat cu succes. Vă puteți autentifica.",
   "auth.register.publication_help": "Vor fi căutate doar ofertele publicate în această perioadă.",

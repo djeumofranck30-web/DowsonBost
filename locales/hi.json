@@ -70,6 +70,7 @@
   "auth.register.success": "खाता सफलतापूर्वक बनाया गया. आप लॉग इन कर सकते हैं.",
   "auth.register.email_exists": "इस ईमेल के साथ एक खाता पहले से मौजूद है.",
   "auth.footer.create": "खाता बनाएं",
+  "auth.footer.no_account": "अभी खाता नहीं है?",
   "auth.footer.back_login": "← लॉगिन पर वापस जाएँ",
   "auth.reset.title": "रीसेट करें",
   "auth.reset.subtitle": "नया पासवर्ड",

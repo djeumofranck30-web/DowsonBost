@@ -70,6 +70,7 @@
   "auth.register.success": "Účet byl úspěšně vytvořen. Můžete se přihlásit.",
   "auth.register.email_exists": "Účet s tímto e-mailem již existuje.",
   "auth.footer.create": "Vytvořte si účet",
+  "auth.footer.no_account": "Ještě nemáte účet?",
   "auth.footer.back_login": "← Zpět na přihlášení",
   "auth.reset.title": "Resetovat",
   "auth.reset.subtitle": "Nové heslo",

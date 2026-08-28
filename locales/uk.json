@@ -67,6 +67,7 @@
   "auth.register.submit": "Створити мій акаунт",
   "auth.register.password_mismatch": "Паролі не збігаються.",
   "auth.footer.create": "Створіть обліковий запис",
+  "auth.footer.no_account": "Немає облікового запису?",
   "auth.register.success": "Обліковий запис успішно створено. Ви можете авторизуватися.",
   "auth.register.email_exists": "Обліковий запис із цією електронною адресою вже існує.",
   "auth.register.publication_help": "Буде здійснюватися пошук лише пропозицій, опублікованих протягом цього періоду.",

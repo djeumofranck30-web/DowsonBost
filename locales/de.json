@@ -70,6 +70,7 @@
   "auth.register.email_exists": "Es existiert bereits ein Konto mit dieser E-Mail.",
   "auth.register.success": "Konto erfolgreich erstellt. Sie können sich anmelden.",
   "auth.footer.create": "Ein Konto erstellen",
+  "auth.footer.no_account": "Noch kein Konto?",
   "auth.footer.back_login": "← Zurück zum Login",
   "auth.reset.title": "Zurücksetzen",
   "auth.reset.subtitle": "Neues Passwort",

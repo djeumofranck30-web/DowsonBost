@@ -70,6 +70,7 @@
   "auth.register.success": "帐户创建成功。您可以登录。",
   "auth.register.email_exists": "此电子邮件帐户已存在。",
   "auth.footer.create": "创建一个帐户",
+  "auth.footer.no_account": "还没有账户？",
   "auth.footer.back_login": "← 返回登录",
   "auth.reset.title": "重置",
   "auth.reset.subtitle": "新密码",

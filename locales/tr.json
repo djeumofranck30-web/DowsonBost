@@ -70,6 +70,7 @@
   "auth.register.success": "Hesap başarıyla oluşturuldu. Giriş yapabilirsiniz.",
   "auth.register.email_exists": "Bu e-postaya sahip bir hesap zaten mevcut.",
   "auth.footer.create": "Bir hesap oluşturun",
+  "auth.footer.no_account": "Hesabınız yok mu?",
   "auth.footer.back_login": "← Girişe geri dön",
   "auth.reset.title": "Sıfırla",
   "auth.reset.subtitle": "Yeni Şifre",

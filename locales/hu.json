@@ -66,6 +66,7 @@
   "auth.register.publication_help": "Csak az ezen időszakon belül közzétett ajánlatok kerülnek keresésre.",
   "auth.register.password_confirm": "Erősítse meg a jelszót",
   "auth.footer.create": "Hozzon létre egy fiókot",
+  "auth.footer.no_account": "Nincs még fiókja?",
   "auth.reset.title": "Reset",
   "auth.reset.subtitle": "Új jelszó",
   "auth.register.email_exists": "Ezzel az e-mail-címmel már létezik fiók.",
