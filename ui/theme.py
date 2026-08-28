@@ -1455,9 +1455,12 @@ def render_app_styles() -> None:
 def render_auth_styles() -> None:
     """Split-screen login / register styles — 2026 form rhythm."""
     t = THEME
-    split = '#auth-split-screen + div[data-testid="stHorizontalBlock"]'
-    split_left = f'{split} > div[data-testid="column"]:first-child'
-    split_right = f'{split} > div[data-testid="column"]:last-child'
+    split = (
+        '[data-testid="stElementContainer"]:has(#auth-split-screen) '
+        '+ div[data-testid="stHorizontalBlock"]'
+    )
+    split_left = f'{split} > div[data-testid="stColumn"]:first-child'
+    split_right = f'{split} > div[data-testid="stColumn"]:last-child'
     lang_row = '.auth-lang-bar-marker + div[data-testid="stHorizontalBlock"]'
     forgot_row = '.auth-forgot-row-marker + div[data-testid="stHorizontalBlock"]'
     signup_row = '.auth-signup-row-marker + div[data-testid="stHorizontalBlock"]'
@@ -1470,9 +1473,13 @@ def render_auth_styles() -> None:
             background: {t["bg_mesh"]}, {t["bg_gradient"]};
             font-family: {t["font"]};
         }}
-        [data-testid="stHeader"], [data-testid="stToolbar"], footer {{
+        [data-testid="stHeader"], [data-testid="stToolbar"], footer,
+        #db-chat-fab, #db-chat-fab-badge {{
             visibility: hidden;
             height: 0;
+        }}
+        #db-chat-fab, #db-chat-fab-badge {{
+            display: none !important;
         }}
         .block-container {{
             padding-top: 4.5vh;
@@ -1496,7 +1503,7 @@ def render_auth_styles() -> None:
             padding-bottom: 0;
             background: transparent !important;
         }}
-        {split} > div[data-testid="column"] {{
+        {split} > div[data-testid="stColumn"] {{
             padding: 0 !important;
         }}
         {split_left} > div {{
@@ -1506,11 +1513,15 @@ def render_auth_styles() -> None:
             height: 100%;
             padding: 0.5rem 0 !important;
         }}
-        {split_right} > div {{
-            background: {t["surface"]};
+        {split_right} {{
+            background: {t["surface"]} !important;
             border-radius: 24px;
             box-shadow: 0 24px 56px rgba(11, 18, 32, 0.12), 0 8px 22px rgba(15, 23, 42, 0.06);
             border: 1px solid rgba(14, 116, 144, 0.08);
+        }}
+        {split_right} > div {{
+            background: transparent !important;
+            border-radius: 24px;
             min-height: 620px;
             height: 100%;
             padding: 1.65rem 2.35rem 2rem !important;
@@ -1744,9 +1755,12 @@ def render_auth_styles() -> None:
             border-radius: 14px !important;
             font-size: 0.92rem !important;
         }}
-        [class*="st-key-auth_go_register"] {{
+        [class*="st-key-auth_go_register"],
+        [class*="st-key-auth_go_register"] .stButton,
+        [class*="st-key-auth_go_register"] [data-testid="stButton"] {{
             display: flex !important;
             justify-content: center !important;
+            width: 100% !important;
         }}
         [class*="st-key-auth_go_register"] button,
         [class*="st-key-auth_go_register"] [data-testid="stBaseButton-secondary"] {{
@@ -1761,6 +1775,7 @@ def render_auth_styles() -> None:
             height: auto !important;
             border-radius: 0 !important;
             width: auto !important;
+            margin: 0 auto !important;
             justify-content: center !important;
         }}
         [class*="st-key-auth_go_register"] button:hover {{
@@ -1786,13 +1801,13 @@ def render_auth_styles() -> None:
             min-height: 2.45rem !important;
             border-radius: 12px !important;
         }}
-        .reg-wizard-nav [data-testid="column"]:first-child button {{
+        .reg-wizard-nav [data-testid="stColumn"]:first-child button {{
             background: {t["surface_soft"]} !important;
             border: 1.5px solid rgba(14, 116, 144, 0.22) !important;
             color: {t["primary_deep"]} !important;
             font-weight: 600 !important;
         }}
-        .reg-wizard-nav [data-testid="column"]:first-child button:hover {{
+        .reg-wizard-nav [data-testid="stColumn"]:first-child button:hover {{
             border-color: {t["primary"]} !important;
             color: {t["primary"]} !important;
         }}

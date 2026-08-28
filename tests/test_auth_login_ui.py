@@ -35,6 +35,9 @@ def test_auth_styles_drop_overlay_and_size_the_primary_cta():
     assert "border-radius: 14px !important" in css
     assert "auth-signup-row-marker" in css
     assert "st-key-auth_go_register" in css
+    assert 'data-testid="stColumn"' in css
+    assert "has(#auth-split-screen)" in css
+    assert "stElementContainer" in css
 
 
 def test_auth_footer_locale_keys_exist():
