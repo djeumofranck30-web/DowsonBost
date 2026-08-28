@@ -618,34 +618,46 @@ def render_app_styles() -> None:
             color: rgba(248, 250, 252, 0.86);
         }}
 
-        /* Nav radio — icon rail */
-        [data-testid="stSidebar"] div[data-testid="stRadio"] > div {{
-            gap: 0.28rem;
+        /* Nav — icon buttons */
+        [data-testid="stSidebar"] [class*="st-key-nav_"] {{
+            margin: 0.12rem 0 !important;
         }}
-        [data-testid="stSidebar"] div[data-testid="stRadio"] label {{
-            background: transparent;
-            border: 1px solid transparent;
+        [data-testid="stSidebar"] [class*="st-key-nav_"] button,
+        [data-testid="stSidebar"] [class*="st-key-nav_"] [data-testid="stBaseButton-secondary"],
+        [data-testid="stSidebar"] [class*="st-key-nav_"] [data-testid="stBaseButton-primary"] {{
+            width: 100% !important;
+            justify-content: flex-start !important;
+            text-align: left !important;
+            min-height: 2.55rem !important;
+            height: auto !important;
+            padding: 0.55rem 0.75rem !important;
             border-radius: 14px !important;
-            padding: 0.55rem 0.7rem !important;
+            background: transparent !important;
+            color: rgba(248, 250, 252, 0.86) !important;
+            border: 1px solid transparent !important;
+            box-shadow: none !important;
             font-weight: 600 !important;
             font-size: 0.86rem !important;
-            color: rgba(248, 250, 252, 0.82) !important;
-            transition: all 0.2s cubic-bezier(.2,.8,.2,1) !important;
-            position: relative;
+            letter-spacing: 0.01em !important;
+            position: relative !important;
+            overflow: hidden !important;
         }}
-        [data-testid="stSidebar"] div[data-testid="stRadio"] label:hover {{
-            border-color: rgba(255, 255, 255, 0.08);
-            background: rgba(255, 255, 255, 0.06);
-            transform: none;
+        [data-testid="stSidebar"] [class*="st-key-nav_"] button::after {{
+            display: none !important;
         }}
-        [data-testid="stSidebar"] div[data-testid="stRadio"] label[data-checked="true"],
-        [data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) {{
-            background: rgba(255, 255, 255, 0.10) !important;
+        [data-testid="stSidebar"] [class*="st-key-nav_"] button:hover {{
+            background: rgba(255, 255, 255, 0.07) !important;
+            border-color: rgba(255, 255, 255, 0.08) !important;
+            transform: none !important;
+            filter: none !important;
+        }}
+        [data-testid="stSidebar"] [class*="st-key-nav_"] [data-testid="stBaseButton-primary"],
+        [data-testid="stSidebar"] [class*="st-key-nav_"] [data-testid="stBaseButton-primary"]:hover {{
+            background: rgba(255, 255, 255, 0.12) !important;
             color: #fff !important;
             border-color: transparent !important;
-            box-shadow: none;
         }}
-        [data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked)::before {{
+        [data-testid="stSidebar"] [class*="st-key-nav_"] [data-testid="stBaseButton-primary"]::before {{
             content: "";
             position: absolute;
             left: 0;
@@ -1352,6 +1364,53 @@ def render_app_styles() -> None:
         {_shared_components_css(t)}
 
         /* Late overrides — beat compact button styles */
+        [data-testid="stSidebar"] [class*="st-key-nav_"] {{
+            margin: 0.12rem 0 !important;
+        }}
+        [data-testid="stSidebar"] [class*="st-key-nav_"] button,
+        [data-testid="stSidebar"] [class*="st-key-nav_"] [data-testid="stBaseButton-secondary"],
+        [data-testid="stSidebar"] [class*="st-key-nav_"] [data-testid="stBaseButton-primary"] {{
+            width: 100% !important;
+            justify-content: flex-start !important;
+            text-align: left !important;
+            min-height: 2.55rem !important;
+            height: auto !important;
+            padding: 0.55rem 0.75rem !important;
+            border-radius: 14px !important;
+            background: transparent !important;
+            color: rgba(248, 250, 252, 0.86) !important;
+            border: 1px solid transparent !important;
+            box-shadow: none !important;
+            font-weight: 600 !important;
+            font-size: 0.86rem !important;
+            overflow: hidden !important;
+            transform: none !important;
+        }}
+        [data-testid="stSidebar"] [class*="st-key-nav_"] button::after {{
+            display: none !important;
+        }}
+        [data-testid="stSidebar"] [class*="st-key-nav_"] button:hover {{
+            background: rgba(255, 255, 255, 0.07) !important;
+            border-color: rgba(255, 255, 255, 0.08) !important;
+            transform: none !important;
+            filter: none !important;
+        }}
+        [data-testid="stSidebar"] [class*="st-key-nav_"] [data-testid="stBaseButton-primary"],
+        [data-testid="stSidebar"] [class*="st-key-nav_"] [data-testid="stBaseButton-primary"]:hover {{
+            background: rgba(255, 255, 255, 0.12) !important;
+            color: #fff !important;
+            border-color: transparent !important;
+        }}
+        [data-testid="stSidebar"] [class*="st-key-nav_"] [data-testid="stBaseButton-primary"]::before {{
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 8px;
+            bottom: 8px;
+            width: 3px;
+            border-radius: 999px;
+            background: #F97316;
+        }}
         [data-testid="stSidebar"] [class*="st-key-sidebar_locale_select"] {{
             padding-top: 0.85rem;
         }}

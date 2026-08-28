@@ -4504,6 +4504,12 @@ def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None
         """
 (function(){
   function openMessaging(){
+    var btn = document.querySelector('[class*="st-key-nav_support"] button');
+    if (btn) {
+      if (btn.getAttribute('aria-pressed') === 'true') return true;
+      btn.click();
+      return true;
+    }
     var root = document.querySelector('[class*="st-key-main_navigation"]')
       || document.querySelector('[data-testid="stSidebar"]');
     if (!root) return false;
@@ -4519,8 +4525,14 @@ def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None
         return true;
       }
     }
-    var radios = root.querySelectorAll('input[type="radio"]');
-    if (radios.length >= 5) { radios[4].click(); return true; }
+    var buttons = root.querySelectorAll('button');
+    for (var j = 0; j < buttons.length; j++) {
+      var label = buttons[j].textContent || '';
+      if (label.indexOf('Messagerie') !== -1 || label.indexOf('Inbox') !== -1) {
+        buttons[j].click();
+        return true;
+      }
+    }
     return false;
   }
   if (!window.__dbChatFabNav) {
@@ -5648,7 +5660,7 @@ def init_session_state() -> None:
 
 
 def _apply_pending_navigation() -> None:
-    """Apply programmatic navigation before the sidebar radio is rendered."""
+    """Apply programmatic navigation before the sidebar menu is rendered."""
     pending = st.session_state.pop("_pending_navigation", None)
     try:
         nav_q = st.query_params.get("nav")
@@ -8055,13 +8067,19 @@ def render_app() -> None:
                 return f"{label}  ({support_unread})"
             return label
 
-        page = st.radio(
-            "Navigation",
-            list(NAV_PAGE_KEYS),
-            format_func=_sidebar_nav_label,
-            label_visibility="collapsed",
-            key="main_navigation",
-        )
+        if st.session_state.get("main_navigation") not in NAV_PAGE_KEYS:
+            st.session_state.main_navigation = NAV_PAGE_KEYS[0]
+        for key in NAV_PAGE_KEYS:
+            active = st.session_state.main_navigation == key
+            if st.button(
+                _sidebar_nav_label(key),
+                key=f"nav_{key}",
+                use_container_width=True,
+                type="primary" if active else "secondary",
+            ) and not active:
+                st.session_state.main_navigation = key
+                st.rerun()
+        page = st.session_state.main_navigation
 
         if page == "analysis":
             st.markdown("---")

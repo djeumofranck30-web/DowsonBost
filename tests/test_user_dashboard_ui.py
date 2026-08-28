@@ -90,9 +90,11 @@ def test_dashboard_page_uses_compact_layout():
     assert "render_delete_account_section(user)" in source
     assert "danger-zone" in source
     assert 'key="logout_button"' in source
+    assert 'key=f"nav_{key}"' in source
     assert "sidebar-flex-spacer" in source
     theme = _read("ui/theme.py")
     assert "st-key-logout_button" in theme
+    assert "st-key-nav_" in theme
     assert "height: 100vh !important" in theme
     logout_css = theme.split('[class*="st-key-logout_button"]', 1)[1]
     assert "margin-top: auto !important" in logout_css

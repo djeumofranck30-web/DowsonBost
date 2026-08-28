@@ -35,10 +35,12 @@ def test_support_is_in_candidate_navigation():
     assert THEME["primary"] in app
     fab_fn = app.split("def render_floating_chat_fab")[1].split("def render_history_page")[0]
     assert 'createElement("button")' in fab_fn
-    assert "st-key-main_navigation" in fab_fn
+    assert "st-key-nav_support" in fab_fn
     assert "Messagerie" in fab_fn
     assert "Inbox" in fab_fn
     assert "#E11D48" not in fab_fn
+    assert 'key=f"nav_{key}"' in app
+    assert 'key="nav_analysis"' not in app
 
 
 def test_support_locale_keys_exist():
