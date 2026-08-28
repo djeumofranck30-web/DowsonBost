@@ -1691,10 +1691,13 @@ def render_auth_styles() -> None:
         {_shared_components_css(t)}
 
         /* Auth form actions — beat compact global pills */
-        {forgot_row} .stButton,
-        [class*="st-key-auth_go_reset"] {{
+        [class*="st-key-auth_go_reset"],
+        [class*="st-key-auth_go_reset"] .stButton,
+        [class*="st-key-auth_go_reset"] [data-testid="stButton"],
+        {forgot_row} .stButton {{
             display: flex !important;
             justify-content: flex-end !important;
+            width: 100% !important;
         }}
         {forgot_row} .stButton > button,
         {forgot_row} [data-testid="stBaseButton-secondary"],
@@ -1711,6 +1714,7 @@ def render_auth_styles() -> None:
             border-radius: 0 !important;
             text-decoration: none !important;
             width: auto !important;
+            margin-left: auto !important;
             justify-content: flex-end !important;
         }}
         {forgot_row} .stButton > button:hover,
