@@ -272,7 +272,13 @@ from auth import (
     update_user_preferred_language,
     update_user_profile,
 )
-from database import DatabaseConfigError, configure_database, database_connection_hint, database_status
+from database import (
+    DatabaseConfigError,
+    configure_database,
+    database_connection_hint,
+    database_status,
+    is_configured,
+)
 from document_generation import generate_adapted_cv, generate_cover_letter
 from cv_layout import (
     cv_pdf_filename,
@@ -3703,7 +3709,7 @@ def render_job_card(
         use_container_width=True,
     ):
         st.session_state[details_key] = not show_details
-        st.rerun()
+        _fast_rerun()
 
     if show_details:
         with st.expander(t("job.skills_expander"), expanded=False):
@@ -4153,6 +4159,7 @@ def persist_completed_analysis(
         stored = get_analysis(int(user["id"]), analysis_id)
         if stored:
             session_analysis = analysis_to_session_dict(stored)
+            _invalidate_speed_caches()
             return session_analysis
     except Exception as exc:  # noqa: BLE001
         st.session_state.analysis_notices.append(
@@ -4316,6 +4323,7 @@ def _render_applications_list(
         )
 
 
+@st.fragment
 def render_applications_page(user: dict[str, Any]) -> None:
     """Dedicated page to consult manual and automatic applications."""
     _flush_analysis_notices()
@@ -4351,6 +4359,7 @@ def render_applications_page(user: dict[str, Any]) -> None:
     )
 
 
+@st.fragment
 def render_support_page(user: dict[str, Any]) -> None:
     """Private chat with the platform administrator — one or more conversations."""
     _flush_analysis_notices()
@@ -4493,9 +4502,13 @@ def render_support_page(user: dict[str, Any]) -> None:
 
 def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None:
     """Teal chat logo pinned to the viewport so page changes never move it."""
-    import streamlit.components.v1 as components
-
     unread_n = int(unread or 0)
+    page_key = str(current_page or "")
+    fab_sig = (unread_n, page_key)
+    if st.session_state.get("_chat_fab_sig") == fab_sig:
+        return
+    st.session_state._chat_fab_sig = fab_sig
+    import streamlit.components.v1 as components
     help_label = json.dumps(t("support.fab_help"), ensure_ascii=False)
     primary = THEME["primary"]
     primary_dark = THEME["primary_dark"]
@@ -4645,6 +4658,7 @@ def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None
     )
 
 
+@st.fragment
 def render_history_page(user: dict[str, Any]) -> None:
     """List past analyses and reload one into the session."""
     _flush_analysis_notices()
@@ -4691,7 +4705,7 @@ def render_history_page(user: dict[str, Any]) -> None:
                                 "text": t("history.loaded", id=row["id"]),
                             }
                         ]
-                        st.rerun()
+                        _fast_rerun()
             with c2:
                 st.caption(t("history.engine", engine=row.get("job_provider", "—")))
 
@@ -4788,7 +4802,7 @@ def _paged_items(
             use_container_width=True,
         ):
             st.session_state[key] = page - 1
-            st.rerun()
+            _fast_rerun()
     with mid_col:
         st.caption(t("dashboard.page_status", page=page, pages=pages))
     with next_col:
@@ -4799,7 +4813,7 @@ def _paged_items(
             use_container_width=True,
         ):
             st.session_state[key] = page + 1
-            st.rerun()
+            _fast_rerun()
     start = (page - 1) * page_size
     return items[start : start + page_size]
 
@@ -5065,6 +5079,7 @@ def _render_dashboard_insight_charts(
             st.markdown("</div>", unsafe_allow_html=True)
 
 
+@st.fragment
 def render_dashboard_page(user: dict[str, Any]) -> None:
     """Dashboard scoped to a selected analysis with filters and tracking."""
     _flush_analysis_notices()
@@ -5672,6 +5687,179 @@ def _request_navigation(page: str) -> None:
     if page in NAV_PAGE_KEYS:
         st.session_state["_pending_navigation"] = page
         st.rerun()
+
+
+def _fast_rerun() -> None:
+    """Rerun the current page fragment when possible, otherwise the whole app."""
+    try:
+        st.rerun(scope="fragment")
+    except Exception:
+        st.rerun()
+
+
+def _invalidate_speed_caches() -> None:
+    for key in (
+        "_profile_cached",
+        "_profile_uid",
+        "_profile_at",
+        "_analyses_rows",
+        "_analyses_uid",
+        "_analyses_at",
+        "_notify_cached",
+        "_notify_uid",
+        "_notify_at",
+    ):
+        st.session_state.pop(key, None)
+
+
+def _cached_matching_profile(user: dict[str, Any]) -> dict[str, Any]:
+    """Reuse the matching profile for a few seconds so clicks are not blocked on SQL."""
+    uid = int(user.get("id") or 0)
+    now = time.time()
+    cached = st.session_state.get("_profile_cached")
+    if (
+        uid
+        and st.session_state.get("_profile_uid") == uid
+        and (now - float(st.session_state.get("_profile_at") or 0)) < 20
+        and isinstance(cached, dict)
+    ):
+        return cached
+    fresh = get_user_by_id(uid) if uid else None
+    profile = fresh or user
+    if uid:
+        st.session_state._profile_uid = uid
+        st.session_state._profile_at = now
+        st.session_state._profile_cached = profile
+    return profile
+
+
+def _queue_full_analysis() -> None:
+    st.session_state["_run_full_analysis_queued"] = True
+
+
+def _uploaded_cv_bytes() -> tuple[bytes | None, str | None]:
+    """Return cached CV bytes so every click does not re-read the PDF."""
+    uploaded = st.session_state.get("cv_pdf_uploader")
+    file_id = None
+    if uploaded is not None:
+        file_id = getattr(uploaded, "file_id", None) or getattr(uploaded, "name", None)
+    cached = st.session_state.get("_cv_upload_cache") or {}
+    if cached.get("id") == file_id and cached.get("bytes"):
+        return cached.get("bytes"), cached.get("fp")
+    if uploaded is None:
+        return None, None
+    raw = uploaded.getvalue() if hasattr(uploaded, "getvalue") else uploaded.read()
+    if not raw:
+        return None, None
+    fingerprint = pdf_fingerprint(raw)
+    st.session_state._cv_upload_cache = {
+        "id": file_id,
+        "bytes": raw,
+        "fp": fingerprint,
+    }
+    return raw, fingerprint
+
+
+def _run_full_cv_analysis(
+    pdf_bytes: bytes,
+    current_fp: str,
+    job_provider: str,
+    user: dict[str, Any],
+    user_profile: dict[str, Any],
+    *,
+    depth_pool: int,
+    depth_top: int,
+    depth_key: str,
+) -> None:
+    """Execute CV matching immediately, then refresh the analysis fragment."""
+    st.session_state.groq_quota_exhausted = False
+    st.session_state.llm_backend_active = None
+    try:
+        progress_slot = st.empty()
+
+        def _update_analysis_progress(percent: int, label: str) -> None:
+            progress_slot.progress(
+                percent / 100.0,
+                text=f"{percent}% — {label}",
+            )
+
+        _update_analysis_progress(0, "Démarrage…")
+        analysis, notices = run_cv_analysis_pipeline(
+            pdf_bytes,
+            job_provider,
+            user_profile,
+            matching_pool=depth_pool,
+            matching_top=depth_top,
+            progress=_update_analysis_progress,
+        )
+        if analysis:
+            _update_analysis_progress(100, "Analyse terminée")
+        else:
+            progress_slot.empty()
+        st.session_state.analysis_notices = notices
+        if analysis:
+            saved = persist_completed_analysis(
+                user,
+                analysis,
+                current_fp or "",
+                depth_key,
+            )
+            st.session_state.analysis = saved or analysis
+            st.session_state.pdf_fingerprint = current_fp
+        else:
+            st.session_state.analysis = None
+            st.session_state.pdf_fingerprint = None
+    except requests.HTTPError as exc:
+        body = exc.response.text[:300] if exc.response is not None else str(exc)
+        status = exc.response.status_code if exc.response is not None else None
+        st.session_state.analysis_notices = []
+        if status == 401 or (body and "401" in body):
+            st.session_state.adzuna_error_body = body
+        else:
+            st.session_state.analysis_notices = [
+                {
+                    "level": "error",
+                    "text": (
+                        f"Erreur API emploi : {status} — {body}"
+                        if status is not None
+                        else str(exc)
+                    ),
+                }
+            ]
+    except json.JSONDecodeError:
+        st.session_state.analysis_notices = [
+            {
+                "level": "error",
+                "text": (
+                    "L'IA a renvoyé une réponse invalide lors de l'extraction du CV. "
+                    "Sidebar → **Vider le cache**, puis relancez l'analyse."
+                ),
+            }
+        ]
+    except RuntimeError as exc:
+        st.session_state.analysis_notices = [
+            {"level": "error", "text": str(exc)}
+        ]
+    except Exception as exc:  # noqa: BLE001
+        error_text = str(exc)
+        if (
+            "API key not valid" in error_text
+            or "API_KEY_INVALID" in error_text
+            or "ACCESS_TOKEN_TYPE_UNSUPPORTED" in error_text
+            or "invalid authentication credentials" in error_text.lower()
+        ):
+            st.session_state.analysis_notices = [
+                {
+                    "level": "error",
+                    "text": "Clé Gemini invalide — consultez l'aide dans la sidebar.",
+                }
+            ]
+        else:
+            st.session_state.analysis_notices = [
+                {"level": "error", "text": f"Erreur inattendue : {exc}"}
+            ]
+    _invalidate_speed_caches()
+    _fast_rerun()
 
 
 def render_language_selector(
@@ -7210,6 +7398,7 @@ def _render_profile_photo_editor(user_id: int, *, has_photo: bool) -> None:
             st.rerun()
 
 
+@st.fragment
 def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
     """Profile settings — identity, search prefs, security, alerts, delete account."""
     _flush_analysis_notices()
@@ -7456,6 +7645,7 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                     )
                     if ok and updated:
                         st.session_state.user = updated
+                        _invalidate_speed_caches()
                         st.session_state.pop(sectors_key, None)
                         prefix = f"profile_{user['id']}"
                         for suffix in (
@@ -7517,6 +7707,7 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
         render_delete_account_section(user)
 
 
+@st.fragment
 def render_cv_analysis(
     job_provider: str,
     user: dict[str, Any],
@@ -7529,7 +7720,31 @@ def render_cv_analysis(
         render_ai_setup_help()
         return
 
-    user_profile = get_user_by_id(user["id"]) or user
+    user_profile = _cached_matching_profile(user)
+    depth_key = analysis_depth if analysis_depth in ANALYSIS_DEPTH_POOL else "standard"
+    depth_pool = ANALYSIS_DEPTH_POOL[depth_key]
+    depth_top = ANALYSIS_DEPTH_TOP[depth_key]
+
+    if st.session_state.pop("_run_full_analysis_queued", False):
+        profile_ok, profile_msg = profile_ready_for_matching(user_profile)
+        pdf_bytes, current_fp = _uploaded_cv_bytes()
+        if not profile_ok:
+            st.warning(profile_msg)
+            st.info(t("matching.profile_incomplete"))
+            return
+        if pdf_bytes and current_fp:
+            _run_full_cv_analysis(
+                pdf_bytes,
+                current_fp,
+                job_provider,
+                user,
+                user_profile,
+                depth_pool=depth_pool,
+                depth_top=depth_top,
+                depth_key=depth_key,
+            )
+            return
+
     profile_ok, profile_msg = profile_ready_for_matching(user_profile)
     if not profile_ok:
         st.warning(profile_msg)
@@ -7541,9 +7756,6 @@ def render_cv_analysis(
     active_sectors = resolve_target_sectors(user_profile, {})
     region_text, dept_text, city_text = format_profile_geo_summary(user_profile)
     publication_filter = normalize_job_max_age_days(user_profile.get("job_max_age_days"))
-    depth_key = analysis_depth if analysis_depth in ANALYSIS_DEPTH_POOL else "standard"
-    depth_pool = ANALYSIS_DEPTH_POOL[depth_key]
-    depth_top = ANALYSIS_DEPTH_TOP[depth_key]
 
     notify_settings = get_notification_settings(int(user["id"]))
     if is_auto_search_due(notify_settings) and notify_settings.get("auto_search_enabled"):
@@ -7583,11 +7795,7 @@ def render_cv_analysis(
             key="cv_pdf_uploader",
         )
 
-        current_fp = None
-        pdf_bytes = None
-        if uploaded_file is not None:
-            pdf_bytes = uploaded_file.read()
-            current_fp = pdf_fingerprint(pdf_bytes)
+        pdf_bytes, current_fp = _uploaded_cv_bytes() if uploaded_file is not None else (None, None)
 
         fp_matches = bool(
             st.session_state.analysis
@@ -7606,99 +7814,13 @@ def render_cv_analysis(
         else:
             if fp_matches:
                 st.info("Résultats en cache pour ce CV — relancez pour forcer une nouvelle analyse.")
-            if st.button(
+            st.button(
                 "Lancer l'analyse complète",
                 type="primary",
                 use_container_width=True,
                 key="run_full_analysis",
-            ):
-                st.session_state.groq_quota_exhausted = False
-                st.session_state.llm_backend_active = None
-                try:
-                    progress_slot = st.empty()
-
-                    def _update_analysis_progress(percent: int, label: str) -> None:
-                        progress_slot.progress(
-                            percent / 100.0,
-                            text=f"{percent}% — {label}",
-                        )
-
-                    _update_analysis_progress(0, "Démarrage…")
-                    analysis, notices = run_cv_analysis_pipeline(
-                        pdf_bytes,
-                        job_provider,
-                        user_profile,
-                        matching_pool=depth_pool,
-                        matching_top=depth_top,
-                        progress=_update_analysis_progress,
-                    )
-                    if analysis:
-                        _update_analysis_progress(100, "Analyse terminée")
-                    else:
-                        progress_slot.empty()
-                    st.session_state.analysis_notices = notices
-                    if analysis:
-                        saved = persist_completed_analysis(
-                            user,
-                            analysis,
-                            current_fp or "",
-                            depth_key,
-                        )
-                        st.session_state.analysis = saved or analysis
-                        st.session_state.pdf_fingerprint = current_fp
-                    else:
-                        st.session_state.analysis = None
-                        st.session_state.pdf_fingerprint = None
-                except requests.HTTPError as exc:
-                    body = exc.response.text[:300] if exc.response is not None else str(exc)
-                    status = exc.response.status_code if exc.response is not None else None
-                    st.session_state.analysis_notices = []
-                    if status == 401 or (body and "401" in body):
-                        st.session_state.adzuna_error_body = body
-                    else:
-                        st.session_state.analysis_notices = [
-                            {
-                                "level": "error",
-                                "text": (
-                                    f"Erreur API emploi : {status} — {body}"
-                                    if status is not None
-                                    else str(exc)
-                                ),
-                            }
-                        ]
-                except json.JSONDecodeError:
-                    st.session_state.analysis_notices = [
-                        {
-                            "level": "error",
-                            "text": (
-                                "L'IA a renvoyé une réponse invalide lors de l'extraction du CV. "
-                                "Sidebar → **Vider le cache**, puis relancez l'analyse."
-                            ),
-                        }
-                    ]
-                except RuntimeError as exc:
-                    st.session_state.analysis_notices = [
-                        {"level": "error", "text": str(exc)}
-                    ]
-                except Exception as exc:  # noqa: BLE001
-                    error_text = str(exc)
-                    if (
-                        "API key not valid" in error_text
-                        or "API_KEY_INVALID" in error_text
-                        or "ACCESS_TOKEN_TYPE_UNSUPPORTED" in error_text
-                        or "invalid authentication credentials" in error_text.lower()
-                    ):
-                        st.session_state.analysis_notices = [
-                            {
-                                "level": "error",
-                                "text": "Clé Gemini invalide — consultez l'aide dans la sidebar.",
-                            }
-                        ]
-                    else:
-                        st.session_state.analysis_notices = [
-                            {"level": "error", "text": f"Erreur inattendue : {exc}"}
-                        ]
-                st.rerun()
+                on_click=_queue_full_analysis,
+            )
 
     if not uploaded_file:
         if st.session_state.analysis:
@@ -8130,10 +8252,11 @@ def render_app() -> None:
 def main() -> None:
     """Application entry point — auth gate then main tool."""
     try:
-        configure_database(
-            get_secret("DATABASE_URL"),
-            password=get_secret("DATABASE_PASSWORD"),
-        )
+        if not is_configured():
+            configure_database(
+                get_secret("DATABASE_URL"),
+                password=get_secret("DATABASE_PASSWORD"),
+            )
         init_db()
     except DatabaseConfigError as exc:
         st.error("**Configuration base de données incorrecte.**")
