@@ -111,6 +111,18 @@ def test_delete_user_account_removes_all_personal_data(sqlite_db):
         site_password="SitePass123!",
     )[0]
     insert_support_message(user_id, "user", "Message privé de Jane au support")
+    from services.analysis_queue import enqueue_analysis_job
+
+    enqueue_ok, enqueue_err = enqueue_analysis_job(
+        user_id,
+        {"full_name": "Jane Doe", "email": "jane@example.com", "target_job_title": "Developer"},
+        job_provider="adzuna",
+        analysis_depth="standard",
+        cv_fingerprint="abc123",
+        cv_text="CV confidentiel de Jane",
+        trigger_source="ui",
+    )
+    assert enqueue_ok, enqueue_err
     from io import BytesIO
     from PIL import Image
 
@@ -132,6 +144,7 @@ def test_delete_user_account_removes_all_personal_data(sqlite_db):
     assert _count_for_user("support_messages", user_id) == 1
     assert _count_for_user("support_conversations", user_id) == 1
     assert _count_for_user("user_profile_photos", user_id) == 1
+    assert _count_for_user("analysis_jobs", user_id) == 1
     assert list_analyses(user_id)
     assert list_user_applications(user_id)
 
@@ -155,6 +168,7 @@ def test_delete_user_account_removes_all_personal_data(sqlite_db):
     assert _count_for_user("support_messages", user_id) == 0
     assert _count_for_user("support_conversations", user_id) == 0
     assert _count_for_user("user_profile_photos", user_id) == 0
+    assert _count_for_user("analysis_jobs", user_id) == 0
     assert list_analyses(user_id) == []
     assert list_user_applications(user_id) == []
 

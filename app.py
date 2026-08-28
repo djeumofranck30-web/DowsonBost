@@ -98,6 +98,7 @@ from constants import (
     ANALYSIS_DEPTH_OPTIONS,
     ANALYSIS_DEPTH_POOL,
     ANALYSIS_DEPTH_TOP,
+    ANALYSIS_JOB_POLL_SECONDS,
     APP_NAME,
     ATS_MATCH_MAX_TOKENS,
     CACHE_TTL_SECONDS,
@@ -117,6 +118,13 @@ from constants import (
     JOB_CARDS_PER_PAGE,
     APPLICATION_CHANNEL_KEYS,
 )
+from services.analysis_queue import (
+    enqueue_analysis_job,
+    get_active_analysis_job,
+    get_analysis_job,
+    get_latest_analysis_job,
+)
+from services.analysis_worker import ensure_embedded_analysis_worker
 from services.application import (
     build_application_profile,
     format_application_autofill_text,
@@ -4167,6 +4175,77 @@ def persist_completed_analysis(
     return None
 
 
+def _job_notices(job: dict[str, Any]) -> list[dict[str, str]]:
+    raw = job.get("notices_json") or "[]"
+    try:
+        parsed = json.loads(raw) if isinstance(raw, str) else raw
+    except json.JSONDecodeError:
+        parsed = []
+    if not isinstance(parsed, list):
+        return []
+    return [item for item in parsed if isinstance(item, dict)]
+
+
+def _sync_analysis_job_into_session(user_id: int) -> None:
+    """Load a finished ticket into session once, then keep showing those results."""
+    job = get_latest_analysis_job(user_id)
+    if not job:
+        return
+    job_id = int(job["id"])
+    if st.session_state.get("applied_analysis_job_id") == job_id:
+        return
+    status = str(job.get("status") or "")
+    if status == "completed" and job.get("analysis_id"):
+        stored = get_analysis(user_id, int(job["analysis_id"]))
+        if stored:
+            st.session_state.analysis = analysis_to_session_dict(stored)
+            st.session_state.pdf_fingerprint = job.get("cv_fingerprint")
+            st.session_state.analysis_notices = _job_notices(job)
+            st.session_state.applied_analysis_job_id = job_id
+            st.session_state.analysis_job_id = job_id
+            return
+    if status == "failed":
+        notices = _job_notices(job)
+        error = str(job.get("error_message") or "").strip()
+        if not notices:
+            notices = [{"level": "error", "text": t("analysis.queue.failed", error=error or "—")}]
+        st.session_state.analysis_notices = notices
+        st.session_state.applied_analysis_job_id = job_id
+        st.session_state.analysis_job_id = job_id
+
+
+def _enqueue_user_analysis_error(code: str) -> str:
+    if code == "pdf_too_large":
+        return t("analysis.queue.pdf_too_large")
+    if code == "missing_cv":
+        return t("analysis.missing_cv")
+    if code == "already":
+        return t("analysis.queue.already")
+    return t("analysis.queue.failed", error=code)
+
+
+def _render_analysis_job_progress(job: dict[str, Any]) -> None:
+    """Show ticket status and refresh until the worker finishes."""
+    status = str(job.get("status") or "queued")
+    if status == "queued":
+        st.info(t("analysis.queue.queued"))
+    else:
+        st.info(t("analysis.queue.running"))
+    st.caption(t("analysis.queue.ticket", id=int(job["id"])))
+
+    @st.fragment(run_every=ANALYSIS_JOB_POLL_SECONDS)
+    def _poll_analysis_ticket() -> None:
+        fresh = get_analysis_job(int(job["id"]), int(job["user_id"])) or job
+        if str(fresh.get("status") or "") in {"queued", "running"}:
+            percent = int(fresh.get("progress_percent") or 0)
+            label = str(fresh.get("progress_label") or t("analysis.queue.running"))
+            st.progress(min(1.0, max(0.0, percent / 100.0)), text=f"{percent}% — {label}")
+            return
+        st.rerun()
+
+    _poll_analysis_ticket()
+
+
 def _format_history_datetime(value: str | None) -> str:
     if not value:
         return "—"
@@ -5298,7 +5377,7 @@ def render_notification_settings(user: dict[str, Any], job_provider: str) -> Non
 
 
 def run_auto_search_for_user(user: dict[str, Any], job_provider: str) -> None:
-    """Execute scheduled search using the last active CV."""
+    """Queue a scheduled search using the last active CV (same matching as a manual run)."""
     user_id = int(user["id"])
     settings = get_notification_settings(user_id)
     cv_doc = get_active_cv_document(user_id)
@@ -5311,56 +5390,24 @@ def run_auto_search_for_user(user: dict[str, Any], job_provider: str) -> None:
     if depth_key not in ANALYSIS_DEPTH_POOL:
         depth_key = "standard"
     provider = settings.get("auto_search_provider") or job_provider
-
-    log_scheduled_run(user_id, "running", trigger_source="app")
-    progress_slot = st.empty()
-
-    def _update_auto_progress(percent: int, label: str) -> None:
-        progress_slot.progress(percent / 100.0, text=f"{percent}% — {label}")
-
-    _update_auto_progress(0, t("auto_search.start"))
-    analysis, notices = run_cv_analysis_pipeline(
-        None,
-        provider,
+    ensure_embedded_analysis_worker()
+    job_id, err = enqueue_analysis_job(
+        user_id,
         user_profile,
-        matching_pool=ANALYSIS_DEPTH_POOL[depth_key],
-        matching_top=ANALYSIS_DEPTH_TOP[depth_key],
-        cv_text_override=cv_doc["extracted_text"],
-        extraction_method_override="native",
-        progress=_update_auto_progress,
+        job_provider=provider,
+        analysis_depth=depth_key,
+        cv_fingerprint=str(cv_doc.get("fingerprint") or ""),
+        cv_text=str(cv_doc.get("extracted_text") or ""),
+        extraction_method="native",
+        trigger_source="auto",
     )
-    if analysis:
-        _update_auto_progress(100, "Recherche automatique terminée")
-    else:
-        progress_slot.empty()
-    st.session_state.analysis_notices = notices
-    if not analysis:
-        log_scheduled_run(user_id, "failed", error_message="Pipeline vide", trigger_source="app")
+    if err and err != "already":
+        st.error(_enqueue_user_analysis_error(err))
         return
-
-    fingerprint = cv_doc["fingerprint"]
-    saved = persist_completed_analysis(user, analysis, fingerprint, depth_key)
-    if saved:
-        st.session_state.analysis = saved
-        st.session_state.pdf_fingerprint = fingerprint
-    else:
-        st.session_state.analysis = analysis
-        st.session_state.pdf_fingerprint = fingerprint
-
-    mark_auto_search_completed(
-        user_id,
-        settings.get("auto_search_weekday", "daily"),
-        int(settings.get("auto_search_hour", 8)),
-    )
-    log_scheduled_run(
-        user_id,
-        "success",
-        analysis_id=analysis.get("analysis_id"),
-        trigger_source="app",
-    )
-    st.session_state.analysis_notices.append(
-        {"level": "success", "text": t("auto_search.done")}
-    )
+    log_scheduled_run(user_id, "running", trigger_source="app")
+    st.session_state.analysis_job_id = job_id
+    st.session_state.applied_analysis_job_id = None
+    st.session_state.analysis = None
     st.rerun()
 
 
@@ -5639,6 +5686,10 @@ def init_session_state() -> None:
         st.session_state.gemini_fallback_warned = False
     if "analysis_notices" not in st.session_state:
         st.session_state.analysis_notices = []
+    if "analysis_job_id" not in st.session_state:
+        st.session_state.analysis_job_id = None
+    if "applied_analysis_job_id" not in st.session_state:
+        st.session_state.applied_analysis_job_id = None
     if "auth_view" not in st.session_state:
         st.session_state.auth_view = "login"
     if "groq_quota_exhausted" not in st.session_state:
@@ -7686,8 +7737,8 @@ def render_cv_analysis(
     region_text, dept_text, city_text = format_profile_geo_summary(user_profile)
     publication_filter = normalize_job_max_age_days(user_profile.get("job_max_age_days"))
     depth_key = analysis_depth if analysis_depth in ANALYSIS_DEPTH_POOL else "standard"
-    depth_pool = ANALYSIS_DEPTH_POOL[depth_key]
-    depth_top = ANALYSIS_DEPTH_TOP[depth_key]
+    _sync_analysis_job_into_session(int(user["id"]))
+    active_job = get_active_analysis_job(int(user["id"]))
 
     notify_settings = get_notification_settings(int(user["id"]))
     if is_auto_search_due(notify_settings) and notify_settings.get("auto_search_enabled"):
@@ -7750,99 +7801,38 @@ def render_cv_analysis(
         else:
             if fp_matches:
                 st.info("Résultats en cache pour ce CV — relancez pour forcer une nouvelle analyse.")
-            if st.button(
-                "Lancer l'analyse complète",
+            if active_job:
+                st.caption(t("analysis.queue.already"))
+            elif st.button(
+                t("analysis.run"),
                 type="primary",
                 use_container_width=True,
                 key="run_full_analysis",
             ):
-                st.session_state.groq_quota_exhausted = False
-                st.session_state.llm_backend_active = None
-                try:
-                    progress_slot = st.empty()
-
-                    def _update_analysis_progress(percent: int, label: str) -> None:
-                        progress_slot.progress(
-                            percent / 100.0,
-                            text=f"{percent}% — {label}",
-                        )
-
-                    _update_analysis_progress(0, "Démarrage…")
-                    analysis, notices = run_cv_analysis_pipeline(
-                        pdf_bytes,
-                        job_provider,
-                        user_profile,
-                        matching_pool=depth_pool,
-                        matching_top=depth_top,
-                        progress=_update_analysis_progress,
-                    )
-                    if analysis:
-                        _update_analysis_progress(100, "Analyse terminée")
-                    else:
-                        progress_slot.empty()
-                    st.session_state.analysis_notices = notices
-                    if analysis:
-                        saved = persist_completed_analysis(
-                            user,
-                            analysis,
-                            current_fp or "",
-                            depth_key,
-                        )
-                        st.session_state.analysis = saved or analysis
-                        st.session_state.pdf_fingerprint = current_fp
-                    else:
-                        st.session_state.analysis = None
-                        st.session_state.pdf_fingerprint = None
-                except requests.HTTPError as exc:
-                    body = exc.response.text[:300] if exc.response is not None else str(exc)
-                    status = exc.response.status_code if exc.response is not None else None
-                    st.session_state.analysis_notices = []
-                    if status == 401 or (body and "401" in body):
-                        st.session_state.adzuna_error_body = body
-                    else:
-                        st.session_state.analysis_notices = [
-                            {
-                                "level": "error",
-                                "text": (
-                                    f"Erreur API emploi : {status} — {body}"
-                                    if status is not None
-                                    else str(exc)
-                                ),
-                            }
-                        ]
-                except json.JSONDecodeError:
+                ensure_embedded_analysis_worker()
+                job_id, err = enqueue_analysis_job(
+                    int(user["id"]),
+                    user_profile,
+                    job_provider=job_provider,
+                    analysis_depth=depth_key,
+                    cv_fingerprint=current_fp or "",
+                    pdf_bytes=pdf_bytes,
+                    trigger_source="ui",
+                )
+                if err and err != "already":
                     st.session_state.analysis_notices = [
-                        {
-                            "level": "error",
-                            "text": (
-                                "L'IA a renvoyé une réponse invalide lors de l'extraction du CV. "
-                                "Sidebar → **Vider le cache**, puis relancez l'analyse."
-                            ),
-                        }
+                        {"level": "error", "text": _enqueue_user_analysis_error(err)}
                     ]
-                except RuntimeError as exc:
-                    st.session_state.analysis_notices = [
-                        {"level": "error", "text": str(exc)}
-                    ]
-                except Exception as exc:  # noqa: BLE001
-                    error_text = str(exc)
-                    if (
-                        "API key not valid" in error_text
-                        or "API_KEY_INVALID" in error_text
-                        or "ACCESS_TOKEN_TYPE_UNSUPPORTED" in error_text
-                        or "invalid authentication credentials" in error_text.lower()
-                    ):
-                        st.session_state.analysis_notices = [
-                            {
-                                "level": "error",
-                                "text": "Clé Gemini invalide — consultez l'aide dans la sidebar.",
-                            }
-                        ]
-                    else:
-                        st.session_state.analysis_notices = [
-                            {"level": "error", "text": f"Erreur inattendue : {exc}"}
-                        ]
+                else:
+                    st.session_state.analysis_job_id = job_id
+                    st.session_state.applied_analysis_job_id = None
+                    st.session_state.analysis = None
+                    st.session_state.pdf_fingerprint = current_fp
                 st.rerun()
+
+    if active_job:
+        _render_analysis_job_progress(active_job)
+        return
 
     if not uploaded_file:
         if st.session_state.analysis:
@@ -8313,6 +8303,7 @@ def main() -> None:
         return
 
     init_session_state()
+    ensure_embedded_analysis_worker()
 
     if not st.session_state.authenticated:
         render_auth_page()

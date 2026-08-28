@@ -56,6 +56,7 @@ _USER_OWNED_TABLES = (
     "support_messages",
     "support_conversations",
     "user_profile_photos",
+    "analysis_jobs",
 )
 
 _PERSISTENCE_SCHEMA_KEY = (
@@ -69,6 +70,7 @@ _PERSISTENCE_SCHEMA_KEY = (
     "support_messages_v2",
     "support_conversations_v1",
     "user_profile_photos_v1",
+    "analysis_jobs_v1",
 )
 _persistence_initialized_for: tuple[str, ...] | None = None
 
@@ -574,6 +576,91 @@ def _migrate_analysis_results_columns(conn: Any) -> None:
         conn.execute("ALTER TABLE analysis_results ADD COLUMN application_method TEXT")
 
 
+def _create_analysis_jobs_table(conn: Any) -> None:
+    """Queue of CV analyses: click stores a ticket, a worker runs the matching."""
+    if database_backend() == "postgres":
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS analysis_jobs (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                status TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                started_at TEXT,
+                finished_at TEXT,
+                job_provider TEXT NOT NULL,
+                analysis_depth TEXT NOT NULL DEFAULT 'standard',
+                matching_pool INTEGER NOT NULL,
+                matching_top INTEGER NOT NULL,
+                cv_fingerprint TEXT NOT NULL DEFAULT '',
+                cv_text TEXT,
+                extraction_method TEXT NOT NULL DEFAULT 'native',
+                pdf_blob BYTEA,
+                user_profile_json TEXT NOT NULL,
+                trigger_source TEXT NOT NULL DEFAULT 'ui',
+                progress_percent INTEGER NOT NULL DEFAULT 0,
+                progress_label TEXT NOT NULL DEFAULT '',
+                error_message TEXT,
+                analysis_id INTEGER,
+                notices_json TEXT
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS analysis_jobs_status_idx
+            ON analysis_jobs (status, id)
+            """
+        )
+        conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS analysis_jobs_user_idx
+            ON analysis_jobs (user_id, created_at DESC)
+            """
+        )
+        return
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS analysis_jobs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            status TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            started_at TEXT,
+            finished_at TEXT,
+            job_provider TEXT NOT NULL,
+            analysis_depth TEXT NOT NULL DEFAULT 'standard',
+            matching_pool INTEGER NOT NULL,
+            matching_top INTEGER NOT NULL,
+            cv_fingerprint TEXT NOT NULL DEFAULT '',
+            cv_text TEXT,
+            extraction_method TEXT NOT NULL DEFAULT 'native',
+            pdf_blob BLOB,
+            user_profile_json TEXT NOT NULL,
+            trigger_source TEXT NOT NULL DEFAULT 'ui',
+            progress_percent INTEGER NOT NULL DEFAULT 0,
+            progress_label TEXT NOT NULL DEFAULT '',
+            error_message TEXT,
+            analysis_id INTEGER,
+            notices_json TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE INDEX IF NOT EXISTS analysis_jobs_status_idx
+        ON analysis_jobs (status, id)
+        """
+    )
+    conn.execute(
+        """
+        CREATE INDEX IF NOT EXISTS analysis_jobs_user_idx
+        ON analysis_jobs (user_id, created_at DESC)
+        """
+    )
+
+
 def init_persistence_tables() -> None:
     """Create persistence tables once per process."""
     global _persistence_initialized_for
@@ -591,6 +678,7 @@ def init_persistence_tables() -> None:
         _create_support_messages_table(conn)
         _migrate_support_conversations(conn)
         _create_user_profile_photos_table(conn)
+        _create_analysis_jobs_table(conn)
         from services.llm_usage import ensure_llm_usage_table
 
         ensure_llm_usage_table()
