@@ -30,6 +30,10 @@ def test_reset_form_is_a_three_step_code_flow():
     assert verify_idx < password_idx
     assert 'step not in {"identify", "code", "password"}' in fn
     assert 'key="reset_submit_password"' in fn[password_idx:]
+    assert "_store_reset_identity" in fn
+    assert "_reset_identity_email()" in fn
+    code_step = fn[fn.index("if step == \"code\"") :]
+    assert 'st.session_state.get("reset_email", "")' not in code_step
 
 
 def test_reset_code_locale_keys_exist():

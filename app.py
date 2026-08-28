@@ -6535,8 +6535,37 @@ def _clear_auth_reset_flow(*, keep_identity: bool = False) -> None:
     ):
         st.session_state.pop(key, None)
     if not keep_identity:
-        st.session_state.pop("reset_email", None)
-        st.session_state.pop("reset_full_name", None)
+        for key in (
+            "reset_email",
+            "reset_full_name",
+            "reset_identity_email",
+            "reset_identity_name",
+        ):
+            st.session_state.pop(key, None)
+
+
+def _store_reset_identity() -> None:
+    """Keep e-mail/name after Streamlit drops the identify widgets on the next step."""
+    email = str(
+        st.session_state.get("reset_email")
+        or st.session_state.get("reset_identity_email")
+        or ""
+    )
+    name = str(
+        st.session_state.get("reset_full_name")
+        or st.session_state.get("reset_identity_name")
+        or ""
+    )
+    st.session_state.reset_identity_email = email
+    st.session_state.reset_identity_name = name
+
+
+def _reset_identity_email() -> str:
+    return str(st.session_state.get("reset_identity_email") or st.session_state.get("reset_email") or "")
+
+
+def _reset_identity_name() -> str:
+    return str(st.session_state.get("reset_identity_name") or st.session_state.get("reset_full_name") or "")
 
 
 def _render_auth_reset_form() -> None:
@@ -6573,6 +6602,7 @@ def _render_auth_reset_form() -> None:
                 st.session_state.get("reset_full_name", ""),
             )
             if ok:
+                _store_reset_identity()
                 st.session_state.reset_step = "code"
                 st.session_state.reset_code_expires_at = expires_at
                 st.session_state.pop("reset_code", None)
@@ -6608,7 +6638,7 @@ def _render_auth_reset_form() -> None:
             key="reset_verify_code",
         ):
             ok, message, user_id = verify_password_reset_code(
-                st.session_state.get("reset_email", ""),
+                _reset_identity_email(),
                 st.session_state.get("reset_code", ""),
             )
             if ok and user_id:
@@ -6625,8 +6655,8 @@ def _render_auth_reset_form() -> None:
             key="reset_resend_code",
         ):
             ok, message, expires_at = request_password_reset_code(
-                st.session_state.get("reset_email", ""),
-                st.session_state.get("reset_full_name", ""),
+                _reset_identity_email(),
+                _reset_identity_name(),
             )
             if ok:
                 st.session_state.reset_code_expires_at = expires_at
