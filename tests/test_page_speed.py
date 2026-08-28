@@ -5,7 +5,7 @@ from __future__ import annotations
 import inspect
 from pathlib import Path
 
-from constants import JOB_CARDS_PER_PAGE, PROFILE_PHOTO_SIDEBAR_PX
+from constants import JOB_CARDS_PER_PAGE, PROFILE_PHOTO_SIDEBAR_PX, GROQ_INTER_CALL_DELAY_SEC
 from persistence import (
     analysis_to_session_dict,
     count_user_applications,
@@ -274,7 +274,7 @@ def test_sqlite_reuses_thread_connection(sqlite_db):
     assert ids[0] == ids[1]
 
 
-def test_sidebar_photo_payload_is_smaller_than_profile_photo(sqlite_db):
+def test_sqlite_reuses_thread_connection(sqlite_db):
     from PIL import Image
     from io import BytesIO
 
@@ -295,3 +295,29 @@ def test_sidebar_photo_payload_is_smaller_than_profile_photo(sqlite_db):
     small = profile_photo_data_url(int(user["id"]), size_px=PROFILE_PHOTO_SIDEBAR_PX)
     assert full and small
     assert len(small) < len(full)
+
+
+def test_in_page_clicks_use_fragments_and_start_analysis_immediately():
+    source = (ROOT / "app.py").read_text(encoding="utf-8")
+    assert source.count("@st.fragment") >= 6
+    assert "on_click=_queue_full_analysis" in source
+    assert "_run_full_analysis_queued" in source
+    assert "_chat_fab_sig" in source
+    assert 'st.rerun(scope="fragment")' in source
+    assert "def _uploaded_cv_bytes(" in source
+    assert "if not is_configured():" in source
+    assert "def render_cv_analysis(" in source
+    assert source.index("if st.session_state.pop(\"_run_full_analysis_queued\"") < source.index(
+        'key="run_full_analysis"'
+    )
+
+
+def test_matching_wait_between_serial_calls_is_short():
+    assert GROQ_INTER_CALL_DELAY_SEC <= 0.25
+
+
+def test_database_reports_when_already_configured(sqlite_db):
+    from database import is_configured
+
+    assert is_configured() is True
+

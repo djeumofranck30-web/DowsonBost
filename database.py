@@ -106,6 +106,11 @@ def normalize_database_url(url: str, password_override: str = "") -> str:
     return urlunparse(parsed._replace(query=new_query))
 
 
+def is_configured() -> bool:
+    """True after the first successful configure_database() call in this process."""
+    return _configured
+
+
 def configure_database(url: str = "", password: str = "") -> str:
     """Select SQLite (default) or PostgreSQL when DATABASE_URL is set."""
     global _backend, _database_url, _database_password, _configured
