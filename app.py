@@ -3187,7 +3187,7 @@ def build_matching_results(
     user_profile: dict[str, Any] | None = None,
     progress: ProgressReporter | None = None,
 ) -> tuple[list[dict[str, Any]], int]:
-    """AI-match job candidates and return the best offers by correspondence score."""
+    """AI-match job candidates and return every analysed offer ranked by similarity."""
     try:
         from services.llm_usage import bind_current_user_from_streamlit, bind_usage_user_id
 
@@ -3299,12 +3299,14 @@ def build_matching_results(
             results.append({"job": job, "match": match})
             _report_match_progress(index + 1)
 
-    _report_progress(progress, match_end, "Classement des meilleures offres…")
+    _report_progress(progress, match_end, "Classement des offres par similarité…")
     results.sort(
         key=lambda entry: int(entry["match"].get("score_correspondance", 0)),
         reverse=True,
     )
-    return results[:top_n], partial_matches
+    # Depth caps scoring via pool_size only. Keep every analysed offer, ranked by similarity.
+    _ = top_n
+    return results, partial_matches
 
 
 # ---------------------------------------------------------------------------
@@ -5666,16 +5668,7 @@ def render_analysis_results(analysis: dict[str, Any]) -> None:
         f'<p class="section-title">{t("results.simple_title", count=len(results))}</p>',
         unsafe_allow_html=True,
     )
-    visible_results = _paged_items(
-        results,
-        key="analysis_results_page",
-        page_size=12,
-        filter_signature=("simple", analysis_id, len(results)),
-    )
-    page_offset = 0
-    if len(results) > 12:
-        page_offset = (int(st.session_state.get("analysis_results_page") or 1) - 1) * 12
-    for idx, entry in enumerate(visible_results, start=page_offset + 1):
+    for idx, entry in enumerate(results, start=1):
         render_simple_job_row(entry.get("job") or {}, entry.get("match") or {}, idx)
 
 

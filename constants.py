@@ -20,10 +20,10 @@ CV_MATCH_TEXT_LIMIT_WITH_PROFILE = 4500
 ATS_MATCH_MAX_TOKENS = 3500
 
 ANALYSIS_DEPTH_OPTIONS = ("rapide", "standard", "complet")
-ANALYSIS_DEPTH_POOL = {"rapide": 25, "standard": 60, "complet": 100}
-ANALYSIS_DEPTH_TOP = {"rapide": 25, "standard": 60, "complet": 100}
+ANALYSIS_DEPTH_POOL = {"rapide": 30, "standard": 60, "complet": 100}
+ANALYSIS_DEPTH_TOP = {"rapide": 30, "standard": 60, "complet": 100}
 NAV_PAGE_KEYS = ("analysis", "dashboard", "applications", "history", "support", "profile")
-JOB_CARDS_PER_PAGE = 8
+JOB_CARDS_PER_PAGE = 30
 PROFILE_SECTION_KEYS = ("search", "accounts", "alerts", "security")
 APPLICATION_CHANNEL_KEYS = ("all", "automatic", "manual")
 SUPPORT_MESSAGE_MAX_LEN = 4000

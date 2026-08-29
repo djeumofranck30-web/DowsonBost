@@ -39,7 +39,7 @@ def _register_kwargs(**overrides):
 
 def test_job_cards_are_paginated_and_collapsed_by_default():
     source = (ROOT / "app.py").read_text(encoding="utf-8")
-    assert JOB_CARDS_PER_PAGE == 8
+    assert JOB_CARDS_PER_PAGE == 30
     assert "JOB_CARDS_PER_PAGE" in source
     assert "_paged_items(" in source
     assert 'f"job_open_{result_id or rank}"' in source

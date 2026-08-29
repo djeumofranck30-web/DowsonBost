@@ -28,6 +28,10 @@ def test_analysis_results_use_simple_rows_not_full_cards() -> None:
     assert "results.filter_stats" not in body
     assert "results.open_dashboard" in body
     assert '_request_navigation("dashboard")' in body
+    assert "_paged_items(" not in body
+    assert "for idx, entry in enumerate(results, start=1):" in body
+    assert "visible_results" not in body
+    assert "page_size=12" not in body
 
 
 def test_dashboard_still_renders_full_job_cards() -> None:
