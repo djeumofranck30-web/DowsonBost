@@ -1,0 +1,148 @@
+"""ATS alignment for adapted CV and cover letter generation."""
+
+from __future__ import annotations
+
+from document_generation import (
+    collect_alignment_terms,
+    generate_adapted_cv,
+    generate_cover_letter,
+    missing_alignment_gaps,
+)
+
+
+ORIGINAL_CV = """
+Jane Doe
+Développeuse Python
+Paris
+
+Compétences : Python, Django, PostgreSQL, Docker, AWS
+Expérience : conception d'APIs REST, CI/CD chez Acme (2022-2025)
+"""
+
+FULL_MATCH = {
+    "titre_cv_recommande": "Développeuse Python",
+    "score_correspondance": 88,
+    "analyse_competences": {
+        "presentes": ["Python", "Django"],
+        "partielles": ["Docker"],
+        "offre_technos": ["Python", "Kubernetes"],
+        "offre_obligatoires": ["Python"],
+    },
+    "mots_cles_manquants": ["Django", "Kubernetes"],
+    "modifications_cv": [
+        "Ajouter Django dans les compétences",
+        "Mettre en avant les APIs REST dans l'expérience",
+    ],
+}
+
+JOB = {
+    "title": "Développeuse Python",
+    "company": "NovaTech",
+    "description": "Python Django APIs REST Docker",
+    "location": "Paris",
+    "contract_type": "CDI",
+}
+
+ALIGNED_CV = """
+NOM: Jane Doe
+TITRE: Développeuse Python
+EMAIL: jane@example.com
+TELEPHONE: +33 6 00 00 00 00
+VILLE: Paris
+
+## PROFIL
+Développeuse Python spécialisée Django et APIs REST.
+
+## COMPETENCES
+Python | Django | PostgreSQL | Docker | AWS
+
+## EXPERIENCE
+POSTE: Développeuse Python
+ENTREPRISE: Acme
+PERIODE: 2022 - 2025
+- Conception d'APIs REST
+- Mise en place CI/CD Docker
+"""
+
+WEAK_CV = """
+NOM: Jane Doe
+TITRE: Ingénieure logiciel
+EMAIL: jane@example.com
+
+## PROFIL
+Ingénieure logicielle.
+
+## COMPETENCES
+PostgreSQL | AWS
+"""
+
+
+def test_present_and_partial_skills_are_required_alignment_terms():
+    alignment = collect_alignment_terms(ORIGINAL_CV, JOB, FULL_MATCH)
+    folded = " ".join(alignment["required_terms"]).lower()
+    assert "python" in folded
+    assert "django" in folded
+    assert "docker" in folded
+    # Kubernetes is in the offer but not in the original CV — must not be forced.
+    assert "kubernetes" not in folded
+    assert alignment["modifications"][0].lower().startswith("ajouter django")
+
+
+def test_missing_alignment_gaps_detects_unapplied_modifications():
+    alignment = collect_alignment_terms(ORIGINAL_CV, JOB, FULL_MATCH)
+    gaps = missing_alignment_gaps(WEAK_CV, alignment, kind="cv")
+    blob = " ".join(gaps).lower()
+    assert "django" in blob or "python" in blob
+    assert "titre" in blob or "développeuse" in blob.lower() or "developpeuse" in blob
+
+
+def test_aligned_cv_has_no_gaps():
+    alignment = collect_alignment_terms(ORIGINAL_CV, JOB, FULL_MATCH)
+    assert missing_alignment_gaps(ALIGNED_CV, alignment, kind="cv") == []
+
+
+def test_generate_adapted_cv_rewrites_until_modifications_appear():
+    calls: list[str] = []
+
+    def fake_llm(system: str, user: str, **kwargs: object) -> str:
+        calls.append(user)
+        if len(calls) == 1:
+            return WEAK_CV
+        return ALIGNED_CV
+
+    result = generate_adapted_cv(
+        ORIGINAL_CV,
+        JOB,
+        FULL_MATCH,
+        {"full_name": "Jane Doe"},
+        llm_call=fake_llm,
+    )
+    assert len(calls) >= 2
+    assert "Django" in result
+    assert "Développeuse Python" in result
+    assert "incomplet" in calls[1].lower() or "100 %" in calls[1] or "absents" in calls[1]
+
+
+def test_generate_cover_letter_requires_company_and_keywords():
+    calls: list[str] = []
+
+    def fake_llm(system: str, user: str, **kwargs: object) -> str:
+        calls.append(user)
+        if len(calls) == 1:
+            return "Madame, Monsieur, je postule. Cordialement."
+        return (
+            "Objet : candidature Développeuse Python — NovaTech\n\n"
+            "Madame, Monsieur, développeuse Python experte Django et Docker, "
+            "je conçois des APIs REST. Cordialement."
+        )
+
+    letter = generate_cover_letter(
+        ORIGINAL_CV,
+        JOB,
+        FULL_MATCH,
+        {"full_name": "Jane Doe"},
+        llm_call=fake_llm,
+    )
+    assert "NovaTech" in letter
+    assert "Django" in letter
+    assert len(calls) >= 2

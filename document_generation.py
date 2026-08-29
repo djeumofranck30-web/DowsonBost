@@ -2,46 +2,277 @@
 
 from __future__ import annotations
 
+import re
+import unicodedata
 from typing import Any, Callable
 
 from cv_layout import build_cv_system_addon, cv_text_for_candidate, detect_job_family
 
+MAX_ALIGNMENT_REWRITES = 2
+
+_STOPWORDS = {
+    "alors",
+    "avec",
+    "dans",
+    "dont",
+    "etre",
+    "fait",
+    "leur",
+    "leurs",
+    "mais",
+    "pour",
+    "plus",
+    "sans",
+    "sous",
+    "tout",
+    "tous",
+    "toutes",
+    "une",
+    "des",
+    "les",
+    "sur",
+    "par",
+    "pas",
+    "que",
+    "qui",
+    "aux",
+    "du",
+    "de",
+    "la",
+    "le",
+    "un",
+    "et",
+    "ou",
+    "en",
+    "au",
+    "ce",
+    "cet",
+    "cette",
+    "ces",
+    "il",
+    "the",
+    "and",
+    "for",
+    "with",
+    "from",
+    "this",
+    "that",
+    "your",
+    "you",
+    "ajouter",
+    "mettre",
+    "integrer",
+    "reformuler",
+    "indiquer",
+    "mentionner",
+    "utiliser",
+    "appliquer",
+    "avant",
+    "apres",
+    "aussi",
+    "comme",
+    "entre",
+    "notre",
+    "votre",
+    "faire",
+    "avoir",
+    "tres",
+    "bien",
+    "moins",
+    "chaque",
+    "lors",
+    "afin",
+    "section",
+    "competences",
+    "competence",
+    "experience",
+    "experiences",
+    "profil",
+    "titre",
+    "mot",
+    "mots",
+    "cle",
+    "cles",
+    "ats",
+    "cv",
+    "offre",
+    "poste",
+}
+
 COVER_LETTER_SYSTEM_PROMPT = """
 Tu es un expert en recrutement francophone. Rédige une lettre de motivation personnalisée,
-professionnelle et convaincante (250 à 400 mots), en français.
+professionnelle et convaincante (250 à 400 mots), en français, ALIGNÉE À 100 % SUR L'OFFRE.
+
+Objectif : le recruteur doit retrouver dans la lettre le vocabulaire, le titre et les
+exigences de l'annonce, tout en restant factuel par rapport au CV.
 
 Structure :
-- Objet / accroche liée au poste
-- Paragraphe motivation + adéquation profil / offre
-- Paragraphe compétences et expériences pertinentes (concret, pas de généralités vides)
-- Paragraphe disponibilité / conclusion avec appel à l'action
+- Objet / accroche liée au poste ET à l'entreprise (reprends l'intitulé exact de l'offre)
+- Paragraphe motivation + adéquation profil / offre (reprends le titre CV recommandé)
+- Paragraphe compétences : cite nommément les compétences présentes et partielles de l'analyse ATS
+  et les mots-clés de l'offre que le candidat possède déjà
+- Paragraphe expériences : reformule les missions pertinentes avec le vocabulaire de l'annonce
+- Conclusion / disponibilité avec appel à l'action
 
-Ton : professionnel, direct, sans formules creuses. Ne invente pas de diplômes ou d'expériences absentes du CV.
-Retourne UNIQUEMENT le texte de la lettre (pas de JSON, pas de markdown).
+Règles :
+- Applique l'intention de CHAQUE « Modification ATS » (mots-clés, angle, priorités) dans le texte.
+- Ne invente pas de diplômes, employeurs, dates, certifications ou outils absents du CV original.
+- Si un mot-clé de l'offre correspond à une mission déjà décrite, utilise le mot-clé de l'offre.
+- Retourne UNIQUEMENT le texte de la lettre (pas de JSON, pas de markdown).
 """
 
 ADAPTED_CV_SYSTEM_PROMPT = """
 Tu es un expert ATS et rédacteur de CV francophone.
 
-Ta mission : produire un NOUVEAU CV complet, réécrit de zéro pour l'offre ciblée,
-en t'appuyant sur le CV original du candidat et en appliquant OBLIGATOIREMENT
-chaque point de la liste « Modifications ATS à appliquer ».
+Ta mission : produire un NOUVEAU CV complet, réécrit de zéro, qui correspond à 100 %
+à l'offre ciblée : un ATS doit y retrouver le titre recommandé, toutes les compétences
+présentes/partielles, et l'effet de CHAQUE modification ATS listée.
 
 Règles strictes :
 1. Chaque modification ATS listée doit être visible dans le CV final (reformulation, section, mot-clé, ordre).
-2. Utilise exactement le « Titre CV recommandé » fourni en en-tête du document.
-3. Priorise les expériences et compétences marquées « présentes » ou « partielles » dans l'analyse ATS.
-4. Intègre les « mots-clés manquants » UNIQUEMENT si le candidat les possède réellement dans son parcours
-   (sinon ne pas inventer — reformule plutôt ce qui existe déjà).
-5. Reformule les missions des expériences pertinentes avec le vocabulaire de l'offre (sans mentir).
-6. Ne invente JAMAIS de diplôme, entreprise, date, certification ou compétence absente du CV original.
-7. C'est une réécriture complète (nouvelle structure, nouvelles formulations), pas un copier-coller du CV actuel.
-8. Le document renvoyé est le CV FINAL, prêt à envoyer au recruteur (norme France 2026 : une colonne, titres ATS classiques).
+2. Le champ TITRE doit être exactement le « Titre CV recommandé ».
+3. Place en tête les expériences et compétences marquées « présentes » ou « partielles ».
+4. Intègre TOUS les mots-clés ATS et technos de l'offre dès qu'ils correspondent à une compétence
+   réelle, même partielle, du CV original (reformule la mission avec le vocabulaire de l'annonce).
+5. Reformule les missions des expériences pertinentes avec le vocabulaire EXACT de l'offre.
+6. Ne invente JAMAIS de diplôme, entreprise, date, certification ou outil jamais utilisé.
+7. Réécriture complète (nouvelle structure, nouvelles formulations), pas un copier-coller.
+8. Document FINAL prêt à envoyer (norme France 2026 : une colonne, titres ATS classiques).
    N'ajoute JAMAIS de section « Modifications appliquées », « Modifications à apporter au CV »,
-   « MODIFICATIONS APPLIQUÉES » ni aucun journal de changements en fin de document.
+   « MODIFICATIONS APPLIQUÉES » ni aucun journal de changements.
 
 Retourne UNIQUEMENT le CV (champs NOM/TITRE/EMAIL puis sections ## du template métier).
 """
+
+
+def _fold(text: str) -> str:
+    normalized = unicodedata.normalize("NFKD", text or "")
+    return "".join(char for char in normalized if not unicodedata.combining(char)).lower()
+
+
+def _distinctive_tokens(text: str, *, min_len: int = 4) -> list[str]:
+    folded = _fold(text)
+    tokens = re.findall(r"[a-z0-9][a-z0-9+.#/-]{1,}", folded)
+    out: list[str] = []
+    seen: set[str] = set()
+    for token in tokens:
+        cleaned = token.strip(".-/")
+        if len(cleaned) < min_len or cleaned in _STOPWORDS or cleaned in seen:
+            continue
+        seen.add(cleaned)
+        out.append(cleaned)
+    return out
+
+
+def _as_terms(items: Any) -> list[str]:
+    if isinstance(items, str):
+        items = [items]
+    if not isinstance(items, list):
+        return []
+    terms: list[str] = []
+    seen: set[str] = set()
+    for item in items:
+        text = str(item or "").strip()
+        if not text:
+            continue
+        key = _fold(text)
+        if key in seen:
+            continue
+        seen.add(key)
+        terms.append(text)
+    return terms
+
+
+def _token_in_document(token: str, folded_document: str) -> bool:
+    if token in folded_document:
+        return True
+    if len(token) >= 6:
+        return token[:6] in folded_document
+    return False
+
+
+def _term_present(term: str, folded_document: str) -> bool:
+    tokens = _distinctive_tokens(term, min_len=3)
+    if not tokens:
+        folded = _fold(term).strip()
+        return bool(folded) and folded in folded_document
+    if len(tokens) == 1 and len(tokens[0]) <= 3:
+        return bool(re.search(rf"(?<![a-z0-9]){re.escape(tokens[0])}(?![a-z0-9])", folded_document))
+    return all(_token_in_document(token, folded_document) for token in tokens)
+
+
+def collect_alignment_terms(
+    cv_text: str,
+    job: dict[str, Any],
+    match: dict[str, Any],
+) -> dict[str, Any]:
+    """Terms the generated CV/letter must contain to match the offer."""
+    skills = match.get("analyse_competences") or {}
+    original_fold = _fold(cv_text)
+    required: list[str] = []
+    seen: set[str] = set()
+
+    def _add(term: str) -> None:
+        key = _fold(term)
+        if not key or key in seen:
+            return
+        seen.add(key)
+        required.append(term)
+
+    for term in _as_terms(skills.get("presentes")) + _as_terms(skills.get("partielles")):
+        _add(term)
+    for term in (
+        _as_terms(skills.get("offre_technos"))
+        + _as_terms(skills.get("offre_obligatoires"))
+        + _as_terms(match.get("mots_cles_manquants"))
+    ):
+        if _term_present(term, original_fold):
+            _add(term)
+
+    title = str(match.get("titre_cv_recommande") or job.get("title") or "").strip()
+    company = str(job.get("company") or "").strip()
+    job_title = str(job.get("title") or "").strip()
+    modifications = _as_terms(match.get("modifications_cv") or match.get("conseils") or [])
+    return {
+        "title": title,
+        "company": company,
+        "job_title": job_title,
+        "required_terms": required[:24],
+        "modifications": modifications[:10],
+    }
+
+
+def missing_alignment_gaps(
+    document: str,
+    alignment: dict[str, Any],
+    *,
+    kind: str = "cv",
+) -> list[str]:
+    """Human-readable gaps still missing from a generated document."""
+    folded = _fold(document)
+    gaps: list[str] = []
+    title = str(alignment.get("title") or "").strip()
+    if title and not _term_present(title, folded):
+        gaps.append(f"Titre recommandé absent : {title}")
+    if kind == "letter":
+        company = str(alignment.get("company") or "").strip()
+        if company and len(company) >= 3 and not _term_present(company, folded):
+            gaps.append(f"Entreprise absente : {company}")
+        job_title = str(alignment.get("job_title") or "").strip()
+        if job_title and job_title != title and not _term_present(job_title, folded):
+            gaps.append(f"Intitulé d'offre absent : {job_title}")
+    for term in alignment.get("required_terms") or []:
+        if not _term_present(str(term), folded):
+            gaps.append(f"Mot-clé / compétence ATS manquant : {term}")
+    for index, modification in enumerate(alignment.get("modifications") or [], start=1):
+        distinctive = [token for token in _distinctive_tokens(str(modification), min_len=5)]
+        if not distinctive:
+            continue
+        hits = sum(1 for token in distinctive if _token_in_document(token, folded))
+        needed = max(1, (len(distinctive) + 1) // 2)
+        if hits < needed:
+            gaps.append(f"Modification ATS {index} non visible : {modification}")
+    return gaps[:12]
 
 
 def _job_block(job: dict[str, Any]) -> str:
@@ -104,12 +335,12 @@ def _match_analysis_block(match: dict[str, Any]) -> str:
         lines.append("Écarts identifiés : " + "; ".join(str(e) for e in ecarts[:5]))
 
     lines.append("")
-    lines.append("Modifications ATS à appliquer (OBLIGATOIRE — une par une dans le CV réécrit) :")
+    lines.append("Modifications ATS à appliquer (OBLIGATOIRE — une par une, toutes visibles dans le document) :")
     for idx, mod in enumerate(modifications[:10], start=1):
         lines.append(f"  {idx}. {mod}")
 
     if not modifications:
-        lines.append("  (Aucune — adapte quand même titre, profil et mots-clés de l'offre.)")
+        lines.append("  (Aucune liste — aligne quand même titre, profil et 100 % des mots-clés de l'offre déjà présents chez le candidat.)")
 
     return "\n".join(lines)
 
@@ -131,6 +362,81 @@ def _candidate_block(
     )
 
 
+def _invoke_llm(
+    llm_call: Callable[..., str],
+    system_prompt: str,
+    user_prompt: str,
+    *,
+    max_tokens: int | None = None,
+) -> str:
+    if max_tokens is None:
+        return str(llm_call(system_prompt, user_prompt) or "").strip()
+    try:
+        return str(llm_call(system_prompt, user_prompt, max_tokens=max_tokens) or "").strip()
+    except TypeError:
+        return str(llm_call(system_prompt, user_prompt) or "").strip()
+
+
+def _alignment_checklist(alignment: dict[str, Any], *, kind: str) -> str:
+    lines = [
+        "CHECKLIST D'ALIGNEMENT À 100 % (tout doit apparaître nommément dans le document) :",
+        f"- Titre / intitulé : {alignment.get('title') or '—'}",
+    ]
+    if kind == "letter":
+        lines.append(f"- Entreprise : {alignment.get('company') or '—'}")
+        lines.append(f"- Offre : {alignment.get('job_title') or '—'}")
+    lines.append(
+        "- Compétences / mots-clés ATS : "
+        + (", ".join(alignment.get("required_terms") or []) or "—")
+    )
+    modifications = alignment.get("modifications") or []
+    if modifications:
+        lines.append("- Modifications ATS (toutes, visibles dans le texte) :")
+        for index, modification in enumerate(modifications, start=1):
+            lines.append(f"  {index}. {modification}")
+    return "\n".join(lines)
+
+
+def _rewrite_instruction(kind: str, gaps: list[str]) -> str:
+    label = "CV" if kind == "cv" else "lettre de motivation"
+    gap_lines = "\n".join(f"- {gap}" for gap in gaps)
+    return (
+        f"Le {label} précédent n'est PAS encore aligné à 100 % sur l'offre. "
+        f"Éléments encore absents :\n{gap_lines}\n\n"
+        f"Réécris le {label} COMPLET (pas un diff) en intégrant TOUS ces éléments. "
+        "Garde uniquement des faits présents dans le CV original."
+    )
+
+
+def _generate_aligned_document(
+    *,
+    kind: str,
+    system_prompt: str,
+    base_user_prompt: str,
+    llm_call: Callable[..., str],
+    alignment: dict[str, Any],
+    max_tokens: int,
+    postprocess: Callable[[str], str] | None = None,
+) -> str:
+    user_prompt = f"{base_user_prompt}\n\n{_alignment_checklist(alignment, kind=kind)}"
+    text = _invoke_llm(llm_call, system_prompt, user_prompt, max_tokens=max_tokens)
+    if postprocess:
+        text = postprocess(text)
+    for _attempt in range(MAX_ALIGNMENT_REWRITES):
+        gaps = missing_alignment_gaps(text, alignment, kind=kind)
+        if not gaps:
+            break
+        rewrite_prompt = (
+            f"{base_user_prompt}\n\n{_alignment_checklist(alignment, kind=kind)}\n\n"
+            f"=== DOCUMENT PRÉCÉDENT (incomplet) ===\n{text[:8000]}\n\n"
+            f"{_rewrite_instruction(kind, gaps)}"
+        )
+        text = _invoke_llm(llm_call, system_prompt, rewrite_prompt, max_tokens=max_tokens)
+        if postprocess:
+            text = postprocess(text)
+    return text
+
+
 def generate_cover_letter(
     cv_text: str,
     job: dict[str, Any],
@@ -139,13 +445,23 @@ def generate_cover_letter(
     *,
     llm_call: Callable[..., str],
 ) -> str:
-    """Generate a tailored cover letter."""
+    """Generate a tailored cover letter aligned with the ATS analysis."""
+    alignment = collect_alignment_terms(cv_text, job, match)
     user_prompt = (
         f"{_candidate_block(cv_text, match, user_profile)}\n\n"
         f"=== OFFRE CIBLÉE ===\n{_job_block(job)}\n\n"
-        "Rédige la lettre de motivation."
+        "Rédige la lettre de motivation. Elle doit coller à 100 % à cette offre : "
+        "reprends le titre, l'entreprise, les compétences ATS présentes/partielles "
+        "et l'intention de chaque modification ATS, sans inventer de faits."
     )
-    return llm_call(COVER_LETTER_SYSTEM_PROMPT, user_prompt).strip()
+    return _generate_aligned_document(
+        kind="letter",
+        system_prompt=COVER_LETTER_SYSTEM_PROMPT,
+        base_user_prompt=user_prompt,
+        llm_call=llm_call,
+        alignment=alignment,
+        max_tokens=1600,
+    )
 
 
 def generate_adapted_cv(
@@ -158,17 +474,22 @@ def generate_adapted_cv(
 ) -> str:
     """Rewrite the CV for one offer using the matching profession template."""
     family = detect_job_family(job, match)
+    alignment = collect_alignment_terms(cv_text, job, match)
     user_prompt = (
         f"{_candidate_block(cv_text, match, user_profile)}\n\n"
         f"=== OFFRE CIBLÉE ===\n{_job_block(job)}\n\n"
-        "Réécris un CV complet et nouveau pour cette offre. "
-        "Applique TOUTES les modifications ATS listées ci-dessus DANS le corps du CV "
+        "Réécris un CV complet et nouveau, aligné à 100 % sur cette offre. "
+        "Le champ TITRE = titre CV recommandé. "
+        "Applique TOUTES les modifications ATS DANS le corps du CV "
         "(reformulations, mots-clés, ordre des sections). "
         "N'ajoute aucune section listant les modifications : le CV s'arrête après les rubriques métier."
     )
-    raw = llm_call(
-        ADAPTED_CV_SYSTEM_PROMPT + build_cv_system_addon(family),
-        user_prompt,
+    return _generate_aligned_document(
+        kind="cv",
+        system_prompt=ADAPTED_CV_SYSTEM_PROMPT + build_cv_system_addon(family),
+        base_user_prompt=user_prompt,
+        llm_call=llm_call,
+        alignment=alignment,
         max_tokens=4800,
-    ).strip()
-    return cv_text_for_candidate(raw)
+        postprocess=cv_text_for_candidate,
+    )
