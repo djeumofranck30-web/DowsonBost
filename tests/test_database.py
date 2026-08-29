@@ -158,6 +158,51 @@ def test_connect_open_failures_include_driver_message(monkeypatch):
     assert "Connexion PostgreSQL impossible" in str(err.value)
 
 
+def test_nested_pooler_connect_does_not_close_outer_connection(monkeypatch):
+    import database
+
+    class FakeConn:
+        def __init__(self) -> None:
+            self.closed = False
+            self.commits = 0
+
+        def commit(self) -> None:
+            if self.closed:
+                raise RuntimeError("the connection is closed")
+            self.commits += 1
+
+        def rollback(self) -> None:
+            return None
+
+        def close(self) -> None:
+            self.closed = True
+
+    fake = FakeConn()
+    acquires = {"n": 0}
+
+    def _acquire(_row_factory):
+        acquires["n"] += 1
+        database._pg_local.conn = fake
+        return fake
+
+    monkeypatch.setattr(database, "_configured", True)
+    monkeypatch.setattr(database, "_backend", "postgres")
+    monkeypatch.setattr(database, "_database_url", POOLER_URL)
+    monkeypatch.setattr(database, "_acquire_postgres_connection", _acquire)
+    database._pg_local.depth = 0
+    database._pg_local.conn = None
+
+    with database.connect() as outer:
+        with database.connect() as inner:
+            assert inner is outer
+            assert fake.closed is False
+        assert fake.closed is False
+        assert fake.commits == 0
+    assert fake.closed is True
+    assert fake.commits == 1
+    assert acquires["n"] == 1
+
+
 def test_format_database_exception_includes_cause():
     from database import format_database_exception
 

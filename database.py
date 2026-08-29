@@ -364,13 +364,17 @@ def _disable_prepared_statements(conn: Any) -> None:
         conn.prepare_threshold = None
 
 
+def _pg_nest_depth() -> int:
+    return int(getattr(_pg_local, "depth", 0) or 0)
+
+
 def _acquire_postgres_connection(row_factory: Any) -> Any:
     """Open a Postgres connection, retrying once on a dead socket."""
     import psycopg
 
-    reuse = not uses_transaction_pooler(_database_url)
     existing = getattr(_pg_local, "conn", None)
-    if reuse and existing is not None and not getattr(existing, "closed", True):
+    alive = existing is not None and not getattr(existing, "closed", True)
+    if alive and (_pg_nest_depth() > 0 or not uses_transaction_pooler(_database_url)):
         return existing
     if existing is not None:
         _close_postgres_connection()
@@ -424,8 +428,14 @@ def connect() -> Iterator[Any]:
     if database_backend() == "postgres":
         from psycopg.rows import dict_row
 
+        depth = int(getattr(_pg_local, "depth", 0) or 0)
         try:
-            conn = _acquire_postgres_connection(dict_row)
+            if depth > 0:
+                conn = getattr(_pg_local, "conn", None)
+                if conn is None or getattr(conn, "closed", True):
+                    raise RuntimeError("the connection is closed")
+            else:
+                conn = _acquire_postgres_connection(dict_row)
         except DatabaseConfigError:
             _close_postgres_connection()
             raise
@@ -435,16 +445,22 @@ def connect() -> Iterator[Any]:
                 raise _postgres_connection_failure(exc) from exc
             raise
 
+        _pg_local.depth = int(getattr(_pg_local, "depth", 0) or 0) + 1
         try:
             yield conn
-            conn.commit()
+            if int(getattr(_pg_local, "depth", 0) or 0) == 1:
+                conn.commit()
         except Exception:
-            with suppress(Exception):
-                conn.rollback()
-            _close_postgres_connection()
+            if int(getattr(_pg_local, "depth", 0) or 0) == 1:
+                with suppress(Exception):
+                    conn.rollback()
+                _close_postgres_connection()
             raise
         finally:
-            if uses_transaction_pooler(_database_url):
+            _pg_local.depth = max(0, int(getattr(_pg_local, "depth", 0) or 0) - 1)
+            if int(getattr(_pg_local, "depth", 0) or 0) == 0 and uses_transaction_pooler(
+                _database_url
+            ):
                 _close_postgres_connection()
     else:
         SQLITE_PATH.parent.mkdir(parents=True, exist_ok=True)

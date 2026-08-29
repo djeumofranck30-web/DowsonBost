@@ -55,13 +55,17 @@ def estimate_tokens(*texts: str) -> int:
     return max(1, total_chars // 4)
 
 
-def ensure_llm_usage_table() -> None:
+def ensure_llm_usage_table(conn: Any | None = None) -> None:
     """Create the llm_usage table if needed."""
     global _table_ready
     if _table_ready:
         return
-    with connect() as conn:
+    if conn is not None:
         _create_llm_usage_table(conn)
+        _table_ready = True
+        return
+    with connect() as opened:
+        _create_llm_usage_table(opened)
     _table_ready = True
 
 

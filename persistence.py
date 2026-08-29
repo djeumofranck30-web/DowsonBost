@@ -681,7 +681,7 @@ def init_persistence_tables() -> None:
         _create_analysis_jobs_table(conn)
         from services.llm_usage import ensure_llm_usage_table
 
-        ensure_llm_usage_table()
+        ensure_llm_usage_table(conn)
         _ = existing_columns(conn, "analyses")
     _persistence_initialized_for = _PERSISTENCE_SCHEMA_KEY
 
