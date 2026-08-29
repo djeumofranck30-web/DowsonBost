@@ -116,7 +116,9 @@ Structure :
 
 Règles :
 - Applique l'intention de CHAQUE « Modification ATS » (mots-clés, angle, priorités) dans le texte.
-- Ne invente pas de diplômes, employeurs, dates, certifications ou outils absents du CV original.
+- Cite nommément les compétences de l'offre (y compris une techno exigée absente du CV original,
+  uniquement comme compétence, sans inventer un poste).
+- Ne invente pas de diplômes, employeurs, dates ou certifications.
 - Si un mot-clé de l'offre correspond à une mission déjà décrite, utilise le mot-clé de l'offre.
 - Retourne UNIQUEMENT le texte de la lettre (pas de JSON, pas de markdown).
 """
@@ -131,14 +133,15 @@ présentes/partielles, et l'effet de CHAQUE modification ATS listée.
 Règles strictes :
 1. Chaque modification ATS listée doit être visible dans le CV final (reformulation, section, mot-clé, ordre).
 2. Le champ TITRE doit être exactement le « Titre CV recommandé ».
-3. Réécris ENTIÈREMENT la section ## COMPETENCES : en tête, les compétences de
-   l'offre que le candidat possède (présentes + partielles + mots-clés déjà dans le CV),
-   avec les LIBELLÉS EXACTS de l'annonce, séparées par « | ».
-   Ensuite seulement, les autres compétences réelles du CV original.
-4. Intègre TOUS les mots-clés ATS et technos de l'offre dès qu'ils correspondent à une compétence
-   réelle, même partielle, du CV original (y compris un synonyme : JS → JavaScript).
+3. Réécris ENTIÈREMENT la section ## COMPETENCES : en tête, TOUTES les compétences
+   et technos de l'offre (obligatoires, stack, mots-clés ATS), avec les LIBELLÉS EXACTS
+   de l'annonce, séparées par « | ». Si une techno est dans l'offre mais pas dans le CV
+   original, AJOUTE-LA quand même dans cette section (c'est la seule invention autorisée :
+   le mot-clé, pas un faux job). Ensuite, les autres compétences réelles du CV original.
+4. Intègre les synonymes de l'offre (JS → JavaScript) et les mots-clés manquants.
 5. Reformule les missions des expériences pertinentes avec le vocabulaire EXACT de l'offre.
-6. Ne invente JAMAIS de diplôme, entreprise, date, certification ou outil jamais utilisé.
+   N'invente pas une mission entière autour d'une techno ajoutée : elle va dans COMPETENCES.
+6. Ne invente JAMAIS de diplôme, entreprise, date ou certification.
 7. Réécriture complète (nouvelle structure, nouvelles formulations), pas un copier-coller.
 8. Document FINAL prêt à envoyer (norme France 2026 : une colonne, titres ATS classiques).
    N'ajoute JAMAIS de section « Modifications appliquées », « Modifications à apporter au CV »,
@@ -234,11 +237,23 @@ def _candidate_has_term(term: str, original_fold: str) -> bool:
     return False
 
 
+def _is_skill_label(term: str) -> bool:
+    text = str(term or "").strip()
+    if len(text) < 2 or len(text) > 48:
+        return False
+    if text.count(" ") > 5:
+        return False
+    lowered = _fold(text)
+    if lowered.startswith(("ajouter ", "mettre ", "reformuler ", "indiquer ")):
+        return False
+    return True
+
+
 def adapted_competences(
     cv_text: str,
     match: dict[str, Any],
 ) -> list[str]:
-    """Offer-worded skills the candidate actually has, offer-first order."""
+    """Offer-worded skills, including offer technologies missing from the original CV."""
     skills = match.get("analyse_competences") or {}
     original_fold = _fold(cv_text)
     ordered: list[str] = []
@@ -246,23 +261,27 @@ def adapted_competences(
 
     def _add(term: str) -> None:
         text = str(term or "").strip()
+        if not _is_skill_label(text):
+            return
         key = _fold(text)
-        if not text or key in seen:
+        if key in seen:
             return
         seen.add(key)
         ordered.append(text)
 
-    for term in _as_terms(skills.get("offre_obligatoires")) + _as_terms(skills.get("offre_technos")):
-        if _candidate_has_term(term, original_fold):
-            _add(term)
+    for term in (
+        _as_terms(skills.get("offre_obligatoires"))
+        + _as_terms(skills.get("offre_technos"))
+        + _as_terms(match.get("mots_cles_manquants"))
+        + _as_terms(skills.get("manquantes"))
+    ):
+        _add(term)
     for term in _as_terms(skills.get("presentes")) + _as_terms(skills.get("partielles")):
         _add(term)
-    for term in _as_terms(match.get("mots_cles_manquants")) + _as_terms(skills.get("cv_outils")) + _as_terms(
-        skills.get("cv_techniques")
-    ):
+    for term in _as_terms(skills.get("cv_outils")) + _as_terms(skills.get("cv_techniques")):
         if _candidate_has_term(term, original_fold):
             _add(term)
-    return ordered[:18]
+    return ordered[:24]
 
 
 def _competences_section(document: str) -> str:
@@ -281,7 +300,6 @@ def collect_alignment_terms(
 ) -> dict[str, Any]:
     """Terms the generated CV/letter must contain to match the offer."""
     skills = match.get("analyse_competences") or {}
-    original_fold = _fold(cv_text)
     adapted_skills = adapted_competences(cv_text, match)
     required: list[str] = []
     seen: set[str] = set()
@@ -301,8 +319,9 @@ def collect_alignment_terms(
         _as_terms(skills.get("offre_technos"))
         + _as_terms(skills.get("offre_obligatoires"))
         + _as_terms(match.get("mots_cles_manquants"))
+        + _as_terms(skills.get("manquantes"))
     ):
-        if _candidate_has_term(term, original_fold):
+        if _is_skill_label(term):
             _add(term)
 
     title = str(match.get("titre_cv_recommande") or job.get("title") or "").strip()
@@ -556,8 +575,9 @@ def generate_cover_letter(
         f"{_candidate_block(cv_text, match, user_profile)}\n\n"
         f"=== OFFRE CIBLÉE ===\n{_job_block(job)}\n\n"
         "Rédige la lettre de motivation. Elle doit coller à 100 % à cette offre : "
-        "reprends le titre, l'entreprise, et cite nommément les compétences adaptées "
-        "(libellés de l'annonce) ainsi que l'intention de chaque modification ATS, sans inventer de faits."
+        "reprends le titre, l'entreprise, et cite nommément les compétences de l'offre "
+        "(y compris une techno exigée absente du CV original) ainsi que l'intention "
+        "de chaque modification ATS. Pas de faux employeur, diplôme ou date."
     )
     return _generate_aligned_document(
         kind="letter",
@@ -585,8 +605,9 @@ def generate_adapted_cv(
         f"=== OFFRE CIBLÉE ===\n{_job_block(job)}\n\n"
         "Réécris un CV complet et nouveau, aligné à 100 % sur cette offre. "
         "Le champ TITRE = titre CV recommandé. "
-        "Réécris ## COMPETENCES en entier : d'abord les compétences de l'offre "
-        "que le candidat possède (libellés exacts, séparateur | ), puis le reste du CV original. "
+        "Réécris ## COMPETENCES en entier : d'abord TOUTES les technos et compétences "
+        "de l'offre (même celles absentes du CV original — ajoute-les seulement dans "
+        "cette liste, sans faux poste), libellés exacts séparés par | , puis le reste du CV. "
         "Applique TOUTES les modifications ATS DANS le corps du CV "
         "(reformulations, mots-clés, ordre des sections). "
         "N'ajoute aucune section listant les modifications : le CV s'arrête après les rubriques métier."

@@ -55,7 +55,7 @@ VILLE: Paris
 Développeuse Python spécialisée Django et APIs REST.
 
 ## COMPETENCES
-Python | Django | PostgreSQL | Docker | AWS
+Python | Django | PostgreSQL | Docker | AWS | Kubernetes
 
 ## EXPERIENCE
 POSTE: Développeuse Python
@@ -84,12 +84,12 @@ def test_present_and_partial_skills_are_required_alignment_terms():
     assert "python" in folded
     assert "django" in folded
     assert "docker" in folded
-    # Kubernetes is in the offer but not in the original CV — must not be forced.
-    assert "kubernetes" not in folded
+    assert "kubernetes" in folded
     assert alignment["modifications"][0].lower().startswith("ajouter django")
     skills = " ".join(alignment["adapted_skills"]).lower()
     assert "python" in skills
     assert "django" in skills
+    assert "kubernetes" in skills
 
 
 def test_offer_skill_labels_replace_cv_aliases():
@@ -108,7 +108,7 @@ def test_offer_skill_labels_replace_cv_aliases():
     skills = [item.lower() for item in adapted_competences(cv, match)]
     assert "javascript" in skills
     assert "postgresql" in skills
-    assert "kubernetes" not in skills
+    assert "kubernetes" in skills
 
 
 def test_missing_alignment_gaps_detects_unapplied_modifications():
@@ -155,7 +155,7 @@ def test_generate_cover_letter_requires_company_and_keywords():
             return "Madame, Monsieur, je postule. Cordialement."
         return (
             "Objet : candidature Développeuse Python — NovaTech\n\n"
-            "Madame, Monsieur, développeuse Python experte Django et Docker, "
+            "Madame, Monsieur, développeuse Python experte Django, Docker et Kubernetes, "
             "je conçois des APIs REST. Cordialement."
         )
 
@@ -168,4 +168,5 @@ def test_generate_cover_letter_requires_company_and_keywords():
     )
     assert "NovaTech" in letter
     assert "Django" in letter
+    assert "Kubernetes" in letter or "kubernetes" in letter.lower()
     assert len(calls) >= 2
