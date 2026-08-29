@@ -93,7 +93,7 @@ from world_geo import (
     profile_countries,
     profile_primary_country,
 )
-from config import get_secret, get_secret_raw, normalize_secret
+from config import export_streamlit_secrets_to_environ, get_secret, get_secret_raw, normalize_secret
 from constants import (
     ANALYSIS_DEPTH_OPTIONS,
     ANALYSIS_DEPTH_POOL,
@@ -8263,6 +8263,7 @@ def render_app() -> None:
 
 def main() -> None:
     """Application entry point — auth gate then main tool."""
+    export_streamlit_secrets_to_environ()
     try:
         configure_database(
             get_secret("DATABASE_URL"),

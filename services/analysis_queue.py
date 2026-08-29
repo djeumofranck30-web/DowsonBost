@@ -19,6 +19,22 @@ ACTIVE_JOB_STATUSES = ("queued", "running")
 JOB_STATUSES = ("queued", "running", "completed", "failed")
 
 
+def _as_json_field(value: Any) -> Any:
+    if isinstance(value, (dict, list)) or value is None:
+        return value
+    if isinstance(value, (bytes, bytearray)):
+        value = bytes(value).decode("utf-8", errors="replace")
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return value
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            return value
+    return value
+
+
 def _row_to_job(row: Any) -> dict[str, Any]:
     mapping = dict(row)
     blob = mapping.get("pdf_blob")
@@ -26,6 +42,9 @@ def _row_to_job(row: Any) -> dict[str, Any]:
         mapping["pdf_blob"] = bytes(blob)
     elif isinstance(blob, bytearray):
         mapping["pdf_blob"] = bytes(blob)
+    for field in ("user_profile_json", "notices_json"):
+        if field in mapping:
+            mapping[field] = _as_json_field(mapping[field])
     return mapping
 
 

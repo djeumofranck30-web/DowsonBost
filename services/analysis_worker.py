@@ -106,44 +106,52 @@ def _persist_success(job: dict[str, Any], analysis: dict[str, Any], notices: lis
 
 
 def _run_claimed_job(job: dict[str, Any]) -> None:
+    from services.llm_usage import bind_usage_user_id
     from services.pipeline import run_cv_analysis_pipeline
 
     job_id = int(job["id"])
     profile = _job_user_profile(job)
     pdf_bytes = job.get("pdf_blob") or None
     cv_text = str(job.get("cv_text") or "").strip() or None
+    bind_usage_user_id(int(job["user_id"]))
 
     def _progress(percent: int, label: str) -> None:
-        update_analysis_job_progress(job_id, percent, label)
+        try:
+            update_analysis_job_progress(job_id, percent, label)
+        except Exception:  # noqa: BLE001 — a stale pooler socket must not abort matching
+            _logger.warning("Could not persist analysis progress for job %s", job_id, exc_info=True)
 
-    analysis, notices = run_cv_analysis_pipeline(
-        pdf_bytes,
-        str(job.get("job_provider") or "all"),
-        profile,
-        matching_pool=int(job.get("matching_pool") or 0) or None,
-        matching_top=int(job.get("matching_top") or 0) or None,
-        cv_text_override=cv_text,
-        extraction_method_override=str(job.get("extraction_method") or "native"),
-        progress=_progress,
-    )
-    if not analysis:
-        message = next(
-            (item.get("text") for item in notices if item.get("level") in {"error", "warning"}),
-            "Analyse vide",
+    try:
+        analysis, notices = run_cv_analysis_pipeline(
+            pdf_bytes,
+            str(job.get("job_provider") or "all"),
+            profile,
+            matching_pool=int(job.get("matching_pool") or 0) or None,
+            matching_top=int(job.get("matching_top") or 0) or None,
+            cv_text_override=cv_text,
+            extraction_method_override=str(job.get("extraction_method") or "native"),
+            progress=_progress,
         )
-        fail_analysis_job(job_id, str(message), notices)
-        if str(job.get("trigger_source") or "") == "auto":
-            from persistence import log_scheduled_run
-
-            log_scheduled_run(
-                int(job["user_id"]),
-                "failed",
-                error_message=str(message)[:500],
-                trigger_source="app",
+        if not analysis:
+            message = next(
+                (item.get("text") for item in notices if item.get("level") in {"error", "warning"}),
+                "Analyse vide",
             )
-        return
-    analysis_id = _persist_success(job, analysis, notices)
-    complete_analysis_job(job_id, analysis_id=analysis_id, notices=notices)
+            fail_analysis_job(job_id, str(message), notices)
+            if str(job.get("trigger_source") or "") == "auto":
+                from persistence import log_scheduled_run
+
+                log_scheduled_run(
+                    int(job["user_id"]),
+                    "failed",
+                    error_message=str(message)[:500],
+                    trigger_source="app",
+                )
+            return
+        analysis_id = _persist_success(job, analysis, notices)
+        complete_analysis_job(job_id, analysis_id=analysis_id, notices=notices)
+    finally:
+        bind_usage_user_id(None)
 
 
 def process_next_analysis_job() -> bool:
@@ -188,6 +196,9 @@ def ensure_embedded_analysis_worker() -> None:
     flag = os.getenv("ANALYSIS_WORKER_EMBEDDED", "1").strip().lower()
     if flag in {"0", "false", "no", "off"}:
         return
+    from config import export_streamlit_secrets_to_environ
+
+    export_streamlit_secrets_to_environ()
     global _worker_thread
     with _worker_lock:
         if _worker_thread is not None and _worker_thread.is_alive():

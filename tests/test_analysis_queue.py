@@ -165,6 +165,66 @@ def test_worker_saves_completed_analysis(sqlite_db):
     assert get_active_analysis_job(1) is None
 
 
+def test_worker_survives_progress_database_blip(sqlite_db):
+    init_persistence_tables()
+    _register()
+    fake = {
+        "cv_text": "CV texte de Jane",
+        "extraction_method": "native",
+        "criteria": {"metier": "Developer"},
+        "user_profile": _profile(),
+        "target_job_title": "Developer",
+        "search_plan": {},
+        "filter_stats": {},
+        "jobs_found": 1,
+        "jobs_raw": 1,
+        "job_provider": "adzuna",
+        "results": [
+            {
+                "job": {
+                    "title": "Backend Dev",
+                    "company": "Acme",
+                    "location": "Paris",
+                    "url": "https://example.com/1",
+                    "description": "",
+                },
+                "match": {"score_correspondance": 88},
+            }
+        ],
+    }
+    enqueue_analysis_job(
+        1,
+        _profile(),
+        job_provider="adzuna",
+        analysis_depth="standard",
+        cv_fingerprint="fp-blip",
+        cv_text="CV texte de Jane",
+    )
+
+    def _pipeline(_pdf, _provider, _profile, **kwargs):
+        progress = kwargs.get("progress")
+        if progress:
+            progress(10, "Recherche…")
+        return fake, [{"level": "info", "text": "ok"}]
+
+    with (
+        patch(
+            "services.pipeline.run_cv_analysis_pipeline",
+            side_effect=_pipeline,
+        ),
+        patch(
+            "services.analysis_worker.update_analysis_job_progress",
+            side_effect=RuntimeError(
+                "Connexion PostgreSQL impossible (hôte=pooler port=6543 user=postgres db=postgres)"
+            ),
+        ),
+    ):
+        assert process_next_analysis_job() is True
+    job = get_latest_analysis_job(1)
+    assert job["status"] == "completed"
+    assert job["analysis_id"]
+
+
 def test_worker_marks_empty_pipeline_as_failed(sqlite_db):
     init_persistence_tables()
     _register()

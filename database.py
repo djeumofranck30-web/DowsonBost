@@ -214,6 +214,51 @@ def database_connection_hint(exc: BaseException) -> str:
     return "\n".join(f"- {hint}" for hint in hints)
 
 
+_PG_CONNECTION_ERROR_MARKERS = (
+    "connection refused",
+    "could not connect",
+    "server closed the connection",
+    "ssl connection has been closed",
+    "connection already closed",
+    "connection not open",
+    "timeout expired",
+    "could not translate host",
+    "name or service not known",
+    "no route to host",
+    "network is unreachable",
+    "connection reset",
+    "eof detected",
+)
+
+
+def uses_transaction_pooler(url: str = "") -> bool:
+    """True for Supabase/Neon PgBouncer transaction poolers (port 6543)."""
+    parsed = urlparse(url or _database_url)
+    host = (parsed.hostname or "").lower()
+    port = int(parsed.port or 5432)
+    return port == 6543 or "pooler" in host
+
+
+def is_postgres_connection_error(exc: BaseException) -> bool:
+    """Transport/auth failures only — not SQL errors or missing tables."""
+    if isinstance(exc, DatabaseConfigError):
+        return False
+    try:
+        from psycopg import InterfaceError, OperationalError
+    except ImportError:
+        InterfaceError = ()  # type: ignore[assignment,misc]
+        OperationalError = ()  # type: ignore[assignment,misc]
+    if isinstance(exc, (OperationalError, InterfaceError)):
+        return True
+    message = str(exc).lower()
+    return any(marker in message for marker in _PG_CONNECTION_ERROR_MARKERS)
+
+
+def postgres_client_connect_kwargs() -> dict[str, Any]:
+    """psycopg client options. Prepared statements break PgBouncer transaction mode."""
+    return {"autocommit": False, "prepare_threshold": 0}
+
+
 def postgres_connect_kwargs(url: str) -> dict[str, Any]:
     """Build psycopg connection parameters."""
     parsed = urlparse(url)
@@ -237,6 +282,10 @@ def postgres_connect_kwargs(url: str) -> dict[str, Any]:
         "dbname": (parsed.path or "/postgres").lstrip("/") or "postgres",
         "sslmode": sslmode,
         "connect_timeout": 20,
+        "keepalives": 1,
+        "keepalives_idle": 30,
+        "keepalives_interval": 10,
+        "keepalives_count": 3,
     }
 
 
@@ -293,20 +342,54 @@ def existing_columns(conn: Any, table: str = "users") -> set[str]:
     return {row[1] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
 
 
+def _acquire_postgres_connection(row_factory: Any) -> Any:
+    """Open a Postgres connection, retrying once on a dead socket."""
+    import psycopg
+
+    reuse = not uses_transaction_pooler(_database_url)
+    existing = getattr(_pg_local, "conn", None)
+    if reuse and existing is not None and not getattr(existing, "closed", True):
+        return existing
+    if existing is not None:
+        _close_postgres_connection()
+
+    conninfo = postgres_conninfo(_database_url)
+    client_kwargs = postgres_client_connect_kwargs()
+    last_exc: BaseException | None = None
+    for _attempt in range(2):
+        try:
+            try:
+                conn = psycopg.connect(conninfo, row_factory=row_factory, **client_kwargs)
+            except TypeError:
+                conn = psycopg.connect(conninfo, row_factory=row_factory)
+            _pg_local.conn = conn
+            return conn
+        except Exception as exc:  # noqa: BLE001
+            last_exc = exc
+            _close_postgres_connection()
+            if not is_postgres_connection_error(exc):
+                raise
+    assert last_exc is not None
+    raise last_exc
+
+
+def _postgres_connection_failure(exc: BaseException) -> RuntimeError:
+    summary = postgres_connection_summary(_database_url)
+    return RuntimeError(
+        f"Connexion PostgreSQL impossible ({summary}).\n" + database_connection_hint(exc)
+    )
+
+
 @contextmanager
 def connect() -> Iterator[Any]:
     """Yield a DB connection for the configured backend."""
     ensure_configured()
     if database_backend() == "postgres":
-        import psycopg
         from psycopg.rows import dict_row
 
+        conn = None
         try:
-            conn = getattr(_pg_local, "conn", None)
-            if conn is None or getattr(conn, "closed", True):
-                conninfo = postgres_conninfo(_database_url)
-                conn = psycopg.connect(conninfo, row_factory=dict_row)
-                _pg_local.conn = conn
+            conn = _acquire_postgres_connection(dict_row)
             try:
                 yield conn
                 conn.commit()
@@ -319,11 +402,12 @@ def connect() -> Iterator[Any]:
             raise
         except Exception as exc:  # noqa: BLE001
             _close_postgres_connection()
-            summary = postgres_connection_summary(_database_url)
-            raise RuntimeError(
-                f"Connexion PostgreSQL impossible ({summary}).\n"
-                + database_connection_hint(exc)
-            ) from exc
+            if is_postgres_connection_error(exc):
+                raise _postgres_connection_failure(exc) from exc
+            raise
+        finally:
+            if uses_transaction_pooler(_database_url):
+                _close_postgres_connection()
     else:
         SQLITE_PATH.parent.mkdir(parents=True, exist_ok=True)
         path = str(SQLITE_PATH)

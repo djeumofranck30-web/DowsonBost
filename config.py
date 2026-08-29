@@ -23,8 +23,68 @@ def get_secret_raw(key: str, default: Any = "") -> Any:
         import streamlit as st
 
         return st.secrets[key]
-    except (KeyError, FileNotFoundError, AttributeError, ImportError):
+    except (KeyError, FileNotFoundError, AttributeError, ImportError, RuntimeError):
         return default
+
+
+def export_streamlit_secrets_to_environ() -> int:
+    """Copy Streamlit secrets into os.environ for background worker threads.
+
+    ``st.secrets`` is unreliable from a daemon thread (no ScriptRunContext).
+    Call this on the Streamlit request thread before starting the analysis worker.
+    """
+    copied = 0
+    secrets: Any = None
+    try:
+        import streamlit as st
+
+        secrets = st.secrets
+    except Exception:  # noqa: BLE001 — secrets are optional in local/CLI workers
+        secrets = None
+    if secrets is None:
+        return 0
+
+    keys: list[str] = []
+    try:
+        keys.extend(str(key) for key in secrets.keys())
+    except Exception:  # noqa: BLE001
+        keys = []
+    for fallback in (
+        "DATABASE_URL",
+        "DATABASE_PASSWORD",
+        "OPENAI_API_KEY",
+        "GROQ_API_KEY",
+        "GEMINI_API_KEY",
+        "AI_PROVIDER",
+        "ADZUNA_APP_ID",
+        "ADZUNA_APP_KEY",
+        "SERPAPI_API_KEY",
+        "JOOBLE_API_KEY",
+        "CAREERJET_API_KEY",
+        "APIFY_API_TOKEN",
+        "RESEND_API_KEY",
+    ):
+        if fallback not in keys:
+            keys.append(fallback)
+
+    for key in keys:
+        if str(os.environ.get(key) or "").strip():
+            continue
+        try:
+            raw = secrets[key]
+        except Exception:  # noqa: BLE001
+            continue
+        if isinstance(raw, dict):
+            continue
+        if isinstance(raw, list):
+            text = normalize_secret(str(raw[0])) if raw else ""
+        else:
+            text = normalize_secret(raw)
+        if not text:
+            continue
+        os.environ[key] = text
+        copied += 1
+    return copied
 
 
 def get_secret(key: str, default: str = "") -> str:
