@@ -106,7 +106,7 @@ def test_query_errors_are_not_relabeled_as_connection_failures(monkeypatch):
     assert fake.closed is True
 
 
-def test_operational_errors_are_labeled_connection_failures(monkeypatch):
+def test_query_operational_errors_are_not_relabeled(monkeypatch):
     import database
     import psycopg
 
@@ -133,7 +133,37 @@ def test_operational_errors_are_labeled_connection_failures(monkeypatch):
     monkeypatch.setattr(database, "_database_url", POOLER_URL)
     monkeypatch.setattr(database, "_acquire_postgres_connection", _acquire)
 
-    with pytest.raises(RuntimeError, match="Connexion PostgreSQL impossible"):
+    with pytest.raises(psycopg.OperationalError, match="server closed"):
         with database.connect():
             raise psycopg.OperationalError("server closed the connection unexpectedly")
     assert fake.closed is True
+
+
+def test_connect_open_failures_include_driver_message(monkeypatch):
+    import database
+    import psycopg
+
+    monkeypatch.setattr(database, "_configured", True)
+    monkeypatch.setattr(database, "_backend", "postgres")
+    monkeypatch.setattr(database, "_database_url", POOLER_URL)
+
+    def _acquire(_row_factory):
+        raise psycopg.OperationalError("connection refused")
+
+    monkeypatch.setattr(database, "_acquire_postgres_connection", _acquire)
+
+    with pytest.raises(RuntimeError, match="connection refused") as err:
+        with database.connect():
+            raise AssertionError("must not yield")
+    assert "Connexion PostgreSQL impossible" in str(err.value)
+
+
+def test_format_database_exception_includes_cause():
+    from database import format_database_exception
+
+    try:
+        raise RuntimeError("outer") from ValueError("inner boom")
+    except RuntimeError as exc:
+        text = format_database_exception(exc)
+    assert "outer" in text
+    assert "inner boom" in text

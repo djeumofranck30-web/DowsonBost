@@ -364,15 +364,8 @@ def _disable_prepared_statements(conn: Any) -> None:
         conn.prepare_threshold = None
 
 
-def _reset_pooler_backend(conn: Any) -> None:
-    """Drop leftover prepared statements on a recycled PgBouncer backend."""
-    if not uses_transaction_pooler(_database_url):
-        return
-    conn.execute("DEALLOCATE ALL")
-
-
 def _acquire_postgres_connection(row_factory: Any) -> Any:
-    """Open a Postgres connection, retrying once on a dead or dirty pooler socket."""
+    """Open a Postgres connection, retrying once on a dead socket."""
     import psycopg
 
     reuse = not uses_transaction_pooler(_database_url)
@@ -392,15 +385,12 @@ def _acquire_postgres_connection(row_factory: Any) -> Any:
             except TypeError:
                 conn = psycopg.connect(conninfo, row_factory=row_factory)
             _disable_prepared_statements(conn)
-            _reset_pooler_backend(conn)
             _pg_local.conn = conn
             return conn
         except Exception as exc:  # noqa: BLE001
             last_exc = exc
             _close_postgres_connection()
-            if not (
-                is_postgres_connection_error(exc) or _is_prepared_statement_conflict(exc)
-            ):
+            if not is_postgres_connection_error(exc):
                 raise
     assert last_exc is not None
     raise last_exc
@@ -408,9 +398,23 @@ def _acquire_postgres_connection(row_factory: Any) -> Any:
 
 def _postgres_connection_failure(exc: BaseException) -> RuntimeError:
     summary = postgres_connection_summary(_database_url)
+    detail = str(exc).strip() or type(exc).__name__
     return RuntimeError(
-        f"Connexion PostgreSQL impossible ({summary}).\n" + database_connection_hint(exc)
+        f"Connexion PostgreSQL impossible ({summary}).\n"
+        f"{detail}\n"
+        + database_connection_hint(exc)
     )
+
+
+def format_database_exception(exc: BaseException) -> str:
+    """Include the underlying driver error so Streamlit does not hide it."""
+    parts = [str(exc).strip() or type(exc).__name__]
+    cause = exc.__cause__
+    if cause is not None:
+        text = str(cause).strip()
+        if text and text not in parts[0]:
+            parts.append(text)
+    return "\n".join(parts)
 
 
 @contextmanager
@@ -420,16 +424,8 @@ def connect() -> Iterator[Any]:
     if database_backend() == "postgres":
         from psycopg.rows import dict_row
 
-        conn = None
         try:
             conn = _acquire_postgres_connection(dict_row)
-            try:
-                yield conn
-                conn.commit()
-            except Exception:
-                with suppress(Exception):
-                    conn.rollback()
-                raise
         except DatabaseConfigError:
             _close_postgres_connection()
             raise
@@ -437,6 +433,15 @@ def connect() -> Iterator[Any]:
             _close_postgres_connection()
             if is_postgres_connection_error(exc):
                 raise _postgres_connection_failure(exc) from exc
+            raise
+
+        try:
+            yield conn
+            conn.commit()
+        except Exception:
+            with suppress(Exception):
+                conn.rollback()
+            _close_postgres_connection()
             raise
         finally:
             if uses_transaction_pooler(_database_url):

@@ -283,7 +283,7 @@ from auth import (
     update_user_profile,
     verify_password_reset_code,
 )
-from database import DatabaseConfigError, configure_database, database_connection_hint, database_status
+from database import DatabaseConfigError, configure_database, database_connection_hint, database_status, format_database_exception
 from document_generation import generate_adapted_cv, generate_cover_letter
 from cv_layout import (
     cv_pdf_filename,
@@ -8284,7 +8284,7 @@ def main() -> None:
         return
     except Exception as exc:  # noqa: BLE001
         st.error("**Impossible de se connecter à la base de données.**")
-        st.code(str(exc))
+        st.code(format_database_exception(exc))
         if get_secret("DATABASE_URL"):
             st.info(database_connection_hint(exc))
             st.markdown(
