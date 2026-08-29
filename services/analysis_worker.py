@@ -187,7 +187,7 @@ def process_next_analysis_job() -> bool:
     return True
 
 
-def run_analysis_worker_forever(*, idle_sleep: float = 0.25) -> None:
+def run_analysis_worker_forever(*, idle_sleep: float = 0.1) -> None:
     """Blocking loop for a dedicated OVH / CLI worker process."""
     while True:
         try:
@@ -214,7 +214,7 @@ def ensure_embedded_analysis_worker() -> None:
         _worker_thread = threading.Thread(
             target=run_analysis_worker_forever,
             name="analysis-worker",
-            kwargs={"idle_sleep": 0.25},
+            kwargs={"idle_sleep": 0.1},
             daemon=True,
         )
         _worker_thread.start()

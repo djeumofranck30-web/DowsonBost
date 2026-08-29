@@ -82,7 +82,7 @@ def test_ui_starts_analysis_immediately() -> None:
     assert "kick_embedded_analysis_worker()" in source
     worker = (ROOT / "services/analysis_worker.py").read_text(encoding="utf-8")
     assert "def kick_embedded_analysis_worker" in worker
-    assert "idle_sleep: float = 0.25" in worker
+    assert "idle_sleep: float = 0.1" in worker
 
 
 def test_matching_keeps_only_requested_best_subset() -> None:

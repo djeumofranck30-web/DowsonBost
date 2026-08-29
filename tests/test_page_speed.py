@@ -37,6 +37,28 @@ def _register_kwargs(**overrides):
     return data
 
 
+def test_init_db_skips_postgres_on_later_reruns():
+    source = (ROOT / "auth.py").read_text(encoding="utf-8")
+    start = source.index("def init_db(")
+    end = source.index("def _hash_password(", start)
+    body = source[start:end]
+    assert body.index("if _db_initialized_for == _DB_SCHEMA_KEY:") < body.index(
+        "with _connect() as conn:"
+    )
+
+
+def test_pages_reuse_cached_profile_instead_of_refetching():
+    source = (ROOT / "app.py").read_text(encoding="utf-8")
+    assert "def _cached_user_profile(" in source
+    assert "def _cached_notification_settings(" in source
+    render_cv = source[
+        source.index("def render_cv_analysis(") : source.index("def render_config_tests_panel")
+    ]
+    assert "_cached_user_profile(" in render_cv
+    assert "get_active_analysis_job(" not in render_cv
+    assert "analysis.queue.ticket" not in render_cv
+
+
 def test_job_cards_are_paginated_and_collapsed_by_default():
     source = (ROOT / "app.py").read_text(encoding="utf-8")
     assert JOB_CARDS_PER_PAGE == 25

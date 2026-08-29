@@ -664,10 +664,9 @@ def complete_verified_password_reset(user_id: int, new_password: str) -> tuple[b
 def init_db() -> None:
     """Create users table if it does not exist (once per process / schema version)."""
     global _db_initialized_for
+    if _db_initialized_for == _DB_SCHEMA_KEY:
+        return
     with _connect() as conn:
-        _create_password_reset_codes_table(conn)
-        if _db_initialized_for == _DB_SCHEMA_KEY:
-            return
         _create_users_table(conn)
         _migrate_users(conn)
         _create_password_reset_tokens_table(conn)

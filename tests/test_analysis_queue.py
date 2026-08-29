@@ -255,7 +255,18 @@ def test_analysis_ui_enqueues_instead_of_blocking():
     assert 'key="run_full_analysis"' in fn
     assert "_render_analysis_job_progress" in fn
     button_block = fn[fn.index('key="run_full_analysis"') :]
-    assert "run_cv_analysis_pipeline" not in button_block.split("if active_job:")[0]
+    assert "run_cv_analysis_pipeline" not in button_block
+
+
+def test_progress_ui_hides_ticket_number():
+    source = (ROOT / "app.py").read_text(encoding="utf-8")
+    start = source.index("def _render_analysis_job_progress(")
+    end = source.index("def _format_history_datetime(", start)
+    body = source[start:end]
+    assert "analysis.queue.ticket" not in body
+    assert "Ticket n" not in body
+    assert "analysis.progress.working" in body
+    assert "st.caption" not in body
 
 
 def test_queue_locale_keys_exist():
@@ -264,8 +275,10 @@ def test_queue_locale_keys_exist():
         for key in (
             "analysis.queue.queued",
             "analysis.queue.running",
-            "analysis.queue.ticket",
             "analysis.queue.already",
             "analysis.queue.failed",
+            "analysis.progress.working",
         ):
             assert data[key]
+        assert "ticket" not in data["analysis.queue.queued"].lower()
+        assert "ticket" not in data["analysis.progress.working"].lower()

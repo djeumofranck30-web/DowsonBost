@@ -274,6 +274,7 @@ MESSAGES: dict[str, str] = {
     "analysis.run": "Lancer l'analyse complète",
     "analysis.auto_search_due": "Une recherche automatique est due pour votre profil.",
     "analysis.auto_search_run": "Lancer la recherche automatique maintenant",
+    "analysis.progress.working": "Analyse en cours…",
     "analysis.progress.init": "Initialisation de l'analyse…",
     "analysis.progress.extract": "Extraction du CV et plan de recherche IA…",
     "analysis.progress.search": "CV extrait — recherche d'offres (job boards + sites carrière) et profil candidat…",

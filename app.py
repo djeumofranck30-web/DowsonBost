@@ -120,7 +120,6 @@ from constants import (
 )
 from services.analysis_queue import (
     enqueue_analysis_job,
-    get_active_analysis_job,
     get_analysis_job,
     get_latest_analysis_job,
 )
@@ -4319,14 +4318,56 @@ def _job_notices(job: dict[str, Any]) -> list[dict[str, str]]:
     return [item for item in parsed if isinstance(item, dict)]
 
 
-def _sync_analysis_job_into_session(user_id: int) -> None:
-    """Load a finished ticket into session once, then keep showing those results."""
-    job = get_latest_analysis_job(user_id)
+def _cached_user_profile(user: dict[str, Any], *, ttl: float = 20.0) -> dict[str, Any]:
+    """Reuse the last profile read so page clicks do not hit Postgres every time."""
+    user_id = int(user.get("id") or 0)
+    now = time.time()
+    cached = st.session_state.get("_profile_cache")
+    if (
+        isinstance(cached, dict)
+        and int(cached.get("id") or 0) == user_id
+        and (now - float(st.session_state.get("_profile_cache_at") or 0)) < ttl
+    ):
+        return cached
+    fresh = get_user_by_id(user_id) or user
+    st.session_state._profile_cache = fresh
+    st.session_state._profile_cache_at = now
+    return fresh
+
+
+def _cached_notification_settings(user_id: int, *, ttl: float = 20.0) -> dict[str, Any]:
+    now = time.time()
+    if (
+        st.session_state.get("_notify_cache_uid") == int(user_id)
+        and (now - float(st.session_state.get("_notify_cache_at") or 0)) < ttl
+    ):
+        return dict(st.session_state.get("_notify_cache") or {})
+    settings = get_notification_settings(int(user_id))
+    st.session_state._notify_cache_uid = int(user_id)
+    st.session_state._notify_cache_at = now
+    st.session_state._notify_cache = settings
+    return settings
+
+
+def _clear_profile_page_caches() -> None:
+    st.session_state.pop("_profile_cache", None)
+    st.session_state.pop("_profile_cache_at", None)
+    st.session_state.pop("_notify_cache", None)
+    st.session_state.pop("_notify_cache_uid", None)
+    st.session_state.pop("_notify_cache_at", None)
+
+
+def _sync_analysis_job_into_session(
+    user_id: int,
+    job: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
+    """Load a finished analysis into session once, then keep showing those results."""
+    job = job if job is not None else get_latest_analysis_job(user_id)
     if not job:
-        return
+        return None
     job_id = int(job["id"])
     if st.session_state.get("applied_analysis_job_id") == job_id:
-        return
+        return job
     status = str(job.get("status") or "")
     if status == "completed" and job.get("analysis_id"):
         stored = get_analysis(user_id, int(job["analysis_id"]))
@@ -4337,7 +4378,7 @@ def _sync_analysis_job_into_session(user_id: int) -> None:
             st.session_state.applied_analysis_job_id = job_id
             st.session_state.analysis_job_id = job_id
             st.session_state.dashboard_analysis_select = int(job["analysis_id"])
-            return
+            return job
     if status == "failed":
         notices = _job_notices(job)
         error = str(job.get("error_message") or "").strip()
@@ -4346,6 +4387,7 @@ def _sync_analysis_job_into_session(user_id: int) -> None:
         st.session_state.analysis_notices = notices
         st.session_state.applied_analysis_job_id = job_id
         st.session_state.analysis_job_id = job_id
+    return job
 
 
 def _enqueue_user_analysis_error(code: str) -> str:
@@ -4359,25 +4401,22 @@ def _enqueue_user_analysis_error(code: str) -> str:
 
 
 def _render_analysis_job_progress(job: dict[str, Any]) -> None:
-    """Show ticket status and refresh until the worker finishes."""
-    status = str(job.get("status") or "queued")
-    if status == "queued":
-        st.info(t("analysis.queue.queued"))
-    else:
-        st.info(t("analysis.queue.running"))
-    st.caption(t("analysis.queue.ticket", id=int(job["id"])))
+    """Show a simple progress bar until matching finishes. No ticket number."""
+    st.info(t("analysis.progress.working"))
 
     @st.fragment(run_every=ANALYSIS_JOB_POLL_SECONDS)
-    def _poll_analysis_ticket() -> None:
+    def _poll_analysis_progress() -> None:
         fresh = get_analysis_job(int(job["id"]), int(job["user_id"])) or job
         if str(fresh.get("status") or "") in {"queued", "running"}:
             percent = int(fresh.get("progress_percent") or 0)
-            label = str(fresh.get("progress_label") or t("analysis.queue.running"))
-            st.progress(min(1.0, max(0.0, percent / 100.0)), text=f"{percent}% — {label}")
+            if percent < 3:
+                percent = 3
+            label = str(fresh.get("progress_label") or t("analysis.progress.working"))
+            st.progress(min(1.0, max(0.03, percent / 100.0)), text=label)
             return
         st.rerun()
 
-    _poll_analysis_ticket()
+    _poll_analysis_progress()
 
 
 def _format_history_datetime(value: str | None) -> str:
@@ -4539,7 +4578,7 @@ def render_applications_page(user: dict[str, Any]) -> None:
     applications = list_user_applications(user_id)
     auto_apps = [entry for entry in applications if entry.get("channel") == "automatic"]
     manual_apps = [entry for entry in applications if entry.get("channel") == "manual"]
-    user_profile = get_user_by_id(user_id) or user
+    user_profile = _cached_user_profile(user)
     channel_map = {
         "all": applications,
         "automatic": auto_apps,
@@ -5418,7 +5457,7 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
         page_size=JOB_CARDS_PER_PAGE,
         filter_signature=(selected_id, status_filter, sort_by, min_score, company_query),
     )
-    user_profile = get_user_by_id(user_id) or user
+    user_profile = _cached_user_profile(user)
     apply_context = get_analysis_apply_context(user_id, selected_id) or {}
     cv_text = apply_context.get("cv_text", "")
     profile_snapshot = apply_context.get("user_profile") or user_profile
@@ -7457,7 +7496,7 @@ def _render_profile_photo_editor(user_id: int, *, has_photo: bool) -> None:
 def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
     """Profile settings — identity, search prefs, security, alerts, delete account."""
     _flush_analysis_notices()
-    profile = get_user_by_id(user["id"]) or user
+    profile = _cached_user_profile(user)
     current_age = normalize_job_max_age_days(profile.get("job_max_age_days"))
     member_since = profile.get("created_at", "")
     full_name = profile.get("full_name", "Utilisateur")
@@ -7700,6 +7739,7 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                     )
                     if ok and updated:
                         st.session_state.user = updated
+                        _clear_profile_page_caches()
                         st.session_state.pop(sectors_key, None)
                         prefix = f"profile_{user['id']}"
                         for suffix in (
@@ -7768,9 +7808,14 @@ def render_cv_analysis(
     analysis_depth: str = "standard",
 ) -> None:
     """CV upload and matching workflow."""
-    user_profile = get_user_by_id(user["id"]) or user
-    _sync_analysis_job_into_session(int(user["id"]))
-    active_job = get_active_analysis_job(int(user["id"]))
+    user_profile = _cached_user_profile(user)
+    latest_job = get_latest_analysis_job(int(user["id"]))
+    _sync_analysis_job_into_session(int(user["id"]), latest_job)
+    active_job = (
+        latest_job
+        if latest_job and str(latest_job.get("status") or "") in {"queued", "running"}
+        else None
+    )
     ready, _ = ai_setup_status()
     if not ready and not active_job:
         render_ai_setup_help()
@@ -7782,6 +7827,10 @@ def render_cv_analysis(
         st.info(t("matching.profile_incomplete"))
         return
 
+    if active_job:
+        _render_analysis_job_progress(active_job)
+        return
+
     target_title = user_profile.get("target_job_title", "—")
     active_level = resolve_experience_level(user_profile, {})
     active_sectors = resolve_target_sectors(user_profile, {})
@@ -7789,7 +7838,7 @@ def render_cv_analysis(
     publication_filter = normalize_job_max_age_days(user_profile.get("job_max_age_days"))
     depth_key = analysis_depth if analysis_depth in ANALYSIS_DEPTH_POOL else "standard"
 
-    notify_settings = get_notification_settings(int(user["id"]))
+    notify_settings = _cached_notification_settings(int(user["id"]))
     if is_auto_search_due(notify_settings) and notify_settings.get("auto_search_enabled"):
         st.info(t("analysis.auto_search_due"))
         if st.button(t("analysis.auto_search_run"), key="run_auto_search_now"):
@@ -7850,9 +7899,7 @@ def render_cv_analysis(
         else:
             if fp_matches:
                 st.info("Résultats en cache pour ce CV — relancez pour forcer une nouvelle analyse.")
-            if active_job:
-                st.caption(t("analysis.queue.already"))
-            elif st.button(
+            if st.button(
                 t("analysis.run"),
                 type="primary",
                 use_container_width=True,
@@ -7878,10 +7925,6 @@ def render_cv_analysis(
                     st.session_state.analysis = None
                     st.session_state.pdf_fingerprint = current_fp
                 st.rerun()
-
-    if active_job:
-        _render_analysis_job_progress(active_job)
-        return
 
     if not uploaded_file:
         if st.session_state.analysis:
