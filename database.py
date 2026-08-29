@@ -203,6 +203,11 @@ def database_connection_hint(exc: BaseException) -> str:
         )
     if "placeholder" in message or "your-password" in message:
         hints.append("Remplacez [YOUR-PASSWORD] par le vrai mot de passe Supabase.")
+    if "prepared statement" in message:
+        hints.append(
+            "Le pooler transactionnel Supabase (port 6543) refuse les requêtes préparées. "
+            "Reboot l'app Streamlit Cloud pour charger la version qui les désactive."
+        )
     if "ipv4" in message or "ipv6" in message:
         hints.append(
             "URL mal formée : mettez DATABASE_URL entre guillemets et utilisez DATABASE_PASSWORD "
@@ -255,8 +260,12 @@ def is_postgres_connection_error(exc: BaseException) -> bool:
 
 
 def postgres_client_connect_kwargs() -> dict[str, Any]:
-    """psycopg client options. Prepared statements break PgBouncer transaction mode."""
-    return {"autocommit": False, "prepare_threshold": 0}
+    """psycopg client options. Prepared statements break PgBouncer transaction mode.
+
+    ``prepare_threshold=0`` means “prepare on the first query”. Use ``None`` to
+    disable named statements entirely (required for Supabase port 6543).
+    """
+    return {"autocommit": False, "prepare_threshold": None}
 
 
 def postgres_connect_kwargs(url: str) -> dict[str, Any]:
@@ -342,8 +351,28 @@ def existing_columns(conn: Any, table: str = "users") -> set[str]:
     return {row[1] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
 
 
+def _is_prepared_statement_conflict(exc: BaseException) -> bool:
+    message = str(exc).lower()
+    return "prepared statement" in message and (
+        "already exists" in message or "does not exist" in message
+    )
+
+
+def _disable_prepared_statements(conn: Any) -> None:
+    """Force-disable psycopg named statements even if connect() ignored the kwarg."""
+    with suppress(Exception):
+        conn.prepare_threshold = None
+
+
+def _reset_pooler_backend(conn: Any) -> None:
+    """Drop leftover prepared statements on a recycled PgBouncer backend."""
+    if not uses_transaction_pooler(_database_url):
+        return
+    conn.execute("DEALLOCATE ALL")
+
+
 def _acquire_postgres_connection(row_factory: Any) -> Any:
-    """Open a Postgres connection, retrying once on a dead socket."""
+    """Open a Postgres connection, retrying once on a dead or dirty pooler socket."""
     import psycopg
 
     reuse = not uses_transaction_pooler(_database_url)
@@ -362,12 +391,16 @@ def _acquire_postgres_connection(row_factory: Any) -> Any:
                 conn = psycopg.connect(conninfo, row_factory=row_factory, **client_kwargs)
             except TypeError:
                 conn = psycopg.connect(conninfo, row_factory=row_factory)
+            _disable_prepared_statements(conn)
+            _reset_pooler_backend(conn)
             _pg_local.conn = conn
             return conn
         except Exception as exc:  # noqa: BLE001
             last_exc = exc
             _close_postgres_connection()
-            if not is_postgres_connection_error(exc):
+            if not (
+                is_postgres_connection_error(exc) or _is_prepared_statement_conflict(exc)
+            ):
                 raise
     assert last_exc is not None
     raise last_exc

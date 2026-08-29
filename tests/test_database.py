@@ -43,10 +43,28 @@ def test_transport_errors_are_connection_failures():
         pytest.skip("psycopg not installed")
 
 
-def test_pooler_client_disables_prepared_statements():
+def test_disable_prepared_statements_sets_none_on_connection():
+    from database import _disable_prepared_statements
+
+    class FakeConn:
+        prepare_threshold = 5
+
+    conn = FakeConn()
+    _disable_prepared_statements(conn)
+    assert conn.prepare_threshold is None
     kwargs = postgres_client_connect_kwargs()
-    assert kwargs["prepare_threshold"] == 0
+    # 0 would still PREPARE on the first query and break PgBouncer.
+    assert kwargs["prepare_threshold"] is None
     assert kwargs["autocommit"] is False
+
+
+def test_prepared_statement_conflict_is_not_a_bad_password():
+    from database import _is_prepared_statement_conflict
+
+    assert _is_prepared_statement_conflict(
+        RuntimeError('prepared statement "_pg3_0" already exists')
+    )
+    assert not _is_prepared_statement_conflict(RuntimeError("syntax error"))
 
 
 def test_conninfo_includes_keepalives():
