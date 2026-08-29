@@ -124,7 +124,10 @@ from services.analysis_queue import (
     get_analysis_job,
     get_latest_analysis_job,
 )
-from services.analysis_worker import ensure_embedded_analysis_worker
+from services.analysis_worker import (
+    ensure_embedded_analysis_worker,
+    kick_embedded_analysis_worker,
+)
 from services.application import (
     build_application_profile,
     format_application_autofill_text,
@@ -5482,7 +5485,6 @@ def run_auto_search_for_user(user: dict[str, Any], job_provider: str) -> None:
     if depth_key not in ANALYSIS_DEPTH_POOL:
         depth_key = "standard"
     provider = settings.get("auto_search_provider") or job_provider
-    ensure_embedded_analysis_worker()
     job_id, err = enqueue_analysis_job(
         user_id,
         user_profile,
@@ -5496,6 +5498,7 @@ def run_auto_search_for_user(user: dict[str, Any], job_provider: str) -> None:
     if err and err != "already":
         st.error(_enqueue_user_analysis_error(err))
         return
+    kick_embedded_analysis_worker()
     log_scheduled_run(user_id, "running", trigger_source="app")
     st.session_state.analysis_job_id = job_id
     st.session_state.applied_analysis_job_id = None
@@ -7820,7 +7823,6 @@ def render_cv_analysis(
                 use_container_width=True,
                 key="run_full_analysis",
             ):
-                ensure_embedded_analysis_worker()
                 job_id, err = enqueue_analysis_job(
                     int(user["id"]),
                     user_profile,
@@ -7835,6 +7837,7 @@ def render_cv_analysis(
                         {"level": "error", "text": _enqueue_user_analysis_error(err)}
                     ]
                 else:
+                    kick_embedded_analysis_worker()
                     st.session_state.analysis_job_id = job_id
                     st.session_state.applied_analysis_job_id = None
                     st.session_state.analysis = None

@@ -179,7 +179,7 @@ def process_next_analysis_job() -> bool:
     return True
 
 
-def run_analysis_worker_forever(*, idle_sleep: float = 1.0) -> None:
+def run_analysis_worker_forever(*, idle_sleep: float = 0.25) -> None:
     """Blocking loop for a dedicated OVH / CLI worker process."""
     while True:
         try:
@@ -188,7 +188,7 @@ def run_analysis_worker_forever(*, idle_sleep: float = 1.0) -> None:
             _logger.exception("Analysis worker loop error")
             processed = False
         if not processed:
-            time.sleep(max(0.2, float(idle_sleep)))
+            time.sleep(max(0.05, float(idle_sleep)))
 
 
 def ensure_embedded_analysis_worker() -> None:
@@ -206,7 +206,17 @@ def ensure_embedded_analysis_worker() -> None:
         _worker_thread = threading.Thread(
             target=run_analysis_worker_forever,
             name="analysis-worker",
-            kwargs={"idle_sleep": 1.0},
+            kwargs={"idle_sleep": 0.25},
             daemon=True,
         )
         _worker_thread.start()
+
+
+def kick_embedded_analysis_worker() -> None:
+    """Start the worker and try to claim a ticket immediately (no idle wait)."""
+    ensure_embedded_analysis_worker()
+    threading.Thread(
+        target=process_next_analysis_job,
+        name="analysis-kick",
+        daemon=True,
+    ).start()

@@ -144,7 +144,7 @@ MESSAGES: dict[str, str] = {
     "app.job_provider": "Moteur(s) de recherche d'emploi",
     "app.job_provider_help": "Chaque analyse cherche aussi les offres sur les sites carrière des entreprises (Greenhouse, Lever, Workday…). WTTJ est gratuit. Jooble et OptionCarriere nécessitent une clé API gratuite. Indeed, LinkedIn et Glassdoor passent par SerpApi.",
     "app.analysis_depth": "Profondeur d'analyse",
-    "app.analysis_depth_help": "Le matching IA (1 appel par offre) est l'étape la plus longue. Choisissez Rapide pour réduire le temps d'attente.",
+    "app.analysis_depth_help": "Le matching IA analyse 25, 60 ou 100 offres. L'analyse part tout de suite. Complet est plus long.",
     "app.config_tests": "Configuration & tests",
     "app.version": "Version",
     "app.clear_cache": "Vider le cache",
@@ -201,9 +201,9 @@ MESSAGES: dict[str, str] = {
     "geo_mode.register.departement": "Pays, régions, départements et villes sélectionnés",
     "geo_mode.register.rayon": "Zones sélectionnées + rayon autour de la première ville",
     # Depth
-    "depth.rapide": "Rapide — 15 offres (~2× plus vite)",
-    "depth.standard": "Standard — 30 offres (recommandé)",
-    "depth.complet": "Complet — 45 offres analysées (plus lent)",
+    "depth.rapide": "Rapide — 25 offres",
+    "depth.standard": "Standard — 60 offres (recommandé)",
+    "depth.complet": "Complet — 100 offres",
     # Matching
     "matching.profile_incomplete": "Complétez le poste visé, vos pays et zones géographiques et votre type de contrat dans Mon profil.",
     "matching.missing_job_title": "Indiquez le poste visé dans Mon profil.",
