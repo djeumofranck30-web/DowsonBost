@@ -27,12 +27,18 @@ def get_secret_raw(key: str, default: Any = "") -> Any:
         return default
 
 
+_secrets_exported = False
+
+
 def export_streamlit_secrets_to_environ() -> int:
     """Copy Streamlit secrets into os.environ for background worker threads.
 
     ``st.secrets`` is unreliable from a daemon thread (no ScriptRunContext).
     Call this on the Streamlit request thread before starting the analysis worker.
     """
+    global _secrets_exported
+    if _secrets_exported:
+        return 0
     copied = 0
     secrets: Any = None
     try:
@@ -84,6 +90,7 @@ def export_streamlit_secrets_to_environ() -> int:
             continue
         os.environ[key] = text
         copied += 1
+    _secrets_exported = True
     return copied
 
 

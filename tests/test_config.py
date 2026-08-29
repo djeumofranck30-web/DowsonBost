@@ -17,6 +17,9 @@ def test_get_secret_prefers_env(monkeypatch):
 
 
 def test_export_streamlit_secrets_to_environ(monkeypatch):
+    import config
+
+    config._secrets_exported = False
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     fake_st = types.SimpleNamespace(
         secrets={"OPENAI_API_KEY": "sk-test", "GROQ_API_KEY": "gsk-test"}

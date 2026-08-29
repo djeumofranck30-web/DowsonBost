@@ -24,6 +24,7 @@ def sqlite_db(tmp_path, monkeypatch):
 
     monkeypatch.setattr("database.SQLITE_PATH", db_path)
     monkeypatch.setattr("database._configured", False)
+    monkeypatch.setattr("database._config_key", None)
     monkeypatch.setattr("database._backend", "sqlite")
     from auth import _db_initialized_for
     import auth

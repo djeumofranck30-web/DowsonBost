@@ -212,3 +212,15 @@ def test_format_database_exception_includes_cause():
         text = format_database_exception(exc)
     assert "outer" in text
     assert "inner boom" in text
+
+
+def test_configure_database_skips_identical_rerun():
+    import database
+
+    database._configured = False
+    database._config_key = None
+    assert database.configure_database("", password="") == "sqlite"
+    first_key = database._config_key
+    assert database.configure_database("", password="") == "sqlite"
+    assert database._config_key == first_key
+    assert database._configured is True

@@ -5,7 +5,7 @@ from __future__ import annotations
 import inspect
 from pathlib import Path
 
-from constants import JOB_CARDS_PER_PAGE, PROFILE_PHOTO_SIDEBAR_PX
+from constants import HISTORY_ROWS_PER_PAGE, JOB_CARDS_PER_PAGE, PROFILE_PHOTO_SIDEBAR_PX
 from persistence import (
     analysis_to_session_dict,
     count_user_applications,
@@ -45,6 +45,37 @@ def test_init_db_skips_postgres_on_later_reruns():
     assert body.index("if _db_initialized_for == _DB_SCHEMA_KEY:") < body.index(
         "with _connect() as conn:"
     )
+
+
+def test_streamlit_rerun_holds_one_db_connection():
+    source = (ROOT / "app.py").read_text(encoding="utf-8")
+    main = source.split("def main()", 1)[1]
+    assert "with connect():" in main
+    assert "render_app()" in main
+
+
+def test_history_page_is_paginated():
+    source = (ROOT / "app.py").read_text(encoding="utf-8")
+    body = source[
+        source.index("def render_history_page(") : source.index(
+            "def _analysis_dashboard_label("
+        )
+    ]
+    assert "_paged_items(" in body
+    assert "HISTORY_ROWS_PER_PAGE" in body
+    assert HISTORY_ROWS_PER_PAGE == 8
+    assert "_cached_list_analyses(" in body
+
+
+def test_dashboard_fetches_only_requested_best_rows():
+    source = (ROOT / "app.py").read_text(encoding="utf-8")
+    body = source[
+        source.index("def render_dashboard_page(") : source.index(
+            "def render_notification_settings("
+        )
+    ]
+    assert "limit=display_limit" in body
+    assert "_cached_list_analyses(" in body
 
 
 def test_pages_reuse_cached_profile_instead_of_refetching():

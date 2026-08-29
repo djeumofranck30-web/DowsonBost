@@ -116,6 +116,7 @@ from constants import (
     SEARCH_LOCATION_MAX_WORKERS,
     TOP_MATCHING_JOBS,
     JOB_CARDS_PER_PAGE,
+    HISTORY_ROWS_PER_PAGE,
     APPLICATION_CHANNEL_KEYS,
 )
 from services.analysis_queue import (
@@ -288,7 +289,14 @@ from auth import (
     update_user_profile,
     verify_password_reset_code,
 )
-from database import DatabaseConfigError, configure_database, database_connection_hint, database_status, format_database_exception
+from database import (
+    DatabaseConfigError,
+    configure_database,
+    connect,
+    database_connection_hint,
+    database_status,
+    format_database_exception,
+)
 from document_generation import generate_adapted_cv, generate_cover_letter
 from cv_layout import (
     cv_pdf_filename,
@@ -4355,6 +4363,23 @@ def _clear_profile_page_caches() -> None:
     st.session_state.pop("_notify_cache", None)
     st.session_state.pop("_notify_cache_uid", None)
     st.session_state.pop("_notify_cache_at", None)
+    st.session_state.pop("_analyses_rows", None)
+    st.session_state.pop("_analyses_at", None)
+    st.session_state.pop("_analyses_uid", None)
+
+
+def _cached_list_analyses(user_id: int, *, ttl: float = 12.0) -> list[dict[str, Any]]:
+    now = time.time()
+    if (
+        st.session_state.get("_analyses_uid") == int(user_id)
+        and (now - float(st.session_state.get("_analyses_at") or 0)) < ttl
+    ):
+        return list(st.session_state.get("_analyses_rows") or [])
+    rows = list_analyses(int(user_id))
+    st.session_state._analyses_uid = int(user_id)
+    st.session_state._analyses_at = now
+    st.session_state._analyses_rows = rows
+    return rows
 
 
 def _sync_analysis_job_into_session(
@@ -4378,6 +4403,8 @@ def _sync_analysis_job_into_session(
             st.session_state.applied_analysis_job_id = job_id
             st.session_state.analysis_job_id = job_id
             st.session_state.dashboard_analysis_select = int(job["analysis_id"])
+            st.session_state.pop("_analyses_rows", None)
+            st.session_state.pop("_analyses_at", None)
             return job
     if status == "failed":
         notices = _job_notices(job)
@@ -4913,7 +4940,7 @@ def render_history_page(user: dict[str, Any]) -> None:
             if st.button(t("applications.go_to_applications"), use_container_width=True):
                 _request_navigation("applications")
 
-    rows = list_analyses(user_id)
+    rows = _cached_list_analyses(user_id)
     st.markdown(
         f'<p class="section-title">{t("history.analyses_title")}</p>',
         unsafe_allow_html=True,
@@ -4921,7 +4948,13 @@ def render_history_page(user: dict[str, Any]) -> None:
     if not rows:
         st.info(t("history.empty_start"))
         return
-    for row in rows:
+    visible_rows = _paged_items(
+        rows,
+        key="history_page",
+        page_size=HISTORY_ROWS_PER_PAGE,
+        filter_signature=("history", user_id, len(rows)),
+    )
+    for row in visible_rows:
         created = row.get("created_at", "")[:16].replace("T", " ")
         label = t(
             "history.row_label",
@@ -5329,7 +5362,7 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
         t("hero.dashboard.subtitle"),
         badge=t("hero.dashboard.badge"),
     )
-    analyses = list_analyses(user_id)
+    analyses = _cached_list_analyses(user_id)
     if not analyses:
         st.markdown(
             (
@@ -5382,13 +5415,12 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
     )
     st.markdown(f'<div class="dash-meta-pills">{pills_html}</div>', unsafe_allow_html=True)
 
-    all_entries = list_dashboard_results(user_id, analysis_id=selected_id)
     display_limit = matching_display_limit(selected_meta)
-    all_entries = sorted(
-        all_entries,
-        key=lambda entry: int(entry.get("score") or 0),
-        reverse=True,
-    )[:display_limit]
+    all_entries = list_dashboard_results(
+        user_id,
+        analysis_id=selected_id,
+        limit=display_limit,
+    )
     counts = _status_counts_from_entries(all_entries)
     stat_items = (
         (t("dashboard.metric_total"), counts.get("all", 0)),
@@ -8398,11 +8430,12 @@ def main() -> None:
     init_session_state()
     ensure_embedded_analysis_worker()
 
-    if not st.session_state.authenticated:
-        render_auth_page()
-        return
-
-    render_app()
+    # One Postgres checkout for the whole Streamlit rerun (avoids 5–8 SSL handshakes).
+    with connect():
+        if not st.session_state.authenticated:
+            render_auth_page()
+            return
+        render_app()
 
 
 if __name__ == "__main__":

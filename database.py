@@ -16,6 +16,7 @@ _backend: str = "sqlite"
 _database_url: str = ""
 _database_password: str = ""
 _configured = False
+_config_key: tuple[str, str] | None = None
 _pg_local = threading.local()
 _sqlite_local = threading.local()
 
@@ -108,9 +109,12 @@ def normalize_database_url(url: str, password_override: str = "") -> str:
 
 def configure_database(url: str = "", password: str = "") -> str:
     """Select SQLite (default) or PostgreSQL when DATABASE_URL is set."""
-    global _backend, _database_url, _database_password, _configured
+    global _backend, _database_url, _database_password, _configured, _config_key
     raw_url = (url or os.getenv("DATABASE_URL", "")).strip()
     raw_password = _clean_password(password or os.getenv("DATABASE_PASSWORD", ""))
+    config_key = (raw_url, raw_password)
+    if _configured and _config_key == config_key:
+        return _backend
 
     if raw_url.startswith(("postgres://", "postgresql://")):
         _database_url = normalize_database_url(raw_url, raw_password)
@@ -129,6 +133,7 @@ def configure_database(url: str = "", password: str = "") -> str:
         _backend = "sqlite"
         _close_postgres_connection()
     _configured = True
+    _config_key = config_key
     return _backend
 
 

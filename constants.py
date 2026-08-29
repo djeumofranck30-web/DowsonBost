@@ -24,6 +24,7 @@ ANALYSIS_DEPTH_POOL = {"rapide": 25, "standard": 60, "complet": 100}
 ANALYSIS_DEPTH_TOP = {"rapide": 25, "standard": 60, "complet": 100}
 NAV_PAGE_KEYS = ("analysis", "dashboard", "applications", "history", "support", "profile")
 JOB_CARDS_PER_PAGE = 25
+HISTORY_ROWS_PER_PAGE = 8
 PROFILE_SECTION_KEYS = ("search", "accounts", "alerts", "security")
 APPLICATION_CHANNEL_KEYS = ("all", "automatic", "manual")
 SUPPORT_MESSAGE_MAX_LEN = 4000
