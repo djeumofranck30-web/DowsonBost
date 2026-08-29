@@ -3674,6 +3674,42 @@ def _render_candidate_documents(
                 )
 
 
+def render_simple_job_row(
+    job: dict[str, Any],
+    match: dict[str, Any],
+    rank: int,
+) -> None:
+    """Compact analysis-page row: title, company, location and ATS score."""
+    score = int(match.get("score_correspondance", 0))
+    score_color = _score_color(score)
+    fact_parts = [
+        str(job.get("company") or "—"),
+        str(job.get("location") or "—"),
+    ]
+    if job.get("source"):
+        fact_parts.append(str(job.get("source")))
+    facts_html = "".join(
+        f"<span>{html.escape(part)}</span>" for part in fact_parts
+    )
+    st.markdown(
+        (
+            '<div class="job-match-card job-match-card-simple">'
+            '<div class="job-card-head">'
+            "<div>"
+            f'<p class="job-card-kicker">#{rank}</p>'
+            f'<p class="job-card-title">{html.escape(str(job.get("title") or "—"))}</p>'
+            f'<p class="job-card-facts">{facts_html}</p>'
+            "</div>"
+            f'<div class="job-score-badge" style="background:{score_color}18;'
+            f'border:2px solid {score_color};color:{score_color}">'
+            f"<strong>{score}%</strong>"
+            f"<small>{html.escape(t('results.simple_score'))}</small>"
+            "</div></div></div>"
+        ),
+        unsafe_allow_html=True,
+    )
+
+
 def render_job_card(
     job: dict[str, Any],
     match: dict[str, Any],
@@ -4258,6 +4294,7 @@ def _sync_analysis_job_into_session(user_id: int) -> None:
             st.session_state.analysis_notices = _job_notices(job)
             st.session_state.applied_analysis_job_id = job_id
             st.session_state.analysis_job_id = job_id
+            st.session_state.dashboard_analysis_select = int(job["analysis_id"])
             return
     if status == "failed":
         notices = _job_notices(job)
@@ -5567,157 +5604,76 @@ def render_cv_profile_summary(criteria: dict[str, Any], user_profile: dict[str, 
 
 
 def render_analysis_results(analysis: dict[str, Any]) -> None:
-    """Display stored analysis results and export button."""
-    criteria = analysis["criteria"]
-    user_profile = analysis.get("user_profile", {})
-    extraction_method = analysis["extraction_method"]
-    filter_stats = analysis.get("filter_stats", {})
-
-    method_label = (
-        t("results.extraction_native")
-        if extraction_method == "native"
-        else t("results.extraction_ocr")
+    """Show a simple ranked list. Full ATS details live on the dashboard."""
+    results = list(analysis.get("results") or [])
+    results.sort(
+        key=lambda item: int(item.get("match", {}).get("score_correspondance", 0)),
+        reverse=True,
     )
-    st.caption(t("results.extraction_label", method=method_label))
-    if analysis.get("analysis_id"):
-        saved_label = analysis.get("saved_at", "")[:16].replace("T", " ")
-        st.caption(
-            t(
-                "results.saved_detail",
-                id=analysis["analysis_id"],
-                saved=f" — {saved_label}" if saved_label else "",
-            )
-        )
-
-    with st.expander(t("results.cv_text_expander"), expanded=False):
-        cv_preview = analysis["cv_text"]
-        st.text(cv_preview[:3000] + ("…" if len(cv_preview) > 3000 else ""))
-
-    render_cv_profile_summary(criteria, user_profile)
-
-    if filter_stats:
-        st.info(
-            t(
-                "results.filter_stats",
-                kept=filter_stats.get("kept", 0),
-                total=filter_stats.get("total", 0),
-                contract=filter_stats.get("rejected_contract", 0),
-                geo=filter_stats.get("rejected_geo", 0),
-                experience=filter_stats.get("rejected_experience", 0),
-                sector=filter_stats.get("rejected_sector", 0),
-                age=filter_stats.get("rejected_publication_age", 0),
-            )
-        )
+    analysis_id = analysis.get("analysis_id")
+    if analysis_id:
+        st.session_state.dashboard_analysis_select = int(analysis_id)
 
     st.success(
         t(
-            "results.success_summary",
-            jobs=analysis["jobs_found"],
-            top=len(analysis["results"]),
+            "results.simple_summary",
+            jobs=analysis.get("jobs_found", len(results)),
+            top=len(results),
         )
     )
+    st.caption(t("results.simple_hint"))
 
-    st.markdown(
-        f'<p class="section-title">{t("results.pdf_section")}</p>',
-        unsafe_allow_html=True,
-    )
-
-    with st.container(border=True):
-        col_export, col_info = st.columns([1, 2])
-        with col_export:
-            try:
-                if not analysis.get("report_pdf"):
-                    analysis["report_pdf"] = generate_matching_report_pdf(
-                        criteria,
-                        analysis["results"],
-                        method_label,
-                    )
-                st.download_button(
-                    label=t("results.download_pdf"),
-                    data=analysis["report_pdf"],
-                    file_name="rapport_matching_dowsonbost.pdf",
-                    mime="application/pdf",
-                    type="primary",
-                    use_container_width=True,
-                    key="download_matching_report",
+    dash_col, pdf_col = st.columns([2, 1])
+    with dash_col:
+        if st.button(
+            t("results.open_dashboard"),
+            type="primary",
+            use_container_width=True,
+            key="analysis_open_dashboard",
+        ):
+            if analysis_id:
+                st.session_state.dashboard_analysis_select = int(analysis_id)
+            _request_navigation("dashboard")
+    with pdf_col:
+        extraction_method = analysis.get("extraction_method") or "native"
+        method_label = (
+            t("results.extraction_native")
+            if extraction_method == "native"
+            else t("results.extraction_ocr")
+        )
+        try:
+            if not analysis.get("report_pdf"):
+                analysis["report_pdf"] = generate_matching_report_pdf(
+                    analysis.get("criteria") or {},
+                    results,
+                    method_label,
                 )
-            except Exception as exc:  # noqa: BLE001
-                st.error(t("results.pdf_error", error=exc))
-        with col_info:
-            st.caption(t("results.pdf_hint", top=TOP_MATCHING_JOBS))
+            st.download_button(
+                label=t("results.download_pdf"),
+                data=analysis["report_pdf"],
+                file_name="rapport_matching_dowsonbost.pdf",
+                mime="application/pdf",
+                use_container_width=True,
+                key="download_matching_report",
+            )
+        except Exception as exc:  # noqa: BLE001
+            st.error(t("results.pdf_error", error=exc))
 
-    result_count = len(analysis.get("results", []))
     st.markdown(
-        f'<p class="section-title">{t("results.top_title", count=result_count)}</p>',
+        f'<p class="section-title">{t("results.simple_title", count=len(results))}</p>',
         unsafe_allow_html=True,
     )
-    sort_col, filter_col = st.columns(2)
-    with sort_col:
-        results_sort = st.selectbox(
-            t("results.sort"),
-            ["score_desc", "score_asc", "published_desc"],
-            format_func=lambda value: sort_label(value.replace("published_desc", "recent")),
-            key="analysis_results_sort",
-        )
-    with filter_col:
-        min_result_score = st.slider(
-            t("results.filter_score"),
-            0,
-            100,
-            0,
-            key="analysis_results_min_score",
-        )
-
-    displayed_results = []
-    for entry in analysis.get("results", []):
-        score = int(entry.get("match", {}).get("score_correspondance", 0))
-        if score >= min_result_score:
-            displayed_results.append(entry)
-
-    if results_sort == "score_asc":
-        displayed_results.sort(
-            key=lambda item: int(item.get("match", {}).get("score_correspondance", 0))
-        )
-    elif results_sort == "published_desc":
-        displayed_results.sort(
-            key=lambda item: str(item.get("job", {}).get("published_at") or ""),
-            reverse=True,
-        )
-    else:
-        displayed_results.sort(
-            key=lambda item: int(item.get("match", {}).get("score_correspondance", 0)),
-            reverse=True,
-        )
-
-    session_user = st.session_state.get("user") or {}
-    user_id = session_user.get("id")
-    cv_text = analysis.get("cv_text", "")
-    connected_accounts = _connected_accounts_map(int(user_id) if user_id else None)
     visible_results = _paged_items(
-        displayed_results,
+        results,
         key="analysis_results_page",
-        page_size=JOB_CARDS_PER_PAGE,
-        filter_signature=(results_sort, min_result_score, analysis.get("analysis_id")),
+        page_size=12,
+        filter_signature=("simple", analysis_id, len(results)),
     )
     page_offset = 0
-    if len(displayed_results) > JOB_CARDS_PER_PAGE:
-        page_offset = (int(st.session_state.get("analysis_results_page") or 1) - 1) * JOB_CARDS_PER_PAGE
+    if len(results) > 12:
+        page_offset = (int(st.session_state.get("analysis_results_page") or 1) - 1) * 12
     for idx, entry in enumerate(visible_results, start=page_offset + 1):
-        render_job_card(
-            entry["job"],
-            entry["match"],
-            idx,
-            result_id=entry.get("result_id"),
-            application_status=entry.get("application_status", "new"),
-            notes=entry.get("notes", ""),
-            cover_letter_text=entry.get("cover_letter_text"),
-            adapted_cv_text=entry.get("adapted_cv_text"),
-            user_id=int(user_id) if user_id else None,
-            cv_text=cv_text,
-            user_profile=user_profile,
-            enable_tracking=bool(entry.get("result_id") and user_id),
-            connected_accounts=connected_accounts,
-        )
+        render_simple_job_row(entry.get("job") or {}, entry.get("match") or {}, idx)
 
 
 # ---------------------------------------------------------------------------

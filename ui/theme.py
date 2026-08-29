@@ -858,6 +858,27 @@ def render_app_styles() -> None:
         .job-match-card {{
             padding: 1.1rem 1.25rem 0.55rem;
         }}
+        .job-match-card-simple {{
+            padding: 0.7rem 0.95rem 0.65rem;
+            margin-bottom: 0.55rem;
+        }}
+        .job-match-card-simple:hover {{
+            transform: none;
+        }}
+        .job-match-card-simple .job-card-title {{
+            font-size: 1.02rem !important;
+            margin-bottom: 0.1rem !important;
+        }}
+        .job-match-card-simple .job-card-facts {{
+            margin-bottom: 0;
+        }}
+        .job-match-card-simple .job-score-badge {{
+            min-width: 3.6rem;
+            padding: 0.35rem 0.5rem 0.3rem;
+        }}
+        .job-match-card-simple .job-score-badge strong {{
+            font-size: 1.15rem;
+        }}
 
         .stat-card-grid {{
             display: grid;
