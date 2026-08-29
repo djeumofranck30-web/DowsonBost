@@ -38,6 +38,7 @@ def _job_user_profile(job: dict[str, Any]) -> dict[str, Any]:
 
 
 def _persist_success(job: dict[str, Any], analysis: dict[str, Any], notices: list[dict[str, str]]) -> int:
+    from app import cap_results_to_requested_best
     from auth import get_user_by_id
     from email_service import email_configured, maybe_send_analysis_alert
     from persistence import (
@@ -50,6 +51,13 @@ def _persist_success(job: dict[str, Any], analysis: dict[str, Any], notices: lis
     )
 
     user_id = int(job["user_id"])
+    analysis["analysis_depth"] = str(job.get("analysis_depth") or "standard")
+    if job.get("matching_top"):
+        analysis["matching_top"] = int(job["matching_top"])
+    analysis["results"] = cap_results_to_requested_best(
+        list(analysis.get("results") or []),
+        analysis,
+    )
     analysis_id = save_analysis(
         user_id,
         analysis,

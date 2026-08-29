@@ -28,6 +28,7 @@ def test_analysis_results_use_simple_rows_not_full_cards() -> None:
     assert "results.filter_stats" not in body
     assert "results.open_dashboard" in body
     assert '_request_navigation("dashboard")' in body
+    assert "cap_results_to_requested_best(" in body
     assert "_paged_items(" not in body
     assert "for idx, entry in enumerate(results, start=1):" in body
     assert "visible_results" not in body
@@ -42,6 +43,7 @@ def test_dashboard_still_renders_full_job_cards() -> None:
     assert "render_job_card(" in body
     assert "enable_tracking=True" in body
     assert "render_simple_job_row(" not in body
+    assert "matching_display_limit(" in body
 
 
 def test_finished_analysis_selects_dashboard_analysis() -> None:

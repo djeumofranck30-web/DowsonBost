@@ -3187,7 +3187,7 @@ def build_matching_results(
     user_profile: dict[str, Any] | None = None,
     progress: ProgressReporter | None = None,
 ) -> tuple[list[dict[str, Any]], int]:
-    """AI-match job candidates and return every analysed offer ranked by similarity."""
+    """AI-match candidates from a wide online search and keep only the requested best offers."""
     try:
         from services.llm_usage import bind_current_user_from_streamlit, bind_usage_user_id
 
@@ -3299,14 +3299,45 @@ def build_matching_results(
             results.append({"job": job, "match": match})
             _report_match_progress(index + 1)
 
-    _report_progress(progress, match_end, "Classement des offres par similarité…")
+    _report_progress(progress, match_end, "Classement des meilleures offres…")
     results.sort(
         key=lambda entry: int(entry["match"].get("score_correspondance", 0)),
         reverse=True,
     )
-    # Depth caps scoring via pool_size only. Keep every analysed offer, ranked by similarity.
-    _ = top_n
-    return results, partial_matches
+    # Search may find hundreds of offers; display only the N best requested by depth.
+    return results[: max(0, int(top_n))], partial_matches
+
+
+def matching_display_limit(analysis: dict[str, Any] | None) -> int:
+    """How many ranked offers the selected depth asked to show."""
+    if not analysis:
+        return int(TOP_MATCHING_JOBS)
+    depth = str(analysis.get("analysis_depth") or "")
+    if depth in ANALYSIS_DEPTH_TOP:
+        return int(ANALYSIS_DEPTH_TOP[depth])
+    try:
+        top = int(analysis.get("matching_top") or 0)
+    except (TypeError, ValueError):
+        top = 0
+    if top > 0:
+        return top
+    return int(TOP_MATCHING_JOBS)
+
+
+def cap_results_to_requested_best(
+    results: list[dict[str, Any]],
+    analysis: dict[str, Any] | None = None,
+    *,
+    top_n: int | None = None,
+) -> list[dict[str, Any]]:
+    """Keep the N best ATS matches, even if many more were found online."""
+    ranked = sorted(
+        list(results or []),
+        key=lambda item: int((item.get("match") or {}).get("score_correspondance", 0)),
+        reverse=True,
+    )
+    limit = int(top_n) if top_n is not None else matching_display_limit(analysis)
+    return ranked[: max(0, limit)]
 
 
 # ---------------------------------------------------------------------------
@@ -3450,6 +3481,7 @@ def run_full_analysis(
         keywords,
         cv_profile=criteria,
     )
+    results = cap_results_to_requested_best(results, top_n=TOP_MATCHING_JOBS)
 
     return {
         "cv_text": cv_text,
@@ -4216,6 +4248,11 @@ def persist_completed_analysis(
     analysis_depth: str,
 ) -> dict[str, Any] | None:
     """Save analysis to DB, store active CV, optionally send email alert."""
+    analysis["analysis_depth"] = analysis_depth
+    analysis["results"] = cap_results_to_requested_best(
+        list(analysis.get("results") or []),
+        analysis,
+    )
     try:
         analysis_id = save_analysis(
             int(user["id"]),
@@ -5307,6 +5344,12 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
     st.markdown(f'<div class="dash-meta-pills">{pills_html}</div>', unsafe_allow_html=True)
 
     all_entries = list_dashboard_results(user_id, analysis_id=selected_id)
+    display_limit = matching_display_limit(selected_meta)
+    all_entries = sorted(
+        all_entries,
+        key=lambda entry: int(entry.get("score") or 0),
+        reverse=True,
+    )[:display_limit]
     counts = _status_counts_from_entries(all_entries)
     stat_items = (
         (t("dashboard.metric_total"), counts.get("all", 0)),
@@ -5609,12 +5652,8 @@ def render_cv_profile_summary(criteria: dict[str, Any], user_profile: dict[str, 
 
 
 def render_analysis_results(analysis: dict[str, Any]) -> None:
-    """Show a simple ranked list. Full ATS details live on the dashboard."""
-    results = list(analysis.get("results") or [])
-    results.sort(
-        key=lambda item: int(item.get("match", {}).get("score_correspondance", 0)),
-        reverse=True,
-    )
+    """Show the N best ranked offers requested by the selected depth."""
+    results = cap_results_to_requested_best(list(analysis.get("results") or []), analysis)
     analysis_id = analysis.get("analysis_id")
     if analysis_id:
         st.session_state.dashboard_analysis_select = int(analysis_id)
@@ -5994,6 +6033,7 @@ def run_cv_analysis_pipeline(
         user_profile=user_profile,
         progress=progress,
     )
+    results = cap_results_to_requested_best(results, top_n=top_n)
 
     _report_progress(progress, 98, t("analysis.progress.match"))
 
@@ -6031,6 +6071,8 @@ def run_cv_analysis_pipeline(
         "search_query_used": search_result.get("query_used"),
         "results": results,
         "job_provider": job_provider,
+        "matching_top": top_n,
+        "matching_pool": pool_size,
     }
     _report_progress(progress, 100, t("analysis.progress.done"))
     return analysis, notices

@@ -1,4 +1,4 @@
-"""Analysis depth volumes: rapide 30, standard 60, complet 100."""
+"""Analysis depth volumes: rapide 25, standard 60, complet 100."""
 
 from __future__ import annotations
 
@@ -13,23 +13,23 @@ from services.analysis_queue import enqueue_analysis_job, get_analysis_job
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_depth_volumes_are_30_60_100() -> None:
-    assert ANALYSIS_DEPTH_POOL == {"rapide": 30, "standard": 60, "complet": 100}
-    assert ANALYSIS_DEPTH_TOP == {"rapide": 30, "standard": 60, "complet": 100}
+def test_depth_volumes_are_25_60_100() -> None:
+    assert ANALYSIS_DEPTH_POOL == {"rapide": 25, "standard": 60, "complet": 100}
+    assert ANALYSIS_DEPTH_TOP == {"rapide": 25, "standard": 60, "complet": 100}
 
 
 def test_depth_labels_show_offer_counts() -> None:
     _load_locale_file.cache_clear()
     fr = json.loads((ROOT / "locales/fr.json").read_text(encoding="utf-8"))
-    assert "30" in fr["depth.rapide"]
+    assert "25" in fr["depth.rapide"]
     assert "60" in fr["depth.standard"]
     assert "100" in fr["depth.complet"]
     en = json.loads((ROOT / "locales/en.json").read_text(encoding="utf-8"))
-    assert "30" in en["depth.rapide"]
+    assert "25" in en["depth.rapide"]
     assert "60" in en["depth.standard"]
     assert "100" in en["depth.complet"]
     _load_locale_file.cache_clear()
-    assert "30" in analysis_depth_label("rapide")
+    assert "25" in analysis_depth_label("rapide")
     assert "60" in analysis_depth_label("standard")
     assert "100" in analysis_depth_label("complet")
 
@@ -85,21 +85,42 @@ def test_ui_starts_analysis_immediately() -> None:
     assert "idle_sleep: float = 0.25" in worker
 
 
-def test_matching_keeps_every_analysed_offer_not_a_best_subset() -> None:
+def test_matching_keeps_only_requested_best_subset() -> None:
     source = (ROOT / "app.py").read_text(encoding="utf-8")
     start = source.index("def build_matching_results(")
     end = source.index("def generate_matching_report_pdf(", start)
     body = source[start:end]
-    assert "return results[:top_n]" not in body
-    assert "return results, partial_matches" in body
+    assert "return results[: max(0, int(top_n))], partial_matches" in body
+    assert "def cap_results_to_requested_best(" in body
 
 
-def test_build_matching_results_returns_all_pool_offers(monkeypatch) -> None:
+def test_display_limit_follows_selected_depth() -> None:
+    from app import cap_results_to_requested_best, matching_display_limit
+
+    assert matching_display_limit({"analysis_depth": "rapide"}) == 25
+    assert matching_display_limit({"analysis_depth": "standard"}) == 60
+    assert matching_display_limit({"analysis_depth": "complet"}) == 100
+    assert matching_display_limit({"matching_top": 25}) == 25
+
+    found_online = [
+        {"job": {"title": f"Job {i}"}, "match": {"score_correspondance": i}}
+        for i in range(200)
+    ]
+    rapide = cap_results_to_requested_best(found_online, {"analysis_depth": "rapide"})
+    assert len(rapide) == 25
+    assert [entry["match"]["score_correspondance"] for entry in rapide] == list(
+        range(199, 174, -1)
+    )
+    assert len(cap_results_to_requested_best(found_online, {"analysis_depth": "standard"})) == 60
+    assert len(cap_results_to_requested_best(found_online, {"analysis_depth": "complet"})) == 100
+
+
+def test_build_matching_results_returns_only_requested_best(monkeypatch) -> None:
     import app as app_mod
 
     jobs = [
         {"title": f"Job {i}", "company": "Acme", "url": f"https://example.com/{i}"}
-        for i in range(30)
+        for i in range(80)
     ]
 
     monkeypatch.setattr(
@@ -123,16 +144,16 @@ def test_build_matching_results_returns_all_pool_offers(monkeypatch) -> None:
         jobs,
         "cv text",
         ["python"],
-        top_n=10,
-        pool_size=30,
+        top_n=25,
+        pool_size=80,
     )
-    assert len(results) == 30
-    assert partial == 30
+    assert len(results) == 25
+    assert partial == 80
     scores = [int(entry["match"]["score_correspondance"]) for entry in results]
-    assert scores == list(range(29, -1, -1))
+    assert scores == list(range(79, 54, -1))
 
 
-def test_enqueue_rapide_stores_30_offers(sqlite_db) -> None:
+def test_enqueue_rapide_stores_25_offers(sqlite_db) -> None:
     from auth import authenticate_user, register_user
 
     init_persistence_tables()
@@ -170,5 +191,14 @@ def test_enqueue_rapide_stores_30_offers(sqlite_db) -> None:
     stored = get_analysis_job(job_id, int(user["id"]))
     assert stored is not None
     assert stored["analysis_depth"] == "rapide"
-    assert int(stored["matching_pool"]) == 30
-    assert int(stored["matching_top"]) == 30
+    assert int(stored["matching_pool"]) == 25
+    assert int(stored["matching_top"]) == 25
+
+
+def test_analysis_page_caps_to_requested_best() -> None:
+    body = (ROOT / "app.py").read_text(encoding="utf-8")
+    start = body.index("def render_analysis_results(")
+    end = body.index("def init_session_state(", start)
+    fn = body[start:end]
+    assert "cap_results_to_requested_best(" in fn
+    assert "_paged_items(" not in fn
