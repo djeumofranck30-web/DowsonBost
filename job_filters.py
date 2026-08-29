@@ -1098,12 +1098,36 @@ def job_matches_geography(
     return False
 
 
+def _enrich_filtered_job(job: dict[str, Any]) -> dict[str, Any]:
+    enriched = dict(job)
+    enriched["inferred_contract"] = infer_job_contract(job)
+    enriched["inferred_experience"] = infer_job_experience_level(job)
+    enriched["inferred_sector"] = infer_job_sector(job)
+    return enriched
+
+
+def _published_sort_key(job: dict[str, Any]) -> datetime:
+    published = parse_job_published_at(job)
+    if published is None:
+        return datetime.min.replace(tzinfo=timezone.utc)
+    if published.tzinfo is None:
+        return published.replace(tzinfo=timezone.utc)
+    return published
+
+
 def apply_strict_job_filters(
     jobs: list[dict[str, Any]],
     profile: dict[str, Any],
     cv_profile: dict[str, Any] | None = None,
+    *,
+    min_keep: int = 0,
 ) -> tuple[list[dict[str, Any]], dict[str, int]]:
-    """Filter jobs by contract, geography, experience level and sector."""
+    """Filter jobs by contract, geography, experience level and sector.
+
+    If ``min_keep`` is set (analysis depth 25/60/100) and the publication-age
+    filter leaves too few offers, backfill the newest older offers that still
+    match zone, contract, level and sector.
+    """
     user_contract = normalize_contract_type(str(profile.get("contract_type", "CDI")))
     mode = str(profile.get("geo_filter_mode", "departement"))
     experience_level = resolve_experience_level(profile, cv_profile)
@@ -1116,6 +1140,7 @@ def apply_strict_job_filters(
         user_coords = _coords_from_nominatim(build_radius_center_location(profile))
 
     filtered: list[dict[str, Any]] = []
+    older_matches: list[dict[str, Any]] = []
     stats = {
         "total": len(jobs),
         "rejected_contract": 0,
@@ -1124,15 +1149,15 @@ def apply_strict_job_filters(
         "rejected_sector": 0,
         "rejected_publication_age": 0,
         "kept": 0,
+        "kept_strict": 0,
+        "backfilled_older": 0,
         "experience_level": experience_level,
         "target_sectors": target_sectors,
         "job_max_age_days": max_age_days,
     }
 
     for job in jobs:
-        if not job_matches_publication_age(job, max_age_days):
-            stats["rejected_publication_age"] += 1
-            continue
+        age_ok = job_matches_publication_age(job, max_age_days)
         if not job_matches_contract(job, user_contract):
             stats["rejected_contract"] += 1
             continue
@@ -1150,11 +1175,23 @@ def apply_strict_job_filters(
         if not job_matches_sector(job, target_sectors):
             stats["rejected_sector"] += 1
             continue
-        enriched = dict(job)
-        enriched["inferred_contract"] = infer_job_contract(job)
-        enriched["inferred_experience"] = infer_job_experience_level(job)
-        enriched["inferred_sector"] = infer_job_sector(job)
-        filtered.append(enriched)
+        enriched = _enrich_filtered_job(job)
+        if age_ok:
+            filtered.append(enriched)
+        else:
+            stats["rejected_publication_age"] += 1
+            older_matches.append(enriched)
+
+    stats["kept_strict"] = len(filtered)
+    target = max(0, int(min_keep or 0))
+    if target and len(filtered) < target and older_matches:
+        older_matches.sort(key=_published_sort_key, reverse=True)
+        extra = older_matches[: target - len(filtered)]
+        filtered.extend(extra)
+        stats["backfilled_older"] = len(extra)
+        stats["rejected_publication_age"] = max(
+            0, stats["rejected_publication_age"] - len(extra)
+        )
 
     stats["kept"] = len(filtered)
     return filtered, stats

@@ -91,6 +91,7 @@ def main() -> int:
                 matching_top=ANALYSIS_DEPTH_TOP[depth],
                 cv_text_override=cv_doc["extracted_text"],
                 extraction_method_override="native",
+                search_refresh_key=f"cron-{user_id}",
             )
             if not analysis:
                 log_scheduled_run(

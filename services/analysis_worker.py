@@ -138,6 +138,7 @@ def _run_claimed_job(job: dict[str, Any]) -> None:
             matching_top=int(job.get("matching_top") or 0) or None,
             cv_text_override=cv_text,
             extraction_method_override=str(job.get("extraction_method") or "native"),
+            search_refresh_key=str(job_id),
             progress=_progress,
         )
         if not analysis:

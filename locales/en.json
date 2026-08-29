@@ -663,6 +663,8 @@
   "pipeline.rejection_stats": "{total} raw offer(s) · {contract} rejected contract · {geo} rejected zone · {experience} rejected level · {sector} rejected sector · {age} rejected publication.",
   "pipeline.query_tested": "Query tested: `{query}` · Scope: `{location}`",
   "pipeline.expanded_search": "Extended search ({strategy}) — `{query}` · {raw} raw offer(s), {filtered} after filtering.",
+  "pipeline.filter_backfill": "The “{age}” filter left only {strict} offer(s). **{added}** older offer(s) (same zone and contract) were added to reach **{target}**.",
+  "pipeline.filter_shortfall": "Only **{kept}** offer(s) match your filters (zone, contract, level) out of {total} found — the analysis mode asked for **{target}**.",
   "pipeline.degraded": "{count} offer(s) analyzed in degraded mode (partial AI response). Relaunch after **Clear cache** to try again.",
   "pipeline.parallel_match": "Parallel ATS matching ({keys}) on **{pool}** candidates from the online search — **{results}** best offer(s) kept.",
   "pipeline.publication_filter": "Publication filter: **{age}**.",

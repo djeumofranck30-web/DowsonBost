@@ -2412,7 +2412,11 @@ def cached_search_jobs(
     metier: str = "",
     contract_type: str = "",
     alternate_queries: tuple[str, ...] = (),
+    refresh_key: str = "",
 ) -> dict[str, Any]:
+    # refresh_key is unused in the body: Streamlit includes it in the cache key
+    # so each analysis launch can refetch instead of reusing the 24 h snapshot.
+    _ = refresh_key
     profile = json.loads(profile_json)
     boosted_query = enrich_query_for_contract(query, contract_type)
     boosted_metier = enrich_query_for_contract(metier, contract_type)
@@ -5902,6 +5906,7 @@ def run_cv_analysis_pipeline(
     matching_top: int | None = None,
     cv_text_override: str | None = None,
     extraction_method_override: str = "native",
+    search_refresh_key: str = "",
     progress: ProgressReporter | None = None,
 ) -> tuple[dict[str, Any] | None, list[dict[str, str]]]:
     """Run the CV analysis pipeline without mutating the Streamlit DOM."""
@@ -5979,6 +5984,7 @@ def run_cv_analysis_pipeline(
             metier,
             contract_type=contract_type,
             alternate_queries=alternate_queries,
+            refresh_key=search_refresh_key,
         )
         criteria_future = executor.submit(cached_extract_criteria, cv_text)
         search_result = search_future.result()
@@ -5995,7 +6001,10 @@ def run_cv_analysis_pipeline(
 
     keywords = criteria.get("mots_cles") or criteria.get("competences_techniques") or []
     jobs, filter_stats = apply_strict_job_filters(
-        raw_jobs, user_profile, cv_profile=criteria
+        raw_jobs,
+        user_profile,
+        cv_profile=criteria,
+        min_keep=top_n,
     )
     _report_progress(
         progress,
@@ -6089,6 +6098,34 @@ def run_cv_analysis_pipeline(
                     query=search_result.get("query_used"),
                     raw=len(raw_jobs),
                     filtered=len(jobs),
+                ),
+            }
+        )
+
+    backfilled = int(filter_stats.get("backfilled_older") or 0)
+    kept_strict = int(filter_stats.get("kept_strict") or 0)
+    if backfilled:
+        notices.append(
+            {
+                "level": "info",
+                "text": t(
+                    "pipeline.filter_backfill",
+                    age=job_max_age_label(user_profile.get("job_max_age_days", 7)),
+                    strict=kept_strict,
+                    added=backfilled,
+                    target=top_n,
+                ),
+            }
+        )
+    elif len(jobs) < top_n:
+        notices.append(
+            {
+                "level": "info",
+                "text": t(
+                    "pipeline.filter_shortfall",
+                    kept=len(jobs),
+                    total=len(raw_jobs),
+                    target=top_n,
                 ),
             }
         )

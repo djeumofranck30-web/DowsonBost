@@ -663,6 +663,8 @@
   "pipeline.main_block": "Principal blocage : {hint}.",
   "pipeline.rejection_stats": "{total} offre(s) brutes · {contract} rejetées contrat · {geo} rejetées zone · {experience} rejetées niveau · {sector} rejetées secteur · {age} rejetées publication.",
   "pipeline.expanded_search": "Recherche élargie ({strategy}) — `{query}` · {raw} offre(s) brutes, {filtered} après filtrage.",
+  "pipeline.filter_backfill": "Le filtre « {age} » ne laissait que {strict} offre(s). **{added}** offre(s) plus anciennes (même zone et contrat) ont été ajoutées pour viser **{target}**.",
+  "pipeline.filter_shortfall": "Seulement **{kept}** offre(s) correspondent à vos filtres (zone, contrat, niveau) sur {total} trouvées — le mode d'analyse demandait **{target}**.",
   "pipeline.degraded": "{count} offre(s) analysée(s) en mode dégradé (réponse IA partielle). Relancez après **Vider le cache** pour réessayer.",
   "pipeline.parallel_match": "Matching ATS en parallèle ({keys}) sur **{pool}** candidats parmi les offres en ligne — **{results}** meilleures offre(s) retenues.",
   "pipeline.engine_single": "moteur : {name}",
