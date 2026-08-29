@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from document_generation import (
+    adapted_competences,
     collect_alignment_terms,
     generate_adapted_cv,
     generate_cover_letter,
@@ -86,6 +87,28 @@ def test_present_and_partial_skills_are_required_alignment_terms():
     # Kubernetes is in the offer but not in the original CV — must not be forced.
     assert "kubernetes" not in folded
     assert alignment["modifications"][0].lower().startswith("ajouter django")
+    skills = " ".join(alignment["adapted_skills"]).lower()
+    assert "python" in skills
+    assert "django" in skills
+
+
+def test_offer_skill_labels_replace_cv_aliases():
+    cv = "Compétences : JS, Postgres, React"
+    match = {
+        "titre_cv_recommande": "Développeur frontend",
+        "analyse_competences": {
+            "presentes": [],
+            "partielles": [],
+            "offre_technos": ["JavaScript", "PostgreSQL", "Kubernetes"],
+            "offre_obligatoires": ["JavaScript"],
+        },
+        "mots_cles_manquants": [],
+        "modifications_cv": [],
+    }
+    skills = [item.lower() for item in adapted_competences(cv, match)]
+    assert "javascript" in skills
+    assert "postgresql" in skills
+    assert "kubernetes" not in skills
 
 
 def test_missing_alignment_gaps_detects_unapplied_modifications():

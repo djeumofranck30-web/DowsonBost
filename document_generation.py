@@ -131,9 +131,12 @@ présentes/partielles, et l'effet de CHAQUE modification ATS listée.
 Règles strictes :
 1. Chaque modification ATS listée doit être visible dans le CV final (reformulation, section, mot-clé, ordre).
 2. Le champ TITRE doit être exactement le « Titre CV recommandé ».
-3. Place en tête les expériences et compétences marquées « présentes » ou « partielles ».
+3. Réécris ENTIÈREMENT la section ## COMPETENCES : en tête, les compétences de
+   l'offre que le candidat possède (présentes + partielles + mots-clés déjà dans le CV),
+   avec les LIBELLÉS EXACTS de l'annonce, séparées par « | ».
+   Ensuite seulement, les autres compétences réelles du CV original.
 4. Intègre TOUS les mots-clés ATS et technos de l'offre dès qu'ils correspondent à une compétence
-   réelle, même partielle, du CV original (reformule la mission avec le vocabulaire de l'annonce).
+   réelle, même partielle, du CV original (y compris un synonyme : JS → JavaScript).
 5. Reformule les missions des expériences pertinentes avec le vocabulaire EXACT de l'offre.
 6. Ne invente JAMAIS de diplôme, entreprise, date, certification ou outil jamais utilisé.
 7. Réécriture complète (nouvelle structure, nouvelles formulations), pas un copier-coller.
@@ -143,6 +146,21 @@ Règles strictes :
 
 Retourne UNIQUEMENT le CV (champs NOM/TITRE/EMAIL puis sections ## du template métier).
 """
+
+
+_SKILL_ALIASES = {
+    "javascript": ("js", "nodejs", "node.js", "node"),
+    "typescript": ("ts",),
+    "postgresql": ("postgres", "psql", "postgre"),
+    "kubernetes": ("k8s", "kube"),
+    "continuous integration": ("ci/cd", "cicd"),
+    "ci/cd": ("cicd", "continuous integration"),
+    "rest": ("api rest", "apis rest", "restful"),
+    "react": ("reactjs", "react.js"),
+    "vue": ("vuejs", "vue.js"),
+    "power bi": ("powerbi",),
+    "excel": ("microsoft excel",),
+}
 
 
 def _fold(text: str) -> str:
@@ -201,6 +219,61 @@ def _term_present(term: str, folded_document: str) -> bool:
     return all(_token_in_document(token, folded_document) for token in tokens)
 
 
+def _candidate_has_term(term: str, original_fold: str) -> bool:
+    """True if the original CV already contains this skill or a known alias."""
+    if _term_present(term, original_fold):
+        return True
+    folded = _fold(term).strip()
+    aliases = _SKILL_ALIASES.get(folded, ())
+    if any(alias in original_fold for alias in aliases):
+        return True
+    for canonical, alias_list in _SKILL_ALIASES.items():
+        if folded == canonical or folded in alias_list:
+            if canonical in original_fold or any(alias in original_fold for alias in alias_list):
+                return True
+    return False
+
+
+def adapted_competences(
+    cv_text: str,
+    match: dict[str, Any],
+) -> list[str]:
+    """Offer-worded skills the candidate actually has, offer-first order."""
+    skills = match.get("analyse_competences") or {}
+    original_fold = _fold(cv_text)
+    ordered: list[str] = []
+    seen: set[str] = set()
+
+    def _add(term: str) -> None:
+        text = str(term or "").strip()
+        key = _fold(text)
+        if not text or key in seen:
+            return
+        seen.add(key)
+        ordered.append(text)
+
+    for term in _as_terms(skills.get("offre_obligatoires")) + _as_terms(skills.get("offre_technos")):
+        if _candidate_has_term(term, original_fold):
+            _add(term)
+    for term in _as_terms(skills.get("presentes")) + _as_terms(skills.get("partielles")):
+        _add(term)
+    for term in _as_terms(match.get("mots_cles_manquants")) + _as_terms(skills.get("cv_outils")) + _as_terms(
+        skills.get("cv_techniques")
+    ):
+        if _candidate_has_term(term, original_fold):
+            _add(term)
+    return ordered[:18]
+
+
+def _competences_section(document: str) -> str:
+    found = re.search(
+        r"^##\s*competences?\b(.*?)(?=^##\s|\Z)",
+        document or "",
+        flags=re.I | re.M | re.S,
+    )
+    return found.group(1) if found else ""
+
+
 def collect_alignment_terms(
     cv_text: str,
     job: dict[str, Any],
@@ -209,6 +282,7 @@ def collect_alignment_terms(
     """Terms the generated CV/letter must contain to match the offer."""
     skills = match.get("analyse_competences") or {}
     original_fold = _fold(cv_text)
+    adapted_skills = adapted_competences(cv_text, match)
     required: list[str] = []
     seen: set[str] = set()
 
@@ -219,6 +293,8 @@ def collect_alignment_terms(
         seen.add(key)
         required.append(term)
 
+    for term in adapted_skills:
+        _add(term)
     for term in _as_terms(skills.get("presentes")) + _as_terms(skills.get("partielles")):
         _add(term)
     for term in (
@@ -226,7 +302,7 @@ def collect_alignment_terms(
         + _as_terms(skills.get("offre_obligatoires"))
         + _as_terms(match.get("mots_cles_manquants"))
     ):
-        if _term_present(term, original_fold):
+        if _candidate_has_term(term, original_fold):
             _add(term)
 
     title = str(match.get("titre_cv_recommande") or job.get("title") or "").strip()
@@ -237,6 +313,7 @@ def collect_alignment_terms(
         "title": title,
         "company": company,
         "job_title": job_title,
+        "adapted_skills": adapted_skills,
         "required_terms": required[:24],
         "modifications": modifications[:10],
     }
@@ -261,7 +338,24 @@ def missing_alignment_gaps(
         job_title = str(alignment.get("job_title") or "").strip()
         if job_title and job_title != title and not _term_present(job_title, folded):
             gaps.append(f"Intitulé d'offre absent : {job_title}")
+    if kind == "cv":
+        skill_block = _competences_section(document)
+        skill_haystack = _fold(skill_block) if skill_block.strip() else folded
+        adapted_skills = alignment.get("adapted_skills") or []
+        if adapted_skills and not skill_block.strip():
+            gaps.append(
+                "Section ## COMPETENCES absente — réécris-la avec les compétences adaptées à l'offre."
+            )
+        for term in adapted_skills:
+            if not _term_present(str(term), skill_haystack):
+                gaps.append(f"Compétence absente de ## COMPETENCES (libellé offre) : {term}")
+    else:
+        for term in alignment.get("adapted_skills") or alignment.get("required_terms") or []:
+            if not _term_present(str(term), folded):
+                gaps.append(f"Compétence ATS absente de la lettre : {term}")
     for term in alignment.get("required_terms") or []:
+        if kind == "cv" and term in (alignment.get("adapted_skills") or []):
+            continue
         if not _term_present(str(term), folded):
             gaps.append(f"Mot-clé / compétence ATS manquant : {term}")
     for index, modification in enumerate(alignment.get("modifications") or [], start=1):
@@ -385,10 +479,21 @@ def _alignment_checklist(alignment: dict[str, Any], *, kind: str) -> str:
     if kind == "letter":
         lines.append(f"- Entreprise : {alignment.get('company') or '—'}")
         lines.append(f"- Offre : {alignment.get('job_title') or '—'}")
-    lines.append(
-        "- Compétences / mots-clés ATS : "
-        + (", ".join(alignment.get("required_terms") or []) or "—")
-    )
+    adapted = alignment.get("adapted_skills") or alignment.get("required_terms") or []
+    if adapted and kind == "cv":
+        lines.append(
+            "- Section ## COMPETENCES (libellés EXACTS de l'offre, dans cet ordre, séparés par | ) : "
+            + " | ".join(adapted)
+        )
+    elif adapted:
+        lines.append(
+            "- Compétences à citer nommément (libellés de l'offre) : " + " | ".join(adapted)
+        )
+    else:
+        lines.append(
+            "- Compétences / mots-clés ATS : "
+            + (", ".join(alignment.get("required_terms") or []) or "—")
+        )
     modifications = alignment.get("modifications") or []
     if modifications:
         lines.append("- Modifications ATS (toutes, visibles dans le texte) :")
@@ -451,8 +556,8 @@ def generate_cover_letter(
         f"{_candidate_block(cv_text, match, user_profile)}\n\n"
         f"=== OFFRE CIBLÉE ===\n{_job_block(job)}\n\n"
         "Rédige la lettre de motivation. Elle doit coller à 100 % à cette offre : "
-        "reprends le titre, l'entreprise, les compétences ATS présentes/partielles "
-        "et l'intention de chaque modification ATS, sans inventer de faits."
+        "reprends le titre, l'entreprise, et cite nommément les compétences adaptées "
+        "(libellés de l'annonce) ainsi que l'intention de chaque modification ATS, sans inventer de faits."
     )
     return _generate_aligned_document(
         kind="letter",
@@ -480,6 +585,8 @@ def generate_adapted_cv(
         f"=== OFFRE CIBLÉE ===\n{_job_block(job)}\n\n"
         "Réécris un CV complet et nouveau, aligné à 100 % sur cette offre. "
         "Le champ TITRE = titre CV recommandé. "
+        "Réécris ## COMPETENCES en entier : d'abord les compétences de l'offre "
+        "que le candidat possède (libellés exacts, séparateur | ), puis le reste du CV original. "
         "Applique TOUTES les modifications ATS DANS le corps du CV "
         "(reformulations, mots-clés, ordre des sections). "
         "N'ajoute aucune section listant les modifications : le CV s'arrête après les rubriques métier."
