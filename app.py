@@ -168,6 +168,7 @@ from job_providers import (
     CONNECTABLE_JOB_PROVIDERS,
     JOB_PROVIDER_ADZUNA,
     JOB_PROVIDER_ALL,
+    JOB_PROVIDER_CAREER_SITES,
     JOB_PROVIDER_GLASSDOOR,
     JOB_PROVIDER_HELLOWORK,
     JOB_PROVIDER_INDEED,
@@ -184,11 +185,13 @@ from job_providers import (
     default_job_provider,
     job_board_display_name,
     job_board_signup_url,
+    merge_career_site_results,
     merge_job_lists,
     normalize_careerjet_referer,
     provider_key_from_job_source,
     provider_secrets_from_getter,
     resolve_careerjet_user_ip,
+    search_jobs_career_sites,
     search_jobs_glassdoor_serpapi,
     search_jobs_hellowork,
     search_jobs_indeed_serpapi,
@@ -2661,6 +2664,9 @@ def _search_jobs_at_country_locations(
     strategies: list[str] = []
     query_used = query
     location_iter = profile_locations or [""]
+    if provider == JOB_PROVIDER_CAREER_SITES:
+        # One Google search covers many companies; do not multiply SerpApi calls per city.
+        location_iter = [location_iter[0]]
 
     worker_count = min(SEARCH_LOCATION_MAX_WORKERS, len(location_iter))
     if worker_count > 1:
@@ -2712,6 +2718,30 @@ def _search_jobs_at_country_locations(
         "query_used": query_used,
         "providers_used": providers_used,
     }
+
+
+def _with_company_career_sites(
+    result: dict[str, Any],
+    *,
+    query: str,
+    metier: str,
+    locations: list[str],
+    countries: list[str],
+    country: str,
+    provider: str,
+) -> dict[str, Any]:
+    """Always mix company career-site openings into an analysis search."""
+    secrets = provider_secrets_from_getter(get_secret)
+    loc = ", ".join(item for item in (locations or [])[:2] if item)
+    return merge_career_site_results(
+        result,
+        query=query,
+        metier=metier,
+        location=loc,
+        country=(countries[0] if countries else country) or "France",
+        provider=provider,
+        api_key=secrets.get("serpapi_api_key") or "",
+    )
 
 
 def search_jobs_for_profile(
@@ -2767,17 +2797,25 @@ def search_jobs_for_profile(
         strategy = strategies[0] if len(strategies) == 1 else "Zones sélectionnées (profil)"
         if len(countries) > 1:
             strategy = f"{countries_label} — {strategy}"
-        return {
-            "jobs": merged,
-            "strategy": strategy,
-            "query_used": query_used,
-            "location_used": location_label,
-            "providers_used": list(dict.fromkeys(providers_used)),
-            "profile_locations": all_locations,
-        }
+        return _with_company_career_sites(
+            {
+                "jobs": merged,
+                "strategy": strategy,
+                "query_used": query_used,
+                "location_used": location_label,
+                "providers_used": list(dict.fromkeys(providers_used)),
+                "profile_locations": all_locations,
+            },
+            query=query,
+            metier=metier,
+            locations=all_locations,
+            countries=countries,
+            country=country,
+            provider=provider,
+        )
 
     fallback_country = profile_primary_country(profile) or country or "France"
-    return search_jobs_with_fallback(
+    fallback = search_jobs_with_fallback(
         provider,
         query,
         "",
@@ -2786,6 +2824,16 @@ def search_jobs_for_profile(
         contract_type,
         alternate_queries,
         max_age_days=max_age_days,
+    )
+    fallback["profile_locations"] = all_locations
+    return _with_company_career_sites(
+        fallback,
+        query=query,
+        metier=metier,
+        locations=all_locations,
+        countries=countries,
+        country=country,
+        provider=provider,
     )
 
 
@@ -3052,6 +3100,13 @@ def search_jobs(
         if not serp_key:
             raise RuntimeError("SERPAPI_API_KEY requise pour Glassdoor.")
         return search_jobs_glassdoor_serpapi(query, location, country, serp_key)
+
+    if provider == JOB_PROVIDER_CAREER_SITES:
+        if not serp_key:
+            raise RuntimeError(
+                "SERPAPI_API_KEY requise pour chercher sur les sites carrière des entreprises."
+            )
+        return search_jobs_career_sites(query, location, country, serp_key)
 
     if provider == JOB_PROVIDER_SERPAPI:
         if not serp_key:

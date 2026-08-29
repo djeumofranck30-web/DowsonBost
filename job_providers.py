@@ -5,6 +5,7 @@ from __future__ import annotations
 import ipaddress
 import re
 from typing import Any, Callable
+from urllib.parse import urlparse
 
 import requests
 
@@ -20,12 +21,14 @@ JOB_PROVIDER_JOBTEASER = "jobteaser"
 JOB_PROVIDER_HELLOWORK = "hellowork"
 JOB_PROVIDER_MONSTER = "monster"
 JOB_PROVIDER_TALENT = "talent"
+JOB_PROVIDER_CAREER_SITES = "career_sites"
 JOB_PROVIDER_ALL = "all"
 
 JOB_PROVIDER_LABELS: dict[str, str] = {
     JOB_PROVIDER_ALL: "Tous les moteurs (fusion)",
     JOB_PROVIDER_ADZUNA: "Adzuna (gratuit, recommandé)",
     JOB_PROVIDER_WTTJ: "Welcome to the Jungle (gratuit)",
+    JOB_PROVIDER_CAREER_SITES: "Sites carrière entreprises (Greenhouse, Lever, Workday…)",
     JOB_PROVIDER_JOBTEASER: "JobTeaser — étudiants / alternance (Apify)",
     JOB_PROVIDER_HELLOWORK: "HelloWork — pages entreprises + offres (Apify / SerpApi)",
     JOB_PROVIDER_JOOBLE: "Jooble",
@@ -42,6 +45,7 @@ JOB_PROVIDER_SIDEBAR_ORDER = (
     JOB_PROVIDER_ALL,
     JOB_PROVIDER_ADZUNA,
     JOB_PROVIDER_WTTJ,
+    JOB_PROVIDER_CAREER_SITES,
     JOB_PROVIDER_JOBTEASER,
     JOB_PROVIDER_HELLOWORK,
     JOB_PROVIDER_JOOBLE,
@@ -800,6 +804,352 @@ def _parse_serpapi_google_jobs(data: dict[str, Any], source_label: str) -> list[
             )
         )
     return jobs
+
+
+CAREER_SITE_SOURCE_LABEL = "Site carrière entreprise"
+
+CAREER_ATS_HOSTS: tuple[str, ...] = (
+    "boards.greenhouse.io",
+    "job-boards.greenhouse.io",
+    "jobs.lever.co",
+    "myworkdayjobs.com",
+    "jobs.ashbyhq.com",
+    "jobs.smartrecruiters.com",
+    "apply.workable.com",
+    "jobs.personio.de",
+)
+
+ATS_HOST_FRAGMENTS: tuple[str, ...] = (
+    "greenhouse.io",
+    "lever.co",
+    "myworkdayjobs.com",
+    "ashbyhq.com",
+    "smartrecruiters.com",
+    "workable.com",
+    "personio.",
+    "recruitee.com",
+    "welcomekit.co",
+    "jobvite.com",
+    "icims.com",
+    "successfactors.com",
+    "taleo.net",
+    "bamboohr.com",
+    "teamtailor.com",
+    "join.com",
+)
+
+JOB_BOARD_EXCLUSION_HOSTS: tuple[str, ...] = (
+    "indeed.com",
+    "indeed.fr",
+    "linkedin.com",
+    "welcometothejungle.com",
+    "hellowork.com",
+    "hellowork.fr",
+    "glassdoor.com",
+    "glassdoor.fr",
+    "monster.fr",
+    "monster.com",
+    "adzuna.fr",
+    "adzuna.com",
+    "jooble.org",
+    "optioncarriere.com",
+    "jobteaser.com",
+    "talent.com",
+    "francetravail.fr",
+    "pole-emploi.fr",
+    "apec.fr",
+    "cadremploi.fr",
+    "keljob.com",
+    "meteojob.com",
+    "simplyhired.com",
+    "ziprecruiter.com",
+    "google.com",
+    "youtube.com",
+)
+
+_CAREER_PATH_HINTS = (
+    "/job",
+    "/jobs/",
+    "/emploi",
+    "/offre",
+    "/career",
+    "/carriere",
+    "/opening",
+    "/position",
+    "/vacanc",
+    "/recruit",
+    "/posting",
+    "gh_jid",
+    "/j/",
+)
+
+_CAREERS_HOME_RE = re.compile(
+    r"^/(?:[a-z]{2}(?:-[A-Za-z]{2})?/)?(?:careers|carriere[s]?|jobs|emploi[s]?|"
+    r"join(?:-us)?|we-are-hiring)(?:/)?$",
+    re.I,
+)
+
+_JOB_TITLE_SPLIT_RE = re.compile(r"\s+[|\u2013\u2014]\s+")
+
+
+def _host_from_url(url: str) -> str:
+    try:
+        host = (urlparse(url).netloc or "").lower()
+    except ValueError:
+        return ""
+    if host.startswith("www."):
+        host = host[4:]
+    return host
+
+
+def _host_matches(host: str, needle: str) -> bool:
+    needle = needle.lower().lstrip(".")
+    return host == needle or host.endswith("." + needle)
+
+
+def is_job_board_career_url(url: str) -> bool:
+    """True when the URL belongs to a public job board rather than a company ATS."""
+    host = _host_from_url(url)
+    if not host:
+        return True
+    return any(_host_matches(host, board) for board in JOB_BOARD_EXCLUSION_HOSTS)
+
+
+def is_company_ats_host(url: str) -> bool:
+    host = _host_from_url(url)
+    return bool(host) and any(fragment in host for fragment in ATS_HOST_FRAGMENTS)
+
+
+def company_from_career_url(url: str, fallback: str = "") -> str:
+    """Best-effort company name from a Greenhouse / Lever / Workday / … URL."""
+    parsed = urlparse(url)
+    host = _host_from_url(url)
+    parts = [p for p in parsed.path.split("/") if p]
+
+    if "greenhouse.io" in host and parts:
+        return parts[0].replace("-", " ").title()
+    if "lever.co" in host and parts:
+        return parts[0].replace("-", " ").title()
+    if "ashbyhq.com" in host and parts:
+        return parts[0].replace("-", " ").title()
+    if "smartrecruiters.com" in host and parts:
+        return parts[0].replace("-", " ").title()
+    if "workable.com" in host and parts:
+        return parts[0].replace("-", " ").title()
+    if "myworkdayjobs.com" in host:
+        sub = host.split(".")[0]
+        if sub and not re.fullmatch(r"wd\d+", sub):
+            return sub.replace("-", " ").title()
+    if "personio." in host:
+        sub = host.split(".")[0]
+        if sub not in {"jobs", "www"}:
+            return sub.replace("-", " ").title()
+        if parts:
+            return parts[0].replace("-", " ").title()
+
+    labels = host.split(".")
+    if labels and labels[0] in {"careers", "jobs", "emploi", "career", "recruiting", "apply"}:
+        if len(labels) >= 3:
+            return labels[1].replace("-", " ").title()
+    elif labels and labels[0] not in {"www"}:
+        return labels[0].replace("-", " ").title()
+    return (fallback or "").strip()
+
+
+def _clean_career_job_title(title: str) -> str:
+    text = re.sub(r"\s+", " ", (title or "").strip())
+    text = _JOB_TITLE_SPLIT_RE.split(text, maxsplit=1)[0].strip()
+    lowered = text.lower()
+    for suffix in (" at ", " chez "):
+        idx = lowered.rfind(suffix)
+        if idx > 8:
+            text = text[:idx].strip()
+            break
+    return text[:200]
+
+
+def _is_career_homepage(url: str) -> bool:
+    try:
+        path = urlparse(url).path or "/"
+    except ValueError:
+        return False
+    return bool(_CAREERS_HOME_RE.match(path))
+
+
+def _looks_like_job_listing(title: str, url: str, snippet: str) -> bool:
+    try:
+        path = urlparse(url).path or "/"
+    except ValueError:
+        return False
+    if path in {"", "/"}:
+        return False
+    if is_company_ats_host(url):
+        return not _is_career_homepage(url)
+    lowered_url = url.lower()
+    if any(hint in lowered_url for hint in _CAREER_PATH_HINTS):
+        return not _is_career_homepage(url)
+    blob = f"{title} {snippet}".lower()
+    return any(token in blob for token in ("cdi", "cdd", "alternance", "stage", "hiring", "recrut"))
+
+
+def _job_from_google_organic(
+    item: dict[str, Any],
+    *,
+    location: str,
+    source_label: str = CAREER_SITE_SOURCE_LABEL,
+) -> dict[str, Any] | None:
+    url = str(item.get("link") or item.get("url") or "").strip()
+    title = _clean_career_job_title(str(item.get("title") or ""))
+    snippet = str(item.get("snippet") or item.get("snippet_highlighted_words") or "")
+    if isinstance(item.get("snippet_highlighted_words"), list):
+        snippet = str(item.get("snippet") or "")
+    if not url or not title or not url.startswith("http"):
+        return None
+    if is_job_board_career_url(url):
+        return None
+    if not _looks_like_job_listing(title, url, snippet):
+        return None
+    fallback_company = str(item.get("source") or "").strip()
+    company = company_from_career_url(url, fallback_company) or fallback_company or "N/A"
+    job_location = location.strip() or "N/A"
+    return _standard_job(
+        title,
+        company,
+        job_location,
+        snippet,
+        url,
+        source=source_label,
+        published_at=item.get("date") or "",
+    )
+
+
+def _career_site_google_queries(query: str, location: str) -> list[str]:
+    q = query.strip()
+    geo = f" {location.strip()}" if location.strip() else ""
+    ats = " OR ".join(f"site:{host}" for host in CAREER_ATS_HOSTS)
+    excluded = " ".join(f"-site:{host}" for host in JOB_BOARD_EXCLUSION_HOSTS[:14])
+    return [
+        f"{q}{geo} ({ats})",
+        f"{q}{geo} (inurl:careers OR inurl:carriere OR inurl:jobs OR inurl:emploi) {excluded}",
+    ]
+
+
+def _search_google_organic(
+    query: str,
+    country: str,
+    api_key: str,
+    *,
+    num: int = 10,
+) -> list[dict[str, Any]]:
+    params = {
+        "engine": "google",
+        "q": query.strip(),
+        "api_key": api_key.strip(),
+        "hl": "fr",
+        "gl": _serpapi_country_gl(country),
+        "num": num,
+    }
+    response = requests.get(
+        "https://serpapi.com/search.json",
+        params=params,
+        timeout=45,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    return list(payload.get("organic_results") or [])
+
+
+def search_jobs_career_sites(
+    query: str,
+    location: str,
+    country: str,
+    api_key: str,
+    *,
+    limit: int = 20,
+) -> list[dict[str, Any]]:
+    """Find openings on company career / ATS pages via Google (SerpApi)."""
+    if not api_key.strip() or not query.strip():
+        return []
+
+    jobs: list[dict[str, Any]] = []
+    last_error: BaseException | None = None
+    for google_query in _career_site_google_queries(query, location):
+        try:
+            organic = _search_google_organic(google_query, country, api_key)
+        except requests.HTTPError as exc:
+            last_error = exc
+            status = exc.response.status_code if exc.response is not None else 0
+            if status in {401, 403}:
+                raise
+            continue
+        except requests.RequestException as exc:
+            last_error = exc
+            continue
+        batch: list[dict[str, Any]] = []
+        for item in organic:
+            if not isinstance(item, dict):
+                continue
+            job = _job_from_google_organic(item, location=location)
+            if job:
+                batch.append(job)
+        jobs = merge_job_lists([jobs, batch])
+        if len(jobs) >= limit:
+            break
+    if not jobs and last_error and isinstance(last_error, requests.HTTPError):
+        raise last_error
+    return jobs[:limit]
+
+
+def try_search_career_sites(
+    query: str,
+    location: str,
+    country: str,
+    api_key: str,
+    *,
+    limit: int = 20,
+) -> list[dict[str, Any]]:
+    """Career-site search that never fails the surrounding analysis."""
+    if not api_key.strip() or not query.strip():
+        return []
+    try:
+        return search_jobs_career_sites(
+            query, location, country, api_key, limit=limit
+        )
+    except (RuntimeError, requests.RequestException, ValueError, TypeError, KeyError):
+        return []
+
+
+def merge_career_site_results(
+    result: dict[str, Any],
+    *,
+    query: str,
+    metier: str = "",
+    location: str = "",
+    country: str = "France",
+    provider: str = "",
+    api_key: str = "",
+    limit: int = 20,
+) -> dict[str, Any]:
+    """Append company career-site jobs to an existing search result (once per analysis)."""
+    used = [str(p) for p in (result.get("providers_used") or [])]
+    if (
+        JOB_PROVIDER_CAREER_SITES in used
+        or (provider or "").strip().lower() == JOB_PROVIDER_CAREER_SITES
+    ):
+        return result
+    extra = try_search_career_sites(
+        (query or metier).strip(),
+        location,
+        country or "France",
+        api_key,
+        limit=limit,
+    )
+    if not extra:
+        return result
+    merged = dict(result)
+    merged["jobs"] = merge_job_lists([list(result.get("jobs") or []), extra])
+    merged["providers_used"] = list(dict.fromkeys([*used, JOB_PROVIDER_CAREER_SITES]))
+    return merged
 
 
 def search_jobs_serpapi_google_jobs(

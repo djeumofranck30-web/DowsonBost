@@ -180,6 +180,7 @@ def job_provider_label(provider: str) -> str:
         "glassdoor": "provider.glassdoor",
         "monster": "provider.monster",
         "talent": "provider.talent",
+        "career_sites": "provider.career_sites",
         "serpapi": "provider.serpapi",
     }
     return t(key_map.get(provider, f"provider.{provider}"))

@@ -142,7 +142,7 @@ MESSAGES: dict[str, str] = {
     # App shell
     "app.logout": "Se déconnecter",
     "app.job_provider": "Moteur(s) de recherche d'emploi",
-    "app.job_provider_help": "WTTJ est gratuit. Jooble et OptionCarriere nécessitent une clé API gratuite. Indeed, LinkedIn et Glassdoor passent par SerpApi. JobTeaser utilise Apify.",
+    "app.job_provider_help": "Chaque analyse cherche aussi les offres sur les sites carrière des entreprises (Greenhouse, Lever, Workday…). WTTJ est gratuit. Jooble et OptionCarriere nécessitent une clé API gratuite. Indeed, LinkedIn et Glassdoor passent par SerpApi.",
     "app.analysis_depth": "Profondeur d'analyse",
     "app.analysis_depth_help": "Le matching IA (1 appel par offre) est l'étape la plus longue. Choisissez Rapide pour réduire le temps d'attente.",
     "app.config_tests": "Configuration & tests",
@@ -154,7 +154,7 @@ MESSAGES: dict[str, str] = {
     "app.ai_active_engine": "Moteur en cours : {engine}",
     # Heroes
     "hero.analysis.title": "Analyse CV",
-    "hero.analysis.subtitle": "Bienvenue {name} — déposez votre CV : l'IA recherche les offres puis analyse votre profil en mode ATS.",
+    "hero.analysis.subtitle": "Bienvenue {name} — déposez votre CV : l'IA recherche les offres (job boards et sites carrière des entreprises) puis analyse votre profil en mode ATS.",
     "hero.analysis.badge": "Matching IA",
     "hero.dashboard.title": "Tableau de bord",
     "hero.dashboard.subtitle": "Suivez vos candidatures, filtrez par statut et générez lettres / CV adaptés.",
@@ -276,7 +276,7 @@ MESSAGES: dict[str, str] = {
     "analysis.auto_search_run": "Lancer la recherche automatique maintenant",
     "analysis.progress.init": "Initialisation de l'analyse…",
     "analysis.progress.extract": "Extraction du CV et plan de recherche IA…",
-    "analysis.progress.search": "CV extrait — recherche d'offres et profil candidat…",
+    "analysis.progress.search": "CV extrait — recherche d'offres (job boards + sites carrière) et profil candidat…",
     "analysis.progress.filter": "Filtrage strict des offres…",
     "analysis.progress.match": "Matching ATS offre par offre…",
     "analysis.progress.done": "Analyse terminée",
@@ -368,6 +368,7 @@ MESSAGES: dict[str, str] = {
     "provider.glassdoor": "Glassdoor — entreprises, avis & offres (SerpApi)",
     "provider.monster": "Monster — entreprises & offres (Apify / SerpApi)",
     "provider.talent": "Talent.com — entreprises & offres (Apify / SerpApi)",
+    "provider.career_sites": "Sites carrière entreprises (Greenhouse, Lever, Workday…)",
     "provider.serpapi": "Google Jobs / SerpApi (agrégateur)",
     # Results
     "results.title": "Résultats du matching",
