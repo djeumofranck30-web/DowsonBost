@@ -773,8 +773,31 @@ def release_user_identity(conn: Any, user_id: int, email: str) -> None:
             conn.execute("PRAGMA foreign_keys = ON")
 
 
+def strip_nul_bytes(value: Any) -> Any:
+    """Remove U+0000. PostgreSQL rejects NUL bytes in text and JSON columns."""
+    if value is None:
+        return None
+    if isinstance(value, bytes):
+        return value.replace(b"\x00", b"")
+    if isinstance(value, str):
+        return value.replace("\x00", "")
+    if isinstance(value, dict):
+        return {strip_nul_bytes(key): strip_nul_bytes(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [strip_nul_bytes(item) for item in value]
+    if isinstance(value, tuple):
+        return tuple(strip_nul_bytes(item) for item in value)
+    return value
+
+
+def _db_text(value: Any, default: str = "") -> str:
+    if value is None:
+        return default
+    return str(value).replace("\x00", "")
+
+
 def _json_dumps(value: Any) -> str:
-    return json.dumps(value, ensure_ascii=False, sort_keys=True)
+    return json.dumps(strip_nul_bytes(value), ensure_ascii=False, sort_keys=True)
 
 
 def _json_loads(value: str | None, default: Any = None) -> Any:
@@ -944,20 +967,24 @@ def save_analysis(
             (
                 user_id,
                 created_at,
-                cv_fingerprint,
-                analysis.get("cv_text", ""),
-                analysis.get("extraction_method", "native"),
+                _db_text(cv_fingerprint),
+                _db_text(analysis.get("cv_text", "")),
+                _db_text(analysis.get("extraction_method", "native"), "native"),
                 _json_dumps(analysis.get("criteria", {})),
                 _json_dumps(analysis.get("user_profile", {})),
-                analysis.get("target_job_title", ""),
+                _db_text(analysis.get("target_job_title", "")),
                 _json_dumps(analysis.get("search_plan", {})),
                 _json_dumps(analysis.get("filter_stats", {})),
                 int(analysis.get("jobs_found", 0)),
                 int(analysis.get("jobs_raw", 0)),
-                analysis.get("search_strategy"),
-                analysis.get("search_query_used"),
-                analysis.get("job_provider", ""),
-                analysis_depth,
+                None
+                if analysis.get("search_strategy") is None
+                else _db_text(analysis.get("search_strategy")),
+                None
+                if analysis.get("search_query_used") is None
+                else _db_text(analysis.get("search_query_used")),
+                _db_text(analysis.get("job_provider", "")),
+                _db_text(analysis_depth, "standard"),
                 "completed",
             ),
         )
@@ -987,7 +1014,7 @@ def save_analysis(
                 (
                     analysis_id,
                     user_id,
-                    job_offer_key(job),
+                    _db_text(job_offer_key(job)),
                     _json_dumps(job),
                     _json_dumps(match),
                     score,
@@ -1010,6 +1037,8 @@ def upsert_active_cv_document(
     """Store the latest CV text for scheduled searches."""
     init_persistence_tables()
     uploaded_at = utc_now_iso()
+    extracted_text = _db_text(extracted_text)
+    fingerprint = _db_text(fingerprint)
     criteria_json = _json_dumps(criteria or {})
     with connect() as conn:
         conn.execute(
@@ -1706,7 +1735,13 @@ def save_generated_documents(
                 WHERE id = ? AND user_id = ?
                 """
             ),
-            (cover_letter_text, adapted_cv_text, generated_at, result_id, user_id),
+            (
+                None if cover_letter_text is None else _db_text(cover_letter_text),
+                None if adapted_cv_text is None else _db_text(adapted_cv_text),
+                generated_at,
+                result_id,
+                user_id,
+            ),
         )
         return bool(getattr(cur, "rowcount", 0))
 

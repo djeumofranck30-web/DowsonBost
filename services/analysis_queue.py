@@ -13,7 +13,7 @@ from constants import (
     ANALYSIS_JOB_STALE_SECONDS,
 )
 from database import adapt_sql, connect, database_backend
-from persistence import init_persistence_tables, utc_now_iso
+from persistence import _db_text, _json_dumps, init_persistence_tables, utc_now_iso
 
 ACTIVE_JOB_STATUSES = ("queued", "running")
 JOB_STATUSES = ("queued", "running", "completed", "failed")
@@ -115,7 +115,7 @@ def enqueue_analysis_job(
 
     depth = analysis_depth if analysis_depth in ANALYSIS_DEPTH_POOL else "standard"
     pdf = bytes(pdf_bytes) if pdf_bytes else None
-    text = (cv_text or "").strip()
+    text = _db_text(cv_text).strip()
     if pdf and len(pdf) > ANALYSIS_JOB_MAX_PDF_BYTES:
         return None, "pdf_too_large"
     if not pdf and not text:
@@ -129,11 +129,11 @@ def enqueue_analysis_job(
         depth,
         int(ANALYSIS_DEPTH_POOL[depth]),
         int(ANALYSIS_DEPTH_TOP[depth]),
-        str(cv_fingerprint or ""),
+        _db_text(cv_fingerprint),
         text or None,
-        extraction_method or "native",
+        _db_text(extraction_method or "native", "native"),
         pdf,
-        json.dumps(user_profile, ensure_ascii=False),
+        _json_dumps(user_profile),
         trigger_source if trigger_source in {"ui", "auto"} else "ui",
         "En file d'attente",
     )
@@ -171,7 +171,7 @@ def update_analysis_job_progress(job_id: int, percent: int, label: str) -> None:
                 WHERE id = ? AND status = 'running'
                 """
             ),
-            (max(0, min(99, int(percent))), str(label or "")[:240], int(job_id)),
+            (max(0, min(99, int(percent))), _db_text(label)[:240], int(job_id)),
         )
 
 
@@ -202,7 +202,7 @@ def complete_analysis_job(
                 utc_now_iso(),
                 "Analyse terminée",
                 int(analysis_id),
-                json.dumps(notices, ensure_ascii=False),
+                _json_dumps(notices),
                 int(job_id),
             ),
         )
@@ -228,8 +228,8 @@ def fail_analysis_job(job_id: int, error: str, notices: list[dict[str, str]] | N
             (
                 utc_now_iso(),
                 "Analyse en échec",
-                str(error or "Analyse impossible")[:800],
-                json.dumps(notices or [], ensure_ascii=False),
+                _db_text(error or "Analyse impossible")[:800],
+                _json_dumps(notices or []),
                 int(job_id),
             ),
         )
