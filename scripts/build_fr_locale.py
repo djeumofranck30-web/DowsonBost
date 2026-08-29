@@ -368,7 +368,7 @@ MESSAGES: dict[str, str] = {
     "provider.glassdoor": "Glassdoor — entreprises, avis & offres (SerpApi)",
     "provider.monster": "Monster — entreprises & offres (Apify / SerpApi)",
     "provider.talent": "Talent.com — entreprises & offres (Apify / SerpApi)",
-    "provider.career_sites": "Sites carrière entreprises (Greenhouse, Lever, Workday…)",
+    "provider.career_sites": "Sites carrière entreprises (SG, Atos, BNP, Greenhouse…)",
     "provider.serpapi": "Google Jobs / SerpApi (agrégateur)",
     # Results
     "results.title": "Résultats du matching",

@@ -534,7 +534,7 @@
   "provider.indeed": "Indeed — offers & company pages (SerpApi)",
   "provider.linkedin": "LinkedIn Jobs — offers & companies (SerpApi)",
   "provider.glassdoor": "Glassdoor — companies, reviews & deals (SerpApi)",
-  "provider.career_sites": "Company career sites (Greenhouse, Lever, Workday…)",
+  "provider.career_sites": "Company career sites (SG, Atos, BNP, Greenhouse…)",
   "provider.serpapi": "Google Jobs / SerpApi (aggregator)",
   "provider.talent": "Talent.com — companies & offers (Apify / SerpApi)",
   "results.title": "Matching results",

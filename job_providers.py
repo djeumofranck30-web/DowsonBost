@@ -28,7 +28,7 @@ JOB_PROVIDER_LABELS: dict[str, str] = {
     JOB_PROVIDER_ALL: "Tous les moteurs (fusion)",
     JOB_PROVIDER_ADZUNA: "Adzuna (gratuit, recommandé)",
     JOB_PROVIDER_WTTJ: "Welcome to the Jungle (gratuit)",
-    JOB_PROVIDER_CAREER_SITES: "Sites carrière entreprises (Greenhouse, Lever, Workday…)",
+    JOB_PROVIDER_CAREER_SITES: "Sites carrière entreprises (SG, Atos, BNP, Greenhouse…)",
     JOB_PROVIDER_JOBTEASER: "JobTeaser — étudiants / alternance (Apify)",
     JOB_PROVIDER_HELLOWORK: "HelloWork — pages entreprises + offres (Apify / SerpApi)",
     JOB_PROVIDER_JOOBLE: "Jooble",
@@ -817,6 +817,8 @@ CAREER_ATS_HOSTS: tuple[str, ...] = (
     "jobs.smartrecruiters.com",
     "apply.workable.com",
     "jobs.personio.de",
+    "successfactors.eu",
+    "icims.com",
 )
 
 ATS_HOST_FRAGMENTS: tuple[str, ...] = (
@@ -832,10 +834,87 @@ ATS_HOST_FRAGMENTS: tuple[str, ...] = (
     "jobvite.com",
     "icims.com",
     "successfactors.com",
+    "successfactors.eu",
     "taleo.net",
     "bamboohr.com",
     "teamtailor.com",
     "join.com",
+    "oraclecloud.com",
+    "phenom.com",
+)
+
+COMPANY_CAREER_HOSTS: tuple[str, ...] = (
+    "careers.societegenerale.com",
+    "emplois.societegenerale.com",
+    "jobs.atos.net",
+    "careers.atos.net",
+    "group.bnpparibas.com",
+    "jobs.capgemini.com",
+    "orange.jobs",
+    "careers.airbus.com",
+    "careers.thalesgroup.com",
+    "careers.loreal.com",
+    "jobs.engie.com",
+    "careers.axa.com",
+    "jobs.totalenergies.com",
+    "careers.sanofi.com",
+    "careers.stellantis.com",
+    "jobs.michelin.com",
+    "jobs.airfrance.com",
+    "careers.accor.com",
+    "jobs.veolia.com",
+    "recrute.edf.fr",
+    "emplois.sncf.com",
+    "laposterecrute.fr",
+    "careers.ovhcloud.com",
+    "amazon.jobs",
+)
+
+COMPANY_CAREER_COMPANY_NAMES: dict[str, str] = {
+    "careers.societegenerale.com": "Société Générale",
+    "emplois.societegenerale.com": "Société Générale",
+    "jobs.atos.net": "Atos",
+    "careers.atos.net": "Atos",
+    "group.bnpparibas.com": "BNP Paribas",
+    "jobs.capgemini.com": "Capgemini",
+    "orange.jobs": "Orange",
+    "careers.airbus.com": "Airbus",
+    "careers.thalesgroup.com": "Thales",
+    "careers.loreal.com": "L'Oréal",
+    "jobs.engie.com": "Engie",
+    "careers.axa.com": "AXA",
+    "jobs.totalenergies.com": "TotalEnergies",
+    "careers.sanofi.com": "Sanofi",
+    "careers.stellantis.com": "Stellantis",
+    "jobs.michelin.com": "Michelin",
+    "jobs.airfrance.com": "Air France",
+    "careers.accor.com": "Accor",
+    "jobs.veolia.com": "Veolia",
+    "recrute.edf.fr": "EDF",
+    "emplois.sncf.com": "SNCF",
+    "laposterecrute.fr": "La Poste",
+    "careers.ovhcloud.com": "OVHcloud",
+    "amazon.jobs": "Amazon",
+}
+
+MAJOR_EMPLOYER_SEARCH_TERMS = (
+    '"Société Générale"',
+    "Atos",
+    '"BNP Paribas"',
+    "Capgemini",
+    "Orange",
+    "Airbus",
+    "Thales",
+    "\"L'Oréal\"",
+    "Engie",
+    "AXA",
+    "TotalEnergies",
+    "Sanofi",
+    "Renault",
+    "Stellantis",
+    '"Crédit Agricole"',
+    "SNCF",
+    "EDF",
 )
 
 JOB_BOARD_EXCLUSION_HOSTS: tuple[str, ...] = (
@@ -878,6 +957,8 @@ _CAREER_PATH_HINTS = (
     "/position",
     "/vacanc",
     "/recruit",
+    "/recrutement",
+    "/nous-rejoindre",
     "/posting",
     "gh_jid",
     "/j/",
@@ -920,10 +1001,20 @@ def is_company_ats_host(url: str) -> bool:
     return bool(host) and any(fragment in host for fragment in ATS_HOST_FRAGMENTS)
 
 
+def is_known_company_career_host(url: str) -> bool:
+    host = _host_from_url(url)
+    if not host:
+        return False
+    return any(_host_matches(host, known) for known in COMPANY_CAREER_HOSTS)
+
+
 def company_from_career_url(url: str, fallback: str = "") -> str:
     """Best-effort company name from a Greenhouse / Lever / Workday / … URL."""
-    parsed = urlparse(url)
     host = _host_from_url(url)
+    for known_host, name in COMPANY_CAREER_COMPANY_NAMES.items():
+        if _host_matches(host, known_host):
+            return name
+    parsed = urlparse(url)
     parts = [p for p in parsed.path.split("/") if p]
 
     if "greenhouse.io" in host and parts:
@@ -983,7 +1074,7 @@ def _looks_like_job_listing(title: str, url: str, snippet: str) -> bool:
         return False
     if path in {"", "/"}:
         return False
-    if is_company_ats_host(url):
+    if is_company_ats_host(url) or is_known_company_career_host(url):
         return not _is_career_homepage(url)
     lowered_url = url.lower()
     if any(hint in lowered_url for hint in _CAREER_PATH_HINTS):
@@ -1027,10 +1118,19 @@ def _career_site_google_queries(query: str, location: str) -> list[str]:
     q = query.strip()
     geo = f" {location.strip()}" if location.strip() else ""
     ats = " OR ".join(f"site:{host}" for host in CAREER_ATS_HOSTS)
+    company_sites = " OR ".join(
+        f"site:{host}" for host in COMPANY_CAREER_HOSTS[:12]
+    )
+    employers = " OR ".join(MAJOR_EMPLOYER_SEARCH_TERMS)
     excluded = " ".join(f"-site:{host}" for host in JOB_BOARD_EXCLUSION_HOSTS[:14])
     return [
         f"{q}{geo} ({ats})",
-        f"{q}{geo} (inurl:careers OR inurl:carriere OR inurl:jobs OR inurl:emploi) {excluded}",
+        f"{q}{geo} ({company_sites})",
+        (
+            f"{q}{geo} ({employers}) "
+            f"(inurl:careers OR inurl:carriere OR inurl:recrutement OR inurl:emploi) "
+            f"{excluded}"
+        ),
     ]
 
 
@@ -1065,7 +1165,7 @@ def search_jobs_career_sites(
     country: str,
     api_key: str,
     *,
-    limit: int = 20,
+    limit: int = 60,
 ) -> list[dict[str, Any]]:
     """Find openings on company career / ATS pages via Google (SerpApi)."""
     if not api_key.strip() or not query.strip():
@@ -1106,7 +1206,7 @@ def try_search_career_sites(
     country: str,
     api_key: str,
     *,
-    limit: int = 20,
+    limit: int = 60,
 ) -> list[dict[str, Any]]:
     """Career-site search that never fails the surrounding analysis."""
     if not api_key.strip() or not query.strip():
@@ -1128,7 +1228,7 @@ def merge_career_site_results(
     country: str = "France",
     provider: str = "",
     api_key: str = "",
-    limit: int = 20,
+    limit: int = 60,
 ) -> dict[str, Any]:
     """Append company career-site jobs to an existing search result (once per analysis)."""
     used = [str(p) for p in (result.get("providers_used") or [])]

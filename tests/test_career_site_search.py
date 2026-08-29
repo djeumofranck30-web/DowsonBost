@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -12,6 +13,7 @@ from job_providers import (
     JOB_PROVIDER_CAREER_SITES,
     JOB_PROVIDER_LABELS,
     JOB_PROVIDER_SIDEBAR_ORDER,
+    _career_site_google_queries,
     company_from_career_url,
     merge_career_site_results,
     search_jobs_career_sites,
@@ -19,7 +21,11 @@ from job_providers import (
 )
 
 
-def test_career_sites_is_a_sidebar_engine() -> None:
+def test_analysis_search_always_merges_career_sites() -> None:
+    source = Path(__file__).resolve().parents[1].joinpath("app.py").read_text(encoding="utf-8")
+    assert "def _with_company_career_sites(" in source
+    assert source.count("_with_company_career_sites(") >= 3
+
     assert JOB_PROVIDER_CAREER_SITES in JOB_PROVIDER_SIDEBAR_ORDER
     assert "carrière" in JOB_PROVIDER_LABELS[JOB_PROVIDER_CAREER_SITES].lower()
     assert "carrière" in job_provider_label(JOB_PROVIDER_CAREER_SITES).lower()
@@ -38,6 +44,19 @@ def test_company_from_career_url() -> None:
     assert (
         company_from_career_url("https://careers.airbus.com/job/python-engineer")
         == "Airbus"
+    )
+    assert (
+        company_from_career_url(
+            "https://careers.societegenerale.com/offre/developpeur-python-paris"
+        )
+        == "Société Générale"
+    )
+    assert company_from_career_url("https://jobs.atos.net/job/data-engineer") == "Atos"
+    assert (
+        company_from_career_url(
+            "https://group.bnpparibas.com/en/careers/job/analyste"
+        )
+        == "BNP Paribas"
     )
 
 
@@ -73,10 +92,20 @@ def test_search_jobs_career_sites_parses_ats_and_skips_job_boards() -> None:
         "snippet": "Poste CDI data Paris",
         "source": "Airbus",
     }
+    sg_job = {
+        "title": "Développeur full stack | Société Générale",
+        "link": "https://careers.societegenerale.com/offre/developpeur-fullstack",
+        "snippet": "CDI Paris — recrutement Société Générale",
+        "source": "Société Générale",
+    }
 
     with patch(
         "job_providers.requests.get",
-        side_effect=[_organic_payload(greenhouse, indeed), _organic_payload(homepage, career_job)],
+        side_effect=[
+            _organic_payload(greenhouse, indeed),
+            _organic_payload(sg_job),
+            _organic_payload(homepage, career_job),
+        ],
     ) as mocked_get:
         jobs = search_jobs_career_sites(
             "développeur python",
@@ -85,10 +114,11 @@ def test_search_jobs_career_sites_parses_ats_and_skips_job_boards() -> None:
             "test-key",
         )
 
-    assert mocked_get.call_count == 2
+    assert mocked_get.call_count == 3
     urls = {job["url"] for job in jobs}
     assert "https://boards.greenhouse.io/stripe/jobs/4242" in urls
     assert "https://careers.airbus.com/job/ingenieur-data-paris" in urls
+    assert "https://careers.societegenerale.com/offre/developpeur-fullstack" in urls
     assert not any("indeed.com" in url for url in urls)
     assert not any(job["url"].rstrip("/") == "https://careers.airbus.com" for job in jobs)
 
@@ -97,6 +127,17 @@ def test_search_jobs_career_sites_parses_ats_and_skips_job_boards() -> None:
     assert stripe["title"] == "Développeur Python"
     assert stripe["source"] == "Site carrière entreprise"
     assert stripe["location"] == "Paris"
+    sg = next(job for job in jobs if "societegenerale" in job["url"])
+    assert sg["company"] == "Société Générale"
+
+
+def test_career_site_queries_target_major_employers() -> None:
+    queries = " ".join(_career_site_google_queries("développeur", "Paris"))
+    lowered = queries.lower()
+    assert "societegenerale" in lowered
+    assert "atos" in lowered
+    assert "bnpparibas" in lowered or "bnp paribas" in lowered
+    assert "inurl:recrutement" in lowered
 
 
 def test_search_jobs_career_sites_empty_without_key() -> None:
