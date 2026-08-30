@@ -23,11 +23,12 @@ def test_admin_html_buttons_are_compact():
 
 def test_application_actions_share_a_compact_row():
     source = (ROOT / "app.py").read_text(encoding="utf-8")
-    assert "pack_col1, pack_col2 = st.columns(2)" in source
+    assert 't("job.apply_manual_confirm")' in source
+    assert 't("job.apply_auto")' in source
+    assert 't("job.apply_manual_prepare")' not in source
     confirm_idx = source.index('t("job.apply_manual_confirm")')
-    prepare_idx = source.index('t("job.apply_manual_prepare")')
-    pack_idx = source.index("pack_col1, pack_col2 = st.columns(2)")
-    assert pack_idx < confirm_idx < prepare_idx
+    auto_idx = source.index('t("job.apply_auto")')
+    assert auto_idx < confirm_idx
 
 
 def test_dashboard_insight_locale_keys_exist():

@@ -31,6 +31,7 @@ def test_analysis_results_use_simple_rows_not_full_cards() -> None:
     assert "cap_results_to_requested_best(" in body
     assert "_paged_items(" not in body
     assert "for idx, entry in enumerate(results, start=1):" in body
+    assert "result_id=entry.get(\"result_id\")" in body
     assert "visible_results" not in body
     assert "page_size=12" not in body
 
@@ -63,12 +64,13 @@ def test_simple_results_locale_keys_exist() -> None:
             "results.open_dashboard",
             "results.simple_title",
             "results.simple_score",
+            "results.prepare_apply",
         ):
             assert key in data, f"missing {key} in {locale}.json"
             assert str(data[key]).strip()
-    assert "tableau de bord" in json.loads(_read("locales/fr.json"))[
-        "results.simple_hint"
-    ].lower()
+    hint = json.loads(_read("locales/fr.json"))["results.simple_hint"].lower()
+    assert "tableau de bord" in hint
+    assert "dossier" in hint
 
 
 def test_simple_job_row_styles_exist() -> None:
@@ -76,3 +78,4 @@ def test_simple_job_row_styles_exist() -> None:
     assert ".job-match-card-simple" in css
     assert "render_simple_job_row" in _read("app.py")
     assert "job-match-card-simple" in _read("app.py")
+    assert "results.prepare_apply" in _read("app.py")

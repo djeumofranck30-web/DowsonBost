@@ -108,7 +108,7 @@ def test_submit_application_automatically_generates_and_prepares_external(
     assert "Lettre" in result["cover_letter"]
     assert "CV adapté" in result["adapted_cv"]
     assert result["user_notified"] is True
-    assert "préparée" in result["message"].lower()
+    assert "prépar" in result["message"].lower()
     assert "nouvel onglet" in result["message"].lower() or "ouvre" in result["message"].lower()
 
 

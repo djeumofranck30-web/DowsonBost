@@ -118,7 +118,7 @@ def test_connect_without_existing_account_fails(sqlite_db):
     assert list_connected_job_accounts(user_id) == []
 
 
-def test_connect_without_site_password_fails(sqlite_db):
+def test_connect_without_site_password_succeeds(sqlite_db):
     _reset_persistence()
     init_persistence_tables()
     user_id = _register_jane()
@@ -128,11 +128,11 @@ def test_connect_without_site_password_fails(sqlite_db):
         "linkedin",
         "jane@example.com",
         has_existing_account=True,
-        site_password="   ",
     )
-    assert not ok
-    assert "échec" in msg.lower() or "fail" in msg.lower() or "incorrect" in msg.lower()
-    assert list_connected_job_accounts(user_id) == []
+    assert ok, msg
+    account = get_connected_job_account(user_id, "linkedin")
+    assert account is not None
+    assert account["account_email"] == "jane@example.com"
 
 
 def test_connect_fails_when_passwords_do_not_match(sqlite_db):
@@ -152,7 +152,7 @@ def test_connect_fails_when_passwords_do_not_match(sqlite_db):
     assert list_connected_job_accounts(user_id) == []
 
 
-def test_connect_fails_when_password_too_short(sqlite_db):
+def test_connect_ignores_optional_password(sqlite_db):
     _reset_persistence()
     init_persistence_tables()
     user_id = _register_jane()
@@ -164,8 +164,8 @@ def test_connect_fails_when_password_too_short(sqlite_db):
         site_password="short",
         site_password_confirm="short",
     )
-    assert not ok
-    assert list_connected_job_accounts(user_id) == []
+    assert ok, msg
+    assert get_connected_job_account(user_id, "indeed") is not None
 
 
 def test_site_password_is_not_persisted(sqlite_db):
@@ -232,7 +232,7 @@ def test_connect_all_job_accounts_uses_candidate_email(sqlite_db):
     assert count == 0
 
 
-def test_connect_all_rejects_missing_account_or_password(sqlite_db):
+def test_connect_all_rejects_missing_account_or_invalid_login(sqlite_db):
     _reset_persistence()
     init_persistence_tables()
     user_id = _register_jane()

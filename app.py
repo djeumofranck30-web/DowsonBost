@@ -134,7 +134,6 @@ from services.application import (
     format_application_profile_text,
     job_listing_open_script,
     notify_candidate_application,
-    prepare_manual_application,
     submit_application_automatically,
 )
 from services.support import (
@@ -3726,8 +3725,10 @@ def render_simple_job_row(
     job: dict[str, Any],
     match: dict[str, Any],
     rank: int,
+    *,
+    result_id: int | None = None,
 ) -> None:
-    """Compact analysis-page row: title, company, location and ATS score."""
+    """Compact analysis-page row: title, company, location, ATS score, apply shortcuts."""
     score = int(match.get("score_correspondance", 0))
     score_color = _score_color(score)
     fact_parts = [
@@ -3756,6 +3757,38 @@ def render_simple_job_row(
         ),
         unsafe_allow_html=True,
     )
+    offer_url = str(job.get("url") or "").strip()
+    open_col, dossier_col = st.columns(2)
+    with open_col:
+        if offer_url:
+            st.link_button(
+                t("job.apply_open_offer"),
+                offer_url,
+                use_container_width=True,
+            )
+        else:
+            st.button(
+                t("job.apply_open_offer"),
+                disabled=True,
+                use_container_width=True,
+                key=f"analysis_open_missing_{result_id or rank}",
+            )
+    with dossier_col:
+        if result_id:
+            if st.button(
+                t("results.prepare_apply"),
+                use_container_width=True,
+                key=f"analysis_apply_{result_id}",
+            ):
+                st.session_state[f"job_open_{int(result_id)}"] = True
+                _request_navigation("dashboard")
+        else:
+            if st.button(
+                t("results.open_dashboard"),
+                use_container_width=True,
+                key=f"analysis_dash_row_{rank}",
+            ):
+                _request_navigation("dashboard")
 
 
 def render_job_card(
@@ -4032,71 +4065,33 @@ def render_job_card(
         else:
             st.button(t("job.apply_auto"), disabled=True, use_container_width=True)
 
-    if show_details and can_apply:
-        pack_col1, pack_col2 = st.columns(2)
-        with pack_col1:
-            if job.get("url"):
-                if st.button(
-                    t("job.apply_manual_confirm"),
-                    key=f"apply_manual_confirm_{result_id}",
-                    use_container_width=True,
-                ):
-                    record_application(
-                        user_id,
-                        result_id,
-                        "manual",
-                        status="applied",
-                        notes=t("job.apply_manual_confirmed"),
-                    )
-                    notified = notify_candidate_application(
-                        user_profile or {},
-                        job,
-                        method="manual",
-                        locale=get_locale(),
-                    )
-                    if notified:
-                        st.success(
-                            f"{t('job.apply_manual_confirmed')} "
-                            f"{t('job.apply_user_confirmation_sent', email=(user_profile or {}).get('email', ''))}"
-                        )
-                    else:
-                        st.success(t("job.apply_manual_confirmed"))
-                    st.rerun()
-        with pack_col2:
-            if st.button(
-                t("job.apply_manual_prepare"),
-                key=f"apply_manual_prepare_{result_id}",
-                use_container_width=True,
-                help=t("job.apply_manual_prepare_help"),
-            ):
-                with st.spinner(t("job.apply_auto_running")):
-                    current_letter = st.session_state.get(f"cover_{result_id}") or cover_letter_text
-                    current_cv = st.session_state.get(f"adapted_{result_id}") or adapted_cv_text
-                    manual_result = prepare_manual_application(
-                        cv_text,
-                        job,
-                        match,
-                        user_profile,
-                        llm_call=call_llm,
-                        cover_letter_text=current_letter,
-                        adapted_cv_text=current_cv,
-                        generate_documents=True,
-                        locale=get_locale(),
-                    )
-                if manual_result["success"]:
-                    save_generated_documents(
-                        user_id,
-                        result_id,
-                        cover_letter_text=manual_result["cover_letter"],
-                        adapted_cv_text=manual_result["adapted_cv"],
-                    )
-                    st.session_state[f"cover_{result_id}"] = manual_result["cover_letter"]
-                    st.session_state[f"adapted_{result_id}"] = manual_result["adapted_cv"]
-                    st.session_state[f"apply_pack_{result_id}"] = manual_result
-                    st.success(manual_result["message"])
-                    st.rerun()
-                else:
-                    st.error(manual_result["message"])
+    if show_details and can_apply and job.get("url"):
+        if st.button(
+            t("job.apply_manual_confirm"),
+            key=f"apply_manual_confirm_{result_id}",
+            use_container_width=True,
+        ):
+            record_application(
+                user_id,
+                result_id,
+                "manual",
+                status="applied",
+                notes=t("job.apply_manual_confirmed"),
+            )
+            notified = notify_candidate_application(
+                user_profile or {},
+                job,
+                method="manual",
+                locale=get_locale(),
+            )
+            if notified:
+                st.success(
+                    f"{t('job.apply_manual_confirmed')} "
+                    f"{t('job.apply_user_confirmation_sent', email=(user_profile or {}).get('email', ''))}"
+                )
+            else:
+                st.success(t("job.apply_manual_confirmed"))
+            st.rerun()
 
     if show_details and can_apply:
         gen_col1, gen_col2 = st.columns(2)
@@ -5522,6 +5517,8 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
 def render_notification_settings(user: dict[str, Any], job_provider: str) -> None:
     """Alert email and scheduled search preferences."""
     settings = get_notification_settings(int(user["id"]))
+    has_active_cv = bool(get_active_cv_document(int(user["id"])))
+    mail_ready = email_configured()
     st.markdown(
         f'<p class="section-title">{t("notify.title")}</p>',
         unsafe_allow_html=True,
@@ -5530,12 +5527,15 @@ def render_notification_settings(user: dict[str, Any], job_provider: str) -> Non
         f'<p class="profile-section-hint">{t("notify.hint")}</p>',
         unsafe_allow_html=True,
     )
-    if not email_configured():
-        st.caption(t("notify.email_config_hint"))
+    if not mail_ready:
+        st.warning(t("notify.email_config_hint"))
+    if not has_active_cv:
+        st.warning(t("notify.auto_search_need_cv"))
     with st.form(f"notification_settings_{user['id']}"):
         email_alerts = st.checkbox(
             t("notify.email_checkbox"),
-            value=bool(settings.get("email_alerts_enabled")),
+            value=bool(settings.get("email_alerts_enabled")) and mail_ready,
+            disabled=not mail_ready,
         )
         alert_min_score = st.slider(
             t("notify.min_score"),
@@ -5545,8 +5545,9 @@ def render_notification_settings(user: dict[str, Any], job_provider: str) -> Non
         )
         auto_search = st.checkbox(
             t("notify.auto_search"),
-            value=bool(settings.get("auto_search_enabled")),
-            help=t("notify.auto_search_need_cv"),
+            value=bool(settings.get("auto_search_enabled")) and has_active_cv,
+            help=t("notify.auto_search_help"),
+            disabled=not has_active_cv,
         )
         sched_col1, sched_col2, sched_col3 = st.columns(3)
         with sched_col1:
@@ -5577,10 +5578,10 @@ def render_notification_settings(user: dict[str, Any], job_provider: str) -> Non
             save_notification_settings(
                 int(user["id"]),
                 {
-                    "email_alerts_enabled": email_alerts,
+                    "email_alerts_enabled": bool(email_alerts) and mail_ready,
                     "alert_min_score": alert_min_score,
                     "alert_frequency": "after_search",
-                    "auto_search_enabled": auto_search,
+                    "auto_search_enabled": bool(auto_search) and has_active_cv,
                     "auto_search_weekday": weekday,
                     "auto_search_hour": hour,
                     "auto_search_provider": job_provider,
@@ -5783,7 +5784,12 @@ def render_analysis_results(analysis: dict[str, Any]) -> None:
         unsafe_allow_html=True,
     )
     for idx, entry in enumerate(results, start=1):
-        render_simple_job_row(entry.get("job") or {}, entry.get("match") or {}, idx)
+        render_simple_job_row(
+            entry.get("job") or {},
+            entry.get("match") or {},
+            idx,
+            result_id=entry.get("result_id"),
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -6913,12 +6919,9 @@ def _render_auth_reset_form() -> None:
 
 
 REGISTER_WIZARD_STEPS = (
-    "auth.register.wizard.language",
-    "auth.register.wizard.countries",
     "auth.register.wizard.identity",
-    "auth.register.wizard.job",
     "auth.register.wizard.location",
-    "auth.register.wizard.preferences",
+    "auth.register.wizard.job",
 )
 
 
@@ -6945,11 +6948,7 @@ def _render_register_wizard_progress(step: int) -> None:
 
 
 def _validate_register_wizard_step(step: int) -> tuple[bool, str]:
-    if step == 1:
-        countries = st.session_state.get("register_selected_countries") or []
-        if not countries:
-            return False, t("auth.register.countries_required")
-    elif step == 2:
+    if step == 0:
         first = (st.session_state.get("register_wiz_first_name") or "").strip()
         last = (st.session_state.get("register_wiz_last_name") or "").strip()
         email = (st.session_state.get("register_wiz_email") or "").strip().lower()
@@ -6965,7 +6964,11 @@ def _validate_register_wizard_step(step: int) -> tuple[bool, str]:
             return False, t("auth.register.password_mismatch")
         if len(password.strip()) < 8:
             return False, t("placeholder.password_min")
-    elif step == 3:
+    elif step == 1:
+        countries = st.session_state.get("register_selected_countries") or []
+        if not countries:
+            return False, t("auth.register.countries_required")
+    elif step == 2:
         job = (st.session_state.get("register_wiz_target_job") or "").strip()
         if len(job) < 2:
             return False, t("auth.register.job_required")
@@ -6977,17 +6980,16 @@ def _persist_register_wizard_step(step: int, draft: dict[str, Any]) -> None:
         locale = st.session_state.get("register_wiz_locale") or get_locale()
         draft["locale"] = locale
         set_locale(locale)
-    elif step == 1:
-        draft["countries"] = list(
-            st.session_state.get("register_selected_countries") or ["France"]
-        )
-    elif step == 2:
         draft["first_name"] = (st.session_state.get("register_wiz_first_name") or "").strip()
         draft["last_name"] = (st.session_state.get("register_wiz_last_name") or "").strip()
         draft["email"] = (st.session_state.get("register_wiz_email") or "").strip().lower()
         draft["phone"] = (st.session_state.get("register_wiz_phone") or "").strip()
         draft["password"] = st.session_state.get("register_wiz_password") or ""
-    elif step == 3:
+    elif step == 1:
+        draft["countries"] = list(
+            st.session_state.get("register_selected_countries") or ["France"]
+        )
+    elif step == 2:
         draft["target_job"] = (st.session_state.get("register_wiz_target_job") or "").strip()
 
 
@@ -7093,9 +7095,10 @@ def _render_auth_register_form() -> None:
 
     if step == 0:
         st.markdown(
-            f'<p class="auth-form-title">{html.escape(t("auth.register.wizard.language"))}</p>',
+            f'<p class="auth-form-title">{html.escape(t("auth.register.wizard.identity"))}</p>',
             unsafe_allow_html=True,
         )
+        st.caption(t("auth.register.wizard.identity_hint"))
         current = draft.get("locale") or get_locale()
         try:
             locale_index = SUPPORTED_LOCALES.index(current)
@@ -7108,18 +7111,6 @@ def _render_auth_register_form() -> None:
             format_func=lambda code: LOCALE_LABELS.get(code, code),
             key="register_wiz_locale",
         )
-    elif step == 1:
-        st.markdown(
-            f'<p class="auth-form-title">{html.escape(t("auth.register.wizard.countries"))}</p>',
-            unsafe_allow_html=True,
-        )
-        render_countries_multiselect({}, key_prefix="register")
-    elif step == 2:
-        st.markdown(
-            f'<p class="auth-form-title">{html.escape(t("auth.register.wizard.identity"))}</p>',
-            unsafe_allow_html=True,
-        )
-        st.caption(t("auth.register.wizard.identity_hint"))
         name_col1, name_col2 = st.columns(2)
         with name_col1:
             st.text_input(
@@ -7154,9 +7145,24 @@ def _render_auth_register_form() -> None:
             type="password",
             key="register_wiz_password2",
         )
-    elif step == 3:
+    elif step == 1:
         st.markdown(
-            f'<p class="auth-form-title">{html.escape(t("auth.register.step1"))}</p>',
+            f'<p class="auth-form-title">{html.escape(t("auth.register.wizard.location"))}</p>',
+            unsafe_allow_html=True,
+        )
+        render_countries_multiselect({}, key_prefix="register")
+        countries = (
+            draft.get("countries")
+            or st.session_state.get("register_selected_countries")
+            or ["France"]
+        )
+        st.markdown(
+            f"**{html.escape(t('auth.register.location'))}** — {html.escape(', '.join(countries))}"
+        )
+        pending_geo = _render_register_location_step(countries)
+    elif step == 2:
+        st.markdown(
+            f'<p class="auth-form-title">{html.escape(t("auth.register.wizard.job"))}</p>',
             unsafe_allow_html=True,
         )
         st.text_input(
@@ -7164,21 +7170,6 @@ def _render_auth_register_form() -> None:
             key="register_wiz_target_job",
             placeholder=t("auth.register.job_title_ph"),
             help=t("auth.register.job_title_help"),
-        )
-    elif step == 4:
-        st.markdown(
-            f'<p class="auth-form-title">{html.escape(t("auth.register.step2"))}</p>',
-            unsafe_allow_html=True,
-        )
-        countries = draft.get("countries") or st.session_state.get("register_selected_countries") or ["France"]
-        st.markdown(
-            f"**{html.escape(t('auth.register.location'))}** — {html.escape(', '.join(countries))}"
-        )
-        pending_geo = _render_register_location_step(countries)
-    elif step == 5:
-        st.markdown(
-            f'<p class="auth-form-title">{html.escape(t("auth.register.prefs"))}</p>',
-            unsafe_allow_html=True,
         )
         st.selectbox(
             t("auth.register.contract"),
@@ -7256,7 +7247,7 @@ def _render_auth_register_form() -> None:
                     st.error(error)
                 else:
                     _persist_register_wizard_step(step, draft)
-                    if step == 4 and pending_geo is not None:
+                    if step == 1 and pending_geo is not None:
                         st.session_state.register_geo_snapshot = pending_geo
                     st.session_state.register_wizard_step = step + 1
                     st.rerun()
@@ -7266,7 +7257,12 @@ def _render_auth_register_form() -> None:
             use_container_width=True,
             key="register_wizard_submit",
         ):
-            _submit_register_wizard(draft)
+            valid, error = _validate_register_wizard_step(step)
+            if not valid:
+                st.error(error)
+            else:
+                _persist_register_wizard_step(step, draft)
+                _submit_register_wizard(draft)
     st.markdown("</div>", unsafe_allow_html=True)
 
 
@@ -7433,18 +7429,6 @@ def render_connected_accounts_section(user: dict[str, Any]) -> None:
                         help=t("accounts.login_id_help", name=name),
                     )
                     st.text_input(
-                        t("accounts.login_password", name=name),
-                        type="password",
-                        key=f"connect_password_{provider}_{user_id}",
-                        help=t("accounts.login_password_help", name=name),
-                    )
-                    st.text_input(
-                        t("accounts.login_password_confirm", name=name),
-                        type="password",
-                        key=f"connect_password_confirm_{provider}_{user_id}",
-                        help=t("accounts.login_password_confirm_help", name=name),
-                    )
-                    st.text_input(
                         t("accounts.profile_url", name=name),
                         key=f"connect_profile_url_{provider}_{user_id}",
                         help=t("accounts.profile_url_help", name=name),
@@ -7475,16 +7459,6 @@ def render_connected_accounts_section(user: dict[str, Any]) -> None:
                         st.session_state.get(f"connect_email_{provider}_{user_id}")
                         or ""
                     )
-                    password_value = str(
-                        st.session_state.get(f"connect_password_{provider}_{user_id}")
-                        or ""
-                    )
-                    password_confirm = str(
-                        st.session_state.get(
-                            f"connect_password_confirm_{provider}_{user_id}"
-                        )
-                        or ""
-                    )
                     profile_value = str(
                         st.session_state.get(f"connect_profile_url_{provider}_{user_id}")
                         or ""
@@ -7494,8 +7468,6 @@ def render_connected_accounts_section(user: dict[str, Any]) -> None:
                         provider,
                         email_value,
                         has_existing_account=confirmed,
-                        site_password=password_value,
-                        site_password_confirm=password_confirm,
                         profile_url=profile_value,
                     )
                     if ok:

@@ -1175,10 +1175,10 @@ def connect_job_account(
     site_password_confirm: str | None = None,
     profile_url: str = "",
 ) -> tuple[bool, str]:
-    """Link the candidate DowsonBost account to an existing job-board account.
+    """Remember which job-board login the candidate uses.
 
-    The job-board password is required to complete the link and is never stored.
-    Incomplete or mismatched credentials fail the connection.
+    Passwords are optional and never stored: DowsonBost cannot log into
+    third-party sites. The link is a reminder, not a live session.
     """
     from i18n import t
     from job_providers import CONNECTABLE_JOB_PROVIDERS, job_board_display_name
@@ -1191,9 +1191,9 @@ def connect_job_account(
     name = job_board_display_name(key)
     if not has_existing_account:
         return False, t("accounts.not_created", name=name)
-    if not _is_valid_site_login(login) or not _is_complete_site_password(site_password):
+    if not _is_valid_site_login(login):
         return False, t("accounts.login_failed", name=name)
-    if site_password_confirm is not None and site_password != site_password_confirm:
+    if site_password and site_password_confirm is not None and site_password != site_password_confirm:
         return False, t("accounts.login_mismatch", name=name)
     init_persistence_tables()
     now = utc_now_iso()
@@ -1243,7 +1243,7 @@ def connect_all_job_accounts(
     if not has_existing_account:
         return False, t("accounts.not_created_all"), 0
     login = _normalize_site_login(account_email)
-    if not _is_valid_site_login(login) or not _is_complete_site_password(site_password):
+    if not _is_valid_site_login(login):
         return False, t("accounts.login_failed_all"), 0
     already = {row["provider"] for row in list_connected_job_accounts(user_id)}
     linked_now = 0
