@@ -79,15 +79,45 @@ Supabase ne permet pas de changer la région d'un projet. Il faut un **nouveau**
 
 ### 2. Lancer l'appli à Paris — Fly.io `cdg`
 
+Fly demande **une carte bancaire** (même pour un petit usage). Sans carte, le bouton reste bloqué.
+
+**Écran GitHub (celui que tu as déjà ouvert) :**
+
+1. Carte : https://fly.io/dashboard → ajoute un moyen de paiement
+2. Dépôt `DowsonBost`, branche `main`, région **CDG – Paris**
+3. **Mémoire : 2 Go** — pas 256 Mo (sinon l’app plante)
+4. **Port interne : 8501**
+5. **Postgres géré : décoché** (on garde Supabase Paris)
+6. Variables d’environnement (les mêmes que Streamlit Cloud) :
+
+```
+DATABASE_URL=postgresql://postgres.mhbqfgnnzteqnldulrpk@aws-1-eu-west-3.pooler.supabase.com:6543/postgres
+DATABASE_PASSWORD=ton_mot_de_passe_supabase_paris
+DATABASE_POOL_MODE=session
+GROQ_API_KEY=...
+GEMINI_API_KEY=...
+ADZUNA_APP_ID=...
+ADZUNA_APP_KEY=...
+ADMIN_EMAIL=...
+ADMIN_PASSWORD=...
+APP_BASE_URL=https://dowsonbost.fly.dev
+```
+
+`DATABASE_POOL_MODE=session` est déjà dans `fly.toml` : même si l’URL est en `:6543`, l’app passe sur le port **5432**.
+
+7. Déploie, ouvre l’URL `*.fly.dev`, teste une connexion.
+
+**En ligne de commande :**
+
 1. Installez le CLI : https://fly.io/docs/flyctl/install/
 2. `fly auth login`
 3. Dans ce dépôt : `fly launch --copy-config --no-deploy`  
    Si le nom `dowsonbost` est pris, changez `app` dans `fly.toml`.
-4. Recopiez **les mêmes secrets** que Streamlit Cloud, avec la **nouvelle** URL Paris :
+4. Recopiez les secrets :
 
 ```bash
 fly secrets set \
-  DATABASE_URL="postgresql://postgres.xxxxx@aws-0-eu-west-3.pooler.supabase.com:5432/postgres" \
+  DATABASE_URL="postgresql://postgres.mhbqfgnnzteqnldulrpk@aws-1-eu-west-3.pooler.supabase.com:6543/postgres" \
   DATABASE_PASSWORD="..." \
   APP_BASE_URL="https://dowsonbost.fly.dev" \
   GROQ_API_KEY="..." \
@@ -98,15 +128,9 @@ fly secrets set \
   ADMIN_PASSWORD="..."
 ```
 
-`DATABASE_POOL_MODE=session` est déjà dans `fly.toml` : même si vous collez encore l'URL en `:6543`, l'app passe toute seule sur le port **5432**.
-
 5. `fly deploy`
-6. Ouvrez l'URL Fly, testez connexion + une page du tableau de bord.
-7. Quand c'est bon : mettez `APP_BASE_URL` et `CAREERJET_REFERER` à la nouvelle URL. Streamlit Cloud peut rester en secours jusqu'au basculement.
 
-La machine **ne s'arrête pas** (`auto_stop_machines = "off"`, `min_machines_running = 1`) pour éviter le réveil de plusieurs secondes.
-
-Le cron GitHub Actions tourne sur des serveurs GitHub (souvent hors UE). Pour rester à Paris, désactivez-le et lancez `python scripts/run_scheduled_search.py` une fois par jour sur la machine Paris.
+La machine **ne s’arrête pas** (`auto_stop_machines = "off"`, `min_machines_running = 1`). Streamlit Cloud peut rester en secours jusqu’au basculement.
 
 ### 3. Alternative — VPS OVH en France (Docker)
 

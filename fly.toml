@@ -13,6 +13,7 @@ app = "dowsonbost"
 primary_region = "cdg"
 
 [build]
+  dockerfile = "Dockerfile"
 
 [env]
   DATABASE_POOL_MODE = "session"
