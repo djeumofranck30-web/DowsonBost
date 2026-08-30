@@ -6919,9 +6919,12 @@ def _render_auth_reset_form() -> None:
 
 
 REGISTER_WIZARD_STEPS = (
+    "auth.register.wizard.language",
+    "auth.register.wizard.countries",
     "auth.register.wizard.identity",
-    "auth.register.wizard.location",
     "auth.register.wizard.job",
+    "auth.register.wizard.location",
+    "auth.register.wizard.preferences",
 )
 
 
@@ -6948,7 +6951,11 @@ def _render_register_wizard_progress(step: int) -> None:
 
 
 def _validate_register_wizard_step(step: int) -> tuple[bool, str]:
-    if step == 0:
+    if step == 1:
+        countries = st.session_state.get("register_selected_countries") or []
+        if not countries:
+            return False, t("auth.register.countries_required")
+    elif step == 2:
         first = (st.session_state.get("register_wiz_first_name") or "").strip()
         last = (st.session_state.get("register_wiz_last_name") or "").strip()
         email = (st.session_state.get("register_wiz_email") or "").strip().lower()
@@ -6964,11 +6971,7 @@ def _validate_register_wizard_step(step: int) -> tuple[bool, str]:
             return False, t("auth.register.password_mismatch")
         if len(password.strip()) < 8:
             return False, t("placeholder.password_min")
-    elif step == 1:
-        countries = st.session_state.get("register_selected_countries") or []
-        if not countries:
-            return False, t("auth.register.countries_required")
-    elif step == 2:
+    elif step == 3:
         job = (st.session_state.get("register_wiz_target_job") or "").strip()
         if len(job) < 2:
             return False, t("auth.register.job_required")
@@ -6980,16 +6983,17 @@ def _persist_register_wizard_step(step: int, draft: dict[str, Any]) -> None:
         locale = st.session_state.get("register_wiz_locale") or get_locale()
         draft["locale"] = locale
         set_locale(locale)
-        draft["first_name"] = (st.session_state.get("register_wiz_first_name") or "").strip()
-        draft["last_name"] = (st.session_state.get("register_wiz_last_name") or "").strip()
-        draft["email"] = (st.session_state.get("register_wiz_email") or "").strip().lower()
-        draft["phone"] = (st.session_state.get("register_wiz_phone") or "").strip()
-        draft["password"] = st.session_state.get("register_wiz_password") or ""
     elif step == 1:
         draft["countries"] = list(
             st.session_state.get("register_selected_countries") or ["France"]
         )
     elif step == 2:
+        draft["first_name"] = (st.session_state.get("register_wiz_first_name") or "").strip()
+        draft["last_name"] = (st.session_state.get("register_wiz_last_name") or "").strip()
+        draft["email"] = (st.session_state.get("register_wiz_email") or "").strip().lower()
+        draft["phone"] = (st.session_state.get("register_wiz_phone") or "").strip()
+        draft["password"] = st.session_state.get("register_wiz_password") or ""
+    elif step == 3:
         draft["target_job"] = (st.session_state.get("register_wiz_target_job") or "").strip()
 
 
@@ -7095,10 +7099,9 @@ def _render_auth_register_form() -> None:
 
     if step == 0:
         st.markdown(
-            f'<p class="auth-form-title">{html.escape(t("auth.register.wizard.identity"))}</p>',
+            f'<p class="auth-form-title">{html.escape(t("auth.register.wizard.language"))}</p>',
             unsafe_allow_html=True,
         )
-        st.caption(t("auth.register.wizard.identity_hint"))
         current = draft.get("locale") or get_locale()
         try:
             locale_index = SUPPORTED_LOCALES.index(current)
@@ -7111,6 +7114,18 @@ def _render_auth_register_form() -> None:
             format_func=lambda code: LOCALE_LABELS.get(code, code),
             key="register_wiz_locale",
         )
+    elif step == 1:
+        st.markdown(
+            f'<p class="auth-form-title">{html.escape(t("auth.register.wizard.countries"))}</p>',
+            unsafe_allow_html=True,
+        )
+        render_countries_multiselect({}, key_prefix="register")
+    elif step == 2:
+        st.markdown(
+            f'<p class="auth-form-title">{html.escape(t("auth.register.wizard.identity"))}</p>',
+            unsafe_allow_html=True,
+        )
+        st.caption(t("auth.register.wizard.identity_hint"))
         name_col1, name_col2 = st.columns(2)
         with name_col1:
             st.text_input(
@@ -7145,24 +7160,9 @@ def _render_auth_register_form() -> None:
             type="password",
             key="register_wiz_password2",
         )
-    elif step == 1:
+    elif step == 3:
         st.markdown(
-            f'<p class="auth-form-title">{html.escape(t("auth.register.wizard.location"))}</p>',
-            unsafe_allow_html=True,
-        )
-        render_countries_multiselect({}, key_prefix="register")
-        countries = (
-            draft.get("countries")
-            or st.session_state.get("register_selected_countries")
-            or ["France"]
-        )
-        st.markdown(
-            f"**{html.escape(t('auth.register.location'))}** — {html.escape(', '.join(countries))}"
-        )
-        pending_geo = _render_register_location_step(countries)
-    elif step == 2:
-        st.markdown(
-            f'<p class="auth-form-title">{html.escape(t("auth.register.wizard.job"))}</p>',
+            f'<p class="auth-form-title">{html.escape(t("auth.register.step1"))}</p>',
             unsafe_allow_html=True,
         )
         st.text_input(
@@ -7170,6 +7170,21 @@ def _render_auth_register_form() -> None:
             key="register_wiz_target_job",
             placeholder=t("auth.register.job_title_ph"),
             help=t("auth.register.job_title_help"),
+        )
+    elif step == 4:
+        st.markdown(
+            f'<p class="auth-form-title">{html.escape(t("auth.register.step2"))}</p>',
+            unsafe_allow_html=True,
+        )
+        countries = draft.get("countries") or st.session_state.get("register_selected_countries") or ["France"]
+        st.markdown(
+            f"**{html.escape(t('auth.register.location'))}** — {html.escape(', '.join(countries))}"
+        )
+        pending_geo = _render_register_location_step(countries)
+    elif step == 5:
+        st.markdown(
+            f'<p class="auth-form-title">{html.escape(t("auth.register.prefs"))}</p>',
+            unsafe_allow_html=True,
         )
         st.selectbox(
             t("auth.register.contract"),
@@ -7247,7 +7262,7 @@ def _render_auth_register_form() -> None:
                     st.error(error)
                 else:
                     _persist_register_wizard_step(step, draft)
-                    if step == 1 and pending_geo is not None:
+                    if step == 4 and pending_geo is not None:
                         st.session_state.register_geo_snapshot = pending_geo
                     st.session_state.register_wizard_step = step + 1
                     st.rerun()
@@ -7257,12 +7272,7 @@ def _render_auth_register_form() -> None:
             use_container_width=True,
             key="register_wizard_submit",
         ):
-            valid, error = _validate_register_wizard_step(step)
-            if not valid:
-                st.error(error)
-            else:
-                _persist_register_wizard_step(step, draft)
-                _submit_register_wizard(draft)
+            _submit_register_wizard(draft)
     st.markdown("</div>", unsafe_allow_html=True)
 
 
