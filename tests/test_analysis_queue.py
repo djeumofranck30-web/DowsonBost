@@ -6,7 +6,10 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 from auth import authenticate_user, register_user
+from database import connect
 from persistence import get_analysis, init_persistence_tables
 from services.analysis_queue import (
     claim_next_analysis_job,
@@ -48,6 +51,32 @@ def _profile():
         "contract_type": "CDI",
         "country": "France",
     }
+
+
+def test_enqueue_survives_streamlit_rerun(sqlite_db):
+    class RerunException(BaseException):
+        pass
+
+    RerunException.__module__ = "streamlit.runtime.scriptrunner_utils.exceptions"
+    init_persistence_tables()
+    user_id = _register()
+    with pytest.raises(RerunException):
+        with connect():
+            job_id, err = enqueue_analysis_job(
+                user_id,
+                _profile(),
+                job_provider="adzuna",
+                analysis_depth="standard",
+                cv_fingerprint="fp-rerun",
+                cv_text="CV texte de Jane",
+            )
+            assert err == ""
+            assert job_id
+            raise RerunException()
+    stored = get_latest_analysis_job(user_id)
+    assert stored is not None
+    assert stored["status"] == "queued"
+    assert stored["cv_fingerprint"] == "fp-rerun"
 
 
 def test_enqueue_then_claim_oldest_ticket(sqlite_db):

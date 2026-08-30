@@ -25,6 +25,17 @@ class DatabaseConfigError(ValueError):
     """Invalid DATABASE_URL configuration."""
 
 
+def is_streamlit_script_control(exc: BaseException) -> bool:
+    """True for ``st.rerun()`` / ``st.stop()`` — they inherit BaseException, not Exception.
+
+    Closing a Postgres transaction without commit rolls back the analysis ticket
+    that was just inserted, so the UI looks like the run never started.
+    """
+    name = type(exc).__name__
+    module = type(exc).__module__ or ""
+    return name in {"RerunException", "StopException"} and "streamlit" in module
+
+
 def _strip_quotes(value: str) -> str:
     value = value.strip()
     if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
@@ -485,6 +496,13 @@ def connect() -> Iterator[Any]:
                     conn.rollback()
                 _close_postgres_connection()
             raise
+        except BaseException as exc:
+            if int(getattr(_pg_local, "depth", 0) or 0) == 1 and is_streamlit_script_control(
+                exc
+            ):
+                with suppress(Exception):
+                    conn.commit()
+            raise
         finally:
             _pg_local.depth = max(0, int(getattr(_pg_local, "depth", 0) or 0) - 1)
             if int(getattr(_pg_local, "depth", 0) or 0) == 0 and uses_transaction_pooler(
@@ -512,4 +530,9 @@ def connect() -> Iterator[Any]:
         except Exception:
             with suppress(Exception):
                 conn.rollback()
+            raise
+        except BaseException as exc:
+            if is_streamlit_script_control(exc):
+                with suppress(Exception):
+                    conn.commit()
             raise

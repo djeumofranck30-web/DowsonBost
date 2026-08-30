@@ -7,6 +7,7 @@ import pytest
 from database import (
     apply_database_pool_mode,
     is_postgres_connection_error,
+    is_streamlit_script_control,
     postgres_client_connect_kwargs,
     postgres_conninfo,
     uses_transaction_pooler,
@@ -169,6 +170,58 @@ def test_connect_open_failures_include_driver_message(monkeypatch):
         with database.connect():
             raise AssertionError("must not yield")
     assert "Connexion PostgreSQL impossible" in str(err.value)
+
+
+def test_streamlit_rerun_is_script_control():
+    class RerunException(BaseException):
+        pass
+
+    RerunException.__module__ = "streamlit.runtime.scriptrunner_utils.exceptions"
+    assert is_streamlit_script_control(RerunException())
+    assert not is_streamlit_script_control(RuntimeError("boom"))
+    assert not is_streamlit_script_control(ValueError("no"))
+
+
+def test_connect_commits_on_streamlit_rerun(monkeypatch):
+    import database
+
+    class FakeConn:
+        def __init__(self) -> None:
+            self.closed = False
+            self.commits = 0
+            self.rollbacks = 0
+
+        def commit(self) -> None:
+            self.commits += 1
+
+        def rollback(self) -> None:
+            self.rollbacks += 1
+
+        def close(self) -> None:
+            self.closed = True
+
+    class RerunException(BaseException):
+        pass
+
+    RerunException.__module__ = "streamlit.runtime.scriptrunner_utils.exceptions"
+    fake = FakeConn()
+
+    def _acquire(_row_factory):
+        database._pg_local.conn = fake
+        return fake
+
+    monkeypatch.setattr(database, "_configured", True)
+    monkeypatch.setattr(database, "_backend", "postgres")
+    monkeypatch.setattr(database, "_database_url", POOLER_URL)
+    monkeypatch.setattr(database, "_acquire_postgres_connection", _acquire)
+    database._pg_local.depth = 0
+    database._pg_local.conn = None
+
+    with pytest.raises(RerunException):
+        with database.connect():
+            raise RerunException()
+    assert fake.commits == 1
+    assert fake.rollbacks == 0
 
 
 def test_nested_pooler_connect_does_not_close_outer_connection(monkeypatch):
