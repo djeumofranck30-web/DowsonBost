@@ -16,7 +16,7 @@ _backend: str = "sqlite"
 _database_url: str = ""
 _database_password: str = ""
 _configured = False
-_config_key: tuple[str, str] | None = None
+_config_key: tuple[str, ...] | None = None
 _pg_local = threading.local()
 _sqlite_local = threading.local()
 
@@ -107,17 +107,39 @@ def normalize_database_url(url: str, password_override: str = "") -> str:
     return urlunparse(parsed._replace(query=new_query))
 
 
+def database_pool_mode() -> str:
+    """``session`` keeps TCP connections (persistent EU host); ``transaction`` closes them."""
+    return os.getenv("DATABASE_POOL_MODE", "").strip().lower()
+
+
+def apply_database_pool_mode(url: str, mode: str = "") -> str:
+    """Rewrite Supabase transaction pooler (6543) to session pooler (5432) when asked.
+
+    Streamlit Cloud should keep port 6543. A machine that stays up in Paris can
+    reuse one TCP session per worker — much closer to an eu-west-3 database.
+    """
+    chosen = (mode or database_pool_mode()).strip().lower()
+    if chosen not in {"session", "persistent"}:
+        return url
+    parsed = urlparse(url)
+    if int(parsed.port or 5432) != 6543:
+        return url
+    netloc = parsed.netloc.replace(":6543", ":5432")
+    return urlunparse(parsed._replace(netloc=netloc))
+
+
 def configure_database(url: str = "", password: str = "") -> str:
     """Select SQLite (default) or PostgreSQL when DATABASE_URL is set."""
     global _backend, _database_url, _database_password, _configured, _config_key
     raw_url = (url or os.getenv("DATABASE_URL", "")).strip()
     raw_password = _clean_password(password or os.getenv("DATABASE_PASSWORD", ""))
-    config_key = (raw_url, raw_password)
+    pool_mode = database_pool_mode()
+    config_key = (raw_url, raw_password, pool_mode)
     if _configured and _config_key == config_key:
         return _backend
 
     if raw_url.startswith(("postgres://", "postgresql://")):
-        _database_url = normalize_database_url(raw_url, raw_password)
+        _database_url = apply_database_pool_mode(normalize_database_url(raw_url, raw_password))
         _database_password = raw_password
         if not urlparse(_database_url).password and not _database_password:
             raise DatabaseConfigError(
@@ -242,11 +264,13 @@ _PG_CONNECTION_ERROR_MARKERS = (
 
 
 def uses_transaction_pooler(url: str = "") -> bool:
-    """True for Supabase/Neon PgBouncer transaction poolers (port 6543)."""
+    """True for PgBouncer transaction mode (Supabase/Neon port 6543).
+
+    Session pooler and direct connections use port 5432 even when the hostname
+    still contains ``pooler`` — those must reuse the TCP connection.
+    """
     parsed = urlparse(url or _database_url)
-    host = (parsed.hostname or "").lower()
-    port = int(parsed.port or 5432)
-    return port == 6543 or "pooler" in host
+    return int(parsed.port or 5432) == 6543
 
 
 def is_postgres_connection_error(exc: BaseException) -> bool:

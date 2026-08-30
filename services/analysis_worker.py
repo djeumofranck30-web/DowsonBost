@@ -1,8 +1,8 @@
 """Process queued CV analyses with the same pipeline as the UI.
 
 On Streamlit Cloud a daemon thread consumes the queue (no extra process).
-On OVH later, run ``python scripts/run_analysis_worker.py`` on as many machines
-as needed — claiming is atomic so several workers can share the table.
+On a persistent EU host (Fly Paris / OVH France), run ``python scripts/run_analysis_worker.py``
+on extra machines if needed — claiming is atomic so several workers can share the table.
 """
 
 from __future__ import annotations

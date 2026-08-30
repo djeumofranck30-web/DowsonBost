@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Dedicated analysis worker — use on OVH when you want extra machines.
+"""Dedicated analysis worker — use on Fly / OVH when you want extra machines.
 
-Streamlit Cloud already runs an in-process worker. This script is for later:
+The web process already runs an in-process worker. This script is optional:
   ANALYSIS_WORKER_EMBEDDED=0 streamlit run app.py
   python scripts/run_analysis_worker.py
 """

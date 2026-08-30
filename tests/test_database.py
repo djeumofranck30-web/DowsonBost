@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from database import (
+    apply_database_pool_mode,
     is_postgres_connection_error,
     postgres_client_connect_kwargs,
     postgres_conninfo,
@@ -13,7 +14,10 @@ from database import (
 
 
 POOLER_URL = (
-    "postgresql://postgres.abc:secret@aws-0-eu-west-2.pooler.supabase.com:6543/postgres"
+    "postgresql://postgres.abc:secret@aws-0-eu-west-3.pooler.supabase.com:6543/postgres"
+)
+SESSION_POOLER_URL = (
+    "postgresql://postgres.abc:secret@aws-0-eu-west-3.pooler.supabase.com:5432/postgres"
 )
 DIRECT_URL = "postgresql://postgres:secret@db.abc.supabase.co:5432/postgres"
 
@@ -21,7 +25,16 @@ DIRECT_URL = "postgresql://postgres:secret@db.abc.supabase.co:5432/postgres"
 def test_uses_transaction_pooler_on_supabase_port():
     assert uses_transaction_pooler(POOLER_URL) is True
     assert uses_transaction_pooler(DIRECT_URL) is False
-    assert uses_transaction_pooler("postgresql://u:p@pooler.example.com:5432/db") is True
+    assert uses_transaction_pooler(SESSION_POOLER_URL) is False
+
+
+def test_session_pool_mode_rewrites_transaction_port():
+    rewritten = apply_database_pool_mode(POOLER_URL, mode="session")
+    assert uses_transaction_pooler(rewritten) is False
+    assert ":5432" in rewritten
+    assert "pooler.supabase.com" in rewritten
+    assert apply_database_pool_mode(POOLER_URL, mode="") == POOLER_URL
+    assert apply_database_pool_mode(SESSION_POOLER_URL, mode="session") == SESSION_POOLER_URL
 
 
 def test_sql_errors_are_not_connection_failures():
@@ -224,3 +237,59 @@ def test_configure_database_skips_identical_rerun():
     assert database.configure_database("", password="") == "sqlite"
     assert database._config_key == first_key
     assert database._configured is True
+
+
+def test_configure_database_session_mode_uses_port_5432(monkeypatch):
+    import database
+    from urllib.parse import urlparse
+
+    monkeypatch.setenv("DATABASE_POOL_MODE", "session")
+    database._configured = False
+    database._config_key = None
+    try:
+        assert database.configure_database(POOLER_URL) == "postgres"
+        parsed = urlparse(database._database_url)
+        assert parsed.port == 5432
+        assert parsed.hostname == "aws-0-eu-west-3.pooler.supabase.com"
+    finally:
+        database._configured = False
+        database._config_key = None
+        database._backend = "sqlite"
+        database._database_url = ""
+        database._database_password = ""
+
+
+def test_session_pooler_keeps_connection_open(monkeypatch):
+    import database
+
+    class FakeConn:
+        def __init__(self) -> None:
+            self.closed = False
+            self.commits = 0
+
+        def commit(self) -> None:
+            self.commits += 1
+
+        def rollback(self) -> None:
+            return None
+
+        def close(self) -> None:
+            self.closed = True
+
+    fake = FakeConn()
+
+    def _acquire(_row_factory):
+        database._pg_local.conn = fake
+        return fake
+
+    monkeypatch.setattr(database, "_configured", True)
+    monkeypatch.setattr(database, "_backend", "postgres")
+    monkeypatch.setattr(database, "_database_url", SESSION_POOLER_URL)
+    monkeypatch.setattr(database, "_acquire_postgres_connection", _acquire)
+    database._pg_local.depth = 0
+    database._pg_local.conn = None
+
+    with database.connect():
+        pass
+    assert fake.closed is False
+    assert fake.commits == 1

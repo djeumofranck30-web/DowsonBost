@@ -1,0 +1,39 @@
+# Fly.io — région cdg (Paris, UE), collée à la base Supabase eu-west-3 (Paris).
+# Pas Londres : le Royaume-Uni n'est plus dans l'Union européenne.
+# L'app ne s'endort pas : min_machines_running = 1.
+#
+# Premier déploiement :
+#   fly launch --copy-config --no-deploy
+#   fly secrets set DATABASE_URL="..." DATABASE_PASSWORD="..." ...
+#   fly deploy
+#
+# Si le nom d'app est déjà pris : changez `app` ci-dessous.
+
+app = "dowsonbost"
+primary_region = "cdg"
+
+[build]
+
+[env]
+  DATABASE_POOL_MODE = "session"
+  PORT = "8501"
+
+[http_service]
+  internal_port = 8501
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+[[http_service.checks]]
+  grace_period = "45s"
+  interval = "15s"
+  method = "GET"
+  path = "/_stcore/health"
+  timeout = "5s"
+
+[[vm]]
+  memory = "2gb"
+  cpus = 2
+  cpu_kind = "shared"

@@ -1,5 +1,8 @@
 name: DowsonBost scheduled search
 
+# GitHub-hosted runners are usually outside the EU. For Paris-only data path,
+# disable this workflow and run scripts/run_scheduled_search.py on the Fly cdg machine.
+
 on:
   schedule:
     - cron: "0 7 * * *"

@@ -8419,7 +8419,7 @@ def main() -> None:
         st.markdown(
             "**Corrigez vos secrets Streamlit ainsi :**\n\n"
             "```toml\n"
-            'DATABASE_URL = "postgresql://postgres.ongzgribavyjprbrawzd@aws-0-eu-west-2.pooler.supabase.com:6543/postgres"\n'
+            'DATABASE_URL = "postgresql://postgres.xxxxx@aws-0-eu-west-3.pooler.supabase.com:6543/postgres"\n'
             'DATABASE_PASSWORD = "votre_mot_de_passe"\n'
             "```\n\n"
             "Ne mettez **jamais** le mot de passe dans DATABASE_URL si il contient `@`, `#`, `!`, etc."
@@ -8433,7 +8433,7 @@ def main() -> None:
             st.markdown(
                 "**Format recommandé (Streamlit Secrets) :**\n\n"
                 "```toml\n"
-                'DATABASE_URL = "postgresql://postgres.ongzgribavyjprbrawzd@aws-0-eu-west-2.pooler.supabase.com:6543/postgres"\n'
+                'DATABASE_URL = "postgresql://postgres.xxxxx@aws-0-eu-west-3.pooler.supabase.com:6543/postgres"\n'
                 'DATABASE_PASSWORD = "votre_mot_de_passe_supabase"\n'
                 "```\n\n"
                 "Copiez l'URL depuis Supabase → **Connect** → **Transaction pooler** (port 6543), "
