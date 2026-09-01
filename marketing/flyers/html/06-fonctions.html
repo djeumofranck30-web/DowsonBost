@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>DowsonBost — Flyer 06 Fonctionnalités</title>
+  <link rel="stylesheet" href="../assets/shared.css" />
+  <style>
+    .flyer {
+      background: linear-gradient(180deg, #E7F1EE 0%, #F4F1EA 40%, #F4F1EA 100%);
+      padding: 68px 72px 56px;
+      display: flex;
+      flex-direction: column;
+    }
+    h1 { font-size: 64px; margin-top: 12px; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 48px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 22px;
+      padding: 28px 28px 26px;
+      box-shadow: 0 10px 28px rgba(11,18,32,.06);
+      min-height: 210px;
+    }
+    .ico {
+      width: 48px; height: 48px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px; color: #fff;
+      margin-bottom: 16px;
+    }
+    .c1 { background: var(--teal); }
+    .c2 { background: var(--navy); }
+    .c3 { background: var(--gold); color: var(--navy) !important; }
+    .c4 { background: var(--success); }
+    .c5 { background: var(--orange); }
+    .c6 { background: var(--teal-dark); }
+    .card h2 { font-size: 24px; letter-spacing: -.03em; margin-bottom: 8px; }
+    .card p { font-size: 17px; color: var(--muted); line-height: 1.4; font-weight: 500; }
+    .foot { margin-top: auto; padding-top: 28px; }
+  </style>
+</head>
+<body>
+  <article class="flyer">
+    <div class="mark">
+      <div class="mark-sq">DB</div>
+      <div class="mark-name">Dowson<span>Bost</span></div>
+    </div>
+    <div class="eyebrow" style="margin-top:40px">Tout ce dont vous avez besoin</div>
+    <h1>Une plateforme.<br>Toute la candidature.</h1>
+    <div class="grid">
+      <div class="card"><div class="ico c1">CV</div><h2>Analyse de CV</h2><p>PDF lu en mode ATS. Compétences, missions et cible de poste extraits pour chercher juste.</p></div>
+      <div class="card"><div class="ico c2">IA</div><h2>Matching intelligent</h2><p>Chaque offre reçoit un score. Vous voyez d’abord celles qui collent vraiment.</p></div>
+      <div class="card"><div class="ico c3">JB</div><h2>Job boards</h2><p>Recherche large sur les grands sites d’emploi, filtrée par lieu, contrat et date.</p></div>
+      <div class="card"><div class="ico c4">CO</div><h2>Sites carrière</h2><p>L’IA va aussi sur les pages carrières des entreprises — pas seulement les agrégateurs.</p></div>
+      <div class="card"><div class="ico c5">A4</div><h2>CV une page</h2><p>Document A4 densifié, missions conservées, vocabulaire de l’offre intégré.</p></div>
+      <div class="card"><div class="ico c6">LM</div><h2>Lettre + suivi</h2><p>Lettre calée sur le poste, tableau de bord des candidatures et historique.</p></div>
+    </div>
+    <div class="foot">
+      <div>
+        <div class="url">dowsonbost.streamlit.app</div>
+        <div class="fine">Compte gratuit · Rapide 25 offres · Standard 60 · Complet 100</div>
+      </div>
+      <img class="qr" src="../assets/qr-dark.png" alt="QR" />
+    </div>
+  </article>
+</body>
+</html>
