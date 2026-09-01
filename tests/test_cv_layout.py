@@ -393,3 +393,63 @@ LIEU: Paris
     assert "Ne les supprime pas" in text
     assert "Missions d'origine" in text
 
+
+def _pdf_page_count(pdf_bytes: bytes) -> int:
+    import fitz
+
+    return fitz.open(stream=pdf_bytes, filetype="pdf").page_count
+
+
+def test_generated_cv_pdf_fits_on_one_a4_page():
+    cv = prepare_structured_cv(
+        SAMPLE_IT_CV,
+        job={"title": "Développeur Python"},
+        user_profile={"full_name": "Jane Doe"},
+    )
+    assert _pdf_page_count(render_cv_pdf(cv)) == 1
+
+
+def test_long_generated_cv_pdf_stays_on_one_a4_page():
+    bullets = "\n".join(
+        f"- Conception et industrialisation d'APIs REST Django {index} avec tests et CI/CD"
+        for index in range(1, 9)
+    )
+    jobs = []
+    for year, company in ((2023, "Alpha"), (2020, "Beta"), (2017, "Gamma"), (2014, "Delta")):
+        jobs.append(
+            f"POSTE: Ingénieur logiciel\nENTREPRISE: {company}\n"
+            f"PERIODE: {year} - {year + 3}\nLIEU: Paris\n{bullets}\n"
+        )
+    text = f"""
+NOM: Jane Doe
+TITRE: Développeuse Python
+EMAIL: jane@example.com
+TELEPHONE: +33 6 00 00 00 00
+VILLE: Paris
+
+## PROFIL
+Ingénieure backend Python spécialisée APIs, cloud et industrialisation. {"Parcours détaillé. " * 40}
+
+## COMPETENCES
+Python | Django | PostgreSQL | Docker | AWS | Kubernetes | Redis | Celery | React | TypeScript | CI/CD | Terraform
+
+## EXPERIENCE
+{"".join(jobs)}
+
+## FORMATION
+DIPLOME: Master Informatique
+ETABLISSEMENT: Université de Lyon
+PERIODE: 2012 - 2014
+
+## LANGUES
+Français (natif) | Anglais (C1)
+"""
+    cv = prepare_structured_cv(
+        text,
+        job={"title": "Développeur Python"},
+        user_profile={"full_name": "Jane Doe"},
+    )
+    pdf = render_cv_pdf(cv)
+    assert pdf.startswith(b"%PDF")
+    assert _pdf_page_count(pdf) == 1
+

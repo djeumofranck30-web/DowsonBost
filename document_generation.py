@@ -163,7 +163,8 @@ Règles strictes :
    - Tu NE DOIS PAS modifier PERIODE (dates) ni LIEU, ni l'entreprise : recopie-les tels quels.
 6. Ne invente JAMAIS de diplôme, entreprise, date, lieu ou certification.
 7. Réécriture complète (nouvelle structure, nouvelles formulations), pas un copier-coller.
-8. Document FINAL prêt à envoyer (norme France 2026 : une colonne, titres ATS classiques).
+8. Document FINAL prêt à envoyer (norme France 2026 : UNE page A4, une colonne, titres ATS classiques).
+   Profil court (3-4 lignes). Missions en puces d'une ligne, sans phrases longues.
    N'ajoute JAMAIS de section « Modifications appliquées », « Modifications à apporter au CV »,
    « MODIFICATIONS APPLIQUÉES » ni aucun journal de changements.
 
@@ -654,6 +655,7 @@ def generate_adapted_cv(
         "Tu NE CHANGES PAS PERIODE ni LIEU ni l'entreprise. "
         "Reformule TOUTES les missions du CV analysé, puis ajoute-en si l'offre le demande "
         "sans inventer un travail jamais fait. "
+        "Le CV tient sur UNE page A4 : puces courtes, pas de paragraphes longs. "
         "N'ajoute aucune section listant les modifications : le CV s'arrête après les rubriques métier."
     )
     generated = _generate_aligned_document(

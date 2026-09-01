@@ -118,7 +118,7 @@ Regles CV France 2026 (ATS + recruteur) :
 - Experiences en anti-chronologique, puces orientees resultats chiffres SI le CV original les contient (ne pas inventer).
 - Competences : 5 a 12 mots-cles, termes EXACTS de l'offre seulement s'ils correspondent au parcours.
 - Langues : niveau CECRL (A2/B1/B2/C1) si connu dans le CV.
-- 1 page visee (2 pages si parcours long). Pas de photo, pas d'icones, pas de graphique de competences.
+- UNE seule page A4 obligatoire : densite maximale, puces courtes (une ligne), pas de remplissage.
 - Verbes d'action en debut de puce. Aucune section « modifications ».
 """
 
@@ -2003,43 +2003,160 @@ def prepare_structured_cv(
 
 
 # ---------------------------------------------------------------------------
-# PDF renderer
+# PDF renderer — one A4 page, maximum usable area
 # ---------------------------------------------------------------------------
 
+@dataclass(frozen=True)
+class CvDensity:
+    """Typography and spacing for a single A4 page."""
+
+    key: str
+    side: float
+    academic_left: float
+    bottom: float
+    banner_h: float
+    name_pt: float
+    title_pt: float
+    contact_pt: float
+    section_pt: float
+    body_pt: float
+    job_pt: float
+    meta_pt: float
+    bullet_pt: float
+    bullet_h: float
+    para_h: float
+    chip_pt: float
+    chip_h: float
+    section_before: float
+    section_after: float
+    job_gap: float
+    header_gap: float
+    use_chips: bool
+
+
+CV_DENSITY_COMPACT = CvDensity(
+    key="compact",
+    side=10,
+    academic_left=12,
+    bottom=8,
+    banner_h=28,
+    name_pt=16,
+    title_pt=10,
+    contact_pt=8,
+    section_pt=9,
+    body_pt=8.5,
+    job_pt=10,
+    meta_pt=8,
+    bullet_pt=8,
+    bullet_h=3.55,
+    para_h=3.9,
+    chip_pt=7.5,
+    chip_h=5.0,
+    section_before=0.6,
+    section_after=1.4,
+    job_gap=0.7,
+    header_gap=2.4,
+    use_chips=True,
+)
+CV_DENSITY_TIGHT = CvDensity(
+    key="tight",
+    side=9,
+    academic_left=11,
+    bottom=7,
+    banner_h=24,
+    name_pt=15,
+    title_pt=9.5,
+    contact_pt=7.5,
+    section_pt=8.5,
+    body_pt=8,
+    job_pt=9.5,
+    meta_pt=7.5,
+    bullet_pt=7.5,
+    bullet_h=3.3,
+    para_h=3.6,
+    chip_pt=7,
+    chip_h=4.5,
+    section_before=0.25,
+    section_after=1.0,
+    job_gap=0.4,
+    header_gap=1.8,
+    use_chips=False,
+)
+CV_DENSITY_DENSE = CvDensity(
+    key="dense",
+    side=8,
+    academic_left=10,
+    bottom=6,
+    banner_h=22,
+    name_pt=14,
+    title_pt=9,
+    contact_pt=7,
+    section_pt=8,
+    body_pt=7.5,
+    job_pt=9,
+    meta_pt=7,
+    bullet_pt=7.2,
+    bullet_h=3.1,
+    para_h=3.35,
+    chip_pt=6.5,
+    chip_h=4.1,
+    section_before=0.1,
+    section_after=0.7,
+    job_gap=0.25,
+    header_gap=1.4,
+    use_chips=False,
+)
+CV_DENSITY_STEPS = (CV_DENSITY_COMPACT, CV_DENSITY_TIGHT, CV_DENSITY_DENSE)
+
+
 class ProfessionCvPdf(FPDF):
-    def __init__(self, template: CvTemplate, name: str, title: str):
+    def __init__(
+        self,
+        template: CvTemplate,
+        name: str,
+        title: str,
+        *,
+        density: CvDensity | None = None,
+        show_footer: bool = False,
+    ):
         super().__init__(format="A4", unit="mm")
         self.template = template
         self.doc_name = name
         self.doc_title = title
-        self.set_auto_page_break(auto=True, margin=18)
-        self.alias_nb_pages()
+        self.density = density or CV_DENSITY_COMPACT
+        self.show_footer = show_footer
+        self.set_auto_page_break(auto=True, margin=self.density.bottom)
+        self.set_top_margin(5)
+        if show_footer:
+            self.alias_nb_pages()
 
     def header(self) -> None:  # noqa: D401 — fpdf hook
-        if self.page_no() == 1:
+        if self.page_no() == 1 or not self.show_footer:
             return
         tpl = self.template
         self.set_fill_color(*tpl.primary)
-        self.rect(0, 0, 210, 9, "F")
+        self.rect(0, 0, 210, 7, "F")
         self.set_text_color(*tpl.header_text)
         self.set_font(tpl.font, "B", 8)
         label = pdf_safe_text(f"{self.doc_name}  |  {self.doc_title}")
-        self.set_xy(14, 2.2)
-        self.cell(182, 5, label, align="L")
-        self.set_y(14)
+        self.set_xy(self.l_margin, 1.4)
+        self.cell(210 - self.l_margin - self.r_margin, 4.2, label, align="L")
+        self.set_y(10)
 
     def footer(self) -> None:
+        if not self.show_footer:
+            return
         tpl = self.template
-        self.set_y(-14)
-        self.set_draw_color(*tpl.accent)
-        self.set_line_width(0.4)
-        self.line(14, self.get_y(), 196, self.get_y())
         self.set_y(-12)
+        self.set_draw_color(*tpl.accent)
+        self.set_line_width(0.3)
+        self.line(self.l_margin, self.get_y(), 210 - self.r_margin, self.get_y())
+        self.set_y(-10)
         self.set_font(tpl.font, "", 7)
         self.set_text_color(*tpl.muted)
         self.cell(
             0,
-            8,
+            6,
             pdf_safe_text(f"{self.doc_name}  ·  {tpl.label_fr}  ·  {self.page_no()}/{{nb}}"),
             align="C",
         )
@@ -2053,222 +2170,262 @@ def _set_text(pdf: FPDF, rgb: Rgb) -> None:
     pdf.set_text_color(*rgb)
 
 
-def _draw_banner_header(pdf: ProfessionCvPdf, cv: StructuredCV, height: float) -> None:
+def _content_width(pdf: ProfessionCvPdf) -> float:
+    return 210 - pdf.l_margin - pdf.r_margin
+
+
+def _draw_banner_header(pdf: ProfessionCvPdf, cv: StructuredCV) -> None:
     tpl = pdf.template
+    d = pdf.density
+    height = d.banner_h
+    left = pdf.l_margin
+    width = _content_width(pdf)
     _set_fill(pdf, tpl.primary)
     pdf.rect(0, 0, 210, height, "F")
     _set_fill(pdf, tpl.accent)
-    pdf.rect(0, height - 3.2, 210, 3.2, "F")
+    pdf.rect(0, height - 2.2, 210, 2.2, "F")
     _set_text(pdf, tpl.header_text)
-    pdf.set_xy(14, 12)
-    pdf.set_font(tpl.font, "B", 22)
-    pdf.cell(182, 10, pdf_safe_text(cv.name or "Candidat"), align="L")
-    pdf.set_xy(14, 24)
-    pdf.set_font(tpl.font, "", 12)
-    _set_text(pdf, tpl.accent)
-    pdf.set_text_color(
-        min(255, tpl.accent[0] + 40),
-        min(255, tpl.accent[1] + 40),
-        min(255, tpl.accent[2] + 40),
-    )
+    pdf.set_xy(left, 5.5)
+    pdf.set_font(tpl.font, "B", d.name_pt)
+    pdf.cell(width, 7, pdf_safe_text(cv.name or "Candidat"), align="L")
+    pdf.set_xy(left, 13.2)
+    pdf.set_font(tpl.font, "", d.title_pt)
     if tpl.layout == "banner":
         pdf.set_text_color(220, 236, 240)
-    pdf.cell(182, 7, pdf_safe_text(cv.title), align="L")
-    contact = "   ·   ".join(
+    else:
+        _set_text(pdf, tpl.accent)
+    pdf.cell(width, 5, pdf_safe_text(cv.title), align="L")
+    contact = "  ·  ".join(
         p for p in (cv.email, cv.phone, cv.location, cv.linkedin or cv.website) if p
     )
     if contact:
-        pdf.set_xy(14, 33)
-        pdf.set_font(tpl.font, "", 9)
+        pdf.set_xy(left, 19.2)
+        pdf.set_font(tpl.font, "", d.contact_pt)
         _set_text(pdf, tpl.header_text)
-        pdf.cell(182, 5, pdf_safe_text(contact), align="L")
-    pdf.set_y(height + 8)
+        pdf.multi_cell(width, 3.5, pdf_safe_text(contact))
+    pdf.set_y(height + d.header_gap)
 
 
 def _draw_classic_header(pdf: ProfessionCvPdf, cv: StructuredCV) -> None:
     tpl = pdf.template
+    d = pdf.density
     _set_fill(pdf, tpl.primary)
-    pdf.rect(0, 0, 210, 8, "F")
+    pdf.rect(0, 0, 210, 5.5, "F")
     _set_fill(pdf, tpl.accent)
-    pdf.rect(0, 8, 210, 1.6, "F")
-    pdf.set_y(16)
+    pdf.rect(0, 5.5, 210, 1.3, "F")
+    pdf.set_y(9)
     _set_text(pdf, tpl.primary)
-    pdf.set_font(tpl.font, "B", 20)
-    pdf.cell(0, 9, pdf_safe_text(cv.name or "Candidat"), align="C")
-    pdf.ln(8)
-    pdf.set_font(tpl.font, "I", 12)
+    pdf.set_font(tpl.font, "B", d.name_pt)
+    pdf.cell(0, 6.5, pdf_safe_text(cv.name or "Candidat"), align="C")
+    pdf.ln(6.2)
+    pdf.set_font(tpl.font, "I", d.title_pt)
     _set_text(pdf, tpl.accent)
-    pdf.cell(0, 7, pdf_safe_text(cv.title), align="C")
-    pdf.ln(7)
+    pdf.cell(0, 5, pdf_safe_text(cv.title), align="C")
+    pdf.ln(5)
     contact = "  ·  ".join(
         p for p in (cv.email, cv.phone, cv.location, cv.linkedin or cv.website) if p
     )
     if contact:
-        pdf.set_font(tpl.font, "", 9)
+        pdf.set_font(tpl.font, "", d.contact_pt)
         _set_text(pdf, tpl.muted)
-        pdf.cell(0, 5, pdf_safe_text(contact), align="C")
-        pdf.ln(5)
+        pdf.cell(0, 4, pdf_safe_text(contact), align="C")
+        pdf.ln(4)
     pdf.set_draw_color(*tpl.primary)
-    pdf.set_line_width(0.3)
-    y = pdf.get_y() + 2
-    pdf.line(50, y, 160, y)
-    pdf.set_y(y + 6)
+    pdf.set_line_width(0.25)
+    y = pdf.get_y() + 1.2
+    pdf.line(pdf.l_margin + 28, y, 210 - pdf.r_margin - 28, y)
+    pdf.set_y(y + d.header_gap)
 
 
 def _draw_academic_header(pdf: ProfessionCvPdf, cv: StructuredCV) -> None:
     tpl = pdf.template
+    d = pdf.density
     _set_fill(pdf, tpl.primary)
-    pdf.rect(0, 0, 8, 297, "F")
+    pdf.rect(0, 0, 6, 297, "F")
     _set_fill(pdf, tpl.accent)
-    pdf.rect(8, 0, 2.2, 297, "F")
-    pdf.set_xy(18, 14)
+    pdf.rect(6, 0, 1.8, 297, "F")
+    left = pdf.l_margin
+    width = _content_width(pdf)
+    pdf.set_xy(left, 8)
     _set_text(pdf, tpl.primary)
-    pdf.set_font(tpl.font, "B", 20)
-    pdf.cell(178, 9, pdf_safe_text(cv.name or "Candidat"), align="L")
-    pdf.set_xy(18, 24)
-    pdf.set_font(tpl.font, "I", 12)
+    pdf.set_font(tpl.font, "B", d.name_pt)
+    pdf.cell(width, 6.5, pdf_safe_text(cv.name or "Candidat"), align="L")
+    pdf.set_xy(left, 15.2)
+    pdf.set_font(tpl.font, "I", d.title_pt)
     _set_text(pdf, tpl.accent)
-    pdf.cell(178, 7, pdf_safe_text(cv.title), align="L")
+    pdf.cell(width, 5, pdf_safe_text(cv.title), align="L")
     contact = "  ·  ".join(
         p for p in (cv.email, cv.phone, cv.location, cv.linkedin or cv.website) if p
     )
     if contact:
-        pdf.set_xy(18, 33)
-        pdf.set_font(tpl.font, "", 9)
+        pdf.set_xy(left, 21.2)
+        pdf.set_font(tpl.font, "", d.contact_pt)
         _set_text(pdf, tpl.muted)
-        pdf.cell(178, 5, pdf_safe_text(contact), align="L")
-    pdf.set_y(44)
+        pdf.multi_cell(width, 3.5, pdf_safe_text(contact))
+        pdf.set_y(pdf.get_y() + d.header_gap)
+    else:
+        pdf.set_y(26 + d.header_gap)
 
 
 def _section_title(pdf: ProfessionCvPdf, label: str) -> None:
     tpl = pdf.template
-    pdf.ln(2)
-    if pdf.get_y() > 262:
-        pdf.add_page()
+    d = pdf.density
+    pdf.ln(d.section_before)
     _set_text(pdf, tpl.primary)
-    pdf.set_font(tpl.font, "B", 10)
-    pdf.cell(0, 6, pdf_safe_text(label), align="L")
-    pdf.ln(6)
+    pdf.set_font(tpl.font, "B", d.section_pt)
+    pdf.cell(0, 4.6, pdf_safe_text(label), align="L")
+    pdf.ln(4.6)
     y = pdf.get_y()
     pdf.set_draw_color(*tpl.accent)
-    pdf.set_line_width(0.7)
-    left = 18 if tpl.layout == "academic" else 14
-    pdf.line(left, y, left + 46, y)
-    pdf.ln(3)
+    pdf.set_line_width(0.55)
+    pdf.line(pdf.l_margin, y, pdf.l_margin + 38, y)
+    pdf.ln(d.section_after)
 
 
 def _write_paragraph(pdf: ProfessionCvPdf, text: str) -> None:
     tpl = pdf.template
+    d = pdf.density
     _set_text(pdf, tpl.ink)
-    pdf.set_font(tpl.font, "", 10)
-    pdf.multi_cell(0, 5, pdf_safe_text(text))
-    pdf.ln(1)
+    pdf.set_font(tpl.font, "", d.body_pt)
+    pdf.multi_cell(0, d.para_h, pdf_safe_text(text))
+    pdf.ln(0.4)
 
 
 def _draw_chips(pdf: ProfessionCvPdf, items: list[str]) -> None:
     tpl = pdf.template
+    d = pdf.density
     left = pdf.l_margin
     right = 210 - pdf.r_margin
     x = left
     y = pdf.get_y()
-    pdf.set_font(tpl.font, "", 8)
+    row_h = d.chip_h + 1.2
+    pdf.set_font(tpl.font, "", d.chip_pt)
     for item in items:
         label = pdf_safe_text(item)
-        width = pdf.get_string_width(label) + 6
+        width = pdf.get_string_width(label) + 5
         if x + width > right:
             x = left
-            y += 7
-        if y > 270:
-            pdf.add_page()
-            y = pdf.get_y()
-            x = left
+            y += row_h
         _set_fill(pdf, tpl.chip_bg)
         try:
-            pdf.rounded_rect(x, y, width, 6, 1.4, "F")
+            pdf.rounded_rect(x, y, width, d.chip_h, 1.1, "F")
         except Exception:
-            pdf.rect(x, y, width, 6, "F")
+            pdf.rect(x, y, width, d.chip_h, "F")
         _set_text(pdf, tpl.chip_text)
-        pdf.set_xy(x, y + 0.6)
-        pdf.cell(width, 5, label, align="C")
-        x += width + 2.2
-    pdf.set_y(y + 9)
+        pdf.set_xy(x, y + 0.35)
+        pdf.cell(width, d.chip_h - 0.4, label, align="C")
+        x += width + 1.6
+    pdf.set_y(y + d.chip_h + 2.2)
 
 
 def _draw_bullets(pdf: ProfessionCvPdf, items: list[str]) -> None:
     tpl = pdf.template
-    pdf.set_font(tpl.font, "", 9.5)
+    d = pdf.density
+    pdf.set_font(tpl.font, "", d.bullet_pt)
     _set_text(pdf, tpl.ink)
     bullet_x = pdf.l_margin
-    text_x = pdf.l_margin + 4
+    text_x = pdf.l_margin + 3.2
     width = 210 - pdf.r_margin - text_x
     for item in items:
-        if pdf.get_y() > 272:
-            pdf.add_page()
         y = pdf.get_y()
         _set_fill(pdf, tpl.accent)
-        pdf.ellipse(bullet_x + 0.6, y + 1.6, 1.5, 1.5, "F")
+        pdf.ellipse(bullet_x + 0.4, y + 1.15, 1.2, 1.2, "F")
         pdf.set_xy(text_x, y)
-        pdf.multi_cell(width, 4.6, pdf_safe_text(item))
-        pdf.ln(0.4)
+        pdf.multi_cell(width, d.bullet_h, pdf_safe_text(item))
+        pdf.ln(0.15)
 
 
 def _draw_experience(pdf: ProfessionCvPdf, job: ExperienceEntry) -> None:
     tpl = pdf.template
-    if pdf.get_y() > 258:
-        pdf.add_page()
+    d = pdf.density
     _set_text(pdf, tpl.ink)
-    pdf.set_font(tpl.font, "B", 11)
+    pdf.set_font(tpl.font, "B", d.job_pt)
     title = pdf_safe_text(job.title or "Poste")
     period = pdf_safe_text(job.period)
-    pdf.cell(128, 6, title, align="L")
+    pdf.cell(_content_width(pdf) - 32, 4.8, title, align="L")
     if period:
-        pdf.set_font(tpl.font, "", 9)
+        pdf.set_font(tpl.font, "", d.meta_pt)
         _set_text(pdf, tpl.muted)
-        pdf.cell(0, 6, period, align="R")
-    pdf.ln(6)
+        pdf.cell(32, 4.8, period, align="R")
+    pdf.ln(4.8)
     meta = "  ·  ".join(p for p in (job.company, job.location) if p)
     if meta:
-        pdf.set_font(tpl.font, "I", 9.5)
+        pdf.set_font(tpl.font, "I", d.meta_pt)
         _set_text(pdf, tpl.accent)
-        pdf.cell(0, 5, pdf_safe_text(meta), align="L")
-        pdf.ln(5)
+        pdf.cell(0, 4, pdf_safe_text(meta), align="L")
+        pdf.ln(4)
     if job.bullets:
         _draw_bullets(pdf, job.bullets)
-    pdf.ln(1.5)
+    pdf.ln(d.job_gap)
 
 
 def _draw_education(pdf: ProfessionCvPdf, item: EducationEntry) -> None:
     tpl = pdf.template
+    d = pdf.density
     _set_text(pdf, tpl.ink)
-    pdf.set_font(tpl.font, "B", 10.5)
-    pdf.cell(128, 5.5, pdf_safe_text(item.diploma or item.school), align="L")
+    pdf.set_font(tpl.font, "B", d.job_pt - 0.4)
+    pdf.cell(_content_width(pdf) - 32, 4.4, pdf_safe_text(item.diploma or item.school), align="L")
     if item.period:
-        pdf.set_font(tpl.font, "", 9)
+        pdf.set_font(tpl.font, "", d.meta_pt)
         _set_text(pdf, tpl.muted)
-        pdf.cell(0, 5.5, pdf_safe_text(item.period), align="R")
-    pdf.ln(5.5)
+        pdf.cell(32, 4.4, pdf_safe_text(item.period), align="R")
+    pdf.ln(4.4)
     if item.school and item.diploma:
-        pdf.set_font(tpl.font, "I", 9.5)
+        pdf.set_font(tpl.font, "I", d.meta_pt)
         _set_text(pdf, tpl.accent)
-        pdf.cell(0, 5, pdf_safe_text(item.school), align="L")
-        pdf.ln(5)
+        pdf.cell(0, 3.8, pdf_safe_text(item.school), align="L")
+        pdf.ln(3.8)
     if item.details:
-        pdf.set_font(tpl.font, "", 9)
+        pdf.set_font(tpl.font, "", d.bullet_pt)
         _set_text(pdf, tpl.ink)
-        pdf.multi_cell(0, 4.5, pdf_safe_text(item.details))
-    pdf.ln(1)
+        pdf.multi_cell(0, d.bullet_h, pdf_safe_text(item.details))
+    pdf.ln(0.5)
 
 
-def render_cv_pdf(cv: StructuredCV) -> bytes:
-    """Render a structured CV with the profession template."""
+def _compact_structured_cv(cv: StructuredCV, level: int) -> StructuredCV:
+    """Drop optional padding so a long CV still fits on one A4 page."""
+    if level <= 0:
+        return cv
+    extras = dict(cv.extras)
+    if level >= 1:
+        extras.pop("interests", None)
+    skills = list(cv.skills)
+    profile = cv.profile
+    experiences = list(cv.experiences)
+    education = list(cv.education)
+    bullet_cap = {1: 6, 2: 4, 3: 3}.get(level, 8)
+    job_cap = {1: 6, 2: 5, 3: 4}.get(level, 12)
+    if level >= 1:
+        skills = skills[:16]
+    if level >= 2:
+        skills = skills[:12]
+        if len(profile) > 420:
+            profile = profile[:417].rstrip() + "..."
+    if level >= 3:
+        extras = {}
+        education = education[:3]
+    experiences = [
+        replace(job, bullets=list(job.bullets)[:bullet_cap]) for job in experiences[:job_cap]
+    ]
+    return replace(
+        cv,
+        profile=profile,
+        skills=skills,
+        experiences=experiences,
+        education=education,
+        extras=extras,
+    )
+
+
+def _paint_cv_pdf(cv: StructuredCV, density: CvDensity) -> ProfessionCvPdf:
     tpl = template_for(cv.family)
-    pdf = ProfessionCvPdf(tpl, cv.name or "Candidat", cv.title or tpl.label_fr)
+    pdf = ProfessionCvPdf(tpl, cv.name or "Candidat", cv.title or tpl.label_fr, density=density)
     if tpl.layout == "academic":
-        pdf.set_left_margin(18)
-        pdf.set_right_margin(14)
+        pdf.set_left_margin(density.academic_left)
+        pdf.set_right_margin(density.side)
     else:
-        pdf.set_left_margin(14)
-        pdf.set_right_margin(14)
+        pdf.set_left_margin(density.side)
+        pdf.set_right_margin(density.side)
     pdf.add_page()
     pdf.set_fill_color(*tpl.paper)
 
@@ -2277,7 +2434,7 @@ def render_cv_pdf(cv: StructuredCV) -> bytes:
     elif tpl.layout == "academic":
         _draw_academic_header(pdf, cv)
     else:
-        _draw_banner_header(pdf, cv, 42)
+        _draw_banner_header(pdf, cv)
 
     extras_alias = {
         "projects": cv.extras.get("projects") or cv.extras.get("autres") or [],
@@ -2294,13 +2451,13 @@ def render_cv_pdf(cv: StructuredCV) -> bytes:
             _write_paragraph(pdf, cv.profile)
         elif key == "skills" and cv.skills:
             _section_title(pdf, title)
-            if tpl.layout == "banner":
+            if density.use_chips and tpl.layout == "banner":
                 _draw_chips(pdf, cv.skills)
             else:
                 _write_paragraph(pdf, " · ".join(cv.skills))
         elif key == "languages" and cv.languages:
             _section_title(pdf, title)
-            if tpl.layout == "banner":
+            if density.use_chips and tpl.layout == "banner":
                 _draw_chips(pdf, cv.languages)
             else:
                 _write_paragraph(pdf, " · ".join(cv.languages))
@@ -2319,7 +2476,18 @@ def render_cv_pdf(cv: StructuredCV) -> bytes:
     if cv.raw_body and not (cv.profile or cv.experiences):
         _section_title(pdf, ats_section_title("profile"))
         _write_paragraph(pdf, cv.raw_body)
+    return pdf
 
+
+def render_cv_pdf(cv: StructuredCV) -> bytes:
+    """Render a structured CV on a single A4 page."""
+    pdf: ProfessionCvPdf | None = None
+    for density in CV_DENSITY_STEPS:
+        for trim in (0, 1, 2, 3):
+            pdf = _paint_cv_pdf(_compact_structured_cv(cv, trim), density)
+            if pdf.page <= 1 and pdf.get_y() <= pdf.h - pdf.b_margin + 1.5:
+                return bytes(pdf.output())
+    assert pdf is not None
     return bytes(pdf.output())
 
 
