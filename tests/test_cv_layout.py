@@ -12,6 +12,7 @@ from cv_layout import (
     render_adapted_cv_pdf,
     render_cv_html,
     render_cv_pdf,
+    restore_experience_dates_locations,
     split_modifications,
     template_for,
     template_label,
@@ -275,3 +276,38 @@ def test_generate_adapted_cv_strips_llm_appendix_and_uses_template():
     assert "Jane Doe" in result
     assert "Informatique" in captured["system"] or "it" in captured["system"]
     assert "N'ajoute JAMAIS" in ADAPTED_CV_SYSTEM_PROMPT
+    assert "PERIODE" in captured["system"] or "dates" in captured["system"].lower()
+
+
+def test_restore_experience_keeps_dates_and_place_but_adapted_title():
+    original = parse_adapted_cv(
+        """
+NOM: Jane Doe
+TITRE: Développeuse Python
+## EXPERIENCE
+POSTE: Développeuse Python
+ENTREPRISE: Acme
+PERIODE: 2022 - 2025
+LIEU: Lyon
+- APIs REST
+"""
+    )
+    generated = parse_adapted_cv(
+        """
+NOM: Jane Doe
+TITRE: Ingénieure backend
+## EXPERIENCE
+POSTE: Ingénieure backend Python
+ENTREPRISE: Acme
+PERIODE: 2020 - 2024
+LIEU: Paris
+- APIs REST Django
+"""
+    )
+    restored = restore_experience_dates_locations(generated, original)
+    job = restored.experiences[0]
+    assert job.title == "Ingénieure backend Python"
+    assert job.period == "2022 - 2025"
+    assert job.location == "Lyon"
+    assert job.company == "Acme"
+

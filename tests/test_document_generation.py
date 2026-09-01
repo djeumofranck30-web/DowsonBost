@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from cv_layout import parse_adapted_cv
 from document_generation import (
     adapted_competences,
     collect_alignment_terms,
@@ -170,3 +171,69 @@ def test_generate_cover_letter_requires_company_and_keywords():
     assert "Django" in letter
     assert "Kubernetes" in letter or "kubernetes" in letter.lower()
     assert len(calls) >= 2
+    assert "dates" in calls[0].lower() or "lieu" in calls[0].lower()
+    assert "EXPÉRIENCES VERROUILLÉES" in calls[0] or "verrouill" in calls[0].lower()
+
+
+STRUCTURED_ORIGINAL_CV = """
+NOM: Jane Doe
+TITRE: Développeuse Python
+EMAIL: jane@example.com
+VILLE: Lyon
+
+## COMPETENCES
+Python | Django | PostgreSQL | Docker | AWS
+
+## EXPERIENCE
+POSTE: Développeuse Python
+ENTREPRISE: Acme
+PERIODE: 2022 - 2025
+LIEU: Lyon
+- Conception d'APIs REST
+- Mise en place CI/CD
+"""
+
+LLM_CHANGED_DATES_CV = """
+NOM: Jane Doe
+TITRE: Développeuse Python
+EMAIL: jane@example.com
+VILLE: Paris
+
+## PROFIL
+Développeuse Python spécialisée Django et APIs REST.
+
+## COMPETENCES
+Python | Django | PostgreSQL | Docker | AWS | Kubernetes
+
+## EXPERIENCE
+POSTE: Ingénieure backend Python
+ENTREPRISE: Acme
+PERIODE: 2019 - 2024
+LIEU: Paris
+- Conception d'APIs REST
+- Mise en place CI/CD Docker
+"""
+
+
+def test_generate_adapted_cv_restores_original_dates_and_location():
+    def fake_llm(system: str, user: str, **kwargs: object) -> str:
+        assert "PERIODE" in user or "Dates=" in user
+        assert "Lyon" in user
+        return LLM_CHANGED_DATES_CV
+
+    result = generate_adapted_cv(
+        STRUCTURED_ORIGINAL_CV,
+        JOB,
+        FULL_MATCH,
+        {"full_name": "Jane Doe"},
+        llm_call=fake_llm,
+    )
+    parsed = parse_adapted_cv(result)
+    assert parsed.experiences
+    job = parsed.experiences[0]
+    assert job.title == "Ingénieure backend Python"
+    assert job.period == "2022 - 2025"
+    assert job.location == "Lyon"
+    assert "2019" not in result
+    assert "Django" in result
+

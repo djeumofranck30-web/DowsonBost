@@ -1696,8 +1696,148 @@ def enrich_structured_cv(
             found.group(0).strip() if found else ""
         )
     if not cv.location:
-        updates["location"] = str(user_profile.get("city") or user_profile.get("location") or "").strip()
+        updates["location"] = str(
+            user_profile.get("home_city")
+            or user_profile.get("city")
+            or user_profile.get("location")
+            or ""
+        ).strip()
     return replace(cv, **updates)
+
+
+def serialize_locked_experiences(experiences: list[ExperienceEntry]) -> str:
+    """Prompt block: dates and workplaces stay frozen; titles may be adapted."""
+    lines = [
+        "=== EXPÉRIENCES VERROUILLÉES ===",
+        "Tu PEUX adapter le TITRE du poste (POSTE) pour coller à l'offre.",
+        "Tu NE DOIS PAS changer l'entreprise, les DATES (PERIODE) ni le LIEU.",
+        "Recopie PERIODE et LIEU caractère pour caractère.",
+    ]
+    if not experiences:
+        lines.append(
+            "Si le CV original est peu structuré, recopie quand même chaque date et chaque ville "
+            "telles quelles ; n'invente aucune période ni aucun lieu."
+        )
+        return "\n".join(lines)
+    lines.append("Liste à respecter :")
+    for index, job in enumerate(experiences, start=1):
+        lines.append(
+            f"  {index}. Entreprise={job.company or '—'} | "
+            f"Dates={job.period or '—'} | Lieu={job.location or '—'} | "
+            f"Titre actuel={job.title or '—'} (titre adaptable)"
+        )
+    return "\n".join(lines)
+
+
+def _match_original_experience(
+    generated: ExperienceEntry,
+    originals: list[ExperienceEntry],
+    used: set[int],
+) -> int | None:
+    gen_company = _fold(generated.company).strip()
+    if gen_company:
+        for index, source in enumerate(originals):
+            if index in used:
+                continue
+            src_company = _fold(source.company).strip()
+            if src_company and (
+                src_company == gen_company
+                or src_company in gen_company
+                or gen_company in src_company
+            ):
+                return index
+    gen_title = _fold(generated.title).strip()
+    if gen_title:
+        for index, source in enumerate(originals):
+            if index in used:
+                continue
+            src_title = _fold(source.title).strip()
+            if src_title and (
+                src_title == gen_title or src_title in gen_title or gen_title in src_title
+            ):
+                return index
+    return None
+
+
+def restore_experience_dates_locations(
+    generated: StructuredCV,
+    original: StructuredCV,
+) -> StructuredCV:
+    """Keep original dates and workplaces; leave adapted job titles untouched."""
+    originals = original.experiences
+    if not originals or not generated.experiences:
+        return generated
+    used: set[int] = set()
+    updated: list[ExperienceEntry] = []
+    for index, job in enumerate(generated.experiences):
+        match_index = _match_original_experience(job, originals, used)
+        if match_index is None and not _fold(job.company).strip():
+            if index < len(originals) and index not in used:
+                match_index = index
+        if match_index is None:
+            updated.append(job)
+            continue
+        used.add(match_index)
+        source = originals[match_index]
+        updated.append(
+            replace(
+                job,
+                period=source.period or job.period,
+                location=source.location or job.location,
+                company=source.company or job.company,
+            )
+        )
+    return replace(generated, experiences=updated)
+
+
+def labeled_cv_text(cv: StructuredCV, *, fallback: str = "") -> str:
+    """Serialize a structured CV back to the LLM labeled format."""
+    if not (cv.name or cv.title or cv.experiences or cv.skills or cv.profile):
+        return fallback
+    lines: list[str] = []
+    if cv.name:
+        lines.append(f"NOM: {cv.name}")
+    if cv.title:
+        lines.append(f"TITRE: {cv.title}")
+    if cv.email:
+        lines.append(f"EMAIL: {cv.email}")
+    if cv.phone:
+        lines.append(f"TELEPHONE: {cv.phone}")
+    if cv.location:
+        lines.append(f"VILLE: {cv.location}")
+    if cv.profile:
+        lines.extend(["", "## PROFIL", cv.profile])
+    if cv.skills:
+        lines.extend(["", "## COMPETENCES", " | ".join(cv.skills)])
+    if cv.experiences:
+        lines.extend(["", "## EXPERIENCE"])
+        for job in cv.experiences:
+            if job.title:
+                lines.append(f"POSTE: {job.title}")
+            if job.company:
+                lines.append(f"ENTREPRISE: {job.company}")
+            if job.period:
+                lines.append(f"PERIODE: {job.period}")
+            if job.location:
+                lines.append(f"LIEU: {job.location}")
+            for bullet in job.bullets:
+                lines.append(f"- {bullet}")
+            lines.append("")
+    if cv.education:
+        lines.extend(["", "## FORMATION"])
+        for item in cv.education:
+            if item.diploma:
+                lines.append(f"DIPLOME: {item.diploma}")
+            if item.school:
+                lines.append(f"ETABLISSEMENT: {item.school}")
+            if item.period:
+                lines.append(f"PERIODE: {item.period}")
+            if item.details:
+                lines.append(item.details)
+    if cv.languages:
+        lines.extend(["", "## LANGUES", " | ".join(cv.languages)])
+    text = "\n".join(lines).strip()
+    return text or fallback
 
 
 def public_cv_text(cv: StructuredCV) -> str:

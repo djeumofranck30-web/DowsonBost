@@ -6,7 +6,15 @@ import re
 import unicodedata
 from typing import Any, Callable
 
-from cv_layout import build_cv_system_addon, cv_text_for_candidate, detect_job_family
+from cv_layout import (
+    build_cv_system_addon,
+    cv_text_for_candidate,
+    detect_job_family,
+    labeled_cv_text,
+    parse_adapted_cv,
+    restore_experience_dates_locations,
+    serialize_locked_experiences,
+)
 
 MAX_ALIGNMENT_REWRITES = 2
 
@@ -111,7 +119,8 @@ Structure :
 - Paragraphe motivation + adéquation profil / offre (reprends le titre CV recommandé)
 - Paragraphe compétences : cite nommément les compétences présentes et partielles de l'analyse ATS
   et les mots-clés de l'offre que le candidat possède déjà
-- Paragraphe expériences : reformule les missions pertinentes avec le vocabulaire de l'annonce
+- Paragraphe expériences : reformule les missions pertinentes avec le vocabulaire de l'annonce.
+  Tu peux adapter le TITRE du poste ; recopie EXACTEMENT les dates et le lieu du CV original.
 - Conclusion / disponibilité avec appel à l'action
 
 Règles :
@@ -119,6 +128,7 @@ Règles :
 - Cite nommément les compétences de l'offre (y compris une techno exigée absente du CV original,
   uniquement comme compétence, sans inventer un poste).
 - Ne invente pas de diplômes, employeurs, dates ou certifications.
+- Ne change JAMAIS les dates ni le lieu d'une expérience personnelle (ville, période).
 - Si un mot-clé de l'offre correspond à une mission déjà décrite, utilise le mot-clé de l'offre.
 - Retourne UNIQUEMENT le texte de la lettre (pas de JSON, pas de markdown).
 """
@@ -140,8 +150,10 @@ Règles strictes :
    le mot-clé, pas un faux job). Ensuite, les autres compétences réelles du CV original.
 4. Intègre les synonymes de l'offre (JS → JavaScript) et les mots-clés manquants.
 5. Reformule les missions des expériences pertinentes avec le vocabulaire EXACT de l'offre.
+   Tu PEUX adapter le champ POSTE (titre) pour coller à l'offre.
+   Tu NE DOIS PAS modifier PERIODE (dates) ni LIEU, ni l'entreprise : recopie-les tels quels.
    N'invente pas une mission entière autour d'une techno ajoutée : elle va dans COMPETENCES.
-6. Ne invente JAMAIS de diplôme, entreprise, date ou certification.
+6. Ne invente JAMAIS de diplôme, entreprise, date, lieu ou certification.
 7. Réécriture complète (nouvelle structure, nouvelles formulations), pas un copier-coller.
 8. Document FINAL prêt à envoyer (norme France 2026 : une colonne, titres ATS classiques).
    N'ajoute JAMAIS de section « Modifications appliquées », « Modifications à apporter au CV »,
@@ -458,6 +470,11 @@ def _match_analysis_block(match: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _locked_experience_block(cv_text: str) -> str:
+    source = parse_adapted_cv(cv_text)
+    return serialize_locked_experiences(source.experiences)
+
+
 def _candidate_block(
     cv_text: str,
     match: dict[str, Any],
@@ -468,6 +485,7 @@ def _candidate_block(
     return (
         f"Nom candidat : {name}\n"
         f"Poste visé (profil) : {target}\n\n"
+        f"{_locked_experience_block(cv_text)}\n\n"
         f"=== ANALYSE ATS POUR CETTE OFFRE ===\n"
         f"{_match_analysis_block(match)}\n\n"
         f"=== CV ORIGINAL (source de vérité — ne pas inventer au-delà) ===\n"
@@ -528,7 +546,8 @@ def _rewrite_instruction(kind: str, gaps: list[str]) -> str:
         f"Le {label} précédent n'est PAS encore aligné à 100 % sur l'offre. "
         f"Éléments encore absents :\n{gap_lines}\n\n"
         f"Réécris le {label} COMPLET (pas un diff) en intégrant TOUS ces éléments. "
-        "Garde uniquement des faits présents dans le CV original."
+        "Garde uniquement des faits présents dans le CV original. "
+        "Ne change pas les dates ni le lieu des expériences ; tu peux adapter le titre du poste."
     )
 
 
@@ -561,6 +580,15 @@ def _generate_aligned_document(
     return text
 
 
+def _restore_experience_anchors(generated_text: str, original_cv: str) -> str:
+    """Force original experience dates and locations back onto the rewritten CV."""
+    cleaned = cv_text_for_candidate(generated_text)
+    generated = parse_adapted_cv(cleaned)
+    original = parse_adapted_cv(original_cv)
+    restored = restore_experience_dates_locations(generated, original)
+    return labeled_cv_text(restored, fallback=cleaned) or cleaned
+
+
 def generate_cover_letter(
     cv_text: str,
     job: dict[str, Any],
@@ -577,7 +605,9 @@ def generate_cover_letter(
         "Rédige la lettre de motivation. Elle doit coller à 100 % à cette offre : "
         "reprends le titre, l'entreprise, et cite nommément les compétences de l'offre "
         "(y compris une techno exigée absente du CV original) ainsi que l'intention "
-        "de chaque modification ATS. Pas de faux employeur, diplôme ou date."
+        "de chaque modification ATS. "
+        "Tu peux adapter le titre d'un poste ; recopie exactement les dates et le lieu "
+        "de chaque expérience. Pas de faux employeur, diplôme, date ou ville."
     )
     return _generate_aligned_document(
         kind="letter",
@@ -610,9 +640,11 @@ def generate_adapted_cv(
         "cette liste, sans faux poste), libellés exacts séparés par | , puis le reste du CV. "
         "Applique TOUTES les modifications ATS DANS le corps du CV "
         "(reformulations, mots-clés, ordre des sections). "
+        "Tu PEUX changer le POSTE (titre d'expérience) pour coller à l'offre. "
+        "Tu NE CHANGES PAS PERIODE ni LIEU ni l'entreprise. "
         "N'ajoute aucune section listant les modifications : le CV s'arrête après les rubriques métier."
     )
-    return _generate_aligned_document(
+    generated = _generate_aligned_document(
         kind="cv",
         system_prompt=ADAPTED_CV_SYSTEM_PROMPT + build_cv_system_addon(family),
         base_user_prompt=user_prompt,
@@ -621,3 +653,4 @@ def generate_adapted_cv(
         max_tokens=4800,
         postprocess=cv_text_for_candidate,
     )
+    return _restore_experience_anchors(generated, cv_text)
