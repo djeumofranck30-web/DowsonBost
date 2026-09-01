@@ -60,7 +60,10 @@ def export_streamlit_secrets_to_environ() -> int:
         "DATABASE_PASSWORD",
         "OPENAI_API_KEY",
         "GROQ_API_KEY",
+        "GROQ_API_KEYS",
         "GEMINI_API_KEY",
+        "GEMINI_API_KEYS",
+        "OPENAI_API_KEYS",
         "AI_PROVIDER",
         "ADZUNA_APP_ID",
         "ADZUNA_APP_KEY",
@@ -69,6 +72,11 @@ def export_streamlit_secrets_to_environ() -> int:
         "CAREERJET_API_KEY",
         "APIFY_API_TOKEN",
         "RESEND_API_KEY",
+        *(
+            f"{prefix}_{index}"
+            for prefix in ("GROQ_API_KEY", "GEMINI_API_KEY", "OPENAI_API_KEY")
+            for index in range(2, 9)
+        ),
     ):
         if fallback not in keys:
             keys.append(fallback)
@@ -83,7 +91,8 @@ def export_streamlit_secrets_to_environ() -> int:
         if isinstance(raw, dict):
             continue
         if isinstance(raw, list):
-            text = normalize_secret(str(raw[0])) if raw else ""
+            items = [normalize_secret(item) for item in raw if normalize_secret(item)]
+            text = json.dumps(items, ensure_ascii=False) if items else ""
         else:
             text = normalize_secret(raw)
         if not text:
@@ -134,6 +143,42 @@ def _as_secret_list(raw: Any) -> list[str]:
         if isinstance(parsed, list):
             return [str(item) for item in parsed]
     return [part.strip() for part in text.replace(";", ",").split(",") if part.strip()]
+
+
+_PROVIDER_SECRET_NAMES = {
+    "groq": ("GROQ_API_KEY", "GROQ_API_KEYS"),
+    "gemini": ("GEMINI_API_KEY", "GEMINI_API_KEYS"),
+    "openai": ("OPENAI_API_KEY", "OPENAI_API_KEYS"),
+}
+
+
+def collect_raw_provider_api_keys(provider: str, *, numbered_max: int = 8) -> list[str]:
+    """All configured keys for a provider: primary, list, and KEY_2…KEY_N."""
+    names = _PROVIDER_SECRET_NAMES.get(provider)
+    if not names:
+        return []
+    singular, plural = names
+    collected: list[str] = []
+    seen: set[str] = set()
+
+    def _extend(raw: Any) -> None:
+        for item in _as_secret_list(raw):
+            key = normalize_secret(item)
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            collected.append(key)
+
+    _extend(get_secret_raw(plural, ""))
+    primary = normalize_secret(get_secret(singular))
+    if primary:
+        if primary in seen:
+            collected.remove(primary)
+        collected.insert(0, primary)
+        seen.add(primary)
+    for index in range(2, max(2, int(numbered_max)) + 1):
+        _extend(get_secret_raw(f"{singular}_{index}", ""))
+    return collected
 
 
 def get_admin_emails() -> frozenset[str]:

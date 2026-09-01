@@ -93,7 +93,14 @@ from world_geo import (
     profile_countries,
     profile_primary_country,
 )
-from config import export_streamlit_secrets_to_environ, get_secret, get_secret_raw, normalize_secret
+from config import (
+    _as_secret_list,
+    collect_raw_provider_api_keys,
+    export_streamlit_secrets_to_environ,
+    get_secret,
+    get_secret_raw,
+    normalize_secret,
+)
 from constants import (
     ANALYSIS_DEPTH_OPTIONS,
     ANALYSIS_DEPTH_POOL,
@@ -112,6 +119,7 @@ from constants import (
     NAV_PAGE_KEYS,
     PARALLEL_MATCH_KEYS_PER_PROVIDER,
     PARALLEL_MATCH_MAX_WORKERS,
+    PARALLEL_MATCH_NUMBERED_KEY_MAX,
     PROFILE_SECTION_KEYS,
     SEARCH_LOCATION_MAX_WORKERS,
     TOP_MATCHING_JOBS,
@@ -431,15 +439,9 @@ def resolve_careerjet_referer(configured: str) -> str:
 
 def _split_api_keys(raw: Any) -> list[str]:
     """Parse one or many API keys from a secret (string, list, comma/newline separated)."""
-    candidates: list[str] = []
-    if isinstance(raw, list):
-        candidates = [str(item) for item in raw]
-    elif raw:
-        candidates = re.split(r"[\n,;]+", str(raw))
-
     keys: list[str] = []
     seen: set[str] = set()
-    for item in candidates:
+    for item in _as_secret_list(raw):
         key = normalize_secret(item)
         if not key or key in seen:
             continue
@@ -466,25 +468,13 @@ def _is_valid_provider_key(provider: str, key: str) -> bool:
 
 
 def get_provider_api_keys(provider: str) -> list[str]:
-    """Return all configured API keys for a provider (singular + plural secrets)."""
-    plural_names = {
-        "groq": "GROQ_API_KEYS",
-        "gemini": "GEMINI_API_KEYS",
-        "openai": "OPENAI_API_KEYS",
-    }
-    singular_names = {
-        "groq": "GROQ_API_KEY",
-        "gemini": "GEMINI_API_KEY",
-        "openai": "OPENAI_API_KEY",
-    }
-    collected = _split_api_keys(get_secret_raw(plural_names[provider], ""))
-    single = get_secret(singular_names[provider])
-    if single and single not in collected:
-        collected.insert(0, single)
-
+    """Return all configured API keys for a provider (primary, list, KEY_2…)."""
     valid: list[str] = []
     seen: set[str] = set()
-    for key in collected:
+    for key in collect_raw_provider_api_keys(
+        provider,
+        numbered_max=PARALLEL_MATCH_NUMBERED_KEY_MAX,
+    ):
         if key in seen or not _is_valid_provider_key(provider, key):
             continue
         seen.add(key)
@@ -495,7 +485,7 @@ def get_provider_api_keys(provider: str) -> list[str]:
 def collect_parallel_llm_slots(
     max_per_provider: int = PARALLEL_MATCH_KEYS_PER_PROVIDER,
 ) -> list[tuple[str, str]]:
-    """Build Groq + Gemini key slots (up to 3 each) for parallel ATS matching."""
+    """Build Groq + Gemini key slots (up to 8 each) for parallel ATS matching."""
     slots: list[tuple[str, str]] = []
     seen_pairs: set[tuple[str, str]] = set()
     groq_ok = not st.session_state.get("groq_quota_exhausted")
@@ -661,7 +651,12 @@ def render_gemini_key_help() -> None:
 3. **Streamlit Cloud** : *Manage app → Settings → Secrets* :
    ```toml
    GEMINI_API_KEY = "AQ.Ab8..."
+   GEMINI_API_KEY_2 = "AQ...."
+   GEMINI_API_KEY_3 = "AQ...."
+   GEMINI_API_KEY_4 = "AQ...."
+   GEMINI_API_KEY_5 = "AQ...."
    ```
+   *(ou `GEMINI_API_KEYS = ["…", "…"]` — jusqu'à 5 clés pour accélérer le matching)*.
 4. **Redéployez** l'app après modification (*Reboot app*).
         """
     )
@@ -712,12 +707,12 @@ def is_aq_gemini_key(key: str = "") -> bool:
 
 def should_use_gemini(**_kwargs: Any) -> bool:
     """Whether a Gemini API key is configured."""
-    return bool(get_secret("GEMINI_API_KEY"))
+    return bool(get_provider_api_keys("gemini"))
 
 
 def can_use_gemini_fallback() -> bool:
     """Gemini key present — may be used when Groq quota is hit."""
-    return bool(get_secret("GEMINI_API_KEY"))
+    return bool(get_provider_api_keys("gemini"))
 
 
 def get_ai_provider_preference() -> str:
@@ -730,11 +725,10 @@ def get_ai_provider_preference() -> str:
 
 def configured_llm_backends() -> dict[str, bool]:
     """Which LLM backends have API keys configured."""
-    gemini_key = get_secret("GEMINI_API_KEY")
     return {
-        "groq": bool(get_secret("GROQ_API_KEY")),
-        "gemini": bool(gemini_key),
-        "openai": bool(get_secret("OPENAI_API_KEY")),
+        "groq": bool(get_provider_api_keys("groq")),
+        "gemini": bool(get_provider_api_keys("gemini")),
+        "openai": bool(get_provider_api_keys("openai")),
     }
 
 
@@ -8012,9 +8006,9 @@ def render_config_tests_panel(*, show_clear_cache: bool = True, expanded: bool =
         apify_configured = bool(provider_secrets["apify_api_token"])
         has_adzuna = bool(adzuna_id and adzuna_key)
 
-        openai_configured = bool(get_secret("OPENAI_API_KEY"))
-        groq_configured = bool(get_secret("GROQ_API_KEY"))
-        gemini_configured = bool(get_secret("GEMINI_API_KEY"))
+        openai_configured = bool(get_provider_api_keys("openai"))
+        groq_configured = bool(get_provider_api_keys("groq"))
+        gemini_configured = bool(get_provider_api_keys("gemini"))
         ai_ready, ai_status = ai_setup_status()
         chain = get_llm_provider_chain()
         active = st.session_state.get(
@@ -8045,8 +8039,9 @@ def render_config_tests_panel(*, show_clear_cache: bool = True, expanded: bool =
             )
         else:
             st.caption(
-                "Matching parallèle : configurez **3 clés Groq** + **3 clés Gemini** "
-                "via `GROQ_API_KEY` + `GROQ_API_KEYS` et `GEMINI_API_KEY` + `GEMINI_API_KEYS`."
+                "Matching parallèle : ajoutez jusqu'à **5 clés Gemini** "
+                "(`GEMINI_API_KEY` + `GEMINI_API_KEY_2` … `_5`, ou `GEMINI_API_KEYS`) "
+                "pour analyser plusieurs offres en même temps."
             )
 
         if groq_configured:
@@ -8062,9 +8057,13 @@ def render_config_tests_panel(*, show_clear_cache: bool = True, expanded: bool =
             st.info("OpenAI : clé présente *(secours, crédits requis)*")
 
         if gemini_configured:
+            gemini_count = len(get_provider_api_keys("gemini"))
             g_status, g_msg = gemini_key_status()
-            if g_status == "ok":
-                st.info(f"Gemini : clé présente ({g_msg}) — secours auto")
+            if g_status == "ok" or gemini_count:
+                st.success(
+                    f"Gemini : **{gemini_count}** clé(s) pour le matching parallèle"
+                    + (f" ({g_msg})" if g_status == "ok" else "")
+                )
             else:
                 st.warning(f"Gemini : {g_msg}")
 
