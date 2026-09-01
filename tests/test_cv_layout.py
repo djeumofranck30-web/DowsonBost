@@ -6,6 +6,7 @@ from cv_layout import (
     cv_text_for_candidate,
     list_cv_templates,
     detect_job_family,
+    merge_experience_missions,
     parse_adapted_cv,
     prepare_structured_cv,
     public_cv_text,
@@ -13,6 +14,7 @@ from cv_layout import (
     render_cv_html,
     render_cv_pdf,
     restore_experience_dates_locations,
+    serialize_locked_experiences,
     split_modifications,
     template_for,
     template_label,
@@ -310,4 +312,84 @@ LIEU: Paris
     assert job.period == "2022 - 2025"
     assert job.location == "Lyon"
     assert job.company == "Acme"
+    assert any("APIs REST" in bullet or "Django" in bullet for bullet in job.bullets)
+
+
+def test_merge_keeps_reformulated_missions_and_restores_dropped_ones():
+    merged = merge_experience_missions(
+        [
+            "Conception d'APIs REST Django pour les clients internes",
+            "Participation aux code reviews hebdomadaires",
+        ],
+        [
+            "APIs REST",
+            "CI/CD GitLab",
+        ],
+    )
+    assert any("Django" in bullet for bullet in merged)
+    assert any("CI/CD" in bullet for bullet in merged)
+    assert any("code reviews" in bullet.lower() for bullet in merged)
+    rest_like = [bullet for bullet in merged if "APIs REST" in bullet and "Django" not in bullet]
+    assert rest_like == []
+
+
+def test_merge_prefers_original_missions_over_extra_generated_ones():
+    extras = [f"Mission inventée {index}" for index in range(8)]
+    merged = merge_experience_missions(extras, ["Pilotage du support N2", "Formation des nouveaux arrivants"])
+    assert "Pilotage du support N2" in merged
+    assert "Formation des nouveaux arrivants" in merged
+
+
+def test_restore_keeps_original_job_if_generated_dropped_it():
+    original = parse_adapted_cv(
+        """
+NOM: Jane Doe
+## EXPERIENCE
+POSTE: Dev ACME
+ENTREPRISE: ACME
+PERIODE: 2021 - 2024
+LIEU: Paris
+- APIs REST
+
+POSTE: Stage Beta
+ENTREPRISE: Beta
+PERIODE: 2020
+LIEU: Lyon
+- Support utilisateurs
+"""
+    )
+    generated = parse_adapted_cv(
+        """
+NOM: Jane Doe
+## EXPERIENCE
+POSTE: Développeur backend
+ENTREPRISE: ACME
+PERIODE: 2021 - 2024
+LIEU: Paris
+- Conception d'APIs REST
+"""
+    )
+    restored = restore_experience_dates_locations(generated, original)
+    assert len(restored.experiences) == 2
+    assert restored.experiences[1].company == "Beta"
+    assert "Support utilisateurs" in restored.experiences[1].bullets
+
+
+def test_locked_experiences_prompt_lists_original_missions():
+    original = parse_adapted_cv(
+        """
+## EXPERIENCE
+POSTE: Dev
+ENTREPRISE: ACME
+PERIODE: 2021-2024
+LIEU: Paris
+- APIs REST
+- CI/CD GitLab
+"""
+    )
+    text = serialize_locked_experiences(original.experiences)
+    assert "APIs REST" in text
+    assert "CI/CD GitLab" in text
+    assert "Ne les supprime pas" in text
+    assert "Missions d'origine" in text
 

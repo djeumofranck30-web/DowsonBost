@@ -119,7 +119,9 @@ Structure :
 - Paragraphe motivation + adéquation profil / offre (reprends le titre CV recommandé)
 - Paragraphe compétences : cite nommément les compétences présentes et partielles de l'analyse ATS
   et les mots-clés de l'offre que le candidat possède déjà
-- Paragraphe expériences : reformule les missions pertinentes avec le vocabulaire de l'annonce.
+- Paragraphe expériences : reformule les missions du CV ANALYSÉ avec le vocabulaire de l'annonce.
+  N'oublie aucune mission importante de ce CV. Tu peux en citer une supplémentaire si l'offre
+  l'exige et que c'est cohérent avec le parcours réel.
   Tu peux adapter le TITRE du poste ; recopie EXACTEMENT les dates et le lieu du CV original.
 - Conclusion / disponibilité avec appel à l'action
 
@@ -127,6 +129,9 @@ Règles :
 - Applique l'intention de CHAQUE « Modification ATS » (mots-clés, angle, priorités) dans le texte.
 - Cite nommément les compétences de l'offre (y compris une techno exigée absente du CV original,
   uniquement comme compétence, sans inventer un poste).
+- Reformule les missions du CV d'origine (celui de l'analyse) ; ne les néglige pas.
+- Tu peux ajouter une mission seulement si elle reflète un travail déjà présent ou fortement
+  impliqué dans ce CV, pour coller à l'offre — pas de fiction.
 - Ne invente pas de diplômes, employeurs, dates ou certifications.
 - Ne change JAMAIS les dates ni le lieu d'une expérience personnelle (ville, période).
 - Si un mot-clé de l'offre correspond à une mission déjà décrite, utilise le mot-clé de l'offre.
@@ -149,10 +154,13 @@ Règles strictes :
    original, AJOUTE-LA quand même dans cette section (c'est la seule invention autorisée :
    le mot-clé, pas un faux job). Ensuite, les autres compétences réelles du CV original.
 4. Intègre les synonymes de l'offre (JS → JavaScript) et les mots-clés manquants.
-5. Reformule les missions des expériences pertinentes avec le vocabulaire EXACT de l'offre.
-   Tu PEUX adapter le champ POSTE (titre) pour coller à l'offre.
-   Tu NE DOIS PAS modifier PERIODE (dates) ni LIEU, ni l'entreprise : recopie-les tels quels.
-   N'invente pas une mission entière autour d'une techno ajoutée : elle va dans COMPETENCES.
+5. Missions du CV analysé :
+   - Reformule TOUTES les missions d'origine avec le vocabulaire EXACT de l'offre (ne les supprime pas).
+   - Tu PEUX ajouter 1 à 3 missions supplémentaires SI elles correspondent à un travail réel
+     du CV original (ou fortement impliqué), pour coller à l'offre.
+   - N'invente pas une mission entière autour d'une techno absente du parcours : elle va dans COMPETENCES.
+   - Tu PEUX adapter le champ POSTE (titre) pour coller à l'offre.
+   - Tu NE DOIS PAS modifier PERIODE (dates) ni LIEU, ni l'entreprise : recopie-les tels quels.
 6. Ne invente JAMAIS de diplôme, entreprise, date, lieu ou certification.
 7. Réécriture complète (nouvelle structure, nouvelles formulations), pas un copier-coller.
 8. Document FINAL prêt à envoyer (norme France 2026 : une colonne, titres ATS classiques).
@@ -546,7 +554,7 @@ def _rewrite_instruction(kind: str, gaps: list[str]) -> str:
         f"Le {label} précédent n'est PAS encore aligné à 100 % sur l'offre. "
         f"Éléments encore absents :\n{gap_lines}\n\n"
         f"Réécris le {label} COMPLET (pas un diff) en intégrant TOUS ces éléments. "
-        "Garde uniquement des faits présents dans le CV original. "
+        "Garde les missions du CV original (reformulées) ; tu peux en ajouter si besoin. "
         "Ne change pas les dates ni le lieu des expériences ; tu peux adapter le titre du poste."
     )
 
@@ -581,7 +589,7 @@ def _generate_aligned_document(
 
 
 def _restore_experience_anchors(generated_text: str, original_cv: str) -> str:
-    """Force original experience dates and locations back onto the rewritten CV."""
+    """Force original experience dates, locations and dropped missions back onto the CV."""
     cleaned = cv_text_for_candidate(generated_text)
     generated = parse_adapted_cv(cleaned)
     original = parse_adapted_cv(original_cv)
@@ -606,6 +614,8 @@ def generate_cover_letter(
         "reprends le titre, l'entreprise, et cite nommément les compétences de l'offre "
         "(y compris une techno exigée absente du CV original) ainsi que l'intention "
         "de chaque modification ATS. "
+        "Reformule les missions du CV analysé (ne les oublie pas) ; tu peux en ajouter "
+        "si l'offre l'exige et que c'est cohérent avec le parcours. "
         "Tu peux adapter le titre d'un poste ; recopie exactement les dates et le lieu "
         "de chaque expérience. Pas de faux employeur, diplôme, date ou ville."
     )
@@ -642,6 +652,8 @@ def generate_adapted_cv(
         "(reformulations, mots-clés, ordre des sections). "
         "Tu PEUX changer le POSTE (titre d'expérience) pour coller à l'offre. "
         "Tu NE CHANGES PAS PERIODE ni LIEU ni l'entreprise. "
+        "Reformule TOUTES les missions du CV analysé, puis ajoute-en si l'offre le demande "
+        "sans inventer un travail jamais fait. "
         "N'ajoute aucune section listant les modifications : le CV s'arrête après les rubriques métier."
     )
     generated = _generate_aligned_document(

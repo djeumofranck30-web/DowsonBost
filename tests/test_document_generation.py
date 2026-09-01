@@ -172,7 +172,7 @@ def test_generate_cover_letter_requires_company_and_keywords():
     assert "Kubernetes" in letter or "kubernetes" in letter.lower()
     assert len(calls) >= 2
     assert "dates" in calls[0].lower() or "lieu" in calls[0].lower()
-    assert "EXPÉRIENCES VERROUILLÉES" in calls[0] or "verrouill" in calls[0].lower()
+    assert "EXPÉRIENCES ET MISSIONS" in calls[0] or "missions du cv" in calls[0].lower()
 
 
 STRUCTURED_ORIGINAL_CV = """
@@ -236,4 +236,70 @@ def test_generate_adapted_cv_restores_original_dates_and_location():
     assert job.location == "Lyon"
     assert "2019" not in result
     assert "Django" in result
+
+
+LLM_DROPPED_MISSION_CV = """
+NOM: Jane Doe
+TITRE: Développeuse Python
+EMAIL: jane@example.com
+VILLE: Paris
+
+## PROFIL
+Développeuse Python spécialisée Django et APIs REST.
+
+## COMPETENCES
+Python | Django | PostgreSQL | Docker | AWS | Kubernetes
+
+## EXPERIENCE
+POSTE: Ingénieure backend Python
+ENTREPRISE: Acme
+PERIODE: 2019 - 2024
+LIEU: Paris
+- Conception d'APIs REST Django
+"""
+
+
+def test_generate_adapted_cv_restores_dropped_original_missions():
+    captured: dict[str, str] = {}
+
+    def fake_llm(system: str, user: str, **kwargs: object) -> str:
+        captured["system"] = system
+        captured["user"] = user
+        return LLM_DROPPED_MISSION_CV
+
+    result = generate_adapted_cv(
+        STRUCTURED_ORIGINAL_CV,
+        JOB,
+        FULL_MATCH,
+        {"full_name": "Jane Doe"},
+        llm_call=fake_llm,
+    )
+    parsed = parse_adapted_cv(result)
+    bullets = parsed.experiences[0].bullets
+    assert any("APIs REST" in bullet or "Django" in bullet for bullet in bullets)
+    assert any("CI/CD" in bullet for bullet in bullets)
+    assert "Conception d'APIs REST" in captured["user"] or "Missions d'origine" in captured["user"]
+    assert "Reformule TOUTES les missions" in captured["system"] or "missions d'origine" in captured["system"].lower()
+
+
+def test_generate_cover_letter_prompt_keeps_original_missions():
+    def fake_llm(system: str, user: str, **kwargs: object) -> str:
+        assert "Conception d'APIs REST" in user
+        assert "Mise en place CI/CD" in user
+        assert "Reformule les missions" in system or "missions du CV" in system
+        return (
+            "Objet : candidature Développeuse Python — NovaTech\n\n"
+            "Madame, Monsieur, développeuse Python experte Django, Docker et Kubernetes, "
+            "je conçois des APIs REST et j'ai mis en place le CI/CD. Cordialement."
+        )
+
+    letter = generate_cover_letter(
+        STRUCTURED_ORIGINAL_CV,
+        JOB,
+        FULL_MATCH,
+        {"full_name": "Jane Doe"},
+        llm_call=fake_llm,
+    )
+    assert "NovaTech" in letter
+    assert "APIs REST" in letter or "CI/CD" in letter
 

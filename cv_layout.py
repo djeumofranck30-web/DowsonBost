@@ -1706,17 +1706,20 @@ def enrich_structured_cv(
 
 
 def serialize_locked_experiences(experiences: list[ExperienceEntry]) -> str:
-    """Prompt block: dates and workplaces stay frozen; titles may be adapted."""
+    """Prompt block: dates and workplaces stay frozen; titles and missions may be adapted."""
     lines = [
-        "=== EXPÉRIENCES VERROUILLÉES ===",
+        "=== EXPÉRIENCES ET MISSIONS DU CV ANALYSÉ ===",
+        "Source : le CV sur lequel l'analyse a été lancée.",
         "Tu PEUX adapter le TITRE du poste (POSTE) pour coller à l'offre.",
         "Tu NE DOIS PAS changer l'entreprise, les DATES (PERIODE) ni le LIEU.",
-        "Recopie PERIODE et LIEU caractère pour caractère.",
+        "Missions : reformule TOUTES les missions ci-dessous (vocabulaire de l'offre).",
+        "Ne les supprime pas. Tu PEUX en ajouter si l'offre l'exige et que c'est cohérent",
+        "avec le travail réellement fait (pas de fausse mission autour d'une techno absente).",
     ]
     if not experiences:
         lines.append(
-            "Si le CV original est peu structuré, recopie quand même chaque date et chaque ville "
-            "telles quelles ; n'invente aucune période ni aucun lieu."
+            "Si le CV original est peu structuré, reprends chaque mission décrite dans le texte brut, "
+            "reformule-la, et n'invente aucune période ni aucun lieu."
         )
         return "\n".join(lines)
     lines.append("Liste à respecter :")
@@ -1726,6 +1729,12 @@ def serialize_locked_experiences(experiences: list[ExperienceEntry]) -> str:
             f"Dates={job.period or '—'} | Lieu={job.location or '—'} | "
             f"Titre actuel={job.title or '—'} (titre adaptable)"
         )
+        if job.bullets:
+            lines.append("     Missions d'origine (à reformuler, pas à oublier) :")
+            for bullet in job.bullets:
+                lines.append(f"       - {bullet}")
+        else:
+            lines.append("     Missions d'origine : (non listées — extraire du CV brut, ne pas inventer)")
     return "\n".join(lines)
 
 
@@ -1759,14 +1768,105 @@ def _match_original_experience(
     return None
 
 
+_MISSION_STOPWORDS = {
+    "avec",
+    "dans",
+    "pour",
+    "plus",
+    "sans",
+    "sous",
+    "dont",
+    "cette",
+    "leur",
+    "leurs",
+    "mise",
+    "place",
+    "ainsi",
+    "entre",
+    "selon",
+    "aupres",
+    "chez",
+    "lors",
+    "afin",
+}
+
+
+def _mission_tokens(text: str) -> set[str]:
+    folded = _fold(text)
+    return {
+        token
+        for token in re.findall(r"[a-z0-9][a-z0-9+.#/-]{2,}", folded)
+        if token not in _MISSION_STOPWORDS and len(token) >= 3
+    }
+
+
+def mission_is_covered(generated_bullets: list[str], original_bullet: str) -> bool:
+    """True when a rewritten mission still represents the original duty."""
+    original = (original_bullet or "").strip()
+    if not original:
+        return True
+    orig_tokens = _mission_tokens(original)
+    if not orig_tokens:
+        target = _fold(original)
+        return any(target and target in _fold(item) for item in generated_bullets)
+    needed = max(1, (len(orig_tokens) + 1) // 2)
+    for item in generated_bullets:
+        if len(orig_tokens & _mission_tokens(item)) >= needed:
+            return True
+    return False
+
+
+def merge_experience_missions(generated_bullets: list[str], original_bullets: list[str]) -> list[str]:
+    """Keep reformulated and extra missions, then restore any original duty that was dropped.
+
+    Original duties take priority over extra generated bullets when the list is capped.
+    """
+    generated = [(bullet or "").strip() for bullet in generated_bullets if (bullet or "").strip()]
+    original = [(bullet or "").strip() for bullet in original_bullets if (bullet or "").strip()]
+
+    covering: list[str] = []
+    extras: list[str] = []
+    for bullet in generated:
+        if original and any(mission_is_covered([bullet], source) for source in original):
+            covering.append(bullet)
+        else:
+            extras.append(bullet)
+
+    uncovered = [bullet for bullet in original if not mission_is_covered(covering, bullet)]
+
+    merged: list[str] = []
+    seen: set[str] = set()
+
+    def _add(bullet: str) -> None:
+        key = _fold(bullet)
+        if key in seen:
+            return
+        seen.add(key)
+        merged.append(bullet)
+
+    for bullet in covering:
+        _add(bullet)
+    for bullet in uncovered:
+        _add(bullet)
+    for bullet in extras:
+        _add(bullet)
+    return merged[:8]
+
+
 def restore_experience_dates_locations(
     generated: StructuredCV,
     original: StructuredCV,
 ) -> StructuredCV:
-    """Keep original dates and workplaces; leave adapted job titles untouched."""
+    """Keep original dates, workplaces and duties; leave adapted job titles untouched.
+
+    Reformulated missions from the model stay first. Original missions that were
+    dropped are appended. Unmatched original jobs are kept at the end.
+    """
     originals = original.experiences
-    if not originals or not generated.experiences:
+    if not originals:
         return generated
+    if not generated.experiences:
+        return replace(generated, experiences=list(originals))
     used: set[int] = set()
     updated: list[ExperienceEntry] = []
     for index, job in enumerate(generated.experiences):
@@ -1785,9 +1885,12 @@ def restore_experience_dates_locations(
                 period=source.period or job.period,
                 location=source.location or job.location,
                 company=source.company or job.company,
+                bullets=merge_experience_missions(job.bullets, source.bullets),
             )
         )
-    return replace(generated, experiences=updated)
+    leftover = [source for index, source in enumerate(originals) if index not in used]
+    updated.extend(leftover)
+    return replace(generated, experiences=updated[:12])
 
 
 def labeled_cv_text(cv: StructuredCV, *, fallback: str = "") -> str:
