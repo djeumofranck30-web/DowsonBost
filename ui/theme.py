@@ -269,6 +269,9 @@ def _shared_components_css(t: dict[str, str]) -> str:
             border: 1px solid rgba(14, 116, 144, 0.08);
             box-shadow: {t["shadow_sm"]};
         }}
+        div[data-testid="stElementContainer"]:has(details[data-testid="stExpander"]) {{
+            margin-bottom: 0.28rem !important;
+        }}
 
         /* —— Progress —— */
         [data-testid="stProgressBar"] > div > div {{

@@ -36,14 +36,15 @@ def test_job_board_connect_form_does_not_ask_password() -> None:
     assert "accounts.login_id" in body
 
 
-def test_profile_job_sites_show_open_site_button_outside_expander() -> None:
+def test_profile_job_sites_open_inside_expander() -> None:
     source = _read("app.py")
     start = source.index("def render_connected_accounts_section(")
     end = source.index("def _profile_header_chips(", start)
     body = source[start:end]
     assert "job_board_access_url" in body
     assert "accounts.open_site" in body
-    assert body.index("accounts.open_site") < body.index("with st.expander")
+    assert body.index("with st.expander") < body.index("accounts.open_site")
+    assert "st.columns" not in body
 
 
 def test_open_site_locale_keys() -> None:
@@ -53,7 +54,7 @@ def test_open_site_locale_keys() -> None:
     assert "ouvrir" in fr["accounts.open_site"].lower()
     assert "{name}" in en["accounts.open_site"]
     assert "open" in en["accounts.open_site"].lower()
-    assert "se connecter et ouvrir" in fr["accounts.hint"].lower()
+    assert "dépliez" in fr["accounts.hint"].lower()
 
 
 def test_every_connectable_site_has_https_access_url() -> None:

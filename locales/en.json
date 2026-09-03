@@ -274,7 +274,7 @@
   "profile.delete_confirm": "You are about to delete your account and all of your information. This cannot be undone. Continue?",
   "profile.delete_no": "No, cancel",
   "accounts.title": "Job-board accounts",
-  "accounts.hint": "Save the e-mail you use on Indeed, LinkedIn, Jooble… The “Sign in and open” button opens the site so you can log in there. DowsonBost does not log into those sites and no longer asks for a password.",
+  "accounts.hint": "Open a site row to sign in there and save the e-mail of your account. DowsonBost does not log into those sites and no longer asks for a password.",
   "accounts.summary": "{linked} / {total} accounts linked to your candidate account.",
   "accounts.candidate_email": "Candidate account e-mail: {email}",
   "accounts.connect_all": "Connect every site with my candidate e-mail",

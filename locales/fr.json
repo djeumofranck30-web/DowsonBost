@@ -275,7 +275,7 @@
   "profile.delete_yes": "Oui, supprimer définitivement",
   "profile.delete_no": "Non, annuler",
   "accounts.title": "Comptes des sites d'emploi",
-  "accounts.hint": "Notez l'e-mail de votre compte Indeed, LinkedIn, Jooble… Le bouton « Se connecter et ouvrir » ouvre le site pour vous identifier. DowsonBost ne se connecte pas à ces sites et ne demande plus de mot de passe.",
+  "accounts.hint": "Dépliez un site pour l'ouvrir et noter l'e-mail de votre compte. DowsonBost ne se connecte pas à ces sites et ne demande plus de mot de passe.",
   "accounts.summary": "{linked} / {total} comptes liés à votre compte candidat.",
   "accounts.candidate_email": "E-mail du compte candidat : {email}",
   "accounts.connect_all": "Connecter tous les sites avec mon e-mail candidat",

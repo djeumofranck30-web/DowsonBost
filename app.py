@@ -7619,10 +7619,7 @@ def render_connected_accounts_section(user: dict[str, Any]) -> None:
             if account
             else t("accounts.row_disconnected", name=name)
         )
-        open_left, open_right = st.columns([2.2, 1.5])
-        with open_left:
-            st.markdown(f"**{html.escape(name)}**")
-        with open_right:
+        with st.expander(header, expanded=False):
             if access_url:
                 st.link_button(
                     t("accounts.open_site", name=name),
@@ -7630,7 +7627,6 @@ def render_connected_accounts_section(user: dict[str, Any]) -> None:
                     use_container_width=True,
                     type="primary",
                 )
-        with st.expander(header, expanded=False):
             if account:
                 st.success(
                     t(
