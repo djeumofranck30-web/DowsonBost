@@ -14,6 +14,7 @@ from job_providers import (
     JOB_PROVIDER_LABELS,
     JOB_PROVIDER_SIDEBAR_ORDER,
     _career_site_google_queries,
+    _title_matches_ats_query,
     company_from_career_url,
     merge_career_site_results,
     search_jobs_career_sites,
@@ -26,6 +27,7 @@ def test_analysis_search_always_merges_career_sites() -> None:
     source = Path(__file__).resolve().parents[1].joinpath("app.py").read_text(encoding="utf-8")
     assert "def _with_company_career_sites(" in source
     assert source.count("_with_company_career_sites(") >= 3
+    assert "include_career = True" in source
     assert "SEARCH_PHASE_CAREER" in source
     assert JOB_PROVIDER_SIDEBAR_ORDER[1] == JOB_PROVIDER_CAREER_SITES
     assert JOB_PROVIDER_SIDEBAR_ORDER[2] == "wttj"
@@ -148,6 +150,14 @@ def test_career_site_queries_target_major_employers() -> None:
     assert "bnpparibas" in lowered or "bnp paribas" in lowered
     assert "inurl:recrutement" in lowered
     assert "edf.fr" in lowered or "recrute.edf" in lowered
+
+
+def test_ats_title_matches_french_query_to_english_engineer() -> None:
+    assert _title_matches_ats_query("Software Engineer", "Développeur Python")
+    assert _title_matches_ats_query("Python Developer", "Développeur")
+    assert not _title_matches_ats_query("Account Executive", "Développeur Python")
+    assert not _title_matches_ats_query("Business Developer (x/f/m) - France", "Développeur Python")
+    assert not _title_matches_ats_query("Engineering Manager", "Développeur Python")
 
 
 def test_direct_ats_keeps_matching_greenhouse_jobs() -> None:

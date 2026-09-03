@@ -2806,11 +2806,7 @@ def search_jobs_for_profile(
         country_locations_map[search_country] = locs
         all_locations.extend(locs)
 
-    selected_keys = parse_job_providers(provider)
-    include_career = (
-        selected_keys == [JOB_PROVIDER_ALL]
-        or JOB_PROVIDER_CAREER_SITES in selected_keys
-    )
+    include_career = True
     board_keys = selected_job_providers(
         provider,
         available=configured_providers(secrets=provider_secrets_from_getter(get_secret)),
