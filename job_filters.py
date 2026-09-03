@@ -689,6 +689,171 @@ def enrich_query_for_contract(query: str, contract_type: str) -> str:
     return f"{cleaned} {boost}".strip()
 
 
+SEARCH_PHASE_TITLE = "title"
+SEARCH_PHASE_SIMILAR = "similar"
+SEARCH_PHASE_SKILLS = "skills"
+SEARCH_PHASE_BONUS = {
+    SEARCH_PHASE_TITLE: 100,
+    SEARCH_PHASE_SIMILAR: 45,
+    SEARCH_PHASE_SKILLS: 15,
+}
+
+_SEARCH_QUERY_STOPWORDS = {
+    "avec",
+    "dans",
+    "pour",
+    "plus",
+    "sans",
+    "sous",
+    "dont",
+    "cette",
+    "leur",
+    "leurs",
+    "mise",
+    "place",
+    "ainsi",
+    "entre",
+    "selon",
+    "chez",
+    "lors",
+    "afin",
+    "the",
+    "and",
+    "des",
+    "les",
+    "une",
+    "du",
+    "de",
+    "la",
+    "le",
+    "sur",
+    "par",
+    "aux",
+}
+
+
+def _unique_search_queries(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    out: list[str] = []
+    for item in values:
+        text = " ".join(str(item or "").split())
+        key = text.lower()
+        if len(text) < 3 or key in seen:
+            continue
+        seen.add(key)
+        out.append(text)
+    return out
+
+
+def ordered_search_phases(
+    title: str,
+    similar: list[str] | None = None,
+    skill_queries: list[str] | None = None,
+    metier: str = "",
+) -> list[tuple[str, list[str]]]:
+    """Title first, then similar job titles, then skills/missions."""
+    seen: set[str] = set()
+
+    def take(values: list[str]) -> list[str]:
+        chunk: list[str] = []
+        for item in _unique_search_queries(values):
+            key = item.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            chunk.append(item)
+        return chunk
+
+    phases: list[tuple[str, list[str]]] = []
+    title_queries = take([title, metier])
+    similar_queries = take(list(similar or []))
+    skills = take(list(skill_queries or []))
+    if title_queries:
+        phases.append((SEARCH_PHASE_TITLE, title_queries))
+    if similar_queries:
+        phases.append((SEARCH_PHASE_SIMILAR, similar_queries[:4]))
+    if skills:
+        phases.append((SEARCH_PHASE_SKILLS, skills[:3]))
+    return phases
+
+
+def build_skill_mission_search_queries(
+    cv_profile: dict[str, Any] | None,
+    *,
+    limit: int = 3,
+) -> list[str]:
+    """Build follow-up job-board queries from CV skills and duties."""
+    profile = cv_profile or {}
+    skills: list[str] = []
+    for key in ("competences_techniques", "mots_cles", "outils", "langages"):
+        for item in profile.get(key) or []:
+            text = " ".join(str(item).split())
+            if text and text.lower() not in {item.lower() for item in skills}:
+                skills.append(text)
+
+    queries: list[str] = []
+    if skills:
+        queries.append(" ".join(skills[:3]))
+        if len(skills) > 3:
+            queries.append(" ".join(skills[3:6]))
+
+    mission_terms: list[str] = []
+    seen_terms: set[str] = set()
+    for exp in profile.get("experiences") or []:
+        raw = ""
+        if isinstance(exp, dict):
+            raw = str(exp.get("missions") or exp.get("missions_liees") or "")
+        else:
+            raw = str(exp)
+        for token in re.findall(r"[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9+.#/-]{3,}", raw):
+            folded = token.lower()
+            if folded in _SEARCH_QUERY_STOPWORDS or folded in seen_terms:
+                continue
+            seen_terms.add(folded)
+            mission_terms.append(token)
+            if len(mission_terms) >= 6:
+                break
+        if len(mission_terms) >= 6:
+            break
+    if mission_terms:
+        queries.append(" ".join(mission_terms[:4]))
+    return _unique_search_queries(queries)[:limit]
+
+
+def tag_jobs_search_phase(jobs: list[dict[str, Any]], phase: str) -> list[dict[str, Any]]:
+    tagged: list[dict[str, Any]] = []
+    for job in jobs:
+        item = dict(job)
+        item.setdefault("_search_phase", phase)
+        tagged.append(item)
+    return tagged
+
+
+def normalize_job_search_plan(raw: dict[str, Any], fallback_title: str) -> dict[str, Any]:
+    """Keep the target job title as the first query; similar titles go to variantes."""
+    title = " ".join(str(fallback_title or "").strip().split())
+    metier = str((raw or {}).get("metier") or title).strip() or title
+    variants_raw = (raw or {}).get("variantes") or []
+    variants: list[str] = []
+    seen = {title.lower(), metier.lower()}
+    extra = str((raw or {}).get("query_recherche") or "").strip()
+    if extra and extra.lower() not in seen:
+        variants.append(extra)
+        seen.add(extra.lower())
+    if isinstance(variants_raw, list):
+        for item in variants_raw:
+            text = str(item).strip()
+            if text and text.lower() not in seen:
+                variants.append(text)
+                seen.add(text.lower())
+    return {
+        "metier": metier,
+        "query_recherche": title or metier,
+        "variantes": variants[:4],
+        "source_title": title,
+    }
+
+
 def format_filter_rejection_hint(
     stats: dict[str, Any],
     profile: dict[str, Any],

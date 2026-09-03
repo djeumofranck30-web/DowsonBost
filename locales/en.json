@@ -658,6 +658,7 @@
   "pipeline.heuristic": "Partial AI extraction — profile automatically inferred from CV text.",
   "pipeline.filter_done": "Filtering completed — {kept} offer(s) selected out of {total}",
   "pipeline.search_targeted": "Targeted search **{country}** — zones: **{zones}** via {source}.",
+  "pipeline.search_phases": "3-step search: 1) title **{title}** · 2) similar titles · 3) CV skills and duties.",
   "pipeline.no_raw_jobs": "No offers found by engines for this position. Try “All Engines” or change the title in My Profile.",
   "pipeline.no_filtered": "No offers match your strict filters ({contract} · {level} · {mode}).",
   "pipeline.main_block": "Main blockage: {hint}.",

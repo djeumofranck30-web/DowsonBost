@@ -44,18 +44,23 @@ from job_filters import (
     EXPERIENCE_LEVELS,
     GEO_FILTER_MODES,
     SECTOR_OPTIONS,
-    build_country_search_locations,
+    SEARCH_PHASE_BONUS,
     apply_strict_job_filters,
+    build_country_search_locations,
     build_profile_search_locations,
+    build_skill_mission_search_queries,
     enrich_query_for_contract,
     format_filter_rejection_hint,
     format_job_published_label,
     job_max_age_label,
     JOB_MAX_AGE_DAYS_OPTIONS,
     normalize_job_max_age_days,
+    normalize_job_search_plan,
+    ordered_search_phases,
     profile_ready_for_matching,
     resolve_experience_level,
     resolve_target_sectors,
+    tag_jobs_search_phase,
 )
 from i18n import (
     LOCALE_LABELS,
@@ -1914,32 +1919,12 @@ JOB_SEARCH_PLAN_PROMPT = """Tu es un expert recrutement.
 Le candidat vise le poste : « {title} ».
 
 Retourne UNIQUEMENT un objet JSON valide avec :
-- metier : intitulé normalisé du poste visé
-- query_recherche : requête courte pour moteur d'emploi (2 à 6 mots, sans ville)
-- variantes : tableau de 2 à 4 intitulés proches ou synonymes (même famille de métier)
+- metier : intitulé normalisé du poste visé (même métier, formulation d'offre)
+- query_recherche : recopier EXACTEMENT le poste visé (pas de compétence dedans)
+- variantes : tableau de 2 à 4 intitulés d'offres SIMILAIRES (synonymes, pas les compétences)
 
 Exemple pour « Développeur Python » :
-{{"metier":"Développeur Python","query_recherche":"Développeur Python backend","variantes":["Ingénieur logiciel Python","Développeur backend","Software engineer Python"]}}"""
-
-
-def normalize_job_search_plan(raw: dict[str, Any], fallback_title: str) -> dict[str, Any]:
-    """Normalize LLM job search plan with safe fallbacks."""
-    title = " ".join(fallback_title.strip().split())
-    metier = str(raw.get("metier") or title).strip() or title
-    query = str(raw.get("query_recherche") or metier).strip() or title
-    variants_raw = raw.get("variantes") or []
-    variants: list[str] = []
-    if isinstance(variants_raw, list):
-        for item in variants_raw:
-            text = str(item).strip()
-            if text and text.lower() not in {metier.lower(), query.lower(), title.lower()}:
-                variants.append(text)
-    return {
-        "metier": metier,
-        "query_recherche": query,
-        "variantes": variants[:4],
-        "source_title": title,
-    }
+{{"metier":"Développeur Python","query_recherche":"Développeur Python","variantes":["Ingénieur logiciel Python","Développeur backend","Software engineer Python","Ingénieur développement Python"]}}"""
 
 
 def build_job_search_plan(target_job_title: str) -> dict[str, Any]:
@@ -2406,6 +2391,8 @@ def cached_search_jobs(
     contract_type: str = "",
     alternate_queries: tuple[str, ...] = (),
     refresh_key: str = "",
+    skill_queries: tuple[str, ...] = (),
+    target_count: int = 0,
 ) -> dict[str, Any]:
     # refresh_key is unused in the body: Streamlit includes it in the cache key
     # so each analysis launch can refetch instead of reusing the 24 h snapshot.
@@ -2413,6 +2400,12 @@ def cached_search_jobs(
     profile = json.loads(profile_json)
     boosted_query = enrich_query_for_contract(query, contract_type)
     boosted_metier = enrich_query_for_contract(metier, contract_type)
+    boosted_alts = tuple(
+        enrich_query_for_contract(item, contract_type) for item in alternate_queries
+    )
+    boosted_skills = tuple(
+        enrich_query_for_contract(item, contract_type) for item in skill_queries
+    )
     return search_jobs_for_profile(
         provider,
         boosted_query,
@@ -2420,7 +2413,9 @@ def cached_search_jobs(
         profile,
         boosted_metier,
         contract_type,
-        list(alternate_queries),
+        list(boosted_alts),
+        skill_queries=list(boosted_skills),
+        target_count=target_count,
     )
 
 
@@ -2759,51 +2754,72 @@ def search_jobs_for_profile(
     metier: str = "",
     contract_type: str = "",
     alternate_queries: list[str] | None = None,
+    skill_queries: list[str] | None = None,
+    target_count: int = 0,
 ) -> dict[str, Any]:
-    """Search across all selected countries and profile zones, then merge results."""
+    """Search title first, then similar titles, then CV skills/missions, and merge."""
     max_age_days = normalize_job_max_age_days(profile.get("job_max_age_days"))
     countries = profile_countries(profile) or [country or "France"]
     geo_map = merge_profile_geo(profile)
     per_country_max = max(3, 24 // max(1, len(countries)))
+    target = int(target_count) if target_count else 80
+    phases = ordered_search_phases(
+        query,
+        similar=list(alternate_queries or []),
+        skill_queries=list(skill_queries or []),
+        metier=metier,
+    )
 
     merged: list[dict[str, Any]] = []
     providers_used: list[str] = []
     strategies: list[str] = []
     query_used = query
     all_locations: list[str] = []
-
+    country_locations_map: dict[str, list[str]] = {}
     for search_country in countries:
-        country_locations = build_country_search_locations(
+        locs = build_country_search_locations(
             search_country,
             geo_map.get(search_country, {}),
             max_locations=per_country_max,
         )
-        all_locations.extend(country_locations)
-        result = _search_jobs_at_country_locations(
-            provider,
-            query,
-            search_country,
-            country_locations,
-            metier,
-            contract_type,
-            alternate_queries,
-            max_age_days,
-        )
-        if result.get("jobs"):
-            merged = merge_job_lists([merged, result["jobs"]])
-            query_used = result.get("query_used") or query_used
-            providers_used.extend(result.get("providers_used") or [])
-            if result.get("strategy"):
-                strategies.append(str(result["strategy"]))
+        country_locations_map[search_country] = locs
+        all_locations.extend(locs)
+
+    for phase_name, queries in phases:
+        use_all_locations = phase_name == "title" or len(merged) < target
+        for q_try in queries:
+            if phase_name != "title" and len(merged) >= max(target * 2, target + 20):
+                break
+            for search_country in countries:
+                country_locations = country_locations_map.get(search_country) or [""]
+                if not use_all_locations:
+                    country_locations = country_locations[:1]
+                result = _search_jobs_at_country_locations(
+                    provider,
+                    q_try,
+                    search_country,
+                    country_locations,
+                    q_try,
+                    contract_type,
+                    None,
+                    max_age_days,
+                )
+                batch = tag_jobs_search_phase(result.get("jobs") or [], phase_name)
+                if batch:
+                    merged = merge_job_lists([merged, batch])
+                    query_used = result.get("query_used") or q_try or query_used
+                    providers_used.extend(result.get("providers_used") or [])
+                    strategies.append(f"{phase_name}:{q_try}")
 
     if merged:
         location_label = ", ".join(all_locations[:4])
         if len(all_locations) > 4:
             location_label += "…"
         countries_label = format_countries_summary(profile)
-        strategy = strategies[0] if len(strategies) == 1 else "Zones sélectionnées (profil)"
+        strategy = "Titre du poste, puis similaires, puis compétences/missions"
         if len(countries) > 1:
             strategy = f"{countries_label} — {strategy}"
+        title_for_sites = (phases[0][1][0] if phases and phases[0][1] else query) or metier
         return _with_company_career_sites(
             {
                 "jobs": merged,
@@ -2812,9 +2828,10 @@ def search_jobs_for_profile(
                 "location_used": location_label,
                 "providers_used": list(dict.fromkeys(providers_used)),
                 "profile_locations": all_locations,
+                "search_phases": [name for name, _ in phases],
             },
-            query=query,
-            metier=metier,
+            query=title_for_sites,
+            metier=metier or title_for_sites,
             locations=all_locations,
             countries=countries,
             country=country,
@@ -2832,6 +2849,7 @@ def search_jobs_for_profile(
         alternate_queries,
         max_age_days=max_age_days,
     )
+    fallback["jobs"] = tag_jobs_search_phase(fallback.get("jobs") or [], "title")
     fallback["profile_locations"] = all_locations
     return _with_company_career_sites(
         fallback,
@@ -3166,7 +3184,8 @@ def rank_jobs_for_cv(
         cv_hits = sum(1 for kw in keyword_set if kw in blob and kw in cv_lower)
         title_overlap = sum(1 for token in target_tokens if token in title)
         metier_overlap = sum(1 for token in metier_tokens if token in title)
-        return hits * 8 + cv_hits * 5 + title_overlap * 18 + metier_overlap * 12
+        phase_bonus = SEARCH_PHASE_BONUS.get(str(job.get("_search_phase") or ""), 0)
+        return hits * 8 + cv_hits * 5 + title_overlap * 18 + metier_overlap * 12 + phase_bonus
 
     return sorted(jobs, key=quick_score, reverse=True)[:top_n]
 
@@ -3465,11 +3484,11 @@ def run_full_analysis(
     cv_text, extraction_method = extract_cv_text(pdf_bytes)
     criteria = cached_extract_criteria(cv_text)
 
-    query = criteria.get("query_recherche") or criteria.get("metier", "")
+    query = criteria.get("metier") or criteria.get("query_recherche") or ""
     location = criteria.get("ville", "")
     country = criteria.get("pays", "France")
     keywords = criteria.get("mots_cles", [])
-    metier = criteria.get("metier", "")
+    metier = criteria.get("metier", "") or query
 
     search_result = cached_search_jobs(
         job_provider,
@@ -3477,6 +3496,7 @@ def run_full_analysis(
         country,
         json.dumps({"country": country}, ensure_ascii=False, sort_keys=True),
         metier,
+        skill_queries=tuple(build_skill_mission_search_queries(criteria)),
     )
     jobs = search_result["jobs"]
     results, _partial = build_matching_results(
@@ -5947,9 +5967,13 @@ def run_cv_analysis_pipeline(
             search_plan = plan_future.result()
             cv_text, method = cv_future.result()
 
+    _report_progress(progress, 18, t("analysis.progress.extract"))
+    criteria = cached_extract_criteria(cv_text)
+    skill_queries = tuple(build_skill_mission_search_queries(criteria))
+
     _report_progress(progress, 22, t("analysis.progress.search"))
 
-    query = search_plan.get("query_recherche") or target_title
+    query = target_title
     metier = search_plan.get("metier") or target_title
     alternate_queries = tuple(search_plan.get("variantes") or ())
     country = user_profile.get("country", "France")
@@ -5959,9 +5983,9 @@ def run_cv_analysis_pipeline(
     notices.append(
         {
             "level": "info",
-            "text": (
-                f"Poste visé : **{target_title}** — l'IA recherche des offres "
-                f"correspondantes ou proches (`{query}`)."
+            "text": t(
+                "pipeline.search_phases",
+                title=target_title,
             ),
         }
     )
@@ -5974,21 +5998,18 @@ def run_cv_analysis_pipeline(
         }
     )
 
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        search_future = executor.submit(
-            cached_search_jobs,
-            job_provider,
-            query,
-            country,
-            profile_json,
-            metier,
-            contract_type=contract_type,
-            alternate_queries=alternate_queries,
-            refresh_key=search_refresh_key,
-        )
-        criteria_future = executor.submit(cached_extract_criteria, cv_text)
-        search_result = search_future.result()
-        criteria = criteria_future.result()
+    search_result = cached_search_jobs(
+        job_provider,
+        query,
+        country,
+        profile_json,
+        metier,
+        contract_type=contract_type,
+        alternate_queries=alternate_queries,
+        refresh_key=search_refresh_key,
+        skill_queries=skill_queries,
+        target_count=pool_size,
+    )
 
     _report_progress(progress, 48, t("analysis.progress.filter"))
 

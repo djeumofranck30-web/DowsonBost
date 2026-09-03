@@ -658,6 +658,7 @@
   "pipeline.heuristic": "Extraction IA partielle — profil déduit automatiquement du texte du CV.",
   "pipeline.filter_done": "Filtrage terminé — {kept} offre(s) retenue(s) sur {total}",
   "pipeline.search_targeted": "Recherche ciblée **{country}** — zones : **{zones}** via {source}.",
+  "pipeline.search_phases": "Recherche en 3 temps : 1) titre **{title}** · 2) postes similaires · 3) compétences et missions du CV.",
   "pipeline.no_raw_jobs": "Aucune offre trouvée par les moteurs pour ce poste. Essayez « Tous les moteurs » ou modifiez l'intitulé dans Mon profil.",
   "pipeline.query_tested": "Requête testée : `{query}` · Périmètre : `{location}`",
   "pipeline.no_filtered": "Aucune offre ne correspond à vos filtres stricts ({contract} · {level} · {mode}).",
