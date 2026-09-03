@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>DowsonBost — Flyer 09 Parcours</title>
+  <link rel="stylesheet" href="../assets/shared.css" />
+  <style>
+    .flyer {
+      background: var(--cream);
+      padding: 68px 72px 56px;
+      display: flex;
+      flex-direction: column;
+    }
+    h1 { font-size: 64px; margin: 18px 0 40px; }
+    .steps { display: flex; flex-direction: column; gap: 18px; }
+    .step {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      gap: 22px;
+      background: #fff;
+      border-radius: 22px;
+      padding: 22px 26px;
+      box-shadow: 0 8px 24px rgba(11,18,32,.05);
+      align-items: center;
+    }
+    .num {
+      width: 92px; height: 92px;
+      border-radius: 22px;
+      background: var(--navy);
+      color: var(--gold);
+      font-size: 36px;
+      font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      letter-spacing: -.04em;
+    }
+    .step:nth-child(2) .num { background: var(--teal); color: #fff; }
+    .step:nth-child(3) .num { background: var(--gold); color: var(--navy); }
+    .step:nth-child(4) .num { background: var(--success); color: #fff; }
+    .step h2 { font-size: 26px; letter-spacing: -.03em; }
+    .step p { font-size: 18px; color: var(--muted); font-weight: 500; margin-top: 4px; line-height: 1.35; }
+    .foot { margin-top: auto; }
+  </style>
+</head>
+<body>
+  <article class="flyer">
+    <div class="mark">
+      <div class="mark-sq">DB</div>
+      <div class="mark-name">Dowson<span>Bost</span></div>
+    </div>
+    <div class="eyebrow" style="margin-top:36px">En quatre gestes</div>
+    <h1>Moins de hasard.<br>Plus d’entretiens.</h1>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><div><h2>Créez votre compte</h2><p>Poste visé, ville, contrat, rayon. Deux minutes pour cadrer la recherche.</p></div></div>
+      <div class="step"><div class="num">2</div><div><h2>Déposez le CV</h2><p>PDF d’origine. L’IA lit le parcours comme un ATS, pas comme un scanner aveugle.</p></div></div>
+      <div class="step"><div class="num">3</div><div><h2>Regardez le classement</h2><p>Offres notées, meilleures d’abord. Job boards et pages carrières mélangés.</p></div></div>
+      <div class="step"><div class="num">4</div><div><h2>Envoyez, suivez</h2><p>CV une page + lettre pour l’offre. Tableau de bord pour ne rien perdre.</p></div></div>
+    </div>
+    <div class="foot">
+      <div>
+        <div class="cta navy">Commencer maintenant</div>
+        <div class="url" style="margin-top:14px">dowsonbost.streamlit.app</div>
+      </div>
+      <img class="qr" src="../assets/qr-dark.png" alt="QR" />
+    </div>
+  </article>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>DowsonBost — Flyer 04 CV sur-mesure</title>
+  <link rel="stylesheet" href="../assets/shared.css" />
+  <style>
+    .flyer { background: #1a140e; }
+    .photo {
+      position: absolute; top: 0; left: 0; right: 0; height: 1080px;
+      background: url("../assets/bg-handshake-cv.png") center 20% / cover no-repeat;
+    }
+    .fade {
+      position: absolute; top: 720px; left: 0; right: 0; height: 380px;
+      background: linear-gradient(180deg, transparent, #1a140e);
+    }
+    .panel {
+      position: absolute;
+      left: 56px; right: 56px; bottom: 48px;
+      background: var(--cream);
+      border-radius: 28px;
+      padding: 48px 52px 40px;
+      box-shadow: 0 28px 56px rgba(0,0,0,.35);
+    }
+    h1 { font-size: 58px; }
+    h1 span { color: var(--teal); }
+    .cols { display: grid; grid-template-columns: 1.4fr .8fr; gap: 28px; margin-top: 22px; align-items: end; }
+    .lead { font-size: 22px; line-height: 1.4; color: #334155; font-weight: 500; }
+    .brand {
+      position: absolute; top: 56px; left: 64px;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <article class="flyer">
+    <div class="photo"></div>
+    <div class="fade"></div>
+    <div class="brand">
+      <div class="mark">
+        <div class="mark-sq">DB</div>
+        <div class="mark-name light">Dowson<span>Bost</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Documents prêts à envoyer</div>
+      <h1>Un CV <span>taillé</span> pour<br>chaque offre. Une page.</h1>
+      <div class="cols">
+        <p class="lead">Dates, lieux et missions de votre parcours restent les vôtres. On reformule pour l’offre, on tient sur un A4, on ajoute la lettre. Vous relisez, vous postulez.</p>
+        <div style="text-align:right">
+          <img class="qr" src="../assets/qr-dark.png" alt="QR" style="margin-left:auto" />
+          <div class="url" style="margin-top:10px;font-size:18px">dowsonbost.streamlit.app</div>
+        </div>
+      </div>
+    </div>
+  </article>
+</body>
+</html>
