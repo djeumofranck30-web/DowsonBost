@@ -146,6 +146,19 @@ JOB_BOARD_SHORT_NAMES: dict[str, str] = {
     JOB_PROVIDER_OPTIONCARRIERE: "OptionCarriere",
 }
 
+JOB_BOARD_LOGIN_URLS: dict[str, str] = {
+    JOB_PROVIDER_INDEED: "https://secure.indeed.com/auth",
+    JOB_PROVIDER_LINKEDIN: "https://www.linkedin.com/login",
+    JOB_PROVIDER_HELLOWORK: "https://www.hellowork.com/fr-fr/candidat/connexion.html",
+    JOB_PROVIDER_WTTJ: "https://www.welcometothejungle.com/fr",
+    JOB_PROVIDER_JOBTEASER: "https://www.jobteaser.com/fr/users/sign_in",
+    JOB_PROVIDER_GLASSDOOR: "https://www.glassdoor.fr/index.htm",
+    JOB_PROVIDER_MONSTER: "https://www.monster.fr/",
+    JOB_PROVIDER_TALENT: "https://www.talent.com/login",
+    JOB_PROVIDER_JOOBLE: "https://jooble.org/",
+    JOB_PROVIDER_OPTIONCARRIERE: "https://www.optioncarriere.com/",
+}
+
 JOB_BOARD_SIGNUP_URLS: dict[str, str] = {
     JOB_PROVIDER_INDEED: "https://secure.indeed.com/auth",
     JOB_PROVIDER_LINKEDIN: "https://www.linkedin.com/signup",
@@ -186,6 +199,11 @@ def job_board_display_name(provider: str) -> str:
 def job_board_signup_url(provider: str) -> str | None:
     """Public signup / login page for a job board."""
     return JOB_BOARD_SIGNUP_URLS.get(provider)
+
+
+def job_board_access_url(provider: str) -> str | None:
+    """Login or home page so the candidate can open the job board from their profile."""
+    return JOB_BOARD_LOGIN_URLS.get(provider) or JOB_BOARD_SIGNUP_URLS.get(provider)
 
 
 def provider_key_from_job_source(source: str) -> str | None:

@@ -8,6 +8,7 @@ from job_providers import (
     CONNECTABLE_JOB_PROVIDERS,
     JOB_PROVIDER_INDEED,
     JOB_PROVIDER_LINKEDIN,
+    job_board_access_url,
     job_board_display_name,
     provider_key_from_job_source,
 )
@@ -67,6 +68,13 @@ def test_provider_key_from_job_source_maps_connectable_sites():
 def test_job_board_display_name_uses_short_brand():
     assert job_board_display_name(JOB_PROVIDER_INDEED) == "Indeed"
     assert job_board_display_name(JOB_PROVIDER_LINKEDIN) == "LinkedIn"
+
+
+def test_every_connectable_site_has_https_access_url():
+    for provider in CONNECTABLE_JOB_PROVIDERS:
+        url = job_board_access_url(provider)
+        assert url, provider
+        assert url.startswith("https://"), provider
 
 
 def test_connect_and_disconnect_job_account(sqlite_db):

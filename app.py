@@ -211,6 +211,7 @@ from job_providers import (
     uses_provider_fusion,
     job_board_display_name,
     job_board_signup_url,
+    job_board_access_url,
     merge_career_site_results,
     merge_job_lists,
     normalize_careerjet_referer,
@@ -7612,11 +7613,23 @@ def render_connected_accounts_section(user: dict[str, Any]) -> None:
     for provider in CONNECTABLE_JOB_PROVIDERS:
         account = linked.get(provider)
         name = job_board_display_name(provider)
+        access_url = job_board_access_url(provider)
         header = (
             t("accounts.row_connected", name=name)
             if account
             else t("accounts.row_disconnected", name=name)
         )
+        open_left, open_right = st.columns([2.2, 1.5])
+        with open_left:
+            st.markdown(f"**{html.escape(name)}**")
+        with open_right:
+            if access_url:
+                st.link_button(
+                    t("accounts.open_site", name=name),
+                    access_url,
+                    use_container_width=True,
+                    type="primary",
+                )
         with st.expander(header, expanded=False):
             if account:
                 st.success(
