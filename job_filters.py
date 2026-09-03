@@ -951,6 +951,26 @@ def resolve_target_sectors(
     return []
 
 
+def is_company_career_job(job: dict[str, Any]) -> bool:
+    """True for openings taken from a company career / ATS page."""
+    source = normalize_text(str(job.get("source") or ""))
+    if "carriere entreprise" in source or "career site" in source:
+        return True
+    if str(job.get("_search_phase") or "").strip().lower() == SEARCH_PHASE_CAREER:
+        return True
+    url = str(job.get("url") or "").lower()
+    return any(
+        fragment in url
+        for fragment in (
+            "greenhouse.io",
+            "lever.co",
+            "smartrecruiters.com",
+            "myworkdayjobs.com",
+            "ashbyhq.com",
+        )
+    )
+
+
 def infer_job_experience_level(job: dict[str, Any]) -> str:
     blob = normalize_text(
         " ".join(
@@ -986,8 +1006,11 @@ def job_matches_experience_level(job: dict[str, Any], expected_level: str) -> bo
         return True
     inferred = infer_job_experience_level(job)
     if not inferred:
-        return False
-    return inferred == expected
+        return is_company_career_job(job)
+    if inferred == expected:
+        return True
+    # Career pages often say "Senior" for mid/confirmed engineering roles.
+    return is_company_career_job(job) and expected == "confirme" and inferred == "senior"
 
 
 def job_matches_sector(job: dict[str, Any], target_sectors: list[str]) -> bool:
@@ -1015,7 +1038,7 @@ def job_matches_contract(job: dict[str, Any], user_contract: str) -> bool:
     expected = normalize_contract_type(user_contract)
     inferred = infer_job_contract(job)
     if not inferred:
-        return False
+        return is_company_career_job(job)
     return inferred == expected
 
 
@@ -1130,8 +1153,27 @@ def _job_matches_single_department(
     return False
 
 
+def _career_job_is_france_wide(job: dict[str, Any]) -> bool:
+    location = normalize_text(str(job.get("location") or ""))
+    if not location:
+        return False
+    markers = (
+        "france entiere",
+        "toute la france",
+        "all france",
+        "nationwide",
+        "remote france",
+        "france remote",
+    )
+    if location in {"france", "remote", "teletravail"}:
+        return True
+    return any(marker in location for marker in markers)
+
+
 def job_matches_department(job: dict[str, Any], profile: dict[str, Any]) -> bool:
     """Job must be in one of the user's selected departments."""
+    if is_company_career_job(job) and _career_job_is_france_wide(job):
+        return True
     _, departments = resolve_multi_geo_from_profile(profile)
     postal_code = str(profile.get("postal_code", "")).strip()
 
@@ -1155,6 +1197,8 @@ def job_matches_department(job: dict[str, Any], profile: dict[str, Any]) -> bool
 
 def job_matches_region(job: dict[str, Any], profile: dict[str, Any]) -> bool:
     """Job must be in one of the user's selected regions (or implied by department)."""
+    if is_company_career_job(job) and _career_job_is_france_wide(job):
+        return True
     regions, departments = resolve_multi_geo_from_profile(profile)
     location = normalize_text(str(job.get("location", "")))
     region_norms = {normalize_text(r) for r in regions if r}
@@ -1204,6 +1248,8 @@ def _job_matches_single_city(
 
 def job_matches_city(job: dict[str, Any], profile: dict[str, Any]) -> bool:
     """Job must be in one of the user's selected cities."""
+    if is_company_career_job(job) and _career_job_is_france_wide(job):
+        return True
     cities = resolve_selected_cities(profile)
     if not cities:
         return False

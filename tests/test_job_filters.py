@@ -6,7 +6,7 @@ import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from job_filters import apply_strict_job_filters
+from job_filters import apply_strict_job_filters, is_company_career_job
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -138,6 +138,61 @@ def test_complet_depth_fills_toward_100_when_age_filter_is_tight() -> None:
     assert stats["kept_strict"] == 27
     assert stats["backfilled_older"] == 73
     assert len(kept) == 100
+
+
+def test_career_site_senior_and_france_wide_kept_for_confirme() -> None:
+    jobs = [
+        {
+            "title": "Senior Software Engineer",
+            "location": "Paris, France",
+            "description": "Senior Software Engineer",
+            "url": "https://boards.greenhouse.io/datadog/jobs/2",
+            "contract_type": "",
+            "source": "Site carrière entreprise",
+            "published_at": None,
+        },
+        {
+            "title": "Software Engineer",
+            "location": "France entière",
+            "description": "Software Engineer",
+            "url": "https://boards.greenhouse.io/doctolib/jobs/3",
+            "contract_type": "",
+            "source": "Site carrière entreprise",
+            "published_at": None,
+        },
+    ]
+    kept, stats = apply_strict_job_filters(
+        jobs,
+        _paris_profile(experience_level="confirme", target_sectors=[]),
+    )
+    assert {job["title"] for job in kept} == {
+        "Senior Software Engineer",
+        "Software Engineer",
+    }
+    assert stats["rejected_geo"] == 0
+    assert stats["rejected_experience"] == 0
+
+
+def test_career_site_jobs_are_kept_without_cdi_or_level_words() -> None:
+    career = {
+        "title": "Software Engineer",
+        "company": "Datadog",
+        "location": "Paris, France",
+        "description": "Software Engineer",
+        "url": "https://boards.greenhouse.io/datadog/jobs/1",
+        "contract_type": "",
+        "source": "Site carrière entreprise",
+        "_search_phase": "career",
+        "published_at": None,
+    }
+    kept, stats = apply_strict_job_filters(
+        [career],
+        _paris_profile(experience_level="confirme", target_sectors=[]),
+    )
+    assert is_company_career_job(career)
+    assert [job["title"] for job in kept] == ["Software Engineer"]
+    assert stats["rejected_contract"] == 0
+    assert stats["rejected_experience"] == 0
 
 
 def test_backfill_locale_keys_exist() -> None:

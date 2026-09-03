@@ -1038,51 +1038,20 @@ GREENHOUSE_BOARD_TOKENS: tuple[tuple[str, str], ...] = (
     ("datadog", "Datadog"),
     ("stripe", "Stripe"),
     ("doctolib", "Doctolib"),
-    ("blablacar", "BlaBlaCar"),
-    ("alan", "Alan"),
-    ("ledger", "Ledger"),
-    ("contentsquare", "Contentsquare"),
     ("mirakl", "Mirakl"),
-    ("backmarket", "Back Market"),
-    ("qonto", "Qonto"),
-    ("spendesk", "Spendesk"),
-    ("swile", "Swile"),
-    ("vestiairecollective", "Vestiaire Collective"),
-    ("deezer", "Deezer"),
-    ("criteo", "Criteo"),
     ("dashlane", "Dashlane"),
     ("algolia", "Algolia"),
-    ("pennylane", "Pennylane"),
-    ("payfit", "PayFit"),
-    ("manomano", "ManoMano"),
-    ("voodoo", "Voodoo"),
-    ("planity", "Planity"),
     ("shifttechnology", "Shift Technology"),
-    ("pigment", "Pigment"),
 )
 
 LEVER_COMPANY_SLUGS: tuple[tuple[str, str], ...] = (
-    ("deezer", "Deezer"),
     ("ledger", "Ledger"),
-    ("algolia", "Algolia"),
-    ("datadog", "Datadog"),
+    ("qonto", "Qonto"),
 )
 
 SMARTRECRUITERS_COMPANIES: tuple[tuple[str, str], ...] = (
-    ("societegenerale", "Société Générale"),
-    ("bnpparibas", "BNP Paribas"),
-    ("capgemini", "Capgemini"),
-    ("orange", "Orange"),
-    ("airbus", "Airbus"),
     ("thales", "Thales"),
-    ("loreal", "L'Oréal"),
-    ("engie", "Engie"),
-    ("axa", "AXA"),
-    ("totalenergies", "TotalEnergies"),
-    ("sanofi", "Sanofi"),
-    ("airfrance", "Air France"),
-    ("edf", "EDF"),
-    ("sncf", "SNCF"),
+    ("LOrealGroup", "L'Oréal"),
 )
 
 DIRECT_ATS_MAX_WORKERS = 10
@@ -1375,12 +1344,76 @@ def _query_tokens_for_ats(query: str) -> list[str]:
     return [token for token in tokens if token not in stop]
 
 
+_ATS_TITLE_SYNONYMS: dict[str, tuple[str, ...]] = {
+    "developpeur": (
+        "developer",
+        "software engineer",
+        "software developer",
+        "full stack",
+        "fullstack",
+    ),
+    "developer": ("developpeur", "software engineer"),
+    "ingenieur": ("software engineer", "engineer"),
+    "engineer": ("ingenieur",),
+    "logiciel": ("software",),
+    "analyste": ("analyst",),
+    "analyst": ("analyste",),
+    "donnees": ("data",),
+    "data": ("donnees",),
+    "projet": ("project",),
+    "project": ("projet",),
+}
+_ATS_ROLE_TOKENS = {
+    "developpeur",
+    "developer",
+    "ingenieur",
+    "engineer",
+    "analyste",
+    "analyst",
+}
+
+
 def _title_matches_ats_query(title: str, query: str) -> bool:
     tokens = _query_tokens_for_ats(query)
     if not tokens:
         return True
     blob = _fold_search_text(title)
-    return any(token in blob for token in tokens)
+    if "business developer" in blob or "account executive" in blob:
+        skill_tokens = [token for token in tokens if token not in _ATS_ROLE_TOKENS]
+        return any(token in blob for token in skill_tokens)
+    for token in tokens:
+        if token in blob:
+            return True
+        for alias in _ATS_TITLE_SYNONYMS.get(token, ()):
+            if alias in blob:
+                return True
+    return False
+
+
+def _ats_location_fits_search(job_location: str, search_location: str) -> bool:
+    """Drop obviously foreign ATS rows when the candidate is searching France."""
+    job_fold = _fold_search_text(job_location)
+    search_fold = _fold_search_text(search_location)
+    if not job_fold:
+        return True
+    looking_france = "france" in search_fold or "paris" in search_fold or not search_fold
+    if not looking_france:
+        return True
+    if any(marker in job_fold for marker in ("france", "paris", "lyon", "lille", "nantes", "toulouse", "bordeaux", "remote", "teletravail", "worldwide", "emea")):
+        return True
+    foreign = (
+        "united states",
+        "usa",
+        "new york",
+        "san francisco",
+        "california",
+        "london",
+        "berlin",
+        "munich",
+        "amsterdam",
+        "dublin",
+    )
+    return not any(marker in job_fold for marker in foreign)
 
 
 def _fetch_greenhouse_board(token: str, company: str, query: str, location: str) -> list[dict[str, Any]]:
@@ -1404,6 +1437,8 @@ def _fetch_greenhouse_board(token: str, company: str, query: str, location: str)
         loc_obj = item.get("location")
         if isinstance(loc_obj, dict):
             loc = str(loc_obj.get("name") or "").strip()
+        if loc and not _ats_location_fits_search(loc, location):
+            continue
         jobs.append(
             _standard_job(
                 title,
@@ -1441,6 +1476,8 @@ def _fetch_lever_board(slug: str, company: str, query: str, location: str) -> li
             continue
         categories = item.get("categories") if isinstance(item.get("categories"), dict) else {}
         loc = str((categories or {}).get("location") or "").strip()
+        if loc and not _ats_location_fits_search(loc, location):
+            continue
         description = str(item.get("descriptionPlain") or title).strip()
         jobs.append(
             _standard_job(
@@ -1499,6 +1536,8 @@ def _fetch_smartrecruiters_board(
             )
             if part
         )
+        if loc and not _ats_location_fits_search(loc, location):
+            continue
         jobs.append(
             _standard_job(
                 title,
