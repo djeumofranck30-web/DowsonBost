@@ -48,12 +48,14 @@ def chat_fab_data_url() -> str:
     return _chat_fab_data_url_cache
 
 NAV_ICONS: dict[str, str] = {
-    "analysis": "📄",
     "dashboard": "▦",
+    "analysis": "📄",
+    "events": "🗓️",
     "applications": "☑️",
     "history": "🕓",
     "support": "💬",
     "profile": "👤",
+    "admin": "🛡️",
 }
 
 
@@ -611,6 +613,33 @@ def render_app_styles() -> None:
             color: rgba(248, 250, 252, 0.45);
             margin: 0.5rem 0 0.35rem 0.15rem;
         }}
+        [data-testid="stSidebar"] .workspace-context {{
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 14px;
+            padding: 0.65rem 0.75rem 0.7rem;
+            margin: 0.15rem 0 0.55rem;
+        }}
+        [data-testid="stSidebar"] .workspace-context-kicker {{
+            margin: 0 0 0.28rem;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(248, 250, 252, 0.45);
+        }}
+        [data-testid="stSidebar"] .workspace-context-job {{
+            margin: 0;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.3;
+        }}
+        [data-testid="stSidebar"] .workspace-context-zone {{
+            margin: 0.2rem 0 0;
+            font-size: 0.75rem;
+            color: rgba(248, 250, 252, 0.72);
+        }}
         [data-testid="stSidebar"] p,
         [data-testid="stSidebar"] label,
         [data-testid="stSidebar"] span,
@@ -885,6 +914,18 @@ def render_app_styles() -> None:
             grid-template-columns: repeat(4, 1fr);
             gap: 0.85rem;
             margin: 0 0 1.2rem 0;
+        }}
+        .overview-kpi-grid {{
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.85rem;
+            margin: 0 0 1rem 0;
+        }}
+        .overview-kpi-grid .stat-card-value {{
+            font-size: 1.15rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }}
         .stat-card {{
             background: {t["surface"]};
@@ -1218,7 +1259,7 @@ def render_app_styles() -> None:
             box-shadow: 0 4px 12px rgba(11, 18, 32, 0.1);
         }}
         @media (max-width: 900px) {{
-            .stat-card-grid, .dash-quality-kpis, .dash-quality-split {{
+            .stat-card-grid, .dash-quality-kpis, .dash-quality-split, .overview-kpi-grid {{
                 grid-template-columns: 1fr 1fr;
             }}
             .job-card-head {{
@@ -1226,7 +1267,7 @@ def render_app_styles() -> None:
             }}
         }}
         @media (max-width: 560px) {{
-            .stat-card-grid, .dash-quality-kpis, .dash-quality-split {{
+            .stat-card-grid, .dash-quality-kpis, .dash-quality-split, .overview-kpi-grid {{
                 grid-template-columns: 1fr;
             }}
             .profile-header-card {{

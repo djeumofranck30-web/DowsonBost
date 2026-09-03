@@ -21,6 +21,11 @@ def test_dashboard_and_profile_locale_keys_exist():
             "dashboard.empty_cta",
             "dashboard.filters_title",
             "dashboard.quality_title",
+            "overview.shortcuts_title",
+            "overview.go_diagnostic",
+            "nav.events",
+            "hero.events.title",
+            "workspace.context_title",
             "dashboard.metric_avg_score",
             "dashboard.top_matches",
             "profile.tab_search",
@@ -67,6 +72,8 @@ def test_theme_contains_dashboard_and_profile_layout_classes():
         "dash-quality",
         "dash-score-ring",
         "dash-top-match",
+        "overview-kpi-grid",
+        "workspace-context",
     ):
         assert f".{class_name}" in css, class_name
 

@@ -107,6 +107,7 @@ from config import (
     normalize_secret,
 )
 from constants import (
+    ADMIN_PAGE_PATH,
     ANALYSIS_DEPTH_OPTIONS,
     ANALYSIS_DEPTH_POOL,
     ANALYSIS_DEPTH_TOP,
@@ -115,6 +116,7 @@ from constants import (
     ATS_MATCH_MAX_TOKENS,
     CACHE_TTL_SECONDS,
     CV_MATCH_TEXT_LIMIT_WITH_PROFILE,
+    EVENTS_TAB_KEYS,
     GROQ_INTER_CALL_DELAY_SEC,
     GROQ_MATCH_BATCH_SIZE,
     GROQ_RATE_LIMIT_RETRY_SEC,
@@ -131,6 +133,8 @@ from constants import (
     JOB_CARDS_PER_PAGE,
     HISTORY_ROWS_PER_PAGE,
     APPLICATION_CHANNEL_KEYS,
+    canonical_nav_page,
+    events_tab_for,
 )
 from services.analysis_queue import (
     enqueue_analysis_job,
@@ -299,6 +303,7 @@ from auth import (
     split_full_name,
     update_user_preferred_language,
     update_user_profile,
+    user_is_admin,
     verify_password_reset_code,
 )
 from database import (
@@ -4997,6 +5002,29 @@ def render_history_page(user: dict[str, Any]) -> None:
                 st.caption(t("history.engine", engine=row.get("job_provider", "—")))
 
 
+def render_events_page(user: dict[str, Any]) -> None:
+    """Applications and analysis history in one Events space."""
+    render_page_hero(
+        t("hero.events.title"),
+        t("hero.events.subtitle"),
+        badge=t("hero.events.badge"),
+    )
+    if st.session_state.get("events_tab") not in EVENTS_TAB_KEYS:
+        st.session_state.events_tab = "applications"
+    tab = st.radio(
+        t("events.tabs_label"),
+        list(EVENTS_TAB_KEYS),
+        format_func=lambda key: t(f"nav.{key}"),
+        horizontal=True,
+        key="events_tab",
+        label_visibility="collapsed",
+    )
+    if tab == "history":
+        render_history_page(user)
+        return
+    render_applications_page(user)
+
+
 def _analysis_dashboard_label(row: dict[str, Any]) -> str:
     created = str(row.get("created_at", ""))[:16].replace("T", " ")
     return t(
@@ -5366,6 +5394,81 @@ def _render_dashboard_insight_charts(
             st.markdown("</div>", unsafe_allow_html=True)
 
 
+def _render_overview_kpis(user_id: int, analyses: list[dict[str, Any]]) -> None:
+    """Environment-level summary shown on the Overview (dashboard) page."""
+    latest = analyses[0] if analyses else {}
+    latest_label = str(latest.get("target_job_title") or "").strip() or t("common.none")
+    items = (
+        (t("overview.kpi_analyses"), str(len(analyses))),
+        (t("overview.kpi_applications"), str(count_user_applications(user_id))),
+        (t("overview.kpi_latest"), latest_label),
+    )
+    cards = "".join(
+        (
+            '<div class="stat-card">'
+            f'<p class="stat-card-label">{html.escape(str(label))}</p>'
+            f'<p class="stat-card-value">{html.escape(str(value))}</p>'
+            "</div>"
+        )
+        for label, value in items
+    )
+    st.markdown(f'<div class="overview-kpi-grid">{cards}</div>', unsafe_allow_html=True)
+
+
+def _render_overview_shortcuts() -> None:
+    """Quick access to Diagnostic, Events, and account from the overview."""
+    st.markdown(
+        f'<p class="filter-bar-title">{html.escape(t("overview.shortcuts_title"))}</p>',
+        unsafe_allow_html=True,
+    )
+    diagnostic, events, profile = st.columns(3)
+    with diagnostic:
+        if st.button(
+            t("overview.go_diagnostic"),
+            use_container_width=True,
+            key="overview_go_analysis",
+        ):
+            _request_navigation("analysis")
+    with events:
+        if st.button(
+            t("overview.go_events"),
+            use_container_width=True,
+            key="overview_go_events",
+        ):
+            _request_navigation("events")
+    with profile:
+        if st.button(
+            t("overview.go_profile"),
+            use_container_width=True,
+            key="overview_go_profile",
+        ):
+            _request_navigation("profile")
+
+
+def render_sidebar_workspace_context(user: dict[str, Any]) -> None:
+    """Search-context switcher (poste visé + zone) instead of a corporate subsidiary."""
+    profile = _cached_user_profile(user) if user.get("id") else user
+    job = str(profile.get("target_job_title") or "").strip() or t("workspace.no_target")
+    zone = format_countries_summary(profile) or t("common.none")
+    st.markdown(
+        f"""
+        <div class="workspace-context">
+            <p class="workspace-context-kicker">{html.escape(t("workspace.context_title"))}</p>
+            <p class="workspace-context-job">{html.escape(job)}</p>
+            <p class="workspace-context-zone">{html.escape(zone)}</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    if st.button(
+        t("workspace.change_context"),
+        use_container_width=True,
+        key="sidebar_change_context",
+    ):
+        st.session_state.profile_section = "search"
+        _request_navigation("profile")
+
+
 def render_dashboard_page(user: dict[str, Any]) -> None:
     """Dashboard scoped to a selected analysis with filters and tracking."""
     _flush_analysis_notices()
@@ -5376,6 +5479,8 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
         badge=t("hero.dashboard.badge"),
     )
     analyses = _cached_list_analyses(user_id)
+    _render_overview_kpis(user_id, analyses)
+    _render_overview_shortcuts()
     if not analyses:
         st.markdown(
             (
@@ -5840,33 +5945,51 @@ def init_session_state() -> None:
     init_locale()
     if st.session_state.get("main_navigation") not in NAV_PAGE_KEYS:
         st.session_state.main_navigation = NAV_PAGE_KEYS[0]
+    if st.session_state.get("events_tab") not in EVENTS_TAB_KEYS:
+        st.session_state.events_tab = "applications"
 
 
 def _apply_pending_navigation() -> None:
     """Apply programmatic navigation before the sidebar radio is rendered."""
     pending = st.session_state.pop("_pending_navigation", None)
+    pending_tab = st.session_state.pop("_pending_events_tab", None)
     try:
         nav_q = st.query_params.get("nav")
     except Exception:
         nav_q = None
     if isinstance(nav_q, list):
         nav_q = nav_q[0] if nav_q else None
-    if nav_q in NAV_PAGE_KEYS:
-        st.session_state.main_navigation = nav_q
+    query_page = canonical_nav_page(nav_q)
+    if query_page:
+        st.session_state.main_navigation = query_page
+        implied_tab = events_tab_for(nav_q, fallback=None)
+        if implied_tab in EVENTS_TAB_KEYS:
+            st.session_state.events_tab = implied_tab
         try:
             del st.query_params["nav"]
         except Exception:
             pass
         return
-    if pending in NAV_PAGE_KEYS:
-        st.session_state.main_navigation = pending
+    pending_page = canonical_nav_page(pending)
+    if pending_page:
+        st.session_state.main_navigation = pending_page
+    tab = pending_tab if pending_tab in EVENTS_TAB_KEYS else events_tab_for(pending, fallback=None)
+    if tab in EVENTS_TAB_KEYS:
+        st.session_state.events_tab = tab
 
 
-def _request_navigation(page: str) -> None:
+def _request_navigation(page: str, events_tab: str | None = None) -> None:
     """Navigate to another main page on the next rerun."""
-    if page in NAV_PAGE_KEYS:
-        st.session_state["_pending_navigation"] = page
-        st.rerun()
+    canonical = canonical_nav_page(page)
+    if not canonical:
+        return
+    st.session_state["_pending_navigation"] = canonical
+    tab = events_tab if events_tab in EVENTS_TAB_KEYS else None
+    if tab is None and page in EVENTS_TAB_KEYS:
+        tab = page
+    if tab in EVENTS_TAB_KEYS:
+        st.session_state["_pending_events_tab"] = tab
+    st.rerun()
 
 
 def render_language_selector(
@@ -8327,8 +8450,12 @@ def render_app() -> None:
         if user.get("id"):
             photo_url = cached_sidebar_photo_data_url(int(user["id"]), st.session_state)
         render_sidebar_brand(user, photo_url)
+        render_sidebar_workspace_context(user)
 
-        st.markdown('<p class="sidebar-nav-label">Menu</p>', unsafe_allow_html=True)
+        st.markdown(
+            f'<p class="sidebar-nav-label">{html.escape(t("nav.menu"))}</p>',
+            unsafe_allow_html=True,
+        )
         support_unread = 0
         if user.get("id"):
             support_unread = _cached_support_unread(int(user["id"]))
@@ -8346,6 +8473,13 @@ def render_app() -> None:
             label_visibility="collapsed",
             key="main_navigation",
         )
+
+        if user_is_admin(user):
+            st.markdown(
+                f'<p class="sidebar-nav-label">{html.escape(t("nav.admin_section"))}</p>',
+                unsafe_allow_html=True,
+            )
+            st.page_link(ADMIN_PAGE_PATH, label=nav_label_with_icon("admin", t("nav.admin")))
 
         if page == "analysis":
             st.markdown("---")
@@ -8377,6 +8511,13 @@ def render_app() -> None:
         render_language_selector(key_prefix="sidebar_locale", persist_user=True)
         st.markdown('<div class="sidebar-flex-spacer" aria-hidden="true"></div>', unsafe_allow_html=True)
 
+        st.markdown(
+            f'<p class="sidebar-nav-label">{html.escape(t("nav.account"))}</p>',
+            unsafe_allow_html=True,
+        )
+        account_email = user.get("email") or ""
+        if account_email:
+            st.caption(account_email)
         if st.button(t("app.logout"), use_container_width=True, key="logout_button"):
             st.session_state.authenticated = False
             st.session_state.user = None
@@ -8394,22 +8535,8 @@ def render_app() -> None:
         render_support_page(user)
         return
 
-    if page == "applications":
-        render_page_hero(
-            t("hero.applications.title"),
-            t("hero.applications.subtitle"),
-            badge=t("hero.applications.badge"),
-        )
-        render_applications_page(user)
-        return
-
-    if page == "history":
-        render_page_hero(
-            t("hero.history.title"),
-            t("hero.history.subtitle"),
-            badge=t("hero.history.badge"),
-        )
-        render_history_page(user)
+    if page == "events":
+        render_events_page(user)
         return
 
     if page == "dashboard":

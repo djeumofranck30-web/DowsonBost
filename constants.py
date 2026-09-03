@@ -23,7 +23,16 @@ ATS_MATCH_MAX_TOKENS = 3500
 ANALYSIS_DEPTH_OPTIONS = ("rapide", "standard", "complet")
 ANALYSIS_DEPTH_POOL = {"rapide": 25, "standard": 60, "complet": 100}
 ANALYSIS_DEPTH_TOP = {"rapide": 25, "standard": 60, "complet": 100}
-NAV_PAGE_KEYS = ("analysis", "dashboard", "applications", "history", "support", "profile")
+NAV_PAGE_KEYS = ("dashboard", "analysis", "events", "support", "profile")
+EVENTS_TAB_KEYS = ("applications", "history")
+NAV_PAGE_ALIASES = {
+    "applications": "events",
+    "history": "events",
+    "overview": "dashboard",
+    "synthese": "dashboard",
+    "diagnostic": "analysis",
+}
+ADMIN_PAGE_PATH = "pages/dashboard.py"
 JOB_CARDS_PER_PAGE = 25
 HISTORY_ROWS_PER_PAGE = 8
 PROFILE_SECTION_KEYS = ("search", "accounts", "alerts", "security")
@@ -43,3 +52,24 @@ PASSWORD_RESET_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 ANALYSIS_JOB_POLL_SECONDS = 1
 ANALYSIS_JOB_STALE_SECONDS = 45 * 60
 ANALYSIS_JOB_MAX_PDF_BYTES = 8 * 1024 * 1024
+
+
+def canonical_nav_page(page: str | None) -> str | None:
+    """Map a nav key or legacy alias onto the current sidebar page."""
+    if page is None:
+        return None
+    key = str(page).strip().lower()
+    if not key:
+        return None
+    mapped = NAV_PAGE_ALIASES.get(key, key)
+    return mapped if mapped in NAV_PAGE_KEYS else None
+
+
+def events_tab_for(page: str | None, *, fallback: str | None = "applications") -> str | None:
+    """Return the Events sub-tab implied by a page key or alias."""
+    key = str(page or "").strip().lower()
+    if key in EVENTS_TAB_KEYS:
+        return key
+    if fallback in EVENTS_TAB_KEYS:
+        return fallback
+    return None
