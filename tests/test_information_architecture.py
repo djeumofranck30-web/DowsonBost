@@ -62,7 +62,7 @@ def test_app_wires_events_admin_context_and_account():
     assert "canonical_nav_page(" in source
     assert "events_tab_for(" in source
     assert render_app.index('if page == "analysis":') < render_app.index(
-        'key="sidebar_job_provider"'
+        'key="sidebar_job_providers"'
     )
 
 

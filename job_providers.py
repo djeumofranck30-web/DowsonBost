@@ -60,6 +60,66 @@ JOB_PROVIDER_SIDEBAR_ORDER = (
     JOB_PROVIDER_SERPAPI,
 )
 
+JOB_PROVIDER_CHOICES = tuple(
+    key for key in JOB_PROVIDER_SIDEBAR_ORDER if key != JOB_PROVIDER_ALL
+)
+
+
+def parse_job_providers(value: str | None) -> list[str]:
+    """Split a stored provider value into one or more engine keys."""
+    raw = str(value or "").strip().lower()
+    if not raw:
+        return [JOB_PROVIDER_ALL]
+    parts: list[str] = []
+    for item in raw.replace(";", ",").split(","):
+        key = item.strip()
+        if not key:
+            continue
+        if key == JOB_PROVIDER_ALL:
+            return [JOB_PROVIDER_ALL]
+        if key in JOB_PROVIDER_CHOICES and key not in parts:
+            parts.append(key)
+    if not parts:
+        return [JOB_PROVIDER_ALL]
+    return [key for key in JOB_PROVIDER_CHOICES if key in parts]
+
+
+def encode_job_providers(providers: list[str] | tuple[str, ...] | None) -> str:
+    """Store selected engines as a comma-separated string."""
+    if not providers:
+        return ""
+    keys = parse_job_providers(",".join(providers))
+    if keys == [JOB_PROVIDER_ALL] or keys == list(JOB_PROVIDER_CHOICES):
+        return JOB_PROVIDER_ALL
+    return ",".join(keys)
+
+
+def uses_provider_fusion(provider: str | None) -> bool:
+    keys = parse_job_providers(provider)
+    return keys == [JOB_PROVIDER_ALL] or len(keys) > 1
+
+
+def selected_job_providers(
+    provider: str | None,
+    *,
+    available: list[str] | None = None,
+    include_career: bool = True,
+) -> list[str]:
+    """Concrete engines to query for a stored selection."""
+    keys = parse_job_providers(provider)
+    allowed = list(JOB_PROVIDER_CHOICES)
+    if available is not None:
+        extra = {JOB_PROVIDER_CAREER_SITES, JOB_PROVIDER_WTTJ}
+        allowed = [key for key in JOB_PROVIDER_CHOICES if key in set(available) | extra]
+    if keys == [JOB_PROVIDER_ALL]:
+        chosen = list(allowed)
+    else:
+        chosen = [key for key in keys if key in allowed]
+    if not include_career:
+        chosen = [key for key in chosen if key != JOB_PROVIDER_CAREER_SITES]
+    return chosen
+
+
 CONNECTABLE_JOB_PROVIDERS = (
     JOB_PROVIDER_INDEED,
     JOB_PROVIDER_LINKEDIN,

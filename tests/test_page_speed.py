@@ -105,16 +105,16 @@ def test_job_cards_are_paginated_and_collapsed_by_default():
     assert "_hydrate_analysis_result" in source
     assert "get_analysis_results_by_ids" in source
     assert "cached_sidebar_photo_data_url" in source
-    assert 'key="sidebar_job_provider"' in source
+    assert 'key="sidebar_job_providers"' in source
 
 
 def test_job_provider_widget_is_analysis_page_only():
     source = (ROOT / "app.py").read_text(encoding="utf-8")
     render_app = source.split("def render_app()", 1)[1].split("def main()", 1)[0]
     assert render_app.index('if page == "analysis":') < render_app.index(
-        'key="sidebar_job_provider"'
+        'key="sidebar_job_providers"'
     )
-    assert render_app.count('key="sidebar_job_provider"') == 1
+    assert render_app.count('key="sidebar_job_providers"') == 1
 
 
 def test_theme_does_not_block_on_google_fonts():

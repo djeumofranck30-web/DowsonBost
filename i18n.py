@@ -167,6 +167,15 @@ def weekday_label(day: str) -> str:
 
 
 def job_provider_label(provider: str) -> str:
+    raw = str(provider or "").strip()
+    if "," in raw or ";" in raw:
+        from job_providers import parse_job_providers
+
+        keys = parse_job_providers(raw)
+        if keys == ["all"]:
+            return t("provider.all")
+        labels = [job_provider_label(key) for key in keys]
+        return ", ".join(label for label in labels if label)
     key_map = {
         "all": "provider.all",
         "adzuna": "provider.adzuna",

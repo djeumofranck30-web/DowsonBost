@@ -190,6 +190,7 @@ from job_providers import (
     JOB_PROVIDER_ADZUNA,
     JOB_PROVIDER_ALL,
     JOB_PROVIDER_CAREER_SITES,
+    JOB_PROVIDER_CHOICES,
     JOB_PROVIDER_GLASSDOOR,
     JOB_PROVIDER_HELLOWORK,
     JOB_PROVIDER_INDEED,
@@ -204,6 +205,10 @@ from job_providers import (
     JOB_PROVIDER_WTTJ,
     configured_providers,
     default_job_provider,
+    encode_job_providers,
+    parse_job_providers,
+    selected_job_providers,
+    uses_provider_fusion,
     job_board_display_name,
     job_board_signup_url,
     merge_career_site_results,
@@ -2562,9 +2567,16 @@ def search_jobs_with_fallback(
     max_age_days: int = 0,
 ) -> dict[str, Any]:
     """Search jobs by métier — location-first when a zone is provided."""
-    if provider == JOB_PROVIDER_ALL:
+    if uses_provider_fusion(provider):
         return _search_all_providers_with_fallback(
-            query, location, country, metier, contract_type, alternate_queries
+            query,
+            location,
+            country,
+            metier,
+            contract_type,
+            alternate_queries,
+            max_age_days=max_age_days,
+            providers=selected_job_providers(provider),
         )
 
     attempts: list[tuple[str, str, str]] = []
@@ -2635,7 +2647,7 @@ def _search_jobs_at_profile_location(
     max_age_days: int,
 ) -> dict[str, Any]:
     """Run one provider search for a single profile zone."""
-    if provider == JOB_PROVIDER_ALL:
+    if uses_provider_fusion(provider):
         return _search_all_providers_with_fallback(
             query,
             loc,
@@ -2644,6 +2656,7 @@ def _search_jobs_at_profile_location(
             contract_type,
             alternate_queries,
             max_age_days=max_age_days,
+            providers=selected_job_providers(provider),
         )
     return search_jobs_with_fallback(
         provider,
@@ -2792,8 +2805,20 @@ def search_jobs_for_profile(
         country_locations_map[search_country] = locs
         all_locations.extend(locs)
 
+    selected_keys = parse_job_providers(provider)
+    include_career = (
+        selected_keys == [JOB_PROVIDER_ALL]
+        or JOB_PROVIDER_CAREER_SITES in selected_keys
+    )
+    board_keys = selected_job_providers(
+        provider,
+        available=configured_providers(secrets=provider_secrets_from_getter(get_secret)),
+        include_career=False,
+    )
+    board_provider = encode_job_providers(board_keys) if board_keys else ""
+
     title_for_sites = (query or metier).strip()
-    if provider != JOB_PROVIDER_CAREER_SITES:
+    if include_career:
         career_seed = _with_company_career_sites(
             {
                 "jobs": [],
@@ -2805,7 +2830,7 @@ def search_jobs_for_profile(
             locations=all_locations,
             countries=countries,
             country=country,
-            provider=provider,
+            provider="",
         )
         career_jobs = tag_jobs_search_phase(
             list(career_seed.get("jobs") or []),
@@ -2818,33 +2843,34 @@ def search_jobs_for_profile(
             strategies.append("career:sites")
 
     career_count = len(merged)
-    for phase_name, queries in phases:
-        board_count = max(0, len(merged) - career_count)
-        use_all_locations = phase_name == "title" or board_count < target
-        for q_try in queries:
-            if phase_name != "title" and board_count >= max(target * 2, target + 20):
-                break
-            for search_country in countries:
-                country_locations = country_locations_map.get(search_country) or [""]
-                if not use_all_locations:
-                    country_locations = country_locations[:1]
-                result = _search_jobs_at_country_locations(
-                    provider,
-                    q_try,
-                    search_country,
-                    country_locations,
-                    q_try,
-                    contract_type,
-                    None,
-                    max_age_days,
-                )
-                batch = tag_jobs_search_phase(result.get("jobs") or [], phase_name)
-                if batch:
-                    merged = merge_job_lists([merged, batch])
-                    board_count = max(0, len(merged) - career_count)
-                    query_used = result.get("query_used") or q_try or query_used
-                    providers_used.extend(result.get("providers_used") or [])
-                    strategies.append(f"{phase_name}:{q_try}")
+    if board_provider:
+        for phase_name, queries in phases:
+            board_count = max(0, len(merged) - career_count)
+            use_all_locations = phase_name == "title" or board_count < target
+            for q_try in queries:
+                if phase_name != "title" and board_count >= max(target * 2, target + 20):
+                    break
+                for search_country in countries:
+                    country_locations = country_locations_map.get(search_country) or [""]
+                    if not use_all_locations:
+                        country_locations = country_locations[:1]
+                    result = _search_jobs_at_country_locations(
+                        board_provider,
+                        q_try,
+                        search_country,
+                        country_locations,
+                        q_try,
+                        contract_type,
+                        None,
+                        max_age_days,
+                    )
+                    batch = tag_jobs_search_phase(result.get("jobs") or [], phase_name)
+                    if batch:
+                        merged = merge_job_lists([merged, batch])
+                        board_count = max(0, len(merged) - career_count)
+                        query_used = result.get("query_used") or q_try or query_used
+                        providers_used.extend(result.get("providers_used") or [])
+                        strategies.append(f"{phase_name}:{q_try}")
 
     if merged:
         location_label = ", ".join(all_locations[:4])
@@ -2858,27 +2884,30 @@ def search_jobs_for_profile(
         if len(countries) > 1:
             strategy = f"{countries_label} — {strategy}"
         title_for_sites = (phases[0][1][0] if phases and phases[0][1] else query) or metier
+        payload = {
+            "jobs": merged,
+            "strategy": strategy,
+            "query_used": query_used,
+            "location_used": location_label,
+            "providers_used": list(dict.fromkeys(providers_used)),
+            "profile_locations": all_locations,
+            "search_phases": [name for name, _ in phases],
+        }
+        if not include_career:
+            return payload
         return _with_company_career_sites(
-            {
-                "jobs": merged,
-                "strategy": strategy,
-                "query_used": query_used,
-                "location_used": location_label,
-                "providers_used": list(dict.fromkeys(providers_used)),
-                "profile_locations": all_locations,
-                "search_phases": [name for name, _ in phases],
-            },
+            payload,
             query=title_for_sites,
             metier=metier or title_for_sites,
             locations=all_locations,
             countries=countries,
             country=country,
-            provider=provider,
+            provider="",
         )
 
     fallback_country = profile_primary_country(profile) or country or "France"
     fallback = search_jobs_with_fallback(
-        provider,
+        board_provider or provider,
         query,
         "",
         fallback_country,
@@ -2889,6 +2918,8 @@ def search_jobs_for_profile(
     )
     fallback["jobs"] = tag_jobs_search_phase(fallback.get("jobs") or [], "title")
     fallback["profile_locations"] = all_locations
+    if not include_career:
+        return fallback
     return _with_company_career_sites(
         fallback,
         query=query,
@@ -2896,7 +2927,7 @@ def search_jobs_for_profile(
         locations=all_locations,
         countries=countries,
         country=country,
-        provider=provider,
+        provider="",
     )
 
 
@@ -2908,11 +2939,16 @@ def _search_all_providers_with_fallback(
     contract_type: str = "",
     alternate_queries: list[str] | None = None,
     max_age_days: int = 0,
+    providers: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Query every configured provider and merge unique results."""
+    """Query the selected providers and merge unique results."""
     secrets = provider_secrets_from_getter(get_secret)
-    providers = configured_providers(secrets=secrets)
-    if not providers:
+    available = configured_providers(secrets=secrets)
+    allowed = set(available) | {JOB_PROVIDER_CAREER_SITES, JOB_PROVIDER_WTTJ}
+    query_list = [key for key in (providers or []) if key in allowed]
+    if not query_list:
+        query_list = selected_job_providers(JOB_PROVIDER_ALL, available=available)
+    if not query_list:
         return {
             "jobs": [],
             "strategy": "aucune",
@@ -2934,10 +2970,10 @@ def _search_all_providers_with_fallback(
         merged: list[dict[str, Any]] = []
         used: list[str] = []
         loc = location.strip()
-        for provider in providers:
+        for engine in query_list:
             try:
                 batch = search_jobs(
-                    provider,
+                    engine,
                     q_try,
                     loc,
                     country,
@@ -2947,7 +2983,7 @@ def _search_all_providers_with_fallback(
             except (RuntimeError, requests.HTTPError):
                 continue
             if batch:
-                used.append(provider)
+                used.append(engine)
                 merged = merge_job_lists([merged, batch])
         if merged:
             return {
@@ -2963,7 +2999,7 @@ def _search_all_providers_with_fallback(
         "strategy": "aucune",
         "query_used": q or metier or "(vide)",
         "location_used": f"(tout {country or 'France'})",
-        "providers_used": providers,
+        "providers_used": query_list,
     }
 
 
@@ -8463,8 +8499,11 @@ def _cached_support_unread(user_id: int) -> int:
 
 def _sidebar_job_provider() -> str:
     stored = st.session_state.get("job_provider")
-    if stored in JOB_PROVIDER_SIDEBAR_ORDER:
-        return str(stored)
+    parsed = parse_job_providers(stored)
+    if stored and parsed:
+        encoded = encode_job_providers(parsed)
+        st.session_state.job_provider = encoded
+        return encoded
     provider = default_job_provider(secrets=provider_secrets_from_getter(get_secret))
     st.session_state.job_provider = provider
     return provider
@@ -8517,16 +8556,34 @@ def render_app() -> None:
 
         if page == "analysis":
             st.markdown("---")
-            options = JOB_PROVIDER_SIDEBAR_ORDER
-            current = job_provider if job_provider in options else options[0]
-            job_provider = st.selectbox(
+            selectable = list(JOB_PROVIDER_CHOICES)
+            current_keys = parse_job_providers(job_provider)
+            if current_keys == [JOB_PROVIDER_ALL]:
+                current_keys = list(selectable)
+            current_keys = [key for key in selectable if key in current_keys]
+            if not current_keys:
+                current_keys = [JOB_PROVIDER_WTTJ, JOB_PROVIDER_CAREER_SITES]
+                current_keys = [key for key in selectable if key in current_keys]
+            if "sidebar_job_providers" not in st.session_state:
+                st.session_state.sidebar_job_providers = current_keys
+            elif isinstance(st.session_state.get("sidebar_job_providers"), str):
+                migrated = parse_job_providers(st.session_state.sidebar_job_providers)
+                if migrated == [JOB_PROVIDER_ALL]:
+                    migrated = list(selectable)
+                st.session_state.sidebar_job_providers = [
+                    key for key in selectable if key in migrated
+                ] or current_keys
+            selected_providers = st.multiselect(
                 t("app.job_provider"),
-                options,
-                index=options.index(current),
+                selectable,
                 format_func=job_provider_label,
                 help=t("app.job_provider_help"),
-                key="sidebar_job_provider",
+                key="sidebar_job_providers",
             )
+            if not selected_providers:
+                st.caption(t("app.job_provider_empty"))
+                selected_providers = current_keys or [JOB_PROVIDER_WTTJ]
+            job_provider = encode_job_providers(selected_providers)
             st.session_state.job_provider = job_provider
 
             current_depth = st.session_state.get("analysis_depth", "standard")
