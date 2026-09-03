@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import ipaddress
 import re
+import unicodedata
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Callable
 from urllib.parse import urlparse
 
@@ -26,9 +28,9 @@ JOB_PROVIDER_ALL = "all"
 
 JOB_PROVIDER_LABELS: dict[str, str] = {
     JOB_PROVIDER_ALL: "Tous les moteurs (fusion)",
-    JOB_PROVIDER_ADZUNA: "Adzuna (gratuit, recommandé)",
-    JOB_PROVIDER_WTTJ: "Welcome to the Jungle (gratuit)",
-    JOB_PROVIDER_CAREER_SITES: "Sites carrière entreprises (SG, Atos, BNP, Greenhouse…)",
+    JOB_PROVIDER_ADZUNA: "Adzuna (gratuit)",
+    JOB_PROVIDER_WTTJ: "Welcome to the Jungle (prioritaire)",
+    JOB_PROVIDER_CAREER_SITES: "Sites carrière entreprises (en premier)",
     JOB_PROVIDER_JOBTEASER: "JobTeaser — étudiants / alternance (Apify)",
     JOB_PROVIDER_HELLOWORK: "HelloWork — pages entreprises + offres (Apify / SerpApi)",
     JOB_PROVIDER_JOOBLE: "Jooble",
@@ -43,9 +45,9 @@ JOB_PROVIDER_LABELS: dict[str, str] = {
 
 JOB_PROVIDER_SIDEBAR_ORDER = (
     JOB_PROVIDER_ALL,
-    JOB_PROVIDER_ADZUNA,
-    JOB_PROVIDER_WTTJ,
     JOB_PROVIDER_CAREER_SITES,
+    JOB_PROVIDER_WTTJ,
+    JOB_PROVIDER_ADZUNA,
     JOB_PROVIDER_JOBTEASER,
     JOB_PROVIDER_HELLOWORK,
     JOB_PROVIDER_JOOBLE,
@@ -232,6 +234,23 @@ WTTJ_JOB_INDEXES = (
     "wttj_jobs_production_fr",
     "wttj_jobs_production_en",
 )
+WTTJ_MAX_PAGES = 10
+WTTJ_HITS_PER_PAGE = 50
+WTTJ_MAX_JOBS = 300
+WTTJ_COUNTRY_CODES: dict[str, str] = {
+    "france": "FR",
+    "belgique": "BE",
+    "suisse": "CH",
+    "allemagne": "DE",
+    "espagne": "ES",
+    "italie": "IT",
+    "royaume-uni": "GB",
+    "pays-bas": "NL",
+    "luxembourg": "LU",
+    "portugal": "PT",
+    "canada": "CA",
+    "etats-unis": "US",
+}
 
 WTTJ_CONTRACT_MAP: dict[str, str] = {
     "apprenticeship": "Alternance",
@@ -417,13 +436,33 @@ def _wttj_hit_to_job(hit: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _wttj_country_code(country: str) -> str:
+    return WTTJ_COUNTRY_CODES.get(_normalize_country_key(country), "")
+
+
+def _wttj_optional_filters(location: str = "", country: str = "") -> list[str]:
+    """Boost matching offices without dropping jobs from other cities."""
+    filters: list[str] = []
+    code = _wttj_country_code(country)
+    if code:
+        filters.append(f"offices.country_code:{code}")
+    city = (location or "").split(",")[0].strip()
+    lowered = city.lower()
+    if city and lowered not in {"", "france", "europe", "remote", "télétravail", "teletravail"}:
+        if lowered not in WTTJ_COUNTRY_CODES:
+            filters.append(f"offices.city:{city}")
+    return filters
+
+
 def search_jobs_wttj(
     query: str,
     contract_type: str = "",
-    max_pages: int = 3,
-    hits_per_page: int = 30,
+    max_pages: int = WTTJ_MAX_PAGES,
+    hits_per_page: int = WTTJ_HITS_PER_PAGE,
+    location: str = "",
+    country: str = "",
 ) -> list[dict[str, Any]]:
-    """Search Welcome to the Jungle via their public Algolia job index."""
+    """Search Welcome to the Jungle via their public Algolia job indexes."""
     cleaned_query = query.strip()
     if not cleaned_query:
         return []
@@ -431,48 +470,66 @@ def search_jobs_wttj(
     jobs: list[dict[str, Any]] = []
     seen_urls: set[str] = set()
     facet_filters = _wttj_contract_facet_filters(contract_type)
+    optional_filters = _wttj_optional_filters(location, country)
+    page_cap = max(1, min(int(max_pages), WTTJ_MAX_PAGES))
+    per_page = max(1, min(int(hits_per_page), 100))
 
     for index_name in WTTJ_JOB_INDEXES:
-        index_jobs: list[dict[str, Any]] = []
         url = (
             f"https://{WTTJ_ALGOLIA_APP_ID.lower()}-dsn.algolia.net"
             f"/1/indexes/{index_name}/query"
         )
-        try:
-            for page in range(max_pages):
-                payload: dict[str, Any] = {
-                    "query": cleaned_query,
-                    "hitsPerPage": hits_per_page,
-                    "page": page,
-                }
-                if facet_filters:
-                    payload["facetFilters"] = facet_filters
+        use_optional = bool(optional_filters)
+        page = 0
+        while page < page_cap and len(jobs) < WTTJ_MAX_JOBS:
+            payload: dict[str, Any] = {
+                "query": cleaned_query,
+                "hitsPerPage": per_page,
+                "page": page,
+            }
+            if facet_filters:
+                payload["facetFilters"] = facet_filters
+            if use_optional:
+                payload["optionalFilters"] = optional_filters
+            try:
                 response = requests.post(
                     url,
                     json=payload,
                     headers=_wttj_algolia_headers(),
                     timeout=25,
                 )
-                if not response.ok:
+            except (requests.RequestException, ValueError, TypeError):
+                break
+            if not response.ok and use_optional and page == 0:
+                use_optional = False
+                continue
+            if not response.ok:
+                break
+            try:
+                data = response.json()
+            except ValueError:
+                break
+            hits = data.get("hits", [])
+            if not hits:
+                break
+            for hit in hits:
+                job = _wttj_hit_to_job(hit)
+                job_url = job.get("url", "")
+                if job_url and job_url in seen_urls:
+                    continue
+                if job_url:
+                    seen_urls.add(job_url)
+                jobs.append(job)
+                if len(jobs) >= WTTJ_MAX_JOBS:
                     break
-                hits = response.json().get("hits", [])
-                if not hits:
-                    break
-                for hit in hits:
-                    job = _wttj_hit_to_job(hit)
-                    job_url = job.get("url", "")
-                    if job_url and job_url in seen_urls:
-                        continue
-                    if job_url:
-                        seen_urls.add(job_url)
-                    index_jobs.append(job)
-                if len(hits) < hits_per_page:
-                    break
-        except (requests.RequestException, ValueError, TypeError):
-            continue
+            nb_pages = int(data.get("nbPages") or 0)
+            if len(hits) < per_page:
+                break
+            if nb_pages and page + 1 >= nb_pages:
+                break
+            page += 1
 
-        if index_jobs:
-            jobs = index_jobs
+        if len(jobs) >= WTTJ_MAX_JOBS:
             break
 
     return jobs
@@ -897,6 +954,62 @@ COMPANY_CAREER_COMPANY_NAMES: dict[str, str] = {
     "amazon.jobs": "Amazon",
 }
 
+# Public job-board tokens (Greenhouse / Lever / SmartRecruiters) queried directly,
+# so career-site search still runs when SerpApi is missing.
+GREENHOUSE_BOARD_TOKENS: tuple[tuple[str, str], ...] = (
+    ("datadog", "Datadog"),
+    ("stripe", "Stripe"),
+    ("doctolib", "Doctolib"),
+    ("blablacar", "BlaBlaCar"),
+    ("alan", "Alan"),
+    ("ledger", "Ledger"),
+    ("contentsquare", "Contentsquare"),
+    ("mirakl", "Mirakl"),
+    ("backmarket", "Back Market"),
+    ("qonto", "Qonto"),
+    ("spendesk", "Spendesk"),
+    ("swile", "Swile"),
+    ("vestiairecollective", "Vestiaire Collective"),
+    ("deezer", "Deezer"),
+    ("criteo", "Criteo"),
+    ("dashlane", "Dashlane"),
+    ("algolia", "Algolia"),
+    ("pennylane", "Pennylane"),
+    ("payfit", "PayFit"),
+    ("manomano", "ManoMano"),
+    ("voodoo", "Voodoo"),
+    ("planity", "Planity"),
+    ("shifttechnology", "Shift Technology"),
+    ("pigment", "Pigment"),
+)
+
+LEVER_COMPANY_SLUGS: tuple[tuple[str, str], ...] = (
+    ("deezer", "Deezer"),
+    ("ledger", "Ledger"),
+    ("algolia", "Algolia"),
+    ("datadog", "Datadog"),
+)
+
+SMARTRECRUITERS_COMPANIES: tuple[tuple[str, str], ...] = (
+    ("societegenerale", "Société Générale"),
+    ("bnpparibas", "BNP Paribas"),
+    ("capgemini", "Capgemini"),
+    ("orange", "Orange"),
+    ("airbus", "Airbus"),
+    ("thales", "Thales"),
+    ("loreal", "L'Oréal"),
+    ("engie", "Engie"),
+    ("axa", "AXA"),
+    ("totalenergies", "TotalEnergies"),
+    ("sanofi", "Sanofi"),
+    ("airfrance", "Air France"),
+    ("edf", "EDF"),
+    ("sncf", "SNCF"),
+)
+
+DIRECT_ATS_MAX_WORKERS = 10
+DIRECT_ATS_PER_BOARD = 8
+
 MAJOR_EMPLOYER_SEARCH_TERMS = (
     '"Société Générale"',
     "Atos",
@@ -1118,20 +1231,20 @@ def _career_site_google_queries(query: str, location: str) -> list[str]:
     q = query.strip()
     geo = f" {location.strip()}" if location.strip() else ""
     ats = " OR ".join(f"site:{host}" for host in CAREER_ATS_HOSTS)
-    company_sites = " OR ".join(
-        f"site:{host}" for host in COMPANY_CAREER_HOSTS[:12]
-    )
-    employers = " OR ".join(MAJOR_EMPLOYER_SEARCH_TERMS)
     excluded = " ".join(f"-site:{host}" for host in JOB_BOARD_EXCLUSION_HOSTS[:14])
-    return [
-        f"{q}{geo} ({ats})",
-        f"{q}{geo} ({company_sites})",
-        (
-            f"{q}{geo} ({employers}) "
-            f"(inurl:careers OR inurl:carriere OR inurl:recrutement OR inurl:emploi) "
-            f"{excluded}"
-        ),
-    ]
+    employers = " OR ".join(MAJOR_EMPLOYER_SEARCH_TERMS)
+    queries = [f"{q}{geo} ({ats})"]
+    hosts = list(COMPANY_CAREER_HOSTS)
+    for start in range(0, len(hosts), 12):
+        chunk = hosts[start : start + 12]
+        company_sites = " OR ".join(f"site:{host}" for host in chunk)
+        queries.append(f"{q}{geo} ({company_sites})")
+    queries.append(
+        f"{q}{geo} ({employers}) "
+        f"(inurl:careers OR inurl:carriere OR inurl:recrutement OR inurl:emploi) "
+        f"{excluded}"
+    )
+    return queries
 
 
 def _search_google_organic(
@@ -1139,7 +1252,7 @@ def _search_google_organic(
     country: str,
     api_key: str,
     *,
-    num: int = 10,
+    num: int = 20,
 ) -> list[dict[str, Any]]:
     params = {
         "engine": "google",
@@ -1159,18 +1272,222 @@ def _search_google_organic(
     return list(payload.get("organic_results") or [])
 
 
-def search_jobs_career_sites(
+def _fold_search_text(value: str) -> str:
+    normalized = unicodedata.normalize("NFD", (value or "").lower())
+    return "".join(char for char in normalized if unicodedata.category(char) != "Mn")
+
+
+def _query_tokens_for_ats(query: str) -> list[str]:
+    folded = _fold_search_text(query)
+    tokens = [item for item in re.findall(r"[a-z0-9]+", folded) if len(item) > 2]
+    stop = {
+        "les",
+        "des",
+        "une",
+        "pour",
+        "avec",
+        "dans",
+        "the",
+        "and",
+        "job",
+        "poste",
+        "h/f",
+        "f/h",
+    }
+    return [token for token in tokens if token not in stop]
+
+
+def _title_matches_ats_query(title: str, query: str) -> bool:
+    tokens = _query_tokens_for_ats(query)
+    if not tokens:
+        return True
+    blob = _fold_search_text(title)
+    return any(token in blob for token in tokens)
+
+
+def _fetch_greenhouse_board(token: str, company: str, query: str, location: str) -> list[dict[str, Any]]:
+    url = f"https://boards-api.greenhouse.io/v1/boards/{token}/jobs"
+    try:
+        response = requests.get(url, timeout=8)
+        if not response.ok:
+            return []
+        payload = response.json()
+    except (requests.RequestException, ValueError, TypeError):
+        return []
+    jobs: list[dict[str, Any]] = []
+    for item in payload.get("jobs") or []:
+        if not isinstance(item, dict):
+            continue
+        title = str(item.get("title") or "").strip()
+        link = str(item.get("absolute_url") or "").strip()
+        if not title or not link or not _title_matches_ats_query(title, query):
+            continue
+        loc = ""
+        loc_obj = item.get("location")
+        if isinstance(loc_obj, dict):
+            loc = str(loc_obj.get("name") or "").strip()
+        jobs.append(
+            _standard_job(
+                title,
+                company,
+                loc or location or "N/A",
+                title,
+                link,
+                source=CAREER_SITE_SOURCE_LABEL,
+                published_at=item.get("updated_at") or item.get("created_at") or "",
+            )
+        )
+        if len(jobs) >= DIRECT_ATS_PER_BOARD:
+            break
+    return jobs
+
+
+def _fetch_lever_board(slug: str, company: str, query: str, location: str) -> list[dict[str, Any]]:
+    url = f"https://api.lever.co/v0/postings/{slug}"
+    try:
+        response = requests.get(url, params={"mode": "json"}, timeout=8)
+        if not response.ok:
+            return []
+        payload = response.json()
+    except (requests.RequestException, ValueError, TypeError):
+        return []
+    if not isinstance(payload, list):
+        return []
+    jobs: list[dict[str, Any]] = []
+    for item in payload:
+        if not isinstance(item, dict):
+            continue
+        title = str(item.get("text") or item.get("title") or "").strip()
+        link = str(item.get("hostedUrl") or item.get("applyUrl") or "").strip()
+        if not title or not link or not _title_matches_ats_query(title, query):
+            continue
+        categories = item.get("categories") if isinstance(item.get("categories"), dict) else {}
+        loc = str((categories or {}).get("location") or "").strip()
+        description = str(item.get("descriptionPlain") or title).strip()
+        jobs.append(
+            _standard_job(
+                title,
+                company,
+                loc or location or "N/A",
+                description[:1500],
+                link,
+                contract_type=str((categories or {}).get("commitment") or ""),
+                source=CAREER_SITE_SOURCE_LABEL,
+                published_at=item.get("createdAt") or "",
+            )
+        )
+        if len(jobs) >= DIRECT_ATS_PER_BOARD:
+            break
+    return jobs
+
+
+def _fetch_smartrecruiters_board(
+    company_id: str, company: str, query: str, location: str
+) -> list[dict[str, Any]]:
+    url = f"https://api.smartrecruiters.com/v1/companies/{company_id}/postings"
+    try:
+        response = requests.get(
+            url,
+            params={"limit": 100, "q": query.strip(), "offset": 0},
+            timeout=8,
+        )
+        if not response.ok:
+            return []
+        payload = response.json()
+    except (requests.RequestException, ValueError, TypeError):
+        return []
+    content = payload.get("content") if isinstance(payload, dict) else payload
+    if not isinstance(content, list):
+        return []
+    jobs: list[dict[str, Any]] = []
+    for item in content:
+        if not isinstance(item, dict):
+            continue
+        title = str(item.get("name") or item.get("title") or "").strip()
+        ident = str(item.get("id") or "").strip()
+        link = str(item.get("ref") or "").strip()
+        if not link and ident:
+            link = (
+                f"https://jobs.smartrecruiters.com/{company_id}/{ident}"
+            )
+        if not title or not link or not _title_matches_ats_query(title, query):
+            continue
+        loc_obj = item.get("location") if isinstance(item.get("location"), dict) else {}
+        loc = ", ".join(
+            part
+            for part in (
+                str((loc_obj or {}).get("city") or "").strip(),
+                str((loc_obj or {}).get("country") or "").strip(),
+            )
+            if part
+        )
+        jobs.append(
+            _standard_job(
+                title,
+                company,
+                loc or location or "N/A",
+                title,
+                link,
+                source=CAREER_SITE_SOURCE_LABEL,
+                published_at=item.get("releasedDate") or item.get("createdOn") or "",
+            )
+        )
+        if len(jobs) >= DIRECT_ATS_PER_BOARD:
+            break
+    return jobs
+
+
+def search_jobs_direct_ats_boards(
+    query: str,
+    location: str = "",
+    *,
+    limit: int = 80,
+) -> list[dict[str, Any]]:
+    """Query public Greenhouse / Lever / SmartRecruiters boards without SerpApi."""
+    if not query.strip() or limit <= 0:
+        return []
+    tasks: list[tuple[str, str, str]] = []
+    for token, company in GREENHOUSE_BOARD_TOKENS:
+        tasks.append(("greenhouse", token, company))
+    for slug, company in LEVER_COMPANY_SLUGS:
+        tasks.append(("lever", slug, company))
+    for company_id, company in SMARTRECRUITERS_COMPANIES:
+        tasks.append(("smartrecruiters", company_id, company))
+
+    collected: list[dict[str, Any]] = []
+
+    def _run(kind: str, ident: str, company: str) -> list[dict[str, Any]]:
+        if kind == "greenhouse":
+            return _fetch_greenhouse_board(ident, company, query, location)
+        if kind == "lever":
+            return _fetch_lever_board(ident, company, query, location)
+        return _fetch_smartrecruiters_board(ident, company, query, location)
+
+    workers = min(DIRECT_ATS_MAX_WORKERS, len(tasks))
+    with ThreadPoolExecutor(max_workers=max(1, workers)) as executor:
+        futures = [
+            executor.submit(_run, kind, ident, company) for kind, ident, company in tasks
+        ]
+        for future in as_completed(futures):
+            try:
+                batch = future.result()
+            except Exception:  # noqa: BLE001 — one board must not fail the search
+                continue
+            if batch:
+                collected = merge_job_lists([collected, batch])
+            if len(collected) >= limit:
+                break
+    return collected[:limit]
+
+
+def _search_career_sites_via_google(
     query: str,
     location: str,
     country: str,
     api_key: str,
     *,
-    limit: int = 60,
+    limit: int,
 ) -> list[dict[str, Any]]:
-    """Find openings on company career / ATS pages via Google (SerpApi)."""
-    if not api_key.strip() or not query.strip():
-        return []
-
     jobs: list[dict[str, Any]] = []
     last_error: BaseException | None = None
     for google_query in _career_site_google_queries(query, location):
@@ -1200,16 +1517,37 @@ def search_jobs_career_sites(
     return jobs[:limit]
 
 
+def search_jobs_career_sites(
+    query: str,
+    location: str,
+    country: str,
+    api_key: str,
+    *,
+    limit: int = 80,
+) -> list[dict[str, Any]]:
+    """Find openings on company career / ATS pages (direct APIs, then Google)."""
+    if not query.strip():
+        return []
+
+    jobs = search_jobs_direct_ats_boards(query, location, limit=limit)
+    if api_key.strip():
+        extra = _search_career_sites_via_google(
+            query, location, country, api_key, limit=limit
+        )
+        jobs = merge_job_lists([jobs, extra])
+    return jobs[:limit]
+
+
 def try_search_career_sites(
     query: str,
     location: str,
     country: str,
     api_key: str,
     *,
-    limit: int = 60,
+    limit: int = 80,
 ) -> list[dict[str, Any]]:
     """Career-site search that never fails the surrounding analysis."""
-    if not api_key.strip() or not query.strip():
+    if not query.strip():
         return []
     try:
         return search_jobs_career_sites(
@@ -1228,9 +1566,9 @@ def merge_career_site_results(
     country: str = "France",
     provider: str = "",
     api_key: str = "",
-    limit: int = 60,
+    limit: int = 80,
 ) -> dict[str, Any]:
-    """Append company career-site jobs to an existing search result (once per analysis)."""
+    """Prepend company career-site jobs to an existing search result (once)."""
     used = [str(p) for p in (result.get("providers_used") or [])]
     if (
         JOB_PROVIDER_CAREER_SITES in used
@@ -1247,8 +1585,8 @@ def merge_career_site_results(
     if not extra:
         return result
     merged = dict(result)
-    merged["jobs"] = merge_job_lists([list(result.get("jobs") or []), extra])
-    merged["providers_used"] = list(dict.fromkeys([*used, JOB_PROVIDER_CAREER_SITES]))
+    merged["jobs"] = merge_job_lists([extra, list(result.get("jobs") or [])])
+    merged["providers_used"] = list(dict.fromkeys([JOB_PROVIDER_CAREER_SITES, *used]))
     return merged
 
 
@@ -1800,10 +2138,10 @@ def configured_providers(
         has_apify = False
 
     available: list[str] = []
-    if has_adzuna:
-        available.append(JOB_PROVIDER_ADZUNA)
     if wttj_enabled:
         available.append(JOB_PROVIDER_WTTJ)
+    if has_adzuna:
+        available.append(JOB_PROVIDER_ADZUNA)
     if has_apify:
         available.append(JOB_PROVIDER_JOBTEASER)
     if has_jooble:

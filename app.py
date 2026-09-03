@@ -44,6 +44,8 @@ from job_filters import (
     EXPERIENCE_LEVELS,
     GEO_FILTER_MODES,
     SECTOR_OPTIONS,
+    SEARCH_PHASE_TITLE,
+    SEARCH_PHASE_CAREER,
     SEARCH_PHASE_BONUS,
     apply_strict_job_filters,
     build_country_search_locations,
@@ -2790,10 +2792,37 @@ def search_jobs_for_profile(
         country_locations_map[search_country] = locs
         all_locations.extend(locs)
 
+    title_for_sites = (query or metier).strip()
+    if provider != JOB_PROVIDER_CAREER_SITES:
+        career_seed = _with_company_career_sites(
+            {
+                "jobs": [],
+                "providers_used": [],
+                "query_used": title_for_sites,
+            },
+            query=title_for_sites,
+            metier=metier or title_for_sites,
+            locations=all_locations,
+            countries=countries,
+            country=country,
+            provider=provider,
+        )
+        career_jobs = tag_jobs_search_phase(
+            list(career_seed.get("jobs") or []),
+            SEARCH_PHASE_CAREER,
+        )
+        if career_jobs:
+            merged = career_jobs
+            providers_used.extend(career_seed.get("providers_used") or [])
+            query_used = str(career_seed.get("query_used") or query_used)
+            strategies.append("career:sites")
+
+    career_count = len(merged)
     for phase_name, queries in phases:
-        use_all_locations = phase_name == "title" or len(merged) < target
+        board_count = max(0, len(merged) - career_count)
+        use_all_locations = phase_name == "title" or board_count < target
         for q_try in queries:
-            if phase_name != "title" and len(merged) >= max(target * 2, target + 20):
+            if phase_name != "title" and board_count >= max(target * 2, target + 20):
                 break
             for search_country in countries:
                 country_locations = country_locations_map.get(search_country) or [""]
@@ -2812,6 +2841,7 @@ def search_jobs_for_profile(
                 batch = tag_jobs_search_phase(result.get("jobs") or [], phase_name)
                 if batch:
                     merged = merge_job_lists([merged, batch])
+                    board_count = max(0, len(merged) - career_count)
                     query_used = result.get("query_used") or q_try or query_used
                     providers_used.extend(result.get("providers_used") or [])
                     strategies.append(f"{phase_name}:{q_try}")
@@ -2821,7 +2851,10 @@ def search_jobs_for_profile(
         if len(all_locations) > 4:
             location_label += "…"
         countries_label = format_countries_summary(profile)
-        strategy = "Titre du poste, puis similaires, puis compétences/missions"
+        strategy = (
+            "Sites carrière des entreprises d'abord, puis Welcome to the Jungle "
+            "et les autres job boards (titre, similaires, compétences/missions)"
+        )
         if len(countries) > 1:
             strategy = f"{countries_label} — {strategy}"
         title_for_sites = (phases[0][1][0] if phases and phases[0][1] else query) or metier
@@ -3034,7 +3067,12 @@ def search_jobs(
     secrets = provider_secrets_from_getter(get_secret)
 
     if provider == JOB_PROVIDER_WTTJ:
-        return search_jobs_wttj(query, contract_type=contract_type)
+        return search_jobs_wttj(
+            query,
+            contract_type=contract_type,
+            location=location,
+            country=country,
+        )
 
     if provider == JOB_PROVIDER_JOOBLE:
         if not secrets["jooble_api_key"]:
@@ -3132,10 +3170,6 @@ def search_jobs(
         return search_jobs_glassdoor_serpapi(query, location, country, serp_key)
 
     if provider == JOB_PROVIDER_CAREER_SITES:
-        if not serp_key:
-            raise RuntimeError(
-                "SERPAPI_API_KEY requise pour chercher sur les sites carrière des entreprises."
-            )
         return search_jobs_career_sites(query, location, country, serp_key)
 
     if provider == JOB_PROVIDER_SERPAPI:

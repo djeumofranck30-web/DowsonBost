@@ -692,7 +692,9 @@ def enrich_query_for_contract(query: str, contract_type: str) -> str:
 SEARCH_PHASE_TITLE = "title"
 SEARCH_PHASE_SIMILAR = "similar"
 SEARCH_PHASE_SKILLS = "skills"
+SEARCH_PHASE_CAREER = "career"
 SEARCH_PHASE_BONUS = {
+    SEARCH_PHASE_CAREER: 120,
     SEARCH_PHASE_TITLE: 100,
     SEARCH_PHASE_SIMILAR: 45,
     SEARCH_PHASE_SKILLS: 15,

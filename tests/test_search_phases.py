@@ -96,3 +96,5 @@ def test_analysis_pipeline_wires_title_then_skill_search() -> None:
     assert "target_count=pool_size" in source
     assert "build_skill_mission_search_queries" in source
     assert "ordered_search_phases" in source
+    assert "SEARCH_PHASE_CAREER" in source
+    assert "career:sites" in source
