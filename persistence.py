@@ -1431,6 +1431,8 @@ def get_analysis_apply_context(user_id: int, analysis_id: int) -> dict[str, Any]
 
 def analysis_to_session_dict(stored: dict[str, Any]) -> dict[str, Any]:
     """Convert DB analysis row to the in-app analysis dict shape."""
+    if stored.get("analysis_id") and stored.get("saved_at") and "cv_text" in stored:
+        return stored
     return {
         "analysis_id": stored["id"],
         "saved_at": stored["created_at"],

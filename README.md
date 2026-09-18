@@ -13,10 +13,22 @@ Plateforme de recherche d'emploi et matching CV par intelligence artificielle.
 
 ## Lancer l'application
 
+Streamlit n'est **plus** le backend. Il affiche uniquement l'interface.
+Toutes les lectures / écritures (comptes, analyses, candidatures, Supabase/Postgres)
+passent par **FastAPI**. Un clic Streamlit ne relance plus les requêtes base.
+
 ```bash
 pip install -r requirements.txt
+# 1. Backend (base + métier)
+python scripts/run_api.py
+# 2. Frontend (affichage)
+# Dans un autre terminal, secrets :
+# API_BASE_URL = "http://127.0.0.1:8000"
 streamlit run app.py
 ```
+
+Sur Streamlit Cloud, un seul `streamlit run app.py` suffit : FastAPI démarre
+tout seul en local (`127.0.0.1:8765`) et Streamlit l'appelle.
 
 ## API REST
 
@@ -26,6 +38,14 @@ python scripts/run_api.py
 ```
 
 Documentation : http://localhost:8000/docs
+
+Routes utiles pour l'UI :
+
+- `POST /auth/login` — jeton JWT + profil
+- `GET /me/workspace` — profil, analyses, compteur candidatures (1 aller-retour)
+- `GET /analyses/{id}/dashboard` — cartes d'offres
+- `POST /applications` — suivi de candidature
+- `POST /hunter/email` — e-mail recruteur
 
 ## Espace administrateur
 

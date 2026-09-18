@@ -69,6 +69,8 @@ def export_streamlit_secrets_to_environ() -> int:
         "ADZUNA_APP_KEY",
         "SERPAPI_API_KEY",
         "HUNTER_API_KEY",
+        "API_BASE_URL",
+        "JWT_SECRET",
         "JOOBLE_API_KEY",
         "CAREERJET_API_KEY",
         "APIFY_API_TOKEN",
@@ -126,6 +128,19 @@ def get_jwt_secret() -> str:
 
 def get_app_base_url() -> str:
     return get_secret("APP_BASE_URL", "http://localhost:8501").rstrip("/")
+
+
+def get_api_base_url() -> str:
+    """Remote FastAPI URL. Empty means Streamlit starts an embedded API."""
+    return get_secret("API_BASE_URL", get_secret("DOWSONBOST_API_URL", "")).rstrip("/")
+
+
+def get_embedded_api_port() -> int:
+    raw = get_secret("API_EMBEDDED_PORT", "8765")
+    try:
+        return max(1024, min(int(raw), 65535))
+    except (TypeError, ValueError):
+        return 8765
 
 
 def _as_secret_list(raw: Any) -> list[str]:

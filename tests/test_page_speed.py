@@ -47,11 +47,14 @@ def test_init_db_skips_postgres_on_later_reruns():
     )
 
 
-def test_streamlit_rerun_holds_one_db_connection():
+def test_streamlit_rerun_uses_fastapi_not_a_db_checkout():
     source = (ROOT / "app.py").read_text(encoding="utf-8")
     main = source.split("def main()", 1)[1]
-    assert "with connect():" in main
+    assert "ensure_backend()" in main
+    assert "with connect():" not in main
     assert "render_app()" in main
+    assert "from services.frontend_store import" in source
+    assert "fetch_workspace" in source
 
 
 def test_history_page_is_paginated():

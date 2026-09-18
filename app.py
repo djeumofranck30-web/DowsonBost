@@ -142,10 +142,51 @@ from constants import (
     canonical_nav_page,
     events_tab_for,
 )
-from services.analysis_queue import (
+from services.frontend_store import (
+    already_applied_to_company,
+    already_applied_to_offer,
+    applications_csv,
+    applications_needing_followup,
+    authenticate_user,
+    backend_uses_http,
+    change_password,
+    complete_verified_password_reset,
+    connect_job_account,
+    control_center_counts,
+    count_user_applications,
+    delete_user_account,
+    disconnect_job_account,
     enqueue_analysis_job,
+    ensure_backend,
+    fetch_workspace,
+    find_recruiter_email,
+    get_active_cv_document,
+    get_analysis,
+    get_analysis_apply_context,
     get_analysis_job,
+    get_analysis_result,
+    get_analysis_results_by_ids,
+    get_connected_job_account,
     get_latest_analysis_job,
+    get_notification_settings,
+    get_user_by_id,
+    hunter_configured,
+    list_analyses,
+    list_connected_job_accounts,
+    list_dashboard_results,
+    list_user_applications,
+    log_scheduled_run,
+    record_application,
+    register_user,
+    request_password_reset_code,
+    save_generated_documents,
+    save_notification_settings,
+    update_application_status,
+    update_user_preferred_language,
+    update_user_profile,
+    user_support_unread,
+    verify_password_reset_code,
+    logout as api_logout,
 )
 from services.analysis_worker import (
     ensure_embedded_analysis_worker,
@@ -160,7 +201,6 @@ from services.application import (
     notify_candidate_application,
     submit_application_automatically,
 )
-from services.hunter import find_recruiter_email, hunter_configured
 from services.support import (
     mark_user_support_read,
     render_support_thread_html,
@@ -168,7 +208,6 @@ from services.support import (
     start_user_support_conversation,
     user_support_conversations,
     user_support_thread,
-    user_support_unread,
 )
 from services.profile_photo import (
     cached_profile_photo_data_url,
@@ -307,27 +346,16 @@ GROQ_SKIP_MODEL_SUBSTRINGS = (
 )
 from auth import (
     EMAIL_PATTERN,
-    authenticate_user,
-    change_password,
-    complete_verified_password_reset,
-    delete_user_account,
     format_member_since,
-    get_user_by_id,
     init_db,
     join_full_name,
-    register_user,
-    request_password_reset_code,
     reset_code_seconds_remaining,
     split_full_name,
-    update_user_preferred_language,
-    update_user_profile,
     user_is_admin,
-    verify_password_reset_code,
 )
 from database import (
     DatabaseConfigError,
     configure_database,
-    connect,
     database_connection_hint,
     database_status,
     format_database_exception,
@@ -355,34 +383,10 @@ from persistence import (
     APPLICATION_STATUSES,
     AUTO_SEARCH_WEEKDAYS,
     analysis_to_session_dict,
-    connect_job_account,
-    count_user_applications,
-    disconnect_job_account,
-    get_active_cv_document,
-    get_analysis,
-    get_analysis_apply_context,
-    get_analysis_result,
-    get_analysis_results_by_ids,
-    get_connected_job_account,
-    get_notification_settings,
     is_auto_search_due,
-    list_analyses,
-    list_connected_job_accounts,
-    list_dashboard_results,
-    list_user_applications,
-    log_scheduled_run,
     mark_alert_sent,
     mark_auto_search_completed,
-    record_application,
     save_analysis,
-    save_generated_documents,
-    save_notification_settings,
-    already_applied_to_company,
-    already_applied_to_offer,
-    applications_csv,
-    applications_needing_followup,
-    control_center_counts,
-    update_application_status,
     upsert_active_cv_document,
 )
 from ui.theme import (
@@ -4536,9 +4540,39 @@ def _job_notices(job: dict[str, Any]) -> list[dict[str, str]]:
     return [item for item in parsed if isinstance(item, dict)]
 
 
+def _cached_workspace(user_id: int, *, ttl: float = 12.0) -> dict[str, Any]:
+    """One FastAPI round-trip reused across sidebar, dashboard and profile clicks."""
+    if not backend_uses_http() or not user_id:
+        return {}
+    now = time.time()
+    cached = st.session_state.get("_workspace_cache")
+    if (
+        isinstance(cached, dict)
+        and int(st.session_state.get("_workspace_uid") or 0) == int(user_id)
+        and (now - float(st.session_state.get("_workspace_at") or 0)) < ttl
+    ):
+        return cached
+    try:
+        fresh = fetch_workspace()
+    except Exception:  # noqa: BLE001
+        fresh = {}
+    if isinstance(fresh, dict) and fresh:
+        st.session_state._workspace_cache = fresh
+        st.session_state._workspace_at = now
+        st.session_state._workspace_uid = int(user_id)
+        return fresh
+    return {}
+
+
 def _cached_user_profile(user: dict[str, Any], *, ttl: float = 20.0) -> dict[str, Any]:
     """Reuse the last profile read so page clicks do not hit Postgres every time."""
     user_id = int(user.get("id") or 0)
+    workspace = _cached_workspace(user_id, ttl=ttl)
+    profile = workspace.get("profile")
+    if isinstance(profile, dict) and profile.get("id"):
+        st.session_state._profile_cache = profile
+        st.session_state._profile_cache_at = time.time()
+        return profile
     now = time.time()
     cached = st.session_state.get("_profile_cache")
     if (
@@ -4554,6 +4588,13 @@ def _cached_user_profile(user: dict[str, Any], *, ttl: float = 20.0) -> dict[str
 
 
 def _cached_notification_settings(user_id: int, *, ttl: float = 20.0) -> dict[str, Any]:
+    workspace = _cached_workspace(int(user_id), ttl=ttl)
+    if workspace.get("notifications"):
+        settings = dict(workspace.get("notifications") or {})
+        st.session_state._notify_cache_uid = int(user_id)
+        st.session_state._notify_cache_at = time.time()
+        st.session_state._notify_cache = settings
+        return settings
     now = time.time()
     if (
         st.session_state.get("_notify_cache_uid") == int(user_id)
@@ -4576,9 +4617,19 @@ def _clear_profile_page_caches() -> None:
     st.session_state.pop("_analyses_rows", None)
     st.session_state.pop("_analyses_at", None)
     st.session_state.pop("_analyses_uid", None)
+    st.session_state.pop("_workspace_cache", None)
+    st.session_state.pop("_workspace_at", None)
+    st.session_state.pop("_workspace_uid", None)
 
 
 def _cached_list_analyses(user_id: int, *, ttl: float = 12.0) -> list[dict[str, Any]]:
+    workspace = _cached_workspace(int(user_id), ttl=ttl)
+    if workspace.get("analyses") is not None:
+        rows = list(workspace.get("analyses") or [])
+        st.session_state._analyses_uid = int(user_id)
+        st.session_state._analyses_at = time.time()
+        st.session_state._analyses_rows = rows
+        return rows
     now = time.time()
     if (
         st.session_state.get("_analyses_uid") == int(user_id)
@@ -5599,9 +5650,13 @@ def _render_overview_kpis(user_id: int, analyses: list[dict[str, Any]]) -> None:
     """Environment-level summary shown on the Overview (dashboard) page."""
     latest = analyses[0] if analyses else {}
     latest_label = str(latest.get("target_job_title") or "").strip() or t("common.none")
+    workspace = _cached_workspace(user_id)
+    application_count = workspace.get("application_count")
+    if application_count is None:
+        application_count = count_user_applications(user_id)
     items = (
         (t("overview.kpi_analyses"), str(len(analyses))),
-        (t("overview.kpi_applications"), str(count_user_applications(user_id))),
+        (t("overview.kpi_applications"), str(application_count)),
         (t("overview.kpi_latest"), latest_label),
     )
     cards = "".join(
@@ -5614,7 +5669,7 @@ def _render_overview_kpis(user_id: int, analyses: list[dict[str, Any]]) -> None:
         for label, value in items
     )
     st.markdown(f'<div class="overview-kpi-grid">{cards}</div>', unsafe_allow_html=True)
-    pipeline = control_center_counts(user_id)
+    pipeline = workspace.get("control_center") or control_center_counts(user_id)
     pipeline_items = (
         (t("overview.kpi_found"), str(pipeline["found"])),
         (t("overview.kpi_applied"), str(pipeline["applied"])),
@@ -8792,6 +8847,13 @@ def render_config_tests_panel(*, show_clear_cache: bool = True, expanded: bool =
 
 
 def _cached_support_unread(user_id: int) -> int:
+    workspace = _cached_workspace(int(user_id), ttl=15)
+    if workspace:
+        count = int(workspace.get("support_unread") or 0)
+        st.session_state._support_unread_uid = int(user_id)
+        st.session_state._support_unread_at = time.time()
+        st.session_state._support_unread = count
+        return count
     now = time.time()
     if (
         st.session_state.get("_support_unread_uid") == int(user_id)
@@ -8918,6 +8980,8 @@ def render_app() -> None:
         if account_email:
             st.caption(account_email)
         if st.button(t("app.logout"), use_container_width=True, key="logout_button"):
+            api_logout()
+            _clear_profile_page_caches()
             st.session_state.authenticated = False
             st.session_state.user = None
             st.session_state.analysis = None
@@ -8951,56 +9015,72 @@ def render_app() -> None:
 
 
 def main() -> None:
-    """Application entry point — auth gate then main tool."""
+    """Application entry point — auth gate then display-only Streamlit shell."""
     export_streamlit_secrets_to_environ()
-    try:
-        configure_database(
-            get_secret("DATABASE_URL"),
-            password=get_secret("DATABASE_PASSWORD"),
-        )
-        init_db()
-    except DatabaseConfigError as exc:
-        st.error("**Configuration base de données incorrecte.**")
-        st.code(str(exc))
-        st.markdown(
-            "**Corrigez vos secrets Streamlit ainsi :**\n\n"
-            "```toml\n"
-            'DATABASE_URL = "postgresql://postgres.xxxxx@aws-0-eu-west-3.pooler.supabase.com:6543/postgres"\n'
-            'DATABASE_PASSWORD = "votre_mot_de_passe"\n'
-            "```\n\n"
-            "Ne mettez **jamais** le mot de passe dans DATABASE_URL si il contient `@`, `#`, `!`, etc."
-        )
-        return
-    except Exception as exc:  # noqa: BLE001
-        st.error("**Impossible de se connecter à la base de données.**")
-        st.code(format_database_exception(exc))
-        if get_secret("DATABASE_URL"):
-            st.info(database_connection_hint(exc))
+    from services.embedded_api import using_remote_api
+
+    remote_api = using_remote_api()
+    if not remote_api:
+        try:
+            configure_database(
+                get_secret("DATABASE_URL"),
+                password=get_secret("DATABASE_PASSWORD"),
+            )
+            init_db()
+        except DatabaseConfigError as exc:
+            st.error("**Configuration base de données incorrecte.**")
+            st.code(str(exc))
             st.markdown(
-                "**Format recommandé (Streamlit Secrets) :**\n\n"
+                "**Corrigez vos secrets Streamlit ainsi :**\n\n"
                 "```toml\n"
                 'DATABASE_URL = "postgresql://postgres.xxxxx@aws-0-eu-west-3.pooler.supabase.com:6543/postgres"\n'
-                'DATABASE_PASSWORD = "votre_mot_de_passe_supabase"\n'
+                'DATABASE_PASSWORD = "votre_mot_de_passe"\n'
                 "```\n\n"
-                "Copiez l'URL depuis Supabase → **Connect** → **Transaction pooler** (port 6543), "
-                "sans le mot de passe dans l'URL."
+                "Ne mettez **jamais** le mot de passe dans DATABASE_URL si il contient `@`, `#`, `!`, etc."
             )
-        else:
-            st.warning(
-                "DATABASE_URL absent — l'app utilise SQLite local (comptes non conservés en production). "
-                "Ajoutez l'URL PostgreSQL Supabase dans les secrets."
-            )
+            return
+        except Exception as exc:  # noqa: BLE001
+            st.error("**Impossible de se connecter à la base de données.**")
+            st.code(format_database_exception(exc))
+            if get_secret("DATABASE_URL"):
+                st.info(database_connection_hint(exc))
+                st.markdown(
+                    "**Format recommandé (Streamlit Secrets) :**\n\n"
+                    "```toml\n"
+                    'DATABASE_URL = "postgresql://postgres.xxxxx@aws-0-eu-west-3.pooler.supabase.com:6543/postgres"\n'
+                    'DATABASE_PASSWORD = "votre_mot_de_passe_supabase"\n'
+                    "```\n\n"
+                    "Copiez l'URL depuis Supabase → **Connect** → **Transaction pooler** (port 6543), "
+                    "sans le mot de passe dans l'URL."
+                )
+            else:
+                st.warning(
+                    "DATABASE_URL absent — l'app utilise SQLite local (comptes non conservés en production). "
+                    "Ajoutez l'URL PostgreSQL Supabase dans les secrets."
+                )
+            return
+
+    try:
+        ensure_backend()
+    except Exception as exc:  # noqa: BLE001
+        st.error("**Le backend FastAPI n'a pas démarré.**")
+        st.code(str(exc))
+        st.info(
+            "Sur Streamlit Cloud l'API démarre toute seule. "
+            "En local : `python scripts/run_api.py` puis "
+            '`API_BASE_URL = "http://127.0.0.1:8000"` dans les secrets.'
+        )
         return
 
     init_session_state()
-    ensure_embedded_analysis_worker()
+    if not remote_api:
+        ensure_embedded_analysis_worker()
 
-    # One Postgres checkout for the whole Streamlit rerun (avoids 5–8 SSL handshakes).
-    with connect():
-        if not st.session_state.authenticated:
-            render_auth_page()
-            return
-        render_app()
+    # Streamlit only renders. FastAPI owns Supabase/Postgres on every click.
+    if not st.session_state.authenticated:
+        render_auth_page()
+        return
+    render_app()
 
 
 if __name__ == "__main__":
