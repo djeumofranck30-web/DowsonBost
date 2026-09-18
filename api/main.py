@@ -20,6 +20,7 @@ from config import get_database_password, get_database_url
 from database import configure_database
 from observability import get_logger, setup_logging
 from persistence import list_analyses as list_user_analyses
+from services.gdpr_export import export_user_data
 from api.admin import router as admin_router
 from api.deps import current_user
 from api.security import create_access_token
@@ -112,6 +113,12 @@ def read_current_user(user: dict[str, Any] = Depends(current_user)) -> dict[str,
         "preferred_language": user.get("preferred_language", "fr"),
         "is_admin": user_is_admin(user),
     }
+
+
+@app.get("/users/me/export")
+def export_current_user(user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
+    """RGPD data portability: JSON export of the candidate's own records."""
+    return export_user_data(user)
 
 
 @app.delete("/users/me", response_model=MessageResponse)

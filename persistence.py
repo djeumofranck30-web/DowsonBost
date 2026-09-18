@@ -85,6 +85,7 @@ _PERSISTENCE_SCHEMA_KEY = (
     "support_conversations_v1",
     "user_profile_photos_v1",
     "analysis_jobs_v1",
+    "notification_settings_v2",
 )
 _persistence_initialized_for: tuple[str, ...] | None = None
 
@@ -270,7 +271,9 @@ def _create_user_notification_settings_table(conn: Any) -> None:
                 auto_search_provider TEXT NOT NULL DEFAULT 'all',
                 auto_search_depth TEXT NOT NULL DEFAULT 'standard',
                 last_auto_search_at TEXT,
-                next_auto_search_at TEXT
+                next_auto_search_at TEXT,
+                auto_search_daily_limit INTEGER NOT NULL DEFAULT 10,
+                followup_emails_enabled INTEGER NOT NULL DEFAULT 0
             )
             """
         )
@@ -291,10 +294,31 @@ def _create_user_notification_settings_table(conn: Any) -> None:
             auto_search_depth TEXT NOT NULL DEFAULT 'standard',
             last_auto_search_at TEXT,
             next_auto_search_at TEXT,
+            auto_search_daily_limit INTEGER NOT NULL DEFAULT 10,
+            followup_emails_enabled INTEGER NOT NULL DEFAULT 0,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """
     )
+
+
+def _migrate_notification_settings_columns(conn: Any) -> None:
+    cols = existing_columns(conn, "user_notification_settings")
+    extras = (
+        ("auto_search_daily_limit", "INTEGER NOT NULL DEFAULT 10"),
+        ("followup_emails_enabled", "INTEGER NOT NULL DEFAULT 0"),
+    )
+    for column, typedef in extras:
+        if column in cols:
+            continue
+        if database_backend() == "postgres":
+            conn.execute(
+                f"ALTER TABLE user_notification_settings ADD COLUMN IF NOT EXISTS {column} {typedef}"
+            )
+        else:
+            conn.execute(
+                f"ALTER TABLE user_notification_settings ADD COLUMN {column} {typedef}"
+            )
 
 
 def _create_scheduled_runs_table(conn: Any) -> None:
@@ -707,6 +731,7 @@ def init_persistence_tables() -> None:
         _create_analysis_results_table(conn)
         _migrate_analysis_results_columns(conn)
         _create_user_notification_settings_table(conn)
+        _migrate_notification_settings_columns(conn)
         _create_scheduled_runs_table(conn)
         _create_cv_documents_table(conn)
         _create_user_connected_accounts_table(conn)
@@ -1694,6 +1719,32 @@ def already_applied_to_company(
     return None
 
 
+def already_applied_to_offer(
+    user_id: int,
+    job: dict[str, Any] | None,
+    *,
+    exclude_result_id: int | None = None,
+) -> dict[str, Any] | None:
+    """Return an earlier application to the same listing URL/title, if any."""
+    payload = dict(job or {})
+    url = str(payload.get("url") or "").strip()
+    title = str(payload.get("title") or "").strip()
+    if not url and not title:
+        return None
+    key = job_offer_key(payload)
+    skip = int(exclude_result_id) if exclude_result_id else None
+    for entry in list_user_applications(user_id):
+        if skip and int(entry.get("result_id") or 0) == skip:
+            continue
+        status = str(entry.get("application_status") or "")
+        if status not in _APPLIED_HISTORY_STATUSES:
+            continue
+        other = job_offer_key(entry.get("job") or {})
+        if other and other == key:
+            return entry
+    return None
+
+
 def applications_needing_followup(
     user_id: int,
     *,
@@ -1719,14 +1770,67 @@ def control_center_counts(user_id: int) -> dict[str, int]:
     waiting = int(status_counts.get("applied") or 0)
     offer = int(status_counts.get("offer") or 0)
     interview = int(status_counts.get("interview") or 0)
+    found = int(status_counts.get("all") or 0)
+    applied = waiting + interview + offer
+    responses = interview + offer
+    avg_score = 0
+    high_matches = 0
+    init_persistence_tables()
+    with connect() as conn:
+        row = conn.execute(
+            adapt_sql(
+                """
+                SELECT COALESCE(AVG(score), 0) AS avg_score,
+                       SUM(CASE WHEN score >= 75 THEN 1 ELSE 0 END) AS high_matches
+                FROM analysis_results
+                WHERE user_id = ?
+                """
+            ),
+            (user_id,),
+        ).fetchone()
+    if row:
+        avg_score = int(round(float(row["avg_score"] or 0)))
+        high_matches = int(row["high_matches"] or 0)
+    matching_rate = round((high_matches / found) * 100) if found else 0
+    response_rate = round((responses / applied) * 100) if applied else 0
     return {
-        "found": int(status_counts.get("all") or 0),
-        "applied": waiting + interview + offer,
+        "found": found,
+        "applied": applied,
         "waiting": waiting,
         "rejected": int(status_counts.get("rejected") or 0),
         "offer": offer,
         "followup": len(applications_needing_followup(user_id)),
+        "avg_score": avg_score,
+        "matching_rate": matching_rate,
+        "response_rate": response_rate,
     }
+
+
+def applications_csv(user_id: int) -> str:
+    """Export the candidate application ledger as CSV."""
+    import csv
+    from io import StringIO
+
+    buffer = StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(
+        ["date", "title", "company", "location", "status", "method", "score", "url"]
+    )
+    for entry in list_user_applications(user_id):
+        job = entry.get("job") or {}
+        writer.writerow(
+            [
+                str(entry.get("status_updated_at") or entry.get("analysis_created_at") or ""),
+                str(job.get("title") or entry.get("target_job_title") or ""),
+                str(job.get("company") or ""),
+                str(job.get("location") or ""),
+                str(entry.get("application_status") or ""),
+                str(entry.get("application_method") or ""),
+                int(entry.get("score") or 0),
+                str(job.get("url") or ""),
+            ]
+        )
+    return buffer.getvalue()
 
 
 def get_application_result(user_id: int, result_id: int) -> dict[str, Any] | None:
@@ -1855,6 +1959,8 @@ def get_notification_settings(user_id: int) -> dict[str, Any]:
         "auto_search_depth": "standard",
         "last_auto_search_at": None,
         "next_auto_search_at": None,
+        "auto_search_daily_limit": 10,
+        "followup_emails_enabled": False,
     }
     with connect() as conn:
         row = conn.execute(
@@ -1866,6 +1972,13 @@ def get_notification_settings(user_id: int) -> dict[str, Any]:
     data = dict(row)
     data["email_alerts_enabled"] = bool(data.get("email_alerts_enabled"))
     data["auto_search_enabled"] = bool(data.get("auto_search_enabled"))
+    data["followup_emails_enabled"] = bool(data.get("followup_emails_enabled"))
+    try:
+        data["auto_search_daily_limit"] = max(
+            1, min(50, int(data.get("auto_search_daily_limit") or 10))
+        )
+    except (TypeError, ValueError):
+        data["auto_search_daily_limit"] = 10
     return data
 
 
@@ -1894,6 +2007,8 @@ def save_notification_settings(user_id: int, settings: dict[str, Any]) -> None:
             hour,
             str(settings.get("auto_search_provider", "all")),
             str(settings.get("auto_search_depth", "standard")),
+            max(1, min(50, int(settings.get("auto_search_daily_limit", 10) or 10))),
+            1 if settings.get("followup_emails_enabled") else 0,
             next_run,
             user_id,
         )
@@ -1910,6 +2025,8 @@ def save_notification_settings(user_id: int, settings: dict[str, Any]) -> None:
                         auto_search_hour = ?,
                         auto_search_provider = ?,
                         auto_search_depth = ?,
+                        auto_search_daily_limit = ?,
+                        followup_emails_enabled = ?,
                         next_auto_search_at = ?
                     WHERE user_id = ?
                     """
@@ -1923,9 +2040,10 @@ def save_notification_settings(user_id: int, settings: dict[str, Any]) -> None:
                     INSERT INTO user_notification_settings (
                         email_alerts_enabled, alert_min_score, alert_frequency,
                         auto_search_enabled, auto_search_weekday, auto_search_hour,
-                        auto_search_provider, auto_search_depth, next_auto_search_at,
-                        user_id
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        auto_search_provider, auto_search_depth,
+                        auto_search_daily_limit, followup_emails_enabled,
+                        next_auto_search_at, user_id
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """
                 ),
                 values,

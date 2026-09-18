@@ -56,8 +56,11 @@ from job_filters import (
     format_job_published_label,
     job_max_age_label,
     JOB_MAX_AGE_DAYS_OPTIONS,
+    WORK_MODES,
     normalize_job_max_age_days,
     normalize_job_search_plan,
+    normalize_salary_min,
+    normalize_work_mode,
     ordered_search_phases,
     profile_ready_for_matching,
     resolve_experience_level,
@@ -81,6 +84,7 @@ from i18n import (
     sector_label,
     set_locale,
     sort_label,
+    work_mode_label,
     t,
     weekday_label,
 )
@@ -202,6 +206,8 @@ from job_providers import (
     JOB_PROVIDER_SERPAPI,
     JOB_PROVIDER_SIDEBAR_ORDER,
     JOB_PROVIDER_TALENT,
+    JOB_PROVIDER_FRANCE_TRAVAIL,
+    JOB_PROVIDER_FREELANCE,
     JOB_PROVIDER_WTTJ,
     configured_providers,
     default_job_provider,
@@ -219,6 +225,8 @@ from job_providers import (
     provider_secrets_from_getter,
     resolve_careerjet_user_ip,
     search_jobs_career_sites,
+    search_jobs_france_travail,
+    search_jobs_freelance_com,
     search_jobs_glassdoor_serpapi,
     search_jobs_hellowork,
     search_jobs_indeed_serpapi,
@@ -322,7 +330,13 @@ from database import (
     database_status,
     format_database_exception,
 )
-from document_generation import generate_adapted_cv, generate_cover_letter
+from document_generation import (
+    generate_adapted_cv,
+    generate_cover_letter,
+    generate_followup_message,
+    generate_freelance_proposal,
+    generate_freelance_quote,
+)
 from cv_layout import (
     cv_pdf_filename,
     cv_text_for_candidate,
@@ -362,6 +376,8 @@ from persistence import (
     save_generated_documents,
     save_notification_settings,
     already_applied_to_company,
+    already_applied_to_offer,
+    applications_csv,
     applications_needing_followup,
     control_center_counts,
     update_application_status,
@@ -384,7 +400,7 @@ THEME_SURFACE_SOFT = THEME["surface_soft"]
 THEME_MUTED = THEME["muted"]
 THEME_ACCENT = THEME["accent"]
 
-APP_VERSION = "3.13.0-modern-ui"
+APP_VERSION = "3.14.0-spec-nfr"
 
 try:
     st.set_page_config(
@@ -1655,11 +1671,17 @@ def extract_text_ocr_gemini(pdf_bytes: bytes) -> str:
     return extract_text_ocr(pdf_bytes)
 
 
-def extract_cv_text(pdf_bytes: bytes) -> tuple[str, str]:
+def extract_cv_text(pdf_bytes: bytes, filename: str = "") -> tuple[str, str]:
     """
-    Extract CV text: native PDF text first, OCR fallback if insufficient.
-    Returns (text, method) where method is 'native' or 'ocr'.
+    Extract CV text: DOCX / plain text, or PDF native then OCR.
+    Returns (text, method) where method is 'native', 'ocr', 'docx' or 'txt'.
     """
+    from services.cv_import import detect_document_kind, extract_document_text
+
+    kind = detect_document_kind(pdf_bytes, filename)
+    if kind in {"docx", "txt"}:
+        return extract_document_text(pdf_bytes, filename)
+
     native_text = extract_text_native(pdf_bytes)
     if len(native_text) >= MIN_CV_TEXT_LENGTH:
         return native_text, "native"
@@ -1669,8 +1691,8 @@ def extract_cv_text(pdf_bytes: bytes) -> tuple[str, str]:
         return ocr_text, "ocr"
 
     raise RuntimeError(
-        "Impossible d'extraire suffisamment de texte du PDF "
-        "(ni extraction native, ni OCR). Vérifiez la qualité du scan."
+        "Impossible d'extraire suffisamment de texte du CV "
+        "(ni PDF natif, ni OCR, ni DOCX). Vérifiez le fichier."
     )
 
 
@@ -3208,6 +3230,16 @@ def search_jobs(
     if provider == JOB_PROVIDER_CAREER_SITES:
         return search_jobs_career_sites(query, location, country, serp_key)
 
+    if provider == JOB_PROVIDER_FRANCE_TRAVAIL:
+        if not serp_key:
+            raise RuntimeError("SERPAPI_API_KEY requise pour France Travail.")
+        return search_jobs_france_travail(query, location, country, serp_key)
+
+    if provider == JOB_PROVIDER_FREELANCE:
+        if not serp_key:
+            raise RuntimeError("SERPAPI_API_KEY requise pour Freelance.com.")
+        return search_jobs_freelance_com(query, location, country, serp_key)
+
     if provider == JOB_PROVIDER_SERPAPI:
         if not serp_key:
             raise RuntimeError("Clé SerpApi manquante. Configurez SERPAPI_API_KEY.")
@@ -4059,7 +4091,12 @@ def render_job_card(
         else:
             st.caption(t("job.apply_account_missing", name=source_name))
     if user_id:
-        duplicate = already_applied_to_company(
+        duplicate_offer = already_applied_to_offer(
+            int(user_id),
+            job,
+            exclude_result_id=int(result_id) if result_id else None,
+        )
+        duplicate = duplicate_offer or already_applied_to_company(
             int(user_id),
             str(job.get("company") or ""),
             exclude_result_id=int(result_id) if result_id else None,
@@ -4067,8 +4104,11 @@ def render_job_card(
         if duplicate:
             st.warning(
                 t(
-                    "job.apply_duplicate",
+                    "job.apply_duplicate_offer"
+                    if duplicate_offer
+                    else "job.apply_duplicate",
                     company=str(job.get("company") or "—"),
+                    title=str(job.get("title") or "—"),
                     status=application_status_label(
                         str(duplicate.get("application_status") or "applied")
                     ),
@@ -4239,6 +4279,52 @@ def render_job_card(
                     )
                     st.session_state[f"adapted_{result_id}"] = adapted
                     st.success(t("job.cv_ready"))
+
+        freelance_job = (
+            str((user_profile or {}).get("contract_type") or "").lower() == "freelance"
+            or str(job.get("inferred_contract") or job.get("contract_type") or "").lower()
+            == "freelance"
+        )
+        if freelance_job:
+            fr1, fr2 = st.columns(2)
+            with fr1:
+                if st.button(
+                    t("job.freelance_proposal"),
+                    key=f"gen_proposal_{result_id}",
+                    use_container_width=True,
+                ):
+                    st.session_state[f"proposal_{result_id}"] = generate_freelance_proposal(
+                        cv_text, job, user_profile or {}
+                    )
+                    st.success(t("job.freelance_ready"))
+            with fr2:
+                if st.button(
+                    t("job.freelance_quote"),
+                    key=f"gen_quote_{result_id}",
+                    use_container_width=True,
+                ):
+                    st.session_state[f"quote_{result_id}"] = generate_freelance_quote(
+                        job, user_profile or {}
+                    )
+                    st.success(t("job.freelance_quote_ready"))
+            proposal_text = st.session_state.get(f"proposal_{result_id}")
+            quote_text = st.session_state.get(f"quote_{result_id}")
+            if proposal_text:
+                st.download_button(
+                    t("job.download_proposal"),
+                    proposal_text,
+                    file_name="proposition_commerciale.txt",
+                    key=f"dl_proposal_{result_id}",
+                    use_container_width=True,
+                )
+            if quote_text:
+                st.download_button(
+                    t("job.download_quote"),
+                    quote_text,
+                    file_name="devis.txt",
+                    key=f"dl_quote_{result_id}",
+                    use_container_width=True,
+                )
 
     if not show_details:
         st.markdown("</div>", unsafe_allow_html=True)
@@ -4729,6 +4815,15 @@ def render_applications_page(user: dict[str, Any]) -> None:
         key="applications_channel",
         label_visibility="collapsed",
     )
+    if applications:
+        st.download_button(
+            t("applications.export_csv"),
+            applications_csv(user_id),
+            file_name="candidatures.csv",
+            mime="text/csv",
+            use_container_width=True,
+            key="applications_csv_export",
+        )
     _render_applications_list(
         channel_map.get(channel, applications),
         user_id,
@@ -5526,6 +5621,24 @@ def _render_overview_kpis(user_id: int, analyses: list[dict[str, Any]]) -> None:
         f'<div class="overview-kpi-grid control-kpi-grid">{pipeline_cards}</div>',
         unsafe_allow_html=True,
     )
+    quality_items = (
+        (t("overview.kpi_matching"), f"{pipeline.get('matching_rate', 0)}%"),
+        (t("overview.kpi_response"), f"{pipeline.get('response_rate', 0)}%"),
+        (t("overview.kpi_avg_score"), f"{pipeline.get('avg_score', 0)}%"),
+    )
+    quality_cards = "".join(
+        (
+            '<div class="stat-card">'
+            f'<p class="stat-card-label">{html.escape(str(label))}</p>'
+            f'<p class="stat-card-value">{html.escape(str(value))}</p>'
+            "</div>"
+        )
+        for label, value in quality_items
+    )
+    st.markdown(
+        f'<div class="overview-kpi-grid">{quality_cards}</div>',
+        unsafe_allow_html=True,
+    )
     followups = applications_needing_followup(user_id)
     if followups:
         st.info(t("overview.followup_banner", count=len(followups)))
@@ -5534,6 +5647,13 @@ def _render_overview_kpis(user_id: int, analyses: list[dict[str, Any]]) -> None:
             title = str(job.get("title") or t("email.default_job"))
             company = str(job.get("company") or "—")
             st.caption(f"• {title} — {company}")
+            message = generate_followup_message(job, {"full_name": "", "email": ""})
+            st.download_button(
+                t("overview.followup_copy"),
+                message,
+                file_name=f"relance_{int(entry.get('result_id') or 0)}.txt",
+                key=f"followup_dl_{entry.get('result_id')}",
+            )
 
 
 def _render_overview_shortcuts() -> None:
@@ -5814,6 +5934,18 @@ def render_notification_settings(user: dict[str, Any], job_provider: str) -> Non
                 else 1,
                 format_func=analysis_depth_label,
             )
+        daily_limit = st.slider(
+            t("notify.daily_limit"),
+            1,
+            30,
+            int(settings.get("auto_search_daily_limit") or 10),
+            help=t("notify.daily_limit_help"),
+        )
+        followup_emails = st.checkbox(
+            t("notify.followup_emails"),
+            value=bool(settings.get("followup_emails_enabled")),
+            help=t("notify.followup_emails_help"),
+        )
         if st.form_submit_button(t("notify.save"), use_container_width=True):
             save_notification_settings(
                 int(user["id"]),
@@ -5826,6 +5958,8 @@ def render_notification_settings(user: dict[str, Any], job_provider: str) -> Non
                     "auto_search_hour": hour,
                     "auto_search_provider": job_provider,
                     "auto_search_depth": auto_depth,
+                    "auto_search_daily_limit": daily_limit,
+                    "followup_emails_enabled": bool(followup_emails),
                 },
             )
             st.success(t("notify.saved"))
@@ -6194,7 +6328,7 @@ def run_cv_analysis_pipeline(
         notices.append(
             {
                 "level": "warning",
-                "text": "CV manquant — déposez un PDF ou enregistrez un CV actif pour la recherche automatique.",
+                "text": "CV manquant — déposez un PDF ou un DOCX, ou enregistrez un CV actif pour la recherche automatique.",
             }
         )
         return None, notices
@@ -6213,6 +6347,14 @@ def run_cv_analysis_pipeline(
 
     _report_progress(progress, 18, t("analysis.progress.extract"))
     criteria = cached_extract_criteria(cv_text)
+    extra_skills = [
+        item.strip()
+        for item in re.split(r"[,;\n]", str(user_profile.get("skills_text") or ""))
+        if item.strip()
+    ]
+    if extra_skills:
+        current = [str(item) for item in (criteria.get("competences_techniques") or [])]
+        criteria["competences_techniques"] = list(dict.fromkeys(current + extra_skills))
     skill_queries = tuple(build_skill_mission_search_queries(criteria))
 
     _report_progress(progress, 22, t("analysis.progress.search"))
@@ -7970,6 +8112,62 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
             if freelance_mode:
                 contract_type = "Freelance"
 
+            mode_col1, mode_col2 = st.columns(2)
+            with mode_col1:
+                work_mode = st.selectbox(
+                    t("profile.work_mode"),
+                    WORK_MODES,
+                    index=WORK_MODES.index(normalize_work_mode(profile.get("work_mode")))
+                    if normalize_work_mode(profile.get("work_mode")) in WORK_MODES
+                    else 0,
+                    format_func=work_mode_label,
+                    help=t("profile.work_mode_help"),
+                )
+            with mode_col2:
+                salary_min = st.number_input(
+                    t("profile.salary_min"),
+                    min_value=0,
+                    max_value=500000,
+                    step=1000,
+                    value=normalize_salary_min(profile.get("salary_min")),
+                    help=t("profile.salary_min_help"),
+                )
+            if freelance_mode:
+                daily_rate = st.number_input(
+                    t("profile.daily_rate"),
+                    min_value=0,
+                    max_value=5000,
+                    step=10,
+                    value=int(profile.get("daily_rate") or 0),
+                    help=t("profile.daily_rate_help"),
+                )
+            else:
+                daily_rate = int(profile.get("daily_rate") or 0)
+
+            skills_text = st.text_area(
+                t("profile.skills"),
+                value=profile.get("skills_text") or "",
+                help=t("profile.skills_help"),
+                height=80,
+            )
+            diplomas_text = st.text_area(
+                t("profile.diplomas"),
+                value=profile.get("diplomas_text") or "",
+                help=t("profile.diplomas_help"),
+                height=70,
+            )
+            experiences_text = st.text_area(
+                t("profile.experiences"),
+                value=profile.get("experiences_text") or "",
+                help=t("profile.experiences_help"),
+                height=80,
+            )
+            portfolio_url = st.text_input(
+                t("profile.portfolio_url"),
+                value=profile.get("portfolio_url") or "",
+                help=t("profile.portfolio_url_help"),
+            )
+
             pref_col1, pref_col2 = st.columns(2)
             with pref_col1:
                 exp_index = (
@@ -8061,6 +8259,13 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                         selected_countries=selected_countries,
                         geo_by_country=geo_by_country,
                         phone=profile_phone_input.strip(),
+                        work_mode=work_mode,
+                        salary_min=int(salary_min or 0),
+                        skills_text=skills_text,
+                        diplomas_text=diplomas_text,
+                        experiences_text=experiences_text,
+                        daily_rate=int(daily_rate or 0),
+                        portfolio_url=portfolio_url,
                     )
                     if ok and updated:
                         st.session_state.user = updated
@@ -8122,6 +8327,23 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                     else:
                         st.error(message)
 
+        st.markdown('<hr class="profile-divider">', unsafe_allow_html=True)
+        st.markdown(
+            f'<p class="section-title">{html.escape(t("profile.gdpr_title"))}</p>',
+            unsafe_allow_html=True,
+        )
+        st.caption(t("profile.gdpr_hint"))
+        from services.gdpr_export import export_user_data
+
+        payload = json.dumps(export_user_data(profile), ensure_ascii=False, indent=2)
+        st.download_button(
+            t("profile.gdpr_export"),
+            payload,
+            file_name="dowsonbost-donnees.json",
+            mime="application/json",
+            use_container_width=True,
+            key=f"gdpr_export_{user['id']}",
+        )
         st.markdown('<hr class="profile-divider">', unsafe_allow_html=True)
         render_delete_account_section(user)
 
@@ -8196,7 +8418,7 @@ def render_cv_analysis(
 
         uploaded_file = st.file_uploader(
             t("analysis.file_upload"),
-            type=["pdf"],
+            type=["pdf", "docx"],
             help=t("analysis.upload_help"),
             key="cv_pdf_uploader",
         )
@@ -8218,7 +8440,7 @@ def render_cv_analysis(
                 pass
             else:
                 st.info(
-                    "Uploadez votre CV (PDF) — l'IA recherche les offres pour votre poste visé, "
+                    "Uploadez votre CV (PDF ou DOCX) — l'IA recherche les offres pour votre poste visé, "
                     "puis analyse la correspondance avec votre profil."
                 )
         else:

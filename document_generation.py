@@ -668,3 +668,78 @@ def generate_adapted_cv(
         postprocess=cv_text_for_candidate,
     )
     return _restore_experience_anchors(generated, cv_text)
+
+
+def generate_followup_message(
+    job: dict[str, Any],
+    user_profile: dict[str, Any],
+) -> str:
+    """Plain-text follow-up the candidate can paste to the recruiter."""
+    name = str(user_profile.get("full_name") or "Candidat").strip()
+    title = str(job.get("title") or "le poste").strip()
+    company = str(job.get("company") or "votre équipe").strip()
+    return (
+        f"Bonjour,\n\n"
+        f"Je me permets de revenir vers vous au sujet de ma candidature pour {title} "
+        f"chez {company}. Je reste très motivé(e) par cette opportunité et disponible "
+        f"pour un échange.\n\n"
+        f"Vous pouvez me joindre sur {user_profile.get('email') or 'mon e-mail'} "
+        f"{('ou au ' + str(user_profile.get('phone'))) if user_profile.get('phone') else ''}"
+        f".\n\n"
+        f"Cordialement,\n{name}\n"
+    ).replace("  ", " ")
+
+
+def generate_freelance_proposal(
+    cv_text: str,
+    job: dict[str, Any],
+    user_profile: dict[str, Any],
+) -> str:
+    """Commercial proposal for a freelance mission (no invented experience)."""
+    name = str(user_profile.get("full_name") or "Indépendant").strip()
+    title = str(job.get("title") or "Mission").strip()
+    company = str(job.get("company") or "Client").strip()
+    skills = str(user_profile.get("skills_text") or "").strip()
+    excerpt = " ".join(str(cv_text or "").split())[:400]
+    return (
+        f"Proposition commerciale — {title}\n"
+        f"Client : {company}\n"
+        f"Intervenant : {name}\n\n"
+        f"1. Contexte\n"
+        f"Cette proposition répond à la mission « {title} » publiée par {company}.\n\n"
+        f"2. Approche\n"
+        f"Je propose un cadrage court, des livrables hebdomadaires et un suivi transparent.\n\n"
+        f"3. Profil\n"
+        f"{skills or excerpt or 'Profil détaillé dans le CV joint.'}\n\n"
+        f"4. Modalités\n"
+        f"TJM : {int(user_profile.get('daily_rate') or 0) or 'à convenir'} € HT / jour.\n"
+        f"Démarrage selon votre calendrier.\n\n"
+        f"Cordialement,\n{name}\n"
+    )
+
+
+def generate_freelance_quote(
+    job: dict[str, Any],
+    user_profile: dict[str, Any],
+    *,
+    days: int = 10,
+) -> str:
+    """Simple quote (devis) the candidate can send for a freelance mission."""
+    name = str(user_profile.get("full_name") or "Indépendant").strip()
+    title = str(job.get("title") or "Mission").strip()
+    company = str(job.get("company") or "Client").strip()
+    rate = int(user_profile.get("daily_rate") or 0)
+    duration = max(1, min(90, int(days or 10)))
+    total = rate * duration if rate else None
+    total_line = f"{total} € HT" if total else "sur devis après cadrage"
+    rate_line = f"{rate} € HT" if rate else "à convenir"
+    return (
+        f"DEVIS — {title}\n"
+        f"Prestataire : {name}\n"
+        f"Client : {company}\n\n"
+        f"Prestation : {title}\n"
+        f"Durée estimée : {duration} jour(s)\n"
+        f"TJM : {rate_line}\n"
+        f"Total estimé : {total_line}\n\n"
+        f"Valable 30 jours. Hors frais de déplacement.\n"
+    )

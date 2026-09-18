@@ -41,6 +41,8 @@ from job_filters import (
     normalize_contract_type,
     normalize_experience_level,
     normalize_job_max_age_days,
+    normalize_salary_min,
+    normalize_work_mode,
     parse_target_sectors,
     serialize_target_sectors,
 )
@@ -87,6 +89,13 @@ _USER_COLUMNS = [
     ("phone", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
     ("is_admin", "INTEGER NOT NULL DEFAULT 0", "INTEGER NOT NULL DEFAULT 0"),
     ("last_login_at", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
+    ("work_mode", "TEXT NOT NULL DEFAULT 'tous'", "TEXT NOT NULL DEFAULT 'tous'"),
+    ("salary_min", "INTEGER NOT NULL DEFAULT 0", "INTEGER NOT NULL DEFAULT 0"),
+    ("skills_text", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
+    ("diplomas_text", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
+    ("experiences_text", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
+    ("daily_rate", "INTEGER NOT NULL DEFAULT 0", "INTEGER NOT NULL DEFAULT 0"),
+    ("portfolio_url", "TEXT NOT NULL DEFAULT ''", "TEXT NOT NULL DEFAULT ''"),
 ]
 
 
@@ -782,7 +791,8 @@ _USER_SELECT_SQL = """
     admin_regions, selected_departments, selected_cities, all_cities,
     selected_countries, geo_by_country,
     target_job_title, job_max_age_days, preferred_language, phone,
-    is_admin, last_login_at
+    is_admin, last_login_at, work_mode, salary_min, skills_text,
+    diplomas_text, experiences_text, daily_rate, portfolio_url
 """
 
 
@@ -907,6 +917,13 @@ def _row_to_user(row: Any, include_created: bool = False) -> dict:
         "phone": (row["phone"] or "").strip() if "phone" in row.keys() else "",
         "is_admin": _row_flag(row, "is_admin"),
         "last_login_at": _row_text(row, "last_login_at"),
+        "work_mode": _row_text(row, "work_mode") or "tous",
+        "salary_min": int(row["salary_min"] or 0) if _row_has(row, "salary_min") else 0,
+        "skills_text": _row_text(row, "skills_text"),
+        "diplomas_text": _row_text(row, "diplomas_text"),
+        "experiences_text": _row_text(row, "experiences_text"),
+        "daily_rate": int(row["daily_rate"] or 0) if _row_has(row, "daily_rate") else 0,
+        "portfolio_url": _row_text(row, "portfolio_url"),
     }
     if include_created:
         user["created_at"] = row["created_at"]
@@ -1227,6 +1244,13 @@ def update_user_profile(
     selected_countries: list[str] | None = None,
     geo_by_country: dict[str, dict[str, Any]] | None = None,
     phone: str | None = None,
+    work_mode: str = "tous",
+    salary_min: int = 0,
+    skills_text: str = "",
+    diplomas_text: str = "",
+    experiences_text: str = "",
+    daily_rate: int = 0,
+    portfolio_url: str = "",
 ) -> tuple[bool, str, dict | None]:
     """Update user profile and job-matching preferences."""
     full_name = " ".join(full_name.strip().split())
@@ -1370,6 +1394,28 @@ def update_user_profile(
         )
         if cursor.rowcount == 0:
             return False, t("auth.profile.not_found"), None
+
+        conn.execute(
+            adapt_sql(
+                """
+                UPDATE users
+                SET work_mode = ?, salary_min = ?, skills_text = ?,
+                    diplomas_text = ?, experiences_text = ?,
+                    daily_rate = ?, portfolio_url = ?
+                WHERE id = ?
+                """
+            ),
+            (
+                normalize_work_mode(work_mode),
+                normalize_salary_min(salary_min),
+                " ".join(str(skills_text or "").split()),
+                str(diplomas_text or "").strip(),
+                str(experiences_text or "").strip(),
+                max(0, min(5000, int(daily_rate or 0))),
+                str(portfolio_url or "").strip()[:500],
+                user_id,
+            ),
+        )
 
         row = conn.execute(
             adapt_sql(

@@ -24,6 +24,8 @@ JOB_PROVIDER_HELLOWORK = "hellowork"
 JOB_PROVIDER_MONSTER = "monster"
 JOB_PROVIDER_TALENT = "talent"
 JOB_PROVIDER_CAREER_SITES = "career_sites"
+JOB_PROVIDER_FRANCE_TRAVAIL = "france_travail"
+JOB_PROVIDER_FREELANCE = "freelance"
 JOB_PROVIDER_ALL = "all"
 
 JOB_PROVIDER_LABELS: dict[str, str] = {
@@ -40,6 +42,8 @@ JOB_PROVIDER_LABELS: dict[str, str] = {
     JOB_PROVIDER_GLASSDOOR: "Glassdoor — entreprises, avis & offres (SerpApi)",
     JOB_PROVIDER_MONSTER: "Monster — entreprises & offres (Apify / SerpApi)",
     JOB_PROVIDER_TALENT: "Talent.com — entreprises & offres (Apify / SerpApi)",
+    JOB_PROVIDER_FRANCE_TRAVAIL: "France Travail (Pôle Emploi)",
+    JOB_PROVIDER_FREELANCE: "Freelance.com — missions",
     JOB_PROVIDER_SERPAPI: "Google Jobs / SerpApi (agrégateur)",
 }
 
@@ -57,6 +61,8 @@ JOB_PROVIDER_SIDEBAR_ORDER = (
     JOB_PROVIDER_GLASSDOOR,
     JOB_PROVIDER_MONSTER,
     JOB_PROVIDER_TALENT,
+    JOB_PROVIDER_FRANCE_TRAVAIL,
+    JOB_PROVIDER_FREELANCE,
     JOB_PROVIDER_SERPAPI,
 )
 
@@ -131,6 +137,8 @@ CONNECTABLE_JOB_PROVIDERS = (
     JOB_PROVIDER_TALENT,
     JOB_PROVIDER_JOOBLE,
     JOB_PROVIDER_OPTIONCARRIERE,
+    JOB_PROVIDER_FRANCE_TRAVAIL,
+    JOB_PROVIDER_FREELANCE,
 )
 
 JOB_BOARD_SHORT_NAMES: dict[str, str] = {
@@ -144,6 +152,8 @@ JOB_BOARD_SHORT_NAMES: dict[str, str] = {
     JOB_PROVIDER_TALENT: "Talent.com",
     JOB_PROVIDER_JOOBLE: "Jooble",
     JOB_PROVIDER_OPTIONCARRIERE: "OptionCarriere",
+    JOB_PROVIDER_FRANCE_TRAVAIL: "France Travail",
+    JOB_PROVIDER_FREELANCE: "Freelance.com",
 }
 
 JOB_BOARD_LOGIN_URLS: dict[str, str] = {
@@ -157,6 +167,8 @@ JOB_BOARD_LOGIN_URLS: dict[str, str] = {
     JOB_PROVIDER_TALENT: "https://www.talent.com/login",
     JOB_PROVIDER_JOOBLE: "https://jooble.org/",
     JOB_PROVIDER_OPTIONCARRIERE: "https://www.optioncarriere.com/",
+    JOB_PROVIDER_FRANCE_TRAVAIL: "https://candidat.francetravail.fr/espacepersonnel/",
+    JOB_PROVIDER_FREELANCE: "https://www.freelance.com/",
 }
 
 JOB_BOARD_SIGNUP_URLS: dict[str, str] = {
@@ -170,6 +182,8 @@ JOB_BOARD_SIGNUP_URLS: dict[str, str] = {
     JOB_PROVIDER_TALENT: "https://www.talent.com/",
     JOB_PROVIDER_JOOBLE: "https://jooble.org/",
     JOB_PROVIDER_OPTIONCARRIERE: "https://www.optioncarriere.com/",
+    JOB_PROVIDER_FRANCE_TRAVAIL: "https://www.francetravail.fr/",
+    JOB_PROVIDER_FREELANCE: "https://www.freelance.com/",
 }
 
 _SOURCE_TO_PROVIDER: tuple[tuple[str, str], ...] = (
@@ -188,6 +202,11 @@ _SOURCE_TO_PROVIDER: tuple[tuple[str, str], ...] = (
     ("option carrière", JOB_PROVIDER_OPTIONCARRIERE),
     ("careerjet", JOB_PROVIDER_OPTIONCARRIERE),
     ("adzuna", JOB_PROVIDER_ADZUNA),
+    ("francetravail", JOB_PROVIDER_FRANCE_TRAVAIL),
+    ("france travail", JOB_PROVIDER_FRANCE_TRAVAIL),
+    ("pole-emploi", JOB_PROVIDER_FRANCE_TRAVAIL),
+    ("pôle emploi", JOB_PROVIDER_FRANCE_TRAVAIL),
+    ("freelance.com", JOB_PROVIDER_FREELANCE),
 )
 
 
@@ -1747,6 +1766,69 @@ def search_jobs_serpapi_google_jobs(
     return jobs
 
 
+def search_jobs_site_serpapi(
+    query: str,
+    location: str,
+    country: str,
+    api_key: str,
+    *,
+    site: str,
+    source_label: str,
+) -> list[dict[str, Any]]:
+    """Google Jobs via SerpApi, restricted to one public job site."""
+    if not api_key.strip() or not query.strip() or not site.strip():
+        return []
+    site_query = f"{query.strip()} site:{site.strip()}"
+    jobs = search_jobs_serpapi_google_jobs(site_query, location, country, api_key)
+    tagged: list[dict[str, Any]] = []
+    needle = site.strip().lower()
+    for job in jobs:
+        item = dict(job)
+        url = str(item.get("url") or "").lower()
+        source = str(item.get("source") or "").lower()
+        if needle not in url and needle not in source and "site:" not in site_query.lower():
+            continue
+        item["source"] = source_label
+        tagged.append(item)
+    if tagged:
+        return tagged
+    return [{**dict(job), "source": source_label} for job in jobs]
+
+
+def search_jobs_france_travail(
+    query: str,
+    location: str,
+    country: str,
+    api_key: str,
+) -> list[dict[str, Any]]:
+    """France Travail / Pôle Emploi listings via SerpApi (legal public index)."""
+    return search_jobs_site_serpapi(
+        query,
+        location,
+        country,
+        api_key,
+        site="francetravail.fr",
+        source_label="France Travail",
+    )
+
+
+def search_jobs_freelance_com(
+    query: str,
+    location: str,
+    country: str,
+    api_key: str,
+) -> list[dict[str, Any]]:
+    """Freelance.com missions via SerpApi."""
+    return search_jobs_site_serpapi(
+        query,
+        location,
+        country,
+        api_key,
+        site="freelance.com",
+        source_label="Freelance.com",
+    )
+
+
 def search_jobs_indeed_serpapi(
     query: str,
     location: str,
@@ -2140,6 +2222,8 @@ def test_serpapi_platform_connection(
         "hellowork": search_jobs_hellowork_serpapi,
         "monster": search_jobs_monster_serpapi,
         "talent": search_jobs_talent_serpapi,
+        "france_travail": search_jobs_france_travail,
+        "freelance": search_jobs_freelance_com,
     }
     fn = searchers.get(platform)
     if not fn:
@@ -2271,6 +2355,8 @@ def configured_providers(
                 JOB_PROVIDER_INDEED,
                 JOB_PROVIDER_LINKEDIN,
                 JOB_PROVIDER_GLASSDOOR,
+                JOB_PROVIDER_FRANCE_TRAVAIL,
+                JOB_PROVIDER_FREELANCE,
                 JOB_PROVIDER_SERPAPI,
             ]
         )

@@ -144,6 +144,10 @@ def experience_label(level: str) -> str:
     return t(f"experience.{level}")
 
 
+def work_mode_label(mode: str) -> str:
+    return t(f"work_mode.{mode}")
+
+
 def job_age_label(days: int) -> str:
     return t(f"job_age.{days}")
 
@@ -190,6 +194,8 @@ def job_provider_label(provider: str) -> str:
         "monster": "provider.monster",
         "talent": "provider.talent",
         "career_sites": "provider.career_sites",
+        "france_travail": "provider.france_travail",
+        "freelance": "provider.freelance",
         "serpapi": "provider.serpapi",
     }
     return t(key_map.get(provider, f"provider.{provider}"))

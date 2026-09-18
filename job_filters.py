@@ -29,6 +29,49 @@ CONTRACT_TYPES = (
     "Intérim",
 )
 
+WORK_MODES = (
+    "tous",
+    "remote",
+    "hybrid",
+    "onsite",
+)
+
+_REMOTE_TOKENS = (
+    "teletravail",
+    "full remote",
+    "100% remote",
+    "100 % remote",
+    "a distance",
+    "remote france",
+    "fully remote",
+    "work from home",
+)
+_HYBRID_TOKENS = (
+    "hybride",
+    "hybrid",
+    "teletravail partiel",
+    "remote partiel",
+    "2 jours remote",
+    "3 jours remote",
+)
+_ONSITE_TOKENS = (
+    "presentiel",
+    "on-site",
+    "onsite",
+    "sur site",
+    "bureau uniquement",
+)
+
+_SALARY_K_RE = re.compile(r"(\d{2,3})\s*[kK](?:\s*(?:€|eur|euros?))?")
+_SALARY_EURO_RE = re.compile(
+    r"(\d{2,3}(?:[\s\u00a0.]?\d{3})+)\s*(?:€|eur(?:os)?)",
+    re.IGNORECASE,
+)
+_SALARY_RANGE_RE = re.compile(
+    r"(\d{2,3}(?:[\s\u00a0.]?\d{3})+|\d{2,3}\s*[kK])\s*[-–à/]\s*"
+    r"(\d{2,3}(?:[\s\u00a0.]?\d{3})+|\d{2,3}\s*[kK])"
+)
+
 from world_geo import (
     COUNTRY_OPTIONS,
     country_location_match_tokens,
@@ -537,6 +580,116 @@ def normalize_contract_type(value: str) -> str:
     return cleaned
 
 
+def normalize_work_mode(value: str | None) -> str:
+    raw = normalize_text(str(value or "tous"))
+    aliases = {
+        "tous": "tous",
+        "all": "tous",
+        "indifferent": "tous",
+        "indifférent": "tous",
+        "remote": "remote",
+        "teletravail": "remote",
+        "télétravail": "remote",
+        "full remote": "remote",
+        "hybrid": "hybrid",
+        "hybride": "hybrid",
+        "onsite": "onsite",
+        "on-site": "onsite",
+        "presentiel": "onsite",
+        "présentiel": "onsite",
+        "sur site": "onsite",
+    }
+    return aliases.get(raw, "tous" if raw in {"", "none"} else "tous")
+
+
+def normalize_salary_min(value: Any) -> int:
+    try:
+        amount = int(float(str(value).replace(" ", "").replace("\xa0", "")))
+    except (TypeError, ValueError):
+        return 0
+    return max(0, min(500_000, amount))
+
+
+def _salary_token_to_int(token: str) -> int | None:
+    raw = (token or "").strip().lower().replace("\xa0", " ")
+    if not raw:
+        return None
+    if re.search(r"[kK]\s*$", raw) or re.search(r"\d{2,3}\s*[kK]", raw):
+        digits = re.sub(r"[^\d]", "", raw)
+        if digits:
+            return int(digits) * 1000
+        return None
+    digits = re.sub(r"[^\d]", "", raw)
+    if not digits:
+        return None
+    amount = int(digits)
+    if amount < 200:
+        return amount * 1000
+    return amount
+
+
+def parse_annual_salary_eur(text: str) -> int | None:
+    """Lowest annual salary mentioned in free text, in euros, or None."""
+    blob = str(text or "")
+    if not blob.strip():
+        return None
+    amounts: list[int] = []
+    for match in _SALARY_RANGE_RE.finditer(blob):
+        left = _salary_token_to_int(match.group(1))
+        right = _salary_token_to_int(match.group(2))
+        for item in (left, right):
+            if item and 15_000 <= item <= 400_000:
+                amounts.append(item)
+    for match in _SALARY_K_RE.finditer(blob):
+        amount = int(match.group(1)) * 1000
+        if 15_000 <= amount <= 400_000:
+            amounts.append(amount)
+    for match in _SALARY_EURO_RE.finditer(blob):
+        parsed = _salary_token_to_int(match.group(1))
+        if parsed and 15_000 <= parsed <= 400_000:
+            amounts.append(parsed)
+    return min(amounts) if amounts else None
+
+
+def infer_job_work_mode(job: dict[str, Any]) -> str | None:
+    """Return remote / hybrid / onsite when the listing says so."""
+    blob = normalize_text(
+        " ".join(
+            str(job.get(field) or "")
+            for field in ("title", "location", "description", "work_mode", "workplace")
+        )
+    )
+    if any(token in blob for token in _HYBRID_TOKENS):
+        return "hybrid"
+    if any(token in blob for token in _REMOTE_TOKENS) or blob in {
+        "remote",
+        "teletravail",
+        "full remote",
+    }:
+        return "remote"
+    if any(token in blob for token in _ONSITE_TOKENS):
+        return "onsite"
+    return None
+
+
+def infer_job_salary_min(job: dict[str, Any]) -> int | None:
+    for field in ("salary_min", "salary", "compensation"):
+        raw = job.get(field)
+        if raw in (None, ""):
+            continue
+        if isinstance(raw, (int, float)) and raw > 0:
+            amount = int(raw)
+            if amount < 1000:
+                amount *= 1000
+            return amount
+        parsed = parse_annual_salary_eur(str(raw))
+        if parsed:
+            return parsed
+    return parse_annual_salary_eur(
+        " ".join(str(job.get(field) or "") for field in ("title", "description"))
+    )
+
+
 def extract_french_department(postal_code: str) -> str:
     """Return French department code from a postal code (e.g. 94450 -> 94)."""
     digits = re.sub(r"\D", "", postal_code or "")
@@ -1042,6 +1195,28 @@ def job_matches_contract(job: dict[str, Any], user_contract: str) -> bool:
     return inferred == expected
 
 
+def job_matches_work_mode(job: dict[str, Any], user_mode: str) -> bool:
+    """Keep unknown work modes; drop only a clear mismatch."""
+    expected = normalize_work_mode(user_mode)
+    if expected == "tous":
+        return True
+    inferred = infer_job_work_mode(job)
+    if not inferred:
+        return True
+    return inferred == expected
+
+
+def job_matches_salary(job: dict[str, Any], salary_min: int) -> bool:
+    """Keep offers without a published salary; drop those below the floor."""
+    floor = normalize_salary_min(salary_min)
+    if floor <= 0:
+        return True
+    listed = infer_job_salary_min(job)
+    if listed is None:
+        return True
+    return listed >= floor
+
+
 def _coords_from_nominatim(query: str) -> tuple[float, float] | None:
     if not query.strip():
         return None
@@ -1316,6 +1491,8 @@ def _enrich_filtered_job(job: dict[str, Any]) -> dict[str, Any]:
     enriched["inferred_contract"] = infer_job_contract(job)
     enriched["inferred_experience"] = infer_job_experience_level(job)
     enriched["inferred_sector"] = infer_job_sector(job)
+    enriched["inferred_work_mode"] = infer_job_work_mode(job)
+    enriched["inferred_salary_min"] = infer_job_salary_min(job)
     return enriched
 
 
@@ -1346,6 +1523,8 @@ def apply_strict_job_filters(
     experience_level = resolve_experience_level(profile, cv_profile)
     target_sectors = resolve_target_sectors(profile, cv_profile)
     max_age_days = normalize_job_max_age_days(profile.get("job_max_age_days"))
+    work_mode = normalize_work_mode(profile.get("work_mode"))
+    salary_min = normalize_salary_min(profile.get("salary_min"))
 
     user_coords: tuple[float, float] | None = None
     job_coords_cache: dict[str, tuple[float, float] | None] = {}
@@ -1361,6 +1540,8 @@ def apply_strict_job_filters(
         "rejected_experience": 0,
         "rejected_sector": 0,
         "rejected_publication_age": 0,
+        "rejected_work_mode": 0,
+        "rejected_salary": 0,
         "kept": 0,
         "kept_strict": 0,
         "backfilled_older": 0,
@@ -1387,6 +1568,12 @@ def apply_strict_job_filters(
             continue
         if not job_matches_sector(job, target_sectors):
             stats["rejected_sector"] += 1
+            continue
+        if not job_matches_work_mode(job, work_mode):
+            stats["rejected_work_mode"] += 1
+            continue
+        if not job_matches_salary(job, salary_min):
+            stats["rejected_salary"] += 1
             continue
         enriched = _enrich_filtered_job(job)
         if age_ok:

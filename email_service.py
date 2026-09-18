@@ -146,6 +146,11 @@ def maybe_send_analysis_alert(
         return False, t("email.service_not_configured", locale=lang)
     min_score = int(settings.get("alert_min_score", 70))
     filtered = [o for o in offers if int(o.get("score", 0)) >= min_score]
+    try:
+        daily_limit = max(1, min(50, int(settings.get("auto_search_daily_limit") or 10)))
+    except (TypeError, ValueError):
+        daily_limit = 10
+    filtered = filtered[:daily_limit]
     if not filtered:
         return False, t("email.below_threshold", locale=lang)
     subject = t(
