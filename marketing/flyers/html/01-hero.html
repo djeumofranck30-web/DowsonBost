@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>DowsonBost — Flyer 01 Hero</title>
+  <link rel="stylesheet" href="../assets/shared.css" />
+  <style>
+    .flyer {
+      background:
+        radial-gradient(ellipse 70% 50% at 8% 0%, rgba(14,116,144,.18), transparent 55%),
+        radial-gradient(ellipse 55% 45% at 96% 8%, rgba(232,185,35,.22), transparent 50%),
+        linear-gradient(160deg, #F4F1EA 0%, #E7F1EE 48%, #DCE8F2 100%);
+      padding: 72px 80px 64px;
+      display: flex;
+      flex-direction: column;
+    }
+    .top { display: flex; justify-content: space-between; align-items: center; }
+    .badge {
+      background: var(--navy);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      padding: 10px 16px;
+      border-radius: 999px;
+    }
+    .hero { margin-top: 88px; max-width: 980px; }
+    .eyebrow { margin-bottom: 22px; }
+    h1 { font-size: 108px; }
+    h1 em { font-style: normal; color: var(--teal); }
+    .lead {
+      margin-top: 36px;
+      font-size: 30px;
+      line-height: 1.35;
+      color: #334155;
+      font-weight: 500;
+      max-width: 820px;
+    }
+    .pills { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 48px; }
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 22px;
+      margin-top: auto;
+      margin-bottom: 48px;
+    }
+    .card {
+      background: rgba(255,255,255,.82);
+      border-radius: 22px;
+      padding: 28px 26px;
+      box-shadow: 0 14px 36px rgba(11,18,32,.07);
+    }
+    .n {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+    .card h2 { font-size: 24px; letter-spacing: -.03em; margin-bottom: 8px; }
+    .card p { font-size: 17px; color: var(--muted); line-height: 1.4; font-weight: 500; }
+    .cta-row { display: flex; align-items: center; gap: 28px; }
+    .qr-wrap { text-align: center; }
+    .qr-wrap small { display: block; margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <article class="flyer">
+    <div class="top">
+      <div class="mark">
+        <div class="mark-sq">DB</div>
+        <div class="mark-name">Dowson<span>Bost</span></div>
+      </div>
+      <div class="badge">Matching CV × IA</div>
+    </div>
+    <div class="hero">
+      <div class="eyebrow">Plateforme de recherche d’emploi</div>
+      <h1>Trouvez le poste<br>qui vous <em>ressemble</em>.</h1>
+      <p class="lead">Déposez votre CV. L’IA cherche les offres, note la compatibilité ATS, puis prépare un CV et une lettre adaptés — en une page.</p>
+      <div class="pills">
+        <span class="pill">Analyse CV</span>
+        <span class="pill">Matching ATS</span>
+        <span class="pill">Job boards + sites carrière</span>
+      </div>
+    </div>
+    <div class="cards">
+      <div class="card"><div class="n">01</div><h2>Déposez</h2><p>Importez votre PDF. Le profil de recherche affine le ciblage.</p></div>
+      <div class="card"><div class="n">02</div><h2>Matchez</h2><p>Jusqu’à 100 offres classées selon votre CV, pas au hasard.</p></div>
+      <div class="card"><div class="n">03</div><h2>Postulez</h2><p>CV A4 et lettre générés sur l’offre, prêts à envoyer.</p></div>
+    </div>
+    <div class="foot">
+      <div class="cta-row">
+        <div class="cta">Créer un compte gratuit</div>
+        <div>
+          <div class="url">dowsonbost.streamlit.app</div>
+          <div class="fine">Hébergé à Paris · Données en Union européenne</div>
+        </div>
+      </div>
+      <div class="qr-wrap">
+        <img class="qr" src="../assets/qr-dark.png" alt="QR DowsonBost" />
+        <small>Scannez pour ouvrir</small>
+      </div>
+    </div>
+  </article>
+</body>
+</html>

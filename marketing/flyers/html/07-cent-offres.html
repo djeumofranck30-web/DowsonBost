@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>DowsonBost — Flyer 07 Cent offres</title>
+  <link rel="stylesheet" href="../assets/shared.css" />
+  <style>
+    .flyer {
+      background: linear-gradient(165deg, #0E7490 0%, #155E75 42%, #0B1220 100%);
+      color: #fff;
+      padding: 72px 72px 56px;
+      display: flex;
+      flex-direction: column;
+    }
+    .big {
+      font-size: 420px;
+      font-weight: 800;
+      letter-spacing: -.08em;
+      line-height: .8;
+      color: var(--gold);
+      margin: 40px 0 10px;
+    }
+    h1 { font-size: 64px; color: #fff; }
+    .lead {
+      margin-top: 22px;
+      font-size: 28px;
+      line-height: 1.35;
+      color: rgba(255,255,255,.82);
+      max-width: 860px;
+      font-weight: 500;
+    }
+    .modes {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-top: 48px;
+    }
+    .m {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 20px;
+      padding: 22px;
+    }
+    .m strong { display: block; font-size: 32px; letter-spacing: -.04em; }
+    .m span { color: rgba(255,255,255,.7); font-weight: 500; font-size: 16px; }
+    .foot { margin-top: auto; }
+    .url { color: #fff; }
+    .fine { color: rgba(255,255,255,.65); }
+  </style>
+</head>
+<body>
+  <article class="flyer">
+    <div class="mark">
+      <div class="mark-sq">DB</div>
+      <div class="mark-name light">Dowson<span>Bost</span></div>
+    </div>
+    <div class="big">100</div>
+    <h1>meilleures offres,<br>classées pour vous.</h1>
+    <p class="lead">Pas un flux infini. Un plafond après filtrage et matching : vous voyez d’abord ce qui correspond, jusqu’à 100 fiches en mode Complet.</p>
+    <div class="modes">
+      <div class="m"><strong>25</strong><span>Rapide — un premier tri</span></div>
+      <div class="m"><strong>60</strong><span>Standard — volume utile</span></div>
+      <div class="m"><strong>100</strong><span>Complet — tout le haut du panier</span></div>
+    </div>
+    <div class="foot">
+      <div>
+        <div class="cta">Choisir ma profondeur</div>
+        <div class="url" style="margin-top:16px">dowsonbost.streamlit.app</div>
+        <div class="fine">Job boards + sites carrière des entreprises</div>
+      </div>
+      <img class="qr" src="../assets/qr-gold.png" alt="QR" />
+    </div>
+  </article>
+</body>
+</html>
