@@ -924,6 +924,9 @@ def render_app_styles() -> None:
             gap: 0.85rem;
             margin: 0 0 1rem 0;
         }}
+        .control-kpi-grid {{
+            grid-template-columns: repeat(5, 1fr);
+        }}
         .overview-kpi-grid .stat-card-value {{
             font-size: 1.15rem;
             white-space: nowrap;
@@ -1262,7 +1265,7 @@ def render_app_styles() -> None:
             box-shadow: 0 4px 12px rgba(11, 18, 32, 0.1);
         }}
         @media (max-width: 900px) {{
-            .stat-card-grid, .dash-quality-kpis, .dash-quality-split, .overview-kpi-grid {{
+            .stat-card-grid, .dash-quality-kpis, .dash-quality-split, .overview-kpi-grid, .control-kpi-grid {{
                 grid-template-columns: 1fr 1fr;
             }}
             .job-card-head {{
@@ -1270,7 +1273,7 @@ def render_app_styles() -> None:
             }}
         }}
         @media (max-width: 560px) {{
-            .stat-card-grid, .dash-quality-kpis, .dash-quality-split, .overview-kpi-grid {{
+            .stat-card-grid, .dash-quality-kpis, .dash-quality-split, .overview-kpi-grid, .control-kpi-grid {{
                 grid-template-columns: 1fr;
             }}
             .profile-header-card {{

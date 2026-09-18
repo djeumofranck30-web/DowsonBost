@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import unicodedata
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -27,6 +28,19 @@ APPLICATION_METHODS = (
 )
 
 _APPLIED_HISTORY_STATUSES = ("applied", "interview", "offer")
+FOLLOWUP_AFTER_DAYS = 7
+_COMPANY_STOPWORDS = {
+    "sas",
+    "sarl",
+    "sa",
+    "inc",
+    "ltd",
+    "llc",
+    "group",
+    "groupe",
+    "france",
+    "the",
+}
 
 AUTO_SEARCH_WEEKDAYS = (
     "monday",
@@ -77,6 +91,28 @@ _persistence_initialized_for: tuple[str, ...] | None = None
 
 def utc_now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def normalize_company_name(company: str) -> str:
+    """Fold a company name so 'Foo SAS' and 'Foo' count as the same employer."""
+    raw = unicodedata.normalize("NFKD", str(company or ""))
+    folded = "".join(char for char in raw if not unicodedata.combining(char)).lower()
+    folded = re.sub(r"[^a-z0-9]+", " ", folded)
+    parts = [part for part in folded.split() if part and part not in _COMPANY_STOPWORDS]
+    return " ".join(parts)
+
+
+def _parse_iso_datetime(value: str | None) -> datetime | None:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed
 
 
 def job_offer_key(job: dict[str, Any]) -> str:
@@ -1633,6 +1669,64 @@ def count_user_applications(user_id: int) -> int:
             (user_id, *_APPLIED_HISTORY_STATUSES),
         ).fetchone()
     return int((row["total"] if row else 0) or 0)
+
+
+def already_applied_to_company(
+    user_id: int,
+    company: str,
+    *,
+    exclude_result_id: int | None = None,
+) -> dict[str, Any] | None:
+    """Return an earlier application to the same employer, if any."""
+    key = normalize_company_name(company)
+    if not key:
+        return None
+    skip = int(exclude_result_id) if exclude_result_id else None
+    for entry in list_user_applications(user_id):
+        if skip and int(entry.get("result_id") or 0) == skip:
+            continue
+        status = str(entry.get("application_status") or "")
+        if status not in _APPLIED_HISTORY_STATUSES:
+            continue
+        other = normalize_company_name(str((entry.get("job") or {}).get("company") or ""))
+        if other and other == key:
+            return entry
+    return None
+
+
+def applications_needing_followup(
+    user_id: int,
+    *,
+    after_days: int = FOLLOWUP_AFTER_DAYS,
+) -> list[dict[str, Any]]:
+    """Applications still waiting for a reply after ``after_days``."""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=max(1, int(after_days)))
+    due: list[dict[str, Any]] = []
+    for entry in list_user_applications(user_id):
+        if str(entry.get("application_status") or "") != "applied":
+            continue
+        stamp = _parse_iso_datetime(
+            str(entry.get("status_updated_at") or entry.get("analysis_created_at") or "")
+        )
+        if stamp and stamp <= cutoff:
+            due.append(entry)
+    return due
+
+
+def control_center_counts(user_id: int) -> dict[str, int]:
+    """Pipeline counts for the student job-search control center."""
+    status_counts = dashboard_status_counts(user_id)
+    waiting = int(status_counts.get("applied") or 0)
+    offer = int(status_counts.get("offer") or 0)
+    interview = int(status_counts.get("interview") or 0)
+    return {
+        "found": int(status_counts.get("all") or 0),
+        "applied": waiting + interview + offer,
+        "waiting": waiting,
+        "rejected": int(status_counts.get("rejected") or 0),
+        "offer": offer,
+        "followup": len(applications_needing_followup(user_id)),
+    }
 
 
 def get_application_result(user_id: int, result_id: int) -> dict[str, Any] | None:

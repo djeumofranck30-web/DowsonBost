@@ -361,6 +361,9 @@ from persistence import (
     save_analysis,
     save_generated_documents,
     save_notification_settings,
+    already_applied_to_company,
+    applications_needing_followup,
+    control_center_counts,
     update_application_status,
     upsert_active_cv_document,
 )
@@ -4055,6 +4058,22 @@ def render_job_card(
             )
         else:
             st.caption(t("job.apply_account_missing", name=source_name))
+    if user_id:
+        duplicate = already_applied_to_company(
+            int(user_id),
+            str(job.get("company") or ""),
+            exclude_result_id=int(result_id) if result_id else None,
+        )
+        if duplicate:
+            st.warning(
+                t(
+                    "job.apply_duplicate",
+                    company=str(job.get("company") or "—"),
+                    status=application_status_label(
+                        str(duplicate.get("application_status") or "applied")
+                    ),
+                )
+            )
     apply_col1, apply_col2 = st.columns(2)
     with apply_col1:
         if job.get("url"):
@@ -5480,6 +5499,41 @@ def _render_overview_kpis(user_id: int, analyses: list[dict[str, Any]]) -> None:
         for label, value in items
     )
     st.markdown(f'<div class="overview-kpi-grid">{cards}</div>', unsafe_allow_html=True)
+    pipeline = control_center_counts(user_id)
+    pipeline_items = (
+        (t("overview.kpi_found"), str(pipeline["found"])),
+        (t("overview.kpi_applied"), str(pipeline["applied"])),
+        (t("overview.kpi_waiting"), str(pipeline["waiting"])),
+        (t("overview.kpi_rejected"), str(pipeline["rejected"])),
+        (t("overview.kpi_offer"), str(pipeline["offer"])),
+    )
+    pipeline_cards = "".join(
+        (
+            '<div class="stat-card">'
+            f'<p class="stat-card-label">{html.escape(str(label))}</p>'
+            f'<p class="stat-card-value">{html.escape(str(value))}</p>'
+            "</div>"
+        )
+        for label, value in pipeline_items
+    )
+    st.markdown(
+        f'<p class="filter-bar-title">{html.escape(t("overview.control_title"))}</p>',
+        unsafe_allow_html=True,
+    )
+    st.caption(t("overview.control_hint"))
+    st.caption(t("overview.student_plan"))
+    st.markdown(
+        f'<div class="overview-kpi-grid control-kpi-grid">{pipeline_cards}</div>',
+        unsafe_allow_html=True,
+    )
+    followups = applications_needing_followup(user_id)
+    if followups:
+        st.info(t("overview.followup_banner", count=len(followups)))
+        for entry in followups[:5]:
+            job = entry.get("job") or {}
+            title = str(job.get("title") or t("email.default_job"))
+            company = str(job.get("company") or "—")
+            st.caption(f"• {title} — {company}")
 
 
 def _render_overview_shortcuts() -> None:
@@ -7908,6 +7962,13 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                     else 0,
                     format_func=contract_label,
                 )
+            freelance_mode = st.checkbox(
+                t("profile.freelance_mode"),
+                value=str(profile.get("contract_type") or "") == "Freelance",
+                help=t("profile.freelance_mode_help"),
+            )
+            if freelance_mode:
+                contract_type = "Freelance"
 
             pref_col1, pref_col2 = st.columns(2)
             with pref_col1:

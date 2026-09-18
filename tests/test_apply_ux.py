@@ -80,8 +80,9 @@ def test_depth_labels_are_caps_not_guarantees() -> None:
 def test_apply_auto_label_is_honest() -> None:
     fr = json.loads(_read("locales/fr.json"))
     en = json.loads(_read("locales/en.json"))
+    assert fr["job.apply_auto"].lower() == "postuler maintenant"
+    assert "prépare" in fr["job.apply_auto_help"].lower()
     assert "automatiquement" not in fr["job.apply_auto"].lower()
-    assert "préparer" in fr["job.apply_auto"].lower()
     assert "automatically" not in en["job.apply_auto"].lower()
-    assert "prepare" in en["job.apply_auto"].lower()
+    assert "prepare" in en["job.apply_auto_help"].lower()
     assert "j'ai postulé" in fr["job.apply_manual_confirm"].lower()

@@ -140,3 +140,79 @@ def test_legacy_applied_status_without_method_is_manual(sqlite_db):
     assert len(applications) == 1
     assert applications[0]["channel"] == "manual"
     assert applications[0]["application_method"] is None
+
+
+def test_already_applied_to_company_and_control_center(sqlite_db):
+    from datetime import datetime, timedelta, timezone
+
+    from database import adapt_sql, connect
+    from persistence import (
+        already_applied_to_company,
+        applications_needing_followup,
+        control_center_counts,
+    )
+
+    _reset_persistence()
+    init_db()
+    init_persistence_tables()
+    user_id = _register_test_user()
+    analysis_id = save_analysis(
+        user_id,
+        {
+            "cv_text": "CV",
+            "criteria": {},
+            "user_profile": {"full_name": "Jane Doe"},
+            "target_job_title": "Dev",
+            "search_plan": {},
+            "filter_stats": {},
+            "jobs_found": 2,
+            "jobs_raw": 2,
+            "job_provider": "adzuna",
+            "results": [
+                {
+                    "job": {
+                        "title": "Dev A",
+                        "company": "Acme SAS",
+                        "location": "Paris",
+                        "url": "https://example.com/a",
+                        "description": "",
+                    },
+                    "match": {"score_correspondance": 80},
+                },
+                {
+                    "job": {
+                        "title": "Dev B",
+                        "company": "Other Co",
+                        "location": "Lyon",
+                        "url": "https://example.com/b",
+                        "description": "",
+                    },
+                    "match": {"score_correspondance": 70},
+                },
+            ],
+        },
+        cv_fingerprint="fp-dup",
+    )
+    stored = get_analysis(user_id, analysis_id)
+    assert stored is not None
+    first_id = stored["results"][0]["result_id"]
+    second_id = stored["results"][1]["result_id"]
+    assert record_application(user_id, first_id, "manual", status="applied")
+    assert already_applied_to_company(user_id, "Acme")
+    assert already_applied_to_company(user_id, "Other Co") is None
+    counts = control_center_counts(user_id)
+    assert counts["applied"] >= 1
+    assert counts["waiting"] >= 1
+    old = (datetime.now(timezone.utc) - timedelta(days=10)).replace(microsecond=0).isoformat()
+    with connect() as conn:
+        conn.execute(
+            adapt_sql(
+                "UPDATE analysis_results SET status_updated_at = ? WHERE id = ?"
+            ),
+            (old, first_id),
+        )
+    due = applications_needing_followup(user_id, after_days=7)
+    assert due
+    assert int(due[0]["result_id"]) == int(first_id)
+    assert already_applied_to_company(user_id, "Acme", exclude_result_id=first_id) is None
+    assert second_id != first_id
