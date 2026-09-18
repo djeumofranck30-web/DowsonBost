@@ -189,7 +189,6 @@ from services.frontend_store import (
     logout as api_logout,
 )
 from services.analysis_worker import (
-    ensure_embedded_analysis_worker,
     kick_embedded_analysis_worker,
 )
 from services.application import (
@@ -5654,7 +5653,7 @@ def _render_overview_kpis(user_id: int, analyses: list[dict[str, Any]]) -> None:
     workspace = _cached_workspace(user_id)
     application_count = workspace.get("application_count")
     if application_count is None:
-        application_count = count_user_applications(user_id)
+        application_count = 0 if not analyses else count_user_applications(user_id)
     items = (
         (t("overview.kpi_analyses"), str(len(analyses))),
         (t("overview.kpi_applications"), str(application_count)),
@@ -5670,7 +5669,19 @@ def _render_overview_kpis(user_id: int, analyses: list[dict[str, Any]]) -> None:
         for label, value in items
     )
     st.markdown(f'<div class="overview-kpi-grid">{cards}</div>', unsafe_allow_html=True)
-    pipeline = workspace.get("control_center") or control_center_counts(user_id)
+    pipeline = workspace.get("control_center")
+    if not pipeline:
+        pipeline = (
+            {
+                "found": 0,
+                "applied": 0,
+                "waiting": 0,
+                "rejected": 0,
+                "offer": 0,
+            }
+            if not analyses
+            else control_center_counts(user_id)
+        )
     pipeline_items = (
         (t("overview.kpi_found"), str(pipeline["found"])),
         (t("overview.kpi_applied"), str(pipeline["applied"])),
@@ -7186,15 +7197,20 @@ def _render_auth_login_form() -> None:
         )
         if ok and user:
             login_locale = get_locale()
-            ok_lang, _, updated = update_user_preferred_language(
-                int(user["id"]), login_locale
-            )
+            if str(user.get("preferred_language") or "") != login_locale:
+                ok_lang, _, updated = update_user_preferred_language(
+                    int(user["id"]), login_locale
+                )
+            else:
+                ok_lang, updated = True, user
             st.session_state.authenticated = True
             st.session_state.user = (
                 updated
                 if ok_lang and updated
                 else {**user, "preferred_language": login_locale}
             )
+            st.session_state._profile_cache = st.session_state.user
+            st.session_state._profile_cache_at = time.time()
             set_locale(login_locale)
             st.session_state.auth_view = "login"
             st.session_state.pop("account_deleted_notice", None)
@@ -8434,6 +8450,7 @@ def render_cv_analysis(
         return
 
     if active_job:
+        kick_embedded_analysis_worker()
         _render_analysis_job_progress(active_job)
         return
 
@@ -8831,7 +8848,7 @@ def render_config_tests_panel(*, show_clear_cache: bool = True, expanded: bool =
 
 
 def _cached_support_unread(user_id: int) -> int:
-    workspace = _cached_workspace(int(user_id), ttl=15)
+    workspace = _cached_workspace(int(user_id), ttl=60)
     if workspace:
         count = int(workspace.get("support_unread") or 0)
         st.session_state._support_unread_uid = int(user_id)
@@ -8841,7 +8858,7 @@ def _cached_support_unread(user_id: int) -> int:
     now = time.time()
     if (
         st.session_state.get("_support_unread_uid") == int(user_id)
-        and (now - float(st.session_state.get("_support_unread_at") or 0)) < 15
+        and (now - float(st.session_state.get("_support_unread_at") or 0)) < 60
     ):
         return int(st.session_state.get("_support_unread") or 0)
     count = user_support_unread(int(user_id))
@@ -9059,7 +9076,6 @@ def main() -> None:
         return
 
     init_session_state()
-    ensure_embedded_analysis_worker()
 
     # One Postgres checkout for the whole Streamlit rerun (avoids 5–8 SSL handshakes).
     with connect():

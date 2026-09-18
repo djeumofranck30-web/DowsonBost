@@ -53,6 +53,7 @@ def test_streamlit_rerun_holds_one_db_connection():
     assert "with connect():" in main
     assert "render_app()" in main
     assert "ensure_embedded_api" not in main
+    assert "ensure_embedded_analysis_worker()" not in main
 
 
 def test_history_page_is_paginated():
