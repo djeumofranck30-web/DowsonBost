@@ -445,7 +445,7 @@
   "job.apply_manual_ready": "Dossier prêt. Ouvrez l'offre et joignez la lettre + le CV adapté.",
   "job.apply_manual_missing_url": "Cette offre n'a pas de lien externe.",
   "job.apply_auto": "Postuler maintenant",
-  "job.apply_auto_help": "Prépare lettre et CV adaptés, ouvre l'offre, et envoie un e-mail seulement si une adresse recruteur est dans l'annonce. Vous collez et envoyez le formulaire. DowsonBost ne se connecte pas à Indeed, LinkedIn ou Jooble.",
+  "job.apply_auto_help": "Prépare lettre et CV adaptés, ouvre l'offre, et envoie un e-mail si une adresse recruteur est dans l'annonce ou trouvée via Hunter. Vous collez et envoyez le formulaire. DowsonBost ne se connecte pas à Indeed, LinkedIn ou Jooble.",
   "job.apply_duplicate": "Vous avez déjà une candidature chez {company} ({status}). Évitez de postuler deux fois à la même entreprise.",
   "job.apply_auto_prepared_next": "L'offre s'ouvre : joignez la lettre et le CV adaptés (dossier téléchargeable ci-dessous).",
   "job.apply_auto_opens_site": "L'offre s'ouvre dans un nouvel onglet. Nom, e-mail, téléphone et lettre sont prêts à coller dans le formulaire du site.",
@@ -782,5 +782,10 @@
   "provider.france_travail": "France Travail (Pôle Emploi)",
   "provider.freelance": "Freelance.com — missions",
   "filter.rejected_work_mode": "écart télétravail",
-  "filter.rejected_salary": "écart salaire"
+  "filter.rejected_salary": "écart salaire",
+  "job.recruiter_email_listing": "E-mail recruteur dans l'annonce : {email}",
+  "job.recruiter_email_hunter": "E-mail recruteur trouvé via Hunter : {email}",
+  "job.hunter_lookup": "Trouver l'e-mail recruteur (Hunter)",
+  "job.hunter_lookup_help": "Cherche une adresse RH / jobs sur Hunter.io à partir du site de l'entreprise. N'envoie rien tout seul.",
+  "job.hunter_not_found": "Hunter n'a pas trouvé d'e-mail recruteur pour cette entreprise."
 }

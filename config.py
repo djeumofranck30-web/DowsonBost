@@ -68,6 +68,7 @@ def export_streamlit_secrets_to_environ() -> int:
         "ADZUNA_APP_ID",
         "ADZUNA_APP_KEY",
         "SERPAPI_API_KEY",
+        "HUNTER_API_KEY",
         "JOOBLE_API_KEY",
         "CAREERJET_API_KEY",
         "APIFY_API_TOKEN",

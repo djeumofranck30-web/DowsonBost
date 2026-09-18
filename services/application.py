@@ -102,6 +102,16 @@ def extract_apply_email(job: dict[str, Any]) -> str | None:
     return candidates[0]
 
 
+def resolve_apply_email(job: dict[str, Any]) -> str | None:
+    """Listing address first, then Hunter.io if the offer has none."""
+    listed = extract_apply_email(job)
+    if listed:
+        return listed
+    from services.hunter import find_recruiter_email
+
+    return find_recruiter_email(job)
+
+
 def build_application_profile(user_profile: dict[str, Any]) -> dict[str, str]:
     """Normalize profile fields used in applications."""
     city = (
@@ -396,7 +406,7 @@ def submit_application_automatically(
             profile_text=profile_text,
         )
 
-    apply_email = extract_apply_email(job)
+    apply_email = resolve_apply_email(job)
     if apply_email and email_configured():
         body = (
             f"{letter}\n\n"
@@ -526,7 +536,7 @@ def prepare_manual_application(
                 message=t("job.apply_auto_generation_error", locale=locale, error=str(exc)),
                 cover_letter=letter,
                 adapted_cv=adapted,
-                apply_email=extract_apply_email(job),
+                apply_email=resolve_apply_email(job),
                 job_url=job_url,
                 profile_text=profile_text,
             )
@@ -537,7 +547,7 @@ def prepare_manual_application(
             message=t("job.apply_manual_missing_url", locale=locale),
             cover_letter=letter,
             adapted_cv=adapted,
-            apply_email=extract_apply_email(job),
+            apply_email=resolve_apply_email(job),
             job_url="",
             profile_text=profile_text,
         )
@@ -548,7 +558,7 @@ def prepare_manual_application(
         message=t("job.apply_manual_ready", locale=locale),
         cover_letter=letter,
         adapted_cv=adapted,
-        apply_email=extract_apply_email(job),
+        apply_email=resolve_apply_email(job),
         job_url=job_url,
         profile_text=profile_text,
     )

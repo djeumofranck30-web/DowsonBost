@@ -445,7 +445,7 @@
   "job.apply_manual_ready": "Application pack ready. Open the listing and attach the letter and adapted CV.",
   "job.apply_manual_missing_url": "This job has no external link.",
   "job.apply_auto": "Apply now",
-  "job.apply_auto_help": "Prepares the letter and adapted CV, opens the listing, and e-mails the recruiter only if an address is in the listing. You paste and submit. DowsonBost does not log into Indeed, LinkedIn or Jooble.",
+  "job.apply_auto_help": "Prepares the letter and adapted CV, opens the listing, and e-mails the recruiter if an address is in the listing or found via Hunter. You paste and submit. DowsonBost does not log into Indeed, LinkedIn or Jooble.",
   "job.apply_duplicate": "You already have an application at {company} ({status}). Do not apply twice to the same employer.",
   "job.apply_auto_prepared_next": "The listing opens: attach the cover letter and adapted CV (downloadable pack below).",
   "job.apply_auto_opens_site": "The listing opens in a new tab. Name, e-mail, phone and letter are ready to paste into the site form.",
@@ -782,5 +782,10 @@
   "provider.france_travail": "France Travail (Pôle Emploi)",
   "provider.freelance": "Freelance.com — missions",
   "filter.rejected_work_mode": "work-mode mismatch",
-  "filter.rejected_salary": "salary mismatch"
+  "filter.rejected_salary": "salary mismatch",
+  "job.recruiter_email_listing": "Recruiter e-mail in the listing: {email}",
+  "job.recruiter_email_hunter": "Recruiter e-mail found via Hunter: {email}",
+  "job.hunter_lookup": "Find recruiter e-mail (Hunter)",
+  "job.hunter_lookup_help": "Looks up an HR / jobs address on Hunter.io from the company website. Does not send anything by itself.",
+  "job.hunter_not_found": "Hunter did not find a recruiter e-mail for this company."
 }

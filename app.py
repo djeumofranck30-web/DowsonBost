@@ -153,12 +153,14 @@ from services.analysis_worker import (
 )
 from services.application import (
     build_application_profile,
+    extract_apply_email,
     format_application_autofill_text,
     format_application_profile_text,
     job_listing_open_script,
     notify_candidate_application,
     submit_application_automatically,
 )
+from services.hunter import find_recruiter_email, hunter_configured
 from services.support import (
     mark_user_support_read,
     render_support_thread_html,
@@ -4114,6 +4116,24 @@ def render_job_card(
                     ),
                 )
             )
+    listed_email = extract_apply_email(job)
+    hunter_email = st.session_state.get(f"hunter_email_{result_id}")
+    if listed_email:
+        st.caption(t("job.recruiter_email_listing", email=listed_email))
+    elif hunter_email:
+        st.caption(t("job.recruiter_email_hunter", email=hunter_email))
+    elif hunter_email == "":
+        st.caption(t("job.hunter_not_found"))
+    if can_apply and hunter_configured() and not listed_email:
+        if st.button(
+            t("job.hunter_lookup"),
+            key=f"hunter_lookup_{result_id}",
+            use_container_width=True,
+            help=t("job.hunter_lookup_help"),
+        ):
+            found = find_recruiter_email(job)
+            st.session_state[f"hunter_email_{result_id}"] = found or ""
+            st.rerun()
     apply_col1, apply_col2 = st.columns(2)
     with apply_col1:
         if job.get("url"):
