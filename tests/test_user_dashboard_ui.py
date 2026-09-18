@@ -109,6 +109,20 @@ def test_dashboard_page_uses_compact_layout():
     assert "sidebar-avatar-ring" in source
 
 
+def test_profile_form_keeps_only_skills_for_analysis():
+    source = _read("app.py")
+    body = source[
+        source.index("skills_text = st.text_area(") : source.index(
+            "profile.published_since"
+        )
+    ]
+    assert 't("profile.skills")' in body
+    assert 't("profile.diplomas")' not in body
+    assert 't("profile.experiences")' not in body
+    assert 't("profile.portfolio_url")' not in body
+    assert "st.text_input(" not in body
+
+
 def test_profile_and_dashboard_do_not_double_the_page_hero():
     source = _read("app.py")
     profile_branch = source.split('if page == "profile":', 1)[1].split("if page ==", 1)[0]

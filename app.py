@@ -8225,23 +8225,6 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                 help=t("profile.skills_help"),
                 height=80,
             )
-            diplomas_text = st.text_area(
-                t("profile.diplomas"),
-                value=profile.get("diplomas_text") or "",
-                help=t("profile.diplomas_help"),
-                height=70,
-            )
-            experiences_text = st.text_area(
-                t("profile.experiences"),
-                value=profile.get("experiences_text") or "",
-                help=t("profile.experiences_help"),
-                height=80,
-            )
-            portfolio_url = st.text_input(
-                t("profile.portfolio_url"),
-                value=profile.get("portfolio_url") or "",
-                help=t("profile.portfolio_url_help"),
-            )
 
             pref_col1, pref_col2 = st.columns(2)
             with pref_col1:
@@ -8337,10 +8320,10 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                         work_mode=work_mode,
                         salary_min=int(salary_min or 0),
                         skills_text=skills_text,
-                        diplomas_text=diplomas_text,
-                        experiences_text=experiences_text,
+                        diplomas_text=profile.get("diplomas_text") or "",
+                        experiences_text=profile.get("experiences_text") or "",
                         daily_rate=int(daily_rate or 0),
-                        portfolio_url=portfolio_url,
+                        portfolio_url=profile.get("portfolio_url") or "",
                     )
                     if ok and updated:
                         st.session_state.user = updated
