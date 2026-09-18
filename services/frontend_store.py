@@ -1,8 +1,8 @@
-"""Streamlit data access — HTTP to FastAPI when the backend is running.
+"""Streamlit data access.
 
-The UI never talks to Postgres/SQLite directly on a click. FastAPI owns the
-database (Supabase/Postgres or local SQLite). Tests without an API process
-still fall back to the in-process modules.
+On Streamlit Cloud the UI talks to Postgres in-process (one connection per
+click). HTTP to FastAPI is used only when API_BASE_URL points to a separate
+backend — a localhost hop in the same process made every click slower.
 """
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from services.api_client import ApiError, BackendClient
-from services.embedded_api import backend_url, ensure_embedded_api, using_remote_api
+from services.embedded_api import backend_url, using_remote_api
 
 _TOKEN = ""
 _BACKEND_READY = False
@@ -51,9 +51,13 @@ def clear_access_token() -> None:
 
 
 def ensure_backend() -> str:
-    """Start or attach the FastAPI backend. Called once from Streamlit main()."""
+    """Attach a remote FastAPI only when API_BASE_URL is set. No embedded server."""
     global _BACKEND_READY, _CLIENT
-    url = ensure_embedded_api()
+    if not using_remote_api():
+        _BACKEND_READY = False
+        _CLIENT = None
+        return ""
+    url = backend_url()
     _CLIENT = BackendClient(url, get_access_token())
     _BACKEND_READY = True
     return url
@@ -64,7 +68,7 @@ def backend_ready() -> bool:
 
 
 def backend_uses_http() -> bool:
-    return _BACKEND_READY
+    return bool(_BACKEND_READY and using_remote_api())
 
 
 def client() -> BackendClient:
@@ -79,7 +83,7 @@ def client() -> BackendClient:
 
 
 def _http() -> bool:
-    return _BACKEND_READY and bool(backend_url())
+    return backend_uses_http()
 
 
 def _api_message(exc: ApiError, fallback: str) -> str:
@@ -687,4 +691,4 @@ def logout() -> None:
 
 def uses_separate_database_process() -> bool:
     """True when Streamlit should not open its own Postgres checkout."""
-    return _BACKEND_READY and (using_remote_api() or bool(get_access_token()) or True)
+    return backend_uses_http()

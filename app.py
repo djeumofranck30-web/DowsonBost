@@ -356,6 +356,7 @@ from auth import (
 from database import (
     DatabaseConfigError,
     configure_database,
+    connect,
     database_connection_hint,
     database_status,
     format_database_exception,
@@ -8998,72 +8999,74 @@ def render_app() -> None:
 
 
 def main() -> None:
-    """Application entry point — auth gate then display-only Streamlit shell."""
+    """Application entry point — auth gate then main tool."""
     export_streamlit_secrets_to_environ()
     from services.embedded_api import using_remote_api
 
     remote_api = using_remote_api()
-    if not remote_api:
+    if remote_api:
         try:
-            configure_database(
-                get_secret("DATABASE_URL"),
-                password=get_secret("DATABASE_PASSWORD"),
-            )
-            init_db()
-        except DatabaseConfigError as exc:
-            st.error("**Configuration base de données incorrecte.**")
-            st.code(str(exc))
-            st.markdown(
-                "**Corrigez vos secrets Streamlit ainsi :**\n\n"
-                "```toml\n"
-                'DATABASE_URL = "postgresql://postgres.xxxxx@aws-0-eu-west-3.pooler.supabase.com:6543/postgres"\n'
-                'DATABASE_PASSWORD = "votre_mot_de_passe"\n'
-                "```\n\n"
-                "Ne mettez **jamais** le mot de passe dans DATABASE_URL si il contient `@`, `#`, `!`, etc."
-            )
-            return
+            ensure_backend()
         except Exception as exc:  # noqa: BLE001
-            st.error("**Impossible de se connecter à la base de données.**")
-            st.code(format_database_exception(exc))
-            if get_secret("DATABASE_URL"):
-                st.info(database_connection_hint(exc))
-                st.markdown(
-                    "**Format recommandé (Streamlit Secrets) :**\n\n"
-                    "```toml\n"
-                    'DATABASE_URL = "postgresql://postgres.xxxxx@aws-0-eu-west-3.pooler.supabase.com:6543/postgres"\n'
-                    'DATABASE_PASSWORD = "votre_mot_de_passe_supabase"\n'
-                    "```\n\n"
-                    "Copiez l'URL depuis Supabase → **Connect** → **Transaction pooler** (port 6543), "
-                    "sans le mot de passe dans l'URL."
-                )
-            else:
-                st.warning(
-                    "DATABASE_URL absent — l'app utilise SQLite local (comptes non conservés en production). "
-                    "Ajoutez l'URL PostgreSQL Supabase dans les secrets."
-                )
+            st.error("**Le backend FastAPI est injoignable.**")
+            st.code(str(exc))
+            st.info('Vérifiez `API_BASE_URL` dans les secrets, ou retirez-le pour le mode rapide.')
             return
+        init_session_state()
+        if not st.session_state.authenticated:
+            render_auth_page()
+            return
+        render_app()
+        return
 
     try:
-        ensure_backend()
-    except Exception as exc:  # noqa: BLE001
-        st.error("**Le backend FastAPI n'a pas démarré.**")
-        st.code(str(exc))
-        st.info(
-            "Sur Streamlit Cloud l'API démarre toute seule. "
-            "En local : `python scripts/run_api.py` puis "
-            '`API_BASE_URL = "http://127.0.0.1:8000"` dans les secrets.'
+        configure_database(
+            get_secret("DATABASE_URL"),
+            password=get_secret("DATABASE_PASSWORD"),
         )
+        init_db()
+    except DatabaseConfigError as exc:
+        st.error("**Configuration base de données incorrecte.**")
+        st.code(str(exc))
+        st.markdown(
+            "**Corrigez vos secrets Streamlit ainsi :**\n\n"
+            "```toml\n"
+            'DATABASE_URL = "postgresql://postgres.xxxxx@aws-0-eu-west-3.pooler.supabase.com:6543/postgres"\n'
+            'DATABASE_PASSWORD = "votre_mot_de_passe"\n'
+            "```\n\n"
+            "Ne mettez **jamais** le mot de passe dans DATABASE_URL si il contient `@`, `#`, `!`, etc."
+        )
+        return
+    except Exception as exc:  # noqa: BLE001
+        st.error("**Impossible de se connecter à la base de données.**")
+        st.code(format_database_exception(exc))
+        if get_secret("DATABASE_URL"):
+            st.info(database_connection_hint(exc))
+            st.markdown(
+                "**Format recommandé (Streamlit Secrets) :**\n\n"
+                "```toml\n"
+                'DATABASE_URL = "postgresql://postgres.xxxxx@aws-0-eu-west-3.pooler.supabase.com:6543/postgres"\n'
+                'DATABASE_PASSWORD = "votre_mot_de_passe_supabase"\n'
+                "```\n\n"
+                "Copiez l'URL depuis Supabase → **Connect** → **Transaction pooler** (port 6543), "
+                "sans le mot de passe dans l'URL."
+            )
+        else:
+            st.warning(
+                "DATABASE_URL absent — l'app utilise SQLite local (comptes non conservés en production). "
+                "Ajoutez l'URL PostgreSQL Supabase dans les secrets."
+            )
         return
 
     init_session_state()
-    if not remote_api:
-        ensure_embedded_analysis_worker()
+    ensure_embedded_analysis_worker()
 
-    # Streamlit only renders. FastAPI owns Supabase/Postgres on every click.
-    if not st.session_state.authenticated:
-        render_auth_page()
-        return
-    render_app()
+    # One Postgres checkout for the whole Streamlit rerun (avoids 5–8 SSL handshakes).
+    with connect():
+        if not st.session_state.authenticated:
+            render_auth_page()
+            return
+        render_app()
 
 
 if __name__ == "__main__":

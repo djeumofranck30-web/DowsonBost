@@ -13,22 +13,17 @@ Plateforme de recherche d'emploi et matching CV par intelligence artificielle.
 
 ## Lancer l'application
 
-Streamlit n'est **plus** le backend. Il affiche uniquement l'interface.
-Toutes les lectures / écritures (comptes, analyses, candidatures, Supabase/Postgres)
-passent par **FastAPI**. Un clic Streamlit ne relance plus les requêtes base.
+Sur Streamlit Cloud, **ne mettez pas** `API_BASE_URL`. Streamlit parle
+directement à Postgres (un clic = une connexion, pas un aller-retour HTTP).
+C'est le mode le plus rapide.
 
 ```bash
 pip install -r requirements.txt
-# 1. Backend (base + métier)
-python scripts/run_api.py
-# 2. Frontend (affichage)
-# Dans un autre terminal, secrets :
-# API_BASE_URL = "http://127.0.0.1:8000"
 streamlit run app.py
 ```
 
-Sur Streamlit Cloud, un seul `streamlit run app.py` suffit : FastAPI démarre
-tout seul en local (`127.0.0.1:8765`) et Streamlit l'appelle.
+FastAPI reste disponible pour un vrai backend séparé (Docker / Fly), seulement
+si vous définissez `API_BASE_URL`. Sans cette variable, l'API n'est pas démarrée.
 
 ## API REST
 
