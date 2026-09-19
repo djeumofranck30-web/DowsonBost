@@ -367,10 +367,10 @@ def submit_application_automatically(
     locale: str = "fr",
 ) -> ApplicationResult:
     """
-    Automatic application:
+    Automatic application by e-mail only:
     1. Load profile + generate letter/CV if needed
-    2. Send by e-mail when a recruiter address is found
-    3. Otherwise prepare a complete dossier for the external form
+    2. Find a recruiter address on the listing, then Hunter
+    3. Send the application and notify the candidate
     """
     from i18n import t
 
@@ -407,59 +407,19 @@ def submit_application_automatically(
         )
 
     apply_email = resolve_apply_email(job)
-    if apply_email and email_configured():
-        body = (
-            f"{letter}\n\n"
-            f"---\n"
-            f"{profile_text}\n\n"
-            f"{t('job.apply_email_footer', locale=locale, url=job_url or '—')}"
-        )
-        ok, detail = send_application_email(
-            to_email=apply_email,
-            subject=_application_subject(job, profile),
-            body_text=body,
-            attachments=application_document_attachments(
-                letter,
-                adapted,
-                job=job,
-                match=match,
-                user_profile=user_profile,
-                original_cv=cv_text,
-            ),
-            reply_to=profile.get("email") or None,
-        )
-        if ok:
-            user_notified = notify_candidate_application(
-                profile,
-                job,
-                method="email",
-                recruiter_email=apply_email,
-                locale=locale,
-            )
-            message = t(
-                "job.apply_auto_email_sent",
-                locale=locale,
-                email=apply_email,
-            )
-            if user_notified:
-                message = (
-                    f"{message} "
-                    f"{t('job.apply_user_confirmation_sent', locale=locale, email=profile.get('email', ''))}"
-                )
-            return _empty_result(
-                success=True,
-                method="email",
-                message=message,
-                cover_letter=letter,
-                adapted_cv=adapted,
-                apply_email=apply_email,
-                job_url=job_url,
-                profile_text=profile_text,
-                user_notified=user_notified,
-            )
+    if not apply_email:
         return _empty_result(
-            method="email_failed",
-            message=t("job.apply_auto_email_failed", locale=locale, error=detail),
+            method="missing_recruiter_email",
+            message=t("job.apply_auto_no_recruiter", locale=locale),
+            cover_letter=letter,
+            adapted_cv=adapted,
+            job_url=job_url,
+            profile_text=profile_text,
+        )
+    if not email_configured():
+        return _empty_result(
+            method="email_not_configured",
+            message=t("job.apply_auto_mail_not_configured", locale=locale),
             cover_letter=letter,
             adapted_cv=adapted,
             apply_email=apply_email,
@@ -467,34 +427,63 @@ def submit_application_automatically(
             profile_text=profile_text,
         )
 
-    user_notified = _send_user_application_copy(
-        profile,
-        job,
-        letter,
-        adapted,
-        profile_text,
-        job_url,
-        locale=locale,
-        match=match,
-        user_profile=user_profile,
-        original_cv=cv_text,
+    body = (
+        f"{letter}\n\n"
+        f"---\n"
+        f"{profile_text}\n\n"
+        f"{t('job.apply_email_footer', locale=locale, url=job_url or '—')}"
     )
-    return _empty_result(
-        success=True,
-        method="external_prepared",
-        message=_external_prepared_message(
+    ok, detail = send_application_email(
+        to_email=apply_email,
+        subject=_application_subject(job, profile),
+        body_text=body,
+        attachments=application_document_attachments(
+            letter,
+            adapted,
+            job=job,
+            match=match,
+            user_profile=user_profile,
+            original_cv=cv_text,
+        ),
+        reply_to=profile.get("email") or None,
+    )
+    if ok:
+        user_notified = notify_candidate_application(
             profile,
             job,
-            apply_email=apply_email,
-            user_notified=user_notified,
+            method="email",
+            recruiter_email=apply_email,
             locale=locale,
-        ),
+        )
+        message = t(
+            "job.apply_auto_email_sent",
+            locale=locale,
+            email=apply_email,
+        )
+        if user_notified:
+            message = (
+                f"{message} "
+                f"{t('job.apply_user_confirmation_sent', locale=locale, email=profile.get('email', ''))}"
+            )
+        return _empty_result(
+            success=True,
+            method="email",
+            message=message,
+            cover_letter=letter,
+            adapted_cv=adapted,
+            apply_email=apply_email,
+            job_url=job_url,
+            profile_text=profile_text,
+            user_notified=user_notified,
+        )
+    return _empty_result(
+        method="email_failed",
+        message=t("job.apply_auto_email_failed", locale=locale, error=detail),
         cover_letter=letter,
         adapted_cv=adapted,
         apply_email=apply_email,
         job_url=job_url,
         profile_text=profile_text,
-        user_notified=user_notified,
     )
 
 

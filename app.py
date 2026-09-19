@@ -159,7 +159,6 @@ from services.frontend_store import (
     enqueue_analysis_job,
     ensure_backend,
     fetch_workspace,
-    find_recruiter_email,
     get_active_cv_document,
     get_analysis,
     get_analysis_apply_context,
@@ -170,7 +169,6 @@ from services.frontend_store import (
     get_latest_analysis_job,
     get_notification_settings,
     get_user_by_id,
-    hunter_configured,
     list_analyses,
     list_connected_job_accounts,
     list_dashboard_results,
@@ -197,7 +195,6 @@ from services.application import (
     format_application_autofill_text,
     format_application_profile_text,
     job_listing_open_script,
-    notify_candidate_application,
     submit_application_automatically,
 )
 from services.support import (
@@ -4121,35 +4118,10 @@ def render_job_card(
                 )
             )
     listed_email = extract_apply_email(job)
-    hunter_email = st.session_state.get(f"hunter_email_{result_id}")
     if listed_email:
         st.caption(t("job.recruiter_email_listing", email=listed_email))
-    elif hunter_email:
-        st.caption(t("job.recruiter_email_hunter", email=hunter_email))
-    elif hunter_email == "":
-        st.caption(t("job.hunter_not_found"))
-    if can_apply and hunter_configured() and not listed_email:
-        if st.button(
-            t("job.hunter_lookup"),
-            key=f"hunter_lookup_{result_id}",
-            use_container_width=True,
-            help=t("job.hunter_lookup_help"),
-        ):
-            found = find_recruiter_email(job)
-            st.session_state[f"hunter_email_{result_id}"] = found or ""
-            st.rerun()
     apply_col1, apply_col2 = st.columns(2)
     with apply_col1:
-        if job.get("url"):
-            st.link_button(
-                t("job.apply_manual"),
-                job["url"],
-                use_container_width=True,
-                help=t("job.apply_manual_help"),
-            )
-        else:
-            st.button(t("job.apply_manual"), disabled=True, use_container_width=True)
-    with apply_col2:
         if can_apply:
             if st.button(
                 t("job.apply_auto"),
@@ -4188,79 +4160,30 @@ def render_job_card(
                     st.session_state[f"cover_{result_id}"] = auto_result["cover_letter"]
                     st.session_state[f"adapted_{result_id}"] = auto_result["adapted_cv"]
                     st.session_state[f"apply_pack_{result_id}"] = auto_result
-                    if auto_result["method"] == "email":
-                        record_application(
-                            user_id,
-                            result_id,
-                            "auto_email",
-                            status="applied",
-                            notes=auto_result["message"],
-                        )
-                    else:
-                        record_application(
-                            user_id,
-                            result_id,
-                            "auto_prepared",
-                            status="saved",
-                            notes=auto_result["message"],
-                        )
-                    offer_url = str(job.get("url") or auto_result.get("job_url") or "").strip()
-                    autofill_text = format_application_autofill_text(
-                        build_application_profile(user_profile or {}),
-                        cover_letter=auto_result.get("cover_letter") or "",
-                        adapted_cv=auto_result.get("adapted_cv") or "",
+                    record_application(
+                        user_id,
+                        result_id,
+                        "auto_email",
+                        status="applied",
+                        notes=auto_result["message"],
                     )
-                    if offer_url:
-                        st.session_state[f"open_offer_{result_id}"] = offer_url
-                        st.session_state[f"autofill_{result_id}"] = autofill_text
-                        open_job_listing_tab(offer_url, autofill_text)
                     st.success(auto_result["message"])
-                    if linked_account and source_name:
-                        st.info(
-                            t(
-                                "job.apply_auto_opens_site_linked",
-                                name=source_name,
-                                email=linked_account.get("account_email") or "",
-                            )
-                        )
-                    elif offer_url:
-                        st.info(t("job.apply_auto_opens_site"))
-                    if autofill_text:
-                        st.info(t("job.apply_auto_clipboard"))
                     st.session_state[details_key] = True
                     show_details = True
                 else:
                     st.error(auto_result["message"])
         else:
             st.button(t("job.apply_auto"), disabled=True, use_container_width=True)
-
-    if show_details and can_apply and job.get("url"):
-        if st.button(
-            t("job.apply_manual_confirm"),
-            key=f"apply_manual_confirm_{result_id}",
-            use_container_width=True,
-        ):
-            record_application(
-                user_id,
-                result_id,
-                "manual",
-                status="applied",
-                notes=t("job.apply_manual_confirmed"),
+    with apply_col2:
+        if job.get("url"):
+            st.link_button(
+                t("job.apply_manual"),
+                job["url"],
+                use_container_width=True,
+                help=t("job.apply_manual_help"),
             )
-            notified = notify_candidate_application(
-                user_profile or {},
-                job,
-                method="manual",
-                locale=get_locale(),
-            )
-            if notified:
-                st.success(
-                    f"{t('job.apply_manual_confirmed')} "
-                    f"{t('job.apply_user_confirmation_sent', email=(user_profile or {}).get('email', ''))}"
-                )
-            else:
-                st.success(t("job.apply_manual_confirmed"))
-            st.rerun()
+        else:
+            st.button(t("job.apply_manual"), disabled=True, use_container_width=True)
 
     if show_details and can_apply:
         gen_col1, gen_col2 = st.columns(2)

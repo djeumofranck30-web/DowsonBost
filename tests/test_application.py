@@ -71,9 +71,9 @@ def test_build_application_profile_formats_core_fields():
     assert "Lettre type" in fill
 
 
-@patch("services.application._send_user_application_copy", return_value=True)
-def test_submit_application_automatically_generates_and_prepares_external(
-    _user_copy: object,
+@patch("services.application.resolve_apply_email", return_value=None)
+def test_submit_application_automatically_fails_without_recruiter_email(
+    _resolve: object,
 ):
     job = {
         "title": "Dev Python",
@@ -103,13 +103,36 @@ def test_submit_application_automatically_generates_and_prepares_external(
         llm_call=fake_llm,
         locale="fr",
     )
-    assert result["success"] is True
-    assert result["method"] == "external_prepared"
+    assert result["success"] is False
+    assert result["method"] == "missing_recruiter_email"
     assert "Lettre" in result["cover_letter"]
     assert "CV adapté" in result["adapted_cv"]
-    assert result["user_notified"] is True
-    assert "prépar" in result["message"].lower()
-    assert "nouvel onglet" in result["message"].lower() or "ouvre" in result["message"].lower()
+    assert "manuellement" in result["message"].lower()
+
+
+@patch("services.application.resolve_apply_email", return_value="jobs@acme.fr")
+@patch("services.application.email_configured", return_value=False)
+def test_submit_application_automatically_fails_when_mail_not_configured(
+    _configured: object,
+    _resolve: object,
+):
+    result = submit_application_automatically(
+        "CV source",
+        {
+            "title": "Dev Python",
+            "company": "Acme",
+            "description": "Postulez en ligne.",
+            "url": "https://example.com/jobs/1",
+        },
+        {"score_correspondance": 80},
+        {"full_name": "Jane Doe", "email": "jane@example.com"},
+        llm_call=lambda *_a, **_k: "Document généré.",
+        locale="fr",
+    )
+    assert result["success"] is False
+    assert result["method"] == "email_not_configured"
+    assert result["apply_email"] == "jobs@acme.fr"
+    assert "manuellement" in result["message"].lower()
 
 
 def test_job_listing_open_script_embeds_safe_url():

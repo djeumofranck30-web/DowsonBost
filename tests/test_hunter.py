@@ -149,17 +149,12 @@ def test_submit_uses_hunter_when_listing_has_no_email() -> None:
 def test_hunter_ui_and_secret_hooks() -> None:
     fr = json.loads((ROOT / "locales/fr.json").read_text(encoding="utf-8"))
     en = json.loads((ROOT / "locales/en.json").read_text(encoding="utf-8"))
-    for key in (
-        "job.hunter_lookup",
-        "job.recruiter_email_hunter",
-        "job.hunter_not_found",
-    ):
-        assert fr[key].strip(), key
-        assert en[key].strip(), key
     assert "Hunter" in fr["job.apply_auto_help"]
-    source = (ROOT / "app.py").read_text(encoding="utf-8")
-    assert "find_recruiter_email" in source
-    assert "hunter_configured" in source
+    assert "Hunter" in en["job.apply_auto_help"]
+    app_source = (ROOT / "app.py").read_text(encoding="utf-8")
+    assert 't("job.apply_auto")' in app_source
+    assert "find_recruiter_email(" not in app_source
+    assert "hunter_lookup" not in app_source
     assert "resolve_apply_email" in (ROOT / "services/application.py").read_text(encoding="utf-8")
     secrets = (ROOT / ".streamlit/secrets.toml.example").read_text(encoding="utf-8")
     assert "HUNTER_API_KEY" in secrets
