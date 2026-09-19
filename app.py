@@ -3714,10 +3714,10 @@ def render_sidebar_brand(user: dict[str, Any], photo_url: str | None = None) -> 
 
 def _score_color(score: int) -> str:
     if score >= 75:
-        return "#22c55e"
+        return "#10B981"
     if score >= 50:
-        return "#eab308"
-    return "#ef4444"
+        return "#2563EB"
+    return "#EF4444"
 
 
 def _render_skill_tags(label: str, items: list[str]) -> None:
@@ -3932,6 +3932,7 @@ def _render_apply_action_buttons(
             if st.button(
                 t("job.apply_auto"),
                 key=f"{key_prefix}_auto_{action_key}",
+                type="primary",
                 use_container_width=True,
                 help=t("job.apply_auto_help"),
             ):
@@ -3950,6 +3951,7 @@ def _render_apply_action_buttons(
             st.button(
                 t("job.apply_auto"),
                 disabled=True,
+                type="primary",
                 use_container_width=True,
                 key=f"{key_prefix}_auto_disabled_{action_key}",
             )
@@ -3973,6 +3975,98 @@ def _render_apply_action_buttons(
     return applied
 
 
+def _format_job_salary(job: dict[str, Any]) -> str:
+    raw = job.get("salary") or job.get("compensation")
+    if raw not in (None, ""):
+        return str(raw).strip()
+    inferred = job.get("inferred_salary_min") or job.get("salary_min")
+    try:
+        amount = int(inferred or 0)
+    except (TypeError, ValueError):
+        amount = 0
+    if amount > 0:
+        return f"{amount:,} €".replace(",", " ")
+    return ""
+
+
+def _job_offer_tags(job: dict[str, Any], match: dict[str, Any] | None = None) -> list[str]:
+    tags: list[str] = []
+    contract = str(job.get("inferred_contract") or job.get("contract_type") or "").strip()
+    if contract:
+        tags.append(contract)
+    work = str(job.get("inferred_work_mode") or job.get("work_mode") or "").strip()
+    if work and work not in {"tous", "all"}:
+        tags.append(work_mode_label(work) if work in {"remote", "hybrid", "onsite"} else work)
+    experience = ""
+    if match:
+        experience = str(
+            (match.get("analyse_experiences") or {}).get("niveau_offre") or ""
+        ).strip()
+    if experience:
+        tags.append(experience)
+    source = str(job.get("source") or "").strip()
+    if source:
+        tags.append(source)
+    seen: set[str] = set()
+    unique: list[str] = []
+    for tag in tags:
+        key = tag.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(tag)
+    return unique[:5]
+
+
+def _render_job_offer_card_html(
+    job: dict[str, Any],
+    match: dict[str, Any],
+    rank: int,
+    *,
+    simple: bool = True,
+    kicker: str = "",
+) -> None:
+    """LinkedIn-style offer card: title, company, location, salary, tags."""
+    score = int(match.get("score_correspondance", 0))
+    score_color = _score_color(score)
+    salary = _format_job_salary(job)
+    tags = _job_offer_tags(job, match)
+    tags_html = "".join(
+        f'<span class="job-card-tag">{html.escape(tag)}</span>' for tag in tags
+    )
+    extra = ""
+    if not simple:
+        extra = "".join(
+            f"<span>{html.escape(part)}</span>"
+            for part in (
+                f"{t('job.publication_label')} {format_job_published_label(job)}",
+            )
+        )
+    st.markdown(
+        (
+            f'<div class="job-match-card{" job-match-card-simple" if simple else ""}">'
+            '<div class="job-card-head">'
+            "<div>"
+            f'<p class="job-card-kicker">{html.escape(kicker or f"#{rank}")}</p>'
+            f'<p class="job-card-title">{html.escape(str(job.get("title") or "—"))}</p>'
+            f'<p class="job-card-company">{html.escape(str(job.get("company") or "—"))}</p>'
+            f'<p class="job-card-meta">'
+            f'{html.escape(str(job.get("location") or "—"))}'
+            f'{f" · {html.escape(salary)}" if salary else ""}'
+            f"{extra}"
+            "</p>"
+            f'{("<div class=\"job-card-tags\">" + tags_html + "</div>") if tags_html else ""}'
+            "</div>"
+            f'<div class="job-score-badge" style="background:{score_color}18;'
+            f'border:2px solid {score_color};color:{score_color}">'
+            f"<strong>{score}%</strong>"
+            f"<small>{html.escape(t('results.simple_score' if simple else 'job.ats_global_score'))}</small>"
+            "</div></div></div>"
+        ),
+        unsafe_allow_html=True,
+    )
+
+
 def render_simple_job_row(
     job: dict[str, Any],
     match: dict[str, Any],
@@ -3983,35 +4077,31 @@ def render_simple_job_row(
     cv_text: str = "",
     user_profile: dict[str, Any] | None = None,
 ) -> None:
-    """Compact analysis-page row: title, company, location, ATS score, apply shortcuts."""
-    score = int(match.get("score_correspondance", 0))
-    score_color = _score_color(score)
-    fact_parts = [
-        str(job.get("company") or "—"),
-        str(job.get("location") or "—"),
-    ]
-    if job.get("source"):
-        fact_parts.append(str(job.get("source")))
-    facts_html = "".join(
-        f"<span>{html.escape(part)}</span>" for part in fact_parts
-    )
-    st.markdown(
-        (
-            '<div class="job-match-card job-match-card-simple">'
-            '<div class="job-card-head">'
-            "<div>"
-            f'<p class="job-card-kicker">#{rank}</p>'
-            f'<p class="job-card-title">{html.escape(str(job.get("title") or "—"))}</p>'
-            f'<p class="job-card-facts">{facts_html}</p>'
-            "</div>"
-            f'<div class="job-score-badge" style="background:{score_color}18;'
-            f'border:2px solid {score_color};color:{score_color}">'
-            f"<strong>{score}%</strong>"
-            f"<small>{html.escape(t('results.simple_score'))}</small>"
-            "</div></div></div>"
-        ),
-        unsafe_allow_html=True,
-    )
+    """LinkedIn-style analysis card: title, company, location, tags, apply."""
+    details_key = f"simple_job_open_{result_id or rank}"
+    show_details = bool(st.session_state.get(details_key))
+    _render_job_offer_card_html(job, match, rank, simple=True, kicker=f"#{rank}")
+    if st.button(
+        t("job.hide_details") if show_details else t("job.analyze_offer"),
+        key=f"toggle_{details_key}",
+        use_container_width=True,
+    ):
+        st.session_state[details_key] = not show_details
+        st.rerun()
+    if show_details:
+        if match.get("synthese_ats"):
+            st.caption(match["synthese_ats"])
+        chips = (
+            (t("job.skills"), match.get("score_competences", match.get("score_correspondance", 0))),
+            (t("job.experiences"), match.get("score_experiences", match.get("score_correspondance", 0))),
+            (t("job.title_match"), match.get("score_titre", match.get("score_correspondance", 0))),
+        )
+        chips_html = "".join(
+            f'<span class="score-chip">{html.escape(label)} {int(value or 0)}%</span>'
+            for label, value in chips
+        )
+        if chips_html:
+            st.markdown(f'<div class="score-chip-row">{chips_html}</div>', unsafe_allow_html=True)
     _render_apply_action_buttons(
         job,
         match,
@@ -4042,32 +4132,15 @@ def render_job_card(
 ) -> None:
     """Render a single job match card with ATS deep analysis."""
     score = int(match.get("score_correspondance", 0))
-    score_color = _score_color(score)
     skills = match.get("analyse_competences") or {}
     exp_analysis = match.get("analyse_experiences") or {}
 
-    st.markdown('<div class="job-match-card">', unsafe_allow_html=True)
     kicker = f"#{rank}"
     if enable_tracking and result_id:
         kicker += " · " + t(
             "job.tracking", status=application_status_label(application_status)
         )
-    contract_label_value = job.get("inferred_contract") or job.get("contract_type") or ""
-    fact_parts = [
-        f"{t('job.company_label')} {job.get('company') or '—'}",
-        f"{t('job.location_label')} {job.get('location') or '—'}",
-    ]
-    if contract_label_value:
-        fact_parts.append(f"{t('job.contract_label')} {contract_label_value}")
-    fact_parts.append(f"{t('job.publication_label')} {format_job_published_label(job)}")
-    if job.get("source"):
-        fact_parts.append(f"{t('job.source_label')} {job.get('source')}")
-    recommended = match.get("titre_cv_recommande")
-    if recommended:
-        fact_parts.append(f"{t('job.recommended_cv_title')} {recommended}")
-    facts_html = "".join(
-        f"<span>{html.escape(str(part))}</span>" for part in fact_parts
-    )
+    _render_job_offer_card_html(job, match, rank, simple=False, kicker=kicker)
     chip_items = (
         (t("job.skills"), match.get("score_competences", score)),
         (t("job.experiences"), match.get("score_experiences", score)),
@@ -4078,23 +4151,8 @@ def render_job_card(
         f'<span class="score-chip">{html.escape(label)} {int(value or 0)}%</span>'
         for label, value in chip_items
     )
-    st.markdown(
-        (
-            '<div class="job-card-head">'
-            "<div>"
-            f'<p class="job-card-kicker">{html.escape(kicker)}</p>'
-            f'<p class="job-card-title">{html.escape(str(job.get("title") or "—"))}</p>'
-            f'<p class="job-card-facts">{facts_html}</p>'
-            "</div>"
-            f'<div class="job-score-badge" style="background:{score_color}18;'
-            f'border:2px solid {score_color};color:{score_color}">'
-            f"<strong>{score}%</strong>"
-            f"<small>{html.escape(t('job.ats_global_score'))}</small>"
-            "</div></div>"
-            f'<div class="score-chip-row">{chips_html}</div>'
-        ),
-        unsafe_allow_html=True,
-    )
+    if chips_html:
+        st.markdown(f'<div class="score-chip-row">{chips_html}</div>', unsafe_allow_html=True)
     if match.get("synthese_ats"):
         st.caption(match["synthese_ats"])
     st.caption(t("job.ats_scale"))
@@ -4333,7 +4391,6 @@ def render_job_card(
                 )
 
     if not show_details:
-        st.markdown("</div>", unsafe_allow_html=True)
         return
 
     apply_pack = st.session_state.get(f"apply_pack_{result_id}")
@@ -4440,8 +4497,6 @@ def render_job_card(
             if saved:
                 st.success(t("job.tracking_saved"))
                 st.rerun()
-
-    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def persist_completed_analysis(
@@ -4673,6 +4728,12 @@ def _enqueue_user_analysis_error(code: str) -> str:
 def _render_analysis_job_progress(job: dict[str, Any]) -> None:
     """Show a simple progress bar until matching finishes. No ticket number."""
     st.info(t("analysis.progress.working"))
+    st.markdown(
+        '<div class="db-skeleton-line"></div>'
+        '<div class="db-skeleton-line"></div>'
+        '<div class="db-skeleton-line"></div>',
+        unsafe_allow_html=True,
+    )
 
     @st.fragment(run_every=ANALYSIS_JOB_POLL_SECONDS)
     def _poll_analysis_progress() -> None:
@@ -5154,7 +5215,7 @@ def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None
       padding: 0 6px;
       border-radius: 999px;
       background: {accent};
-      color: #0B1220;
+      color: #FFFFFF;
       font: 800 11px/20px system-ui, sans-serif;
       display: flex;
       align-items: center;
@@ -5164,11 +5225,11 @@ def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None
     @keyframes dbChatPulse {{
       0%, 100% {{
         transform: scale(1);
-        box-shadow: 0 0 0 3px {accent}, 0 16px 32px rgba(14, 116, 144, 0.42), 0 0 0 0 rgba(14, 116, 144, 0.35);
+        box-shadow: 0 0 0 3px {accent}, 0 16px 32px rgba(37, 99, 235, 0.42), 0 0 0 0 rgba(37, 99, 235, 0.35);
       }}
       50% {{
         transform: scale(1.07);
-        box-shadow: 0 0 0 3px {accent}, 0 16px 32px rgba(14, 116, 144, 0.5), 0 0 0 10px rgba(14, 116, 144, 0);
+        box-shadow: 0 0 0 3px {accent}, 0 16px 32px rgba(37, 99, 235, 0.5), 0 0 0 10px rgba(37, 99, 235, 0);
       }}
     }}
   `;
@@ -5376,11 +5437,11 @@ _SCORE_CHART_BUCKETS = (
 )
 _STATUS_CHART_COLORS = (
     "#94a3b8",
-    "#0E7490",
-    "#0F9F6E",
-    "#E8B923",
-    "#22c55e",
-    "#E11D48",
+    "#2563EB",
+    "#10B981",
+    "#1E3A8A",
+    "#34D399",
+    "#EF4444",
     "#64748b",
 )
 
@@ -5463,10 +5524,10 @@ def _score_tone(score: float) -> str:
 def _score_ring_color(score: float) -> str:
     tone = _score_tone(score)
     if tone == "high":
-        return "#0F9F6E"
+        return "#10B981"
     if tone == "mid":
-        return "#E8B923"
-    return "#0E7490"
+        return "#2563EB"
+    return "#EF4444"
 
 
 def _render_dashboard_quality_board(entries: list[dict[str, Any]]) -> None:
@@ -5611,7 +5672,7 @@ def _render_dashboard_insight_charts(
             st.caption(t("dashboard.chart_scores"))
             score_chart = (
                 alt.Chart(pd.DataFrame(score_rows))
-                .mark_bar(cornerRadiusEnd=8, color="#0E7490", size=22)
+                .mark_bar(cornerRadiusEnd=8, color="#2563EB", size=22)
                 .encode(
                     x=alt.X("band:N", sort=[row["band"] for row in score_rows], title=None),
                     y=alt.Y("count:Q", title=None),
@@ -7107,19 +7168,19 @@ def _auth_illustration_svg() -> str:
     """Dusk city illustration for the left auth panel."""
     return """
 <svg class="auth-illustration" viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <rect width="320" height="220" fill="#155E75"/>
-  <circle cx="248" cy="52" r="34" fill="#E8B923"/>
-  <ellipse cx="210" cy="58" rx="38" ry="18" fill="#0E7490"/>
-  <ellipse cx="255" cy="62" rx="30" ry="14" fill="#0E7490"/>
-  <path d="M0 150 Q80 120 160 145 T320 138 L320 220 L0 220 Z" fill="#0B4A5C"/>
-  <path d="M0 170 Q90 145 180 168 T320 158 L320 220 L0 220 Z" fill="#0E7490"/>
-  <path d="M0 188 Q100 165 200 185 T320 176 L320 220 L0 220 Z" fill="#124E5E"/>
-  <line x1="40" y1="28" x2="58" y2="8" stroke="#F4F1EA" stroke-width="2" stroke-linecap="round"/>
-  <line x1="120" y1="18" x2="128" y2="2" stroke="#F4F1EA" stroke-width="2" stroke-linecap="round"/>
-  <line x1="180" y1="36" x2="198" y2="16" stroke="#F4F1EA" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="90" cy="40" r="2" fill="#F4F1EA"/>
-  <circle cx="150" cy="24" r="2" fill="#F4F1EA"/>
-  <circle cx="200" cy="30" r="2" fill="#F4F1EA"/>
+  <rect width="320" height="220" fill="#1E3A8A"/>
+  <circle cx="248" cy="52" r="34" fill="#2563EB"/>
+  <ellipse cx="210" cy="58" rx="38" ry="18" fill="#2563EB"/>
+  <ellipse cx="255" cy="62" rx="30" ry="14" fill="#3B82F6"/>
+  <path d="M0 150 Q80 120 160 145 T320 138 L320 220 L0 220 Z" fill="#172554"/>
+  <path d="M0 170 Q90 145 180 168 T320 158 L320 220 L0 220 Z" fill="#2563EB"/>
+  <path d="M0 188 Q100 165 200 185 T320 176 L320 220 L0 220 Z" fill="#1D4ED8"/>
+  <line x1="40" y1="28" x2="58" y2="8" stroke="#F3F4F6" stroke-width="2" stroke-linecap="round"/>
+  <line x1="120" y1="18" x2="128" y2="2" stroke="#F3F4F6" stroke-width="2" stroke-linecap="round"/>
+  <line x1="180" y1="36" x2="198" y2="16" stroke="#F3F4F6" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="90" cy="40" r="2" fill="#F3F4F6"/>
+  <circle cx="150" cy="24" r="2" fill="#F3F4F6"/>
+  <circle cx="200" cy="30" r="2" fill="#F3F4F6"/>
 </svg>
 """
 

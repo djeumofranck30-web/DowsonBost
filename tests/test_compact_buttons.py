@@ -7,18 +7,20 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_theme_compacts_streamlit_buttons():
+def test_theme_uses_saas_cta_buttons():
     css = (ROOT / "ui/theme.py").read_text(encoding="utf-8")
-    assert "min-height: 2rem !important" in css
+    assert "min-height: 48px !important" in css
     assert ".stLinkButton a" in css
     assert '[data-testid^="stBaseLinkButton-"]' in css
-    assert "padding: 0.22rem 0.75rem !important" in css
+    assert "padding: 14px 22px !important" in css
+    assert "border-radius: 8px !important" in css
 
 
-def test_admin_html_buttons_are_compact():
+def test_admin_html_buttons_follow_saas_cta():
     html = (ROOT / "admin/static/index.html").read_text(encoding="utf-8")
-    assert "padding: .32rem .75rem" in html
-    assert "min-height: 2rem" in html
+    assert "padding: 14px 22px" in html
+    assert "min-height: 48px" in html
+    assert "border-radius: 8px" in html
 
 
 def test_application_actions_share_a_compact_row():

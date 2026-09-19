@@ -35,10 +35,11 @@ def test_analysis_row_renders_auto_and_manual_buttons() -> None:
     at.run()
     assert not at.exception
     labels = [button.label for button in at.button]
-    assert labels == ["Postuler automatiquement"]
+    assert "Analyser l'offre" in labels
+    assert "Postuler automatiquement" in labels
     assert "Trouver l'e-mail recruteur (Hunter)" not in labels
     assert "J'ai postulé" not in labels
-    auto = at.button[0]
+    auto = next(button for button in at.button if button.label == "Postuler automatiquement")
     assert "Hunter" in (auto.help or "")
     assert "e-mail" in (auto.help or "")
     manual = at.get("link_button")[0]
@@ -69,7 +70,8 @@ def test_analysis_auto_button_records_email_send() -> None:
         patch("app.save_generated_documents") as save_docs,
         patch("app.record_application") as record,
     ):
-        at.button[0].click().run()
+        auto = next(button for button in at.button if button.label == "Postuler automatiquement")
+        auto.click().run()
     assert not at.exception
     submit.assert_called_once()
     save_docs.assert_called_once()

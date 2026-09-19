@@ -69,6 +69,7 @@ def test_simple_results_locale_keys_exist() -> None:
             "results.prepare_apply",
             "job.apply_auto_ready",
             "job.apply_auto_setup",
+            "job.analyze_offer",
         ):
             assert key in data, f"missing {key} in {locale}.json"
             assert str(data[key]).strip()
@@ -79,11 +80,31 @@ def test_simple_results_locale_keys_exist() -> None:
     assert "hunter" in hint
 
 
+def test_job_card_helpers_show_salary_and_tags() -> None:
+    from app import _format_job_salary, _job_offer_tags
+
+    assert _format_job_salary({"salary": "45 000 €"}) == "45 000 €"
+    assert _format_job_salary({"inferred_salary_min": 42000}) == "42 000 €"
+    tags = _job_offer_tags(
+        {
+            "contract_type": "CDI",
+            "inferred_work_mode": "remote",
+            "source": "Welcome to the Jungle",
+        }
+    )
+    assert "CDI" in tags
+    assert any("élétravail" in tag or "Remote" in tag or "remote" in tag.lower() for tag in tags)
+
+
 def test_simple_job_row_styles_exist() -> None:
     css = _read("ui/theme.py")
     assert ".job-match-card-simple" in css
+    assert ".job-card-company" in css
+    assert ".job-card-tag" in css
     assert "render_simple_job_row" in _read("app.py")
     assert "job-match-card-simple" in _read("app.py")
+    assert "job-card-company" in _read("app.py")
+    assert 't("job.analyze_offer")' in _read("app.py")
     assert 't("job.apply_auto")' in _read("app.py")
     assert 't("job.apply_manual")' in _read("app.py")
     assert "results.prepare_apply" not in _analysis_results_fn()

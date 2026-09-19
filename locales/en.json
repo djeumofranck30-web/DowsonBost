@@ -399,6 +399,7 @@
   "dashboard.metric_saved": "To apply",
   "dashboard.results_count": "{count} offer(s) for analysis #{id}.",
   "dashboard.page_status": "Page {page} / {pages}",
+  "job.analyze_offer": "Analyze offer",
   "job.toggle_details": "ATS details",
   "job.hide_details": "Hide details",
   "dashboard.no_results": "No offers match the filters for this analysis.",

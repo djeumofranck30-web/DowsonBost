@@ -400,6 +400,7 @@
   "dashboard.no_results": "Aucune offre ne correspond aux filtres pour cette analyse.",
   "dashboard.results_count": "{count} offre(s) pour l'analyse #{id}.",
   "dashboard.page_status": "Page {page} / {pages}",
+  "job.analyze_offer": "Analyser l'offre",
   "job.toggle_details": "Détails ATS",
   "job.hide_details": "Masquer les détails",
   "history.title": "Historique des analyses",

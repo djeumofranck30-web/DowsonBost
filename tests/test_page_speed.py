@@ -128,7 +128,7 @@ def test_theme_does_not_block_on_google_fonts():
     assert "fonts.googleapis.com" not in admin
     assert "fonts.googleapis.com" not in chrome
     assert "Plus Jakarta Sans" not in theme
-    assert "#0E7490" in config
+    assert "#2563EB" in config
     assert "fastReruns = true" in config
 
 

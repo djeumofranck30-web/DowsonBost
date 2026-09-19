@@ -7,31 +7,31 @@ from pathlib import Path
 
 import streamlit as st
 
-# Career-platform tokens — LinkedIn trust + Welcome to the Jungle energy
+# SaaS tokens — Stripe / Linear / Notion: blue + green only as strong colors
 THEME = {
-    "bg_gradient": "linear-gradient(160deg, #F4F1EA 0%, #E7F1EE 48%, #DCE8F2 100%)",
+    "bg_gradient": "linear-gradient(180deg, #FFFFFF 0%, #F3F4F6 100%)",
     "bg_mesh": (
-        "radial-gradient(ellipse 70% 50% at 8% 0%, rgba(14,116,144,0.16), transparent 55%), "
-        "radial-gradient(ellipse 55% 45% at 96% 6%, rgba(232,185,35,0.20), transparent 50%)"
+        "radial-gradient(ellipse 70% 50% at 8% 0%, rgba(37,99,235,0.10), transparent 55%), "
+        "radial-gradient(ellipse 55% 45% at 96% 6%, rgba(30,58,138,0.08), transparent 50%)"
     ),
-    "primary": "#0E7490",
-    "primary_dark": "#155E75",
-    "primary_deep": "#0B1220",
-    "surface": "#ffffff",
-    "surface_soft": "#F7F5F1",
-    "surface_glass": "rgba(255, 255, 255, 0.82)",
-    "muted": "#5B6573",
-    "accent": "#E8B923",
-    "success": "#0F9F6E",
-    "warning": "#E8B923",
-    "danger": "#E11D48",
-    "radius_sm": "10px",
-    "radius_md": "14px",
-    "radius_lg": "18px",
-    "radius_xl": "24px",
-    "shadow_sm": "0 2px 10px rgba(11, 18, 32, 0.05)",
-    "shadow_md": "0 14px 36px rgba(11, 18, 32, 0.08)",
-    "shadow_lg": "0 28px 56px rgba(11, 18, 32, 0.12)",
+    "primary": "#2563EB",
+    "primary_dark": "#1E3A8A",
+    "primary_deep": "#1E3A8A",
+    "surface": "#FFFFFF",
+    "surface_soft": "#F3F4F6",
+    "surface_glass": "rgba(255, 255, 255, 0.92)",
+    "muted": "#374151",
+    "accent": "#2563EB",
+    "success": "#10B981",
+    "warning": "#2563EB",
+    "danger": "#EF4444",
+    "radius_sm": "6px",
+    "radius_md": "8px",
+    "radius_lg": "10px",
+    "radius_xl": "12px",
+    "shadow_sm": "0 1px 2px rgba(17, 24, 39, 0.06)",
+    "shadow_md": "0 8px 24px rgba(17, 24, 39, 0.08)",
+    "shadow_lg": "0 16px 40px rgba(17, 24, 39, 0.10)",
     "font": 'system-ui, -apple-system, "Segoe UI", sans-serif',
 }
 
@@ -81,11 +81,18 @@ def _shared_components_css(t: dict[str, str]) -> str:
             to {{ transform: translateX(220%) skewX(-12deg); }}
         }}
         @keyframes db-pulse-ring {{
-            0%, 100% {{ box-shadow: 0 0 0 0 rgba(14, 116, 144, 0.28); }}
-            50% {{ box-shadow: 0 0 0 7px rgba(14, 116, 144, 0); }}
+            0%, 100% {{ box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.28); }}
+            50% {{ box-shadow: 0 0 0 7px rgba(37, 99, 235, 0); }}
+        }}
+        @keyframes db-skeleton {{
+            0% {{ background-position: 100% 0; }}
+            100% {{ background-position: -100% 0; }}
+        }}
+        @keyframes db-spin {{
+            to {{ transform: rotate(360deg); }}
         }}
 
-        /* —— Buttons (compact, used everywhere) —— */
+        /* —— Buttons (SaaS CTA) —— */
         .stButton > button,
         div[data-testid="stFormSubmitButton"] button,
         .stDownloadButton > button,
@@ -97,17 +104,19 @@ def _shared_components_css(t: dict[str, str]) -> str:
         [data-testid="stBaseButton-secondaryFormSubmit"],
         [data-testid^="stBaseLinkButton-"] {{
             font-family: {t["font"]} !important;
-            font-weight: 600 !important;
-            font-size: 0.82rem !important;
+            font-weight: 700 !important;
+            font-size: 15px !important;
             line-height: 1.2 !important;
-            min-height: 2rem !important;
+            min-height: 48px !important;
+            min-width: 120px !important;
             height: auto !important;
-            padding: 0.22rem 0.75rem !important;
-            border-radius: 999px !important;
+            padding: 14px 22px !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
             position: relative !important;
             overflow: hidden !important;
             letter-spacing: 0.01em !important;
-            transition: transform 0.18s cubic-bezier(.2,.8,.2,1), box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease !important;
+            transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease, background 0.16s ease, border-color 0.16s ease !important;
         }}
         .stButton > button::after,
         div[data-testid="stFormSubmitButton"] button::after,
@@ -165,49 +174,60 @@ def _shared_components_css(t: dict[str, str]) -> str:
         .stButton > button[kind="primary"],
         div[data-testid="stFormSubmitButton"] button,
         .stDownloadButton > button {{
-            background: linear-gradient(135deg, {t["primary"]} 0%, {t["primary_dark"]} 100%) !important;
+            background: {t["primary"]} !important;
             color: #fff !important;
             border: none !important;
-            box-shadow: 0 3px 10px rgba(14, 116, 144, 0.28) !important;
+            box-shadow: {t["shadow_sm"]} !important;
         }}
         .stButton > button[kind="primary"]:hover,
         div[data-testid="stFormSubmitButton"] button:hover,
         .stDownloadButton > button:hover {{
-            transform: translateY(-2px) !important;
-            box-shadow: 0 8px 18px rgba(14, 116, 144, 0.32) !important;
-            background: linear-gradient(135deg, {t["primary_dark"]} 0%, #0B4A5C 100%) !important;
+            filter: brightness(1.08) !important;
+            box-shadow: {t["shadow_sm"]} !important;
+            background: {t["primary"]} !important;
             color: #fff !important;
         }}
-        .stButton > button[kind="secondary"] {{
-            background: {t["surface"]} !important;
-            border: 1.5px solid rgba(14, 116, 144, 0.22) !important;
+        .stButton > button[kind="secondary"],
+        .stLinkButton a,
+        [data-testid^="stBaseLinkButton-"] {{
+            background: #FFFFFF !important;
+            border: 1.5px solid {t["primary"]} !important;
             color: {t["primary"]} !important;
+            padding: 12px 20px !important;
         }}
-        .stButton > button[kind="secondary"]:hover {{
-            background: {t["surface_soft"]} !important;
+        .stButton > button[kind="secondary"]:hover,
+        .stLinkButton a:hover,
+        [data-testid^="stBaseLinkButton-"]:hover {{
+            filter: brightness(1.04) !important;
+            background: #EFF6FF !important;
             border-color: {t["primary"]} !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 6px 14px rgba(14, 116, 144, 0.12) !important;
+            box-shadow: {t["shadow_sm"]} !important;
         }}
 
         /* —— Inputs —— */
         div[data-testid="stTextInput"] input,
-       div[data-testid="stTextArea"] textarea,
+        div[data-testid="stNumberInput"] input,
+        div[data-testid="stTextArea"] textarea,
         div[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
         div[data-testid="stMultiSelect"] div[data-baseweb="select"] > div {{
-            border-radius: {t["radius_sm"]} !important;
-            border-color: rgba(14, 116, 144, 0.15) !important;
+            border-radius: 6px !important;
+            min-height: 44px !important;
+            width: 100% !important;
+            border-color: #D1D5DB !important;
             font-family: {t["font"]} !important;
+            font-size: 15px !important;
+            color: {t["muted"]} !important;
         }}
         div[data-testid="stTextInput"] input:focus,
+        div[data-testid="stNumberInput"] input:focus,
         div[data-testid="stTextArea"] textarea:focus {{
             border-color: {t["primary"]} !important;
-            box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.12) !important;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
         }}
 
         span[data-baseweb="tag"],
         [data-baseweb="tag"] {{
-            background: rgba(14, 116, 144, 0.12) !important;
+            background: rgba(37, 99, 235, 0.12) !important;
             color: {t["primary_dark"]} !important;
         }}
         [data-baseweb="tag"] span {{
@@ -237,7 +257,7 @@ def _shared_components_css(t: dict[str, str]) -> str:
         /* —— Metrics —— */
         [data-testid="stMetric"] {{
             background: linear-gradient(145deg, {t["surface"]} 0%, {t["surface_soft"]} 100%);
-            border: 1px solid rgba(14, 116, 144, 0.08);
+            border: 1px solid rgba(37, 99, 235, 0.08);
             border-radius: {t["radius_md"]};
             padding: 0.75rem 1rem;
             box-shadow: {t["shadow_sm"]};
@@ -266,26 +286,47 @@ def _shared_components_css(t: dict[str, str]) -> str:
         details[data-testid="stExpander"] {{
             background: {t["surface"]};
             border-radius: {t["radius_md"]};
-            border: 1px solid rgba(14, 116, 144, 0.08);
+            border: 1px solid rgba(37, 99, 235, 0.08);
             box-shadow: {t["shadow_sm"]};
         }}
         div[data-testid="stElementContainer"]:has(details[data-testid="stExpander"]) {{
             margin-bottom: 0.28rem !important;
         }}
 
-        /* —— Progress —— */
+        /* —— Progress + loaders —— */
         [data-testid="stProgressBar"] > div > div {{
-            background: linear-gradient(90deg, {t["primary"]}, {t["accent"]}) !important;
-            border-radius: 999px !important;
+            background: {t["primary"]} !important;
+            border-radius: 8px !important;
+        }}
+        [data-testid="stSpinner"] > div,
+        .stSpinner > div {{
+            border-top-color: {t["primary"]} !important;
+        }}
+        .db-skeleton,
+        .db-skeleton-line {{
+            display: block;
+            height: 12px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, #E5E7EB 25%, #F3F4F6 37%, #E5E7EB 63%);
+            background-size: 400% 100%;
+            animation: db-skeleton 1.4s ease infinite;
+        }}
+        .db-skeleton-line + .db-skeleton-line {{
+            margin-top: 8px;
         }}
 
         h1, h2, h3, h4 {{
             font-family: {t["font"]} !important;
             color: {t["primary_deep"]} !important;
         }}
+        h1 {{ font-size: 22px !important; }}
+        h2, h3 {{ font-size: 18px !important; }}
+        p, .stMarkdown p {{
+            font-size: 15px;
+        }}
         .support-thread {{
             background: {t["surface"]};
-            border: 1px solid rgba(14, 116, 144, 0.08);
+            border: 1px solid rgba(37, 99, 235, 0.08);
             border-radius: {t["radius_lg"]};
             padding: 1rem 1.1rem 1.15rem;
             max-height: 28rem;
@@ -308,7 +349,7 @@ def _shared_components_css(t: dict[str, str]) -> str:
             margin-right: auto;
             background: {t["surface_soft"]};
             color: {t["primary_deep"]};
-            border: 1px solid rgba(14, 116, 144, 0.12);
+            border: 1px solid rgba(37, 99, 235, 0.12);
             border-bottom-left-radius: 6px;
         }}
         .support-bubble .meta {{
@@ -358,14 +399,14 @@ def _shared_components_css(t: dict[str, str]) -> str:
         }}
         .msg-conv-item {{
             background: {t["surface"]};
-            border: 1px solid rgba(14, 116, 144, 0.12);
+            border: 1px solid rgba(37, 99, 235, 0.12);
             border-radius: 12px;
             padding: 0.75rem 0.85rem;
             cursor: default;
         }}
         .msg-conv-item.active {{
-            background: rgba(14, 116, 144, 0.08);
-            border-color: rgba(14, 116, 144, 0.28);
+            background: rgba(37, 99, 235, 0.08);
+            border-color: rgba(37, 99, 235, 0.28);
         }}
         .msg-conv-item strong {{ display: block; color: {t["primary_deep"]}; }}
         .msg-conv-item small {{ color: {t["muted"]}; }}
@@ -389,11 +430,11 @@ def _shared_components_css(t: dict[str, str]) -> str:
         @keyframes db-chat-pulse {{
             0%, 100% {{
                 transform: scale(1);
-                box-shadow: 0 0 0 3px {t["accent"]}, 0 12px 26px rgba(14, 116, 144, 0.42);
+                box-shadow: 0 0 0 3px {t["accent"]}, 0 12px 26px rgba(37, 99, 235, 0.42);
             }}
             50% {{
                 transform: scale(1.07);
-                box-shadow: 0 0 0 3px {t["accent"]}, 0 16px 32px rgba(14, 116, 144, 0.5);
+                box-shadow: 0 0 0 3px {t["accent"]}, 0 16px 32px rgba(37, 99, 235, 0.5);
             }}
         }}
         #db-chat-fab {{
@@ -414,7 +455,7 @@ def _shared_components_css(t: dict[str, str]) -> str:
             pointer-events: auto !important;
             overflow: hidden !important;
             background: linear-gradient(135deg, {t["primary"]}, {t["primary_dark"]}) !important;
-            box-shadow: 0 0 0 3px {t["accent"]}, 0 12px 26px rgba(14, 116, 144, 0.42) !important;
+            box-shadow: 0 0 0 3px {t["accent"]}, 0 12px 26px rgba(37, 99, 235, 0.42) !important;
             animation: db-chat-pulse 2.2s ease-in-out infinite !important;
         }}
         #db-chat-fab svg {{
@@ -437,7 +478,7 @@ def _shared_components_css(t: dict[str, str]) -> str:
             padding: 0 6px;
             border-radius: 999px;
             background: {t["accent"]};
-            color: #0B1220;
+            color: #1E3A8A;
             font: 800 11px/20px system-ui, sans-serif;
             display: flex;
             align-items: center;
@@ -460,7 +501,7 @@ def _shared_components_css(t: dict[str, str]) -> str:
             background: {t["primary"]} !important;
             color: #fff !important;
             border: 0 !important;
-            box-shadow: 0 6px 16px rgba(14, 116, 144, 0.28) !important;
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28) !important;
         }}
         .st-key-support_new button:hover {{
             filter: brightness(1.06);
@@ -509,8 +550,8 @@ def render_app_styles() -> None:
             transform: none !important;
             overflow: hidden !important;
             background:
-                radial-gradient(ellipse 80% 40% at 50% 0%, rgba(232,185,35,0.16), transparent 55%),
-                linear-gradient(180deg, #0B1628 0%, #0A1220 100%) !important;
+                radial-gradient(ellipse 80% 40% at 50% 0%, rgba(37,99,235,0.22), transparent 55%),
+                linear-gradient(180deg, #1E3A8A 0%, #172554 100%) !important;
             backdrop-filter: none;
             -webkit-backdrop-filter: none;
             border-right: 1px solid rgba(255, 255, 255, 0.06);
@@ -528,8 +569,8 @@ def render_app_styles() -> None:
             overflow-y: auto !important;
             padding-top: 1.1rem;
             background:
-                radial-gradient(ellipse 80% 40% at 50% 0%, rgba(232,185,35,0.16), transparent 55%),
-                linear-gradient(180deg, #0B1628 0%, #0A1220 100%) !important;
+                radial-gradient(ellipse 80% 40% at 50% 0%, rgba(37,99,235,0.22), transparent 55%),
+                linear-gradient(180deg, #1E3A8A 0%, #172554 100%) !important;
         }}
         [data-testid="stSidebarUserContent"] {{
             flex: 1 1 auto !important;
@@ -559,7 +600,7 @@ def render_app_styles() -> None:
             margin: 0 auto 0.7rem;
             border-radius: 50%;
             padding: 3px;
-            background: linear-gradient(135deg, #F97316, {t["accent"]}, {t["primary"]});
+            background: linear-gradient(135deg, {t["primary_dark"]}, {t["primary"]});
             box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.22), 0 10px 22px rgba(249, 115, 22, 0.28);
         }}
         [data-testid="stSidebar"] .sidebar-avatar-img,
@@ -586,7 +627,7 @@ def render_app_styles() -> None:
             align-items: center;
             justify-content: center;
             font-size: 1.35rem;
-            box-shadow: 0 8px 20px rgba(14, 116, 144, 0.35);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
         }}
         [data-testid="stSidebar"] .sidebar-brand-name {{
             font-size: 1.05rem;
@@ -596,7 +637,7 @@ def render_app_styles() -> None:
             letter-spacing: -0.02em;
         }}
         [data-testid="stSidebar"] .sidebar-brand-name span {{
-            background: linear-gradient(135deg, {t["accent"]}, #F97316);
+            background: linear-gradient(135deg, {t["primary_dark"]}, {t["primary"]});
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -685,7 +726,7 @@ def render_app_styles() -> None:
             bottom: 8px;
             width: 3px;
             border-radius: 999px;
-            background: #F97316;
+            background: {t["primary"]};
         }}
         [data-testid="stSidebar"] .stButton > button {{
             background: rgba(255, 255, 255, 0.06) !important;
@@ -722,11 +763,11 @@ def render_app_styles() -> None:
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, {t["primary"]}, {t["accent"]}, #E8B923);
+            background: linear-gradient(90deg, {t["primary"]}, {t["accent"]}, #2563EB);
         }}
         .app-page-hero h1 {{
             margin: 0 0 0.4rem 0;
-            font-size: 1.85rem;
+            font-size: 22px;
             font-weight: 800;
             letter-spacing: -0.03em;
             color: {t["primary_deep"]};
@@ -734,7 +775,7 @@ def render_app_styles() -> None:
         .app-page-hero p {{
             margin: 0;
             color: {t["muted"]};
-            font-size: 0.98rem;
+            font-size: 16px;
             line-height: 1.55;
             max-width: 52rem;
         }}
@@ -742,7 +783,7 @@ def render_app_styles() -> None:
             display: inline-flex;
             align-items: center;
             gap: 0.35rem;
-            background: linear-gradient(135deg, rgba(14,116,144,0.1), rgba(232,185,35,0.08));
+            background: rgba(37, 99, 235, 0.10);
             color: {t["primary"]};
             font-size: 0.7rem;
             font-weight: 700;
@@ -751,40 +792,39 @@ def render_app_styles() -> None:
             padding: 0.3rem 0.75rem;
             border-radius: 999px;
             margin-bottom: 0.75rem;
-            border: 1px solid rgba(14, 116, 144, 0.12);
+            border: 1px solid rgba(37, 99, 235, 0.12);
         }}
 
         [data-testid="stVerticalBlockBorderWrapper"] {{
             background: {t["surface"]} !important;
             border-radius: {t["radius_lg"]} !important;
-            border: 1px solid rgba(14, 116, 144, 0.06) !important;
+            border: 1px solid rgba(37, 99, 235, 0.06) !important;
             box-shadow: {t["shadow_md"]} !important;
             padding: 0.5rem 0.65rem 0.85rem !important;
         }}
 
         .section-title {{
-            font-size: 1.1rem;
+            font-size: 20px;
             font-weight: 700;
             color: {t["primary_deep"]};
             margin: 0 0 0.75rem 0;
         }}
 
-        /* —— Job cards —— */
+        /* —— Job cards (LinkedIn-style) —— */
         .job-match-card {{
+            width: 100%;
             background: {t["surface"]};
-            border-radius: {t["radius_lg"]};
-            padding: 1.35rem 1.6rem 0.65rem;
+            border-radius: 10px;
+            padding: 18px;
             margin-bottom: 1.1rem;
-            border: 1px solid rgba(14, 116, 144, 0.08);
+            border: 1px solid #E5E7EB;
             box-shadow: {t["shadow_sm"]};
-            border-left: 4px solid {t["primary"]};
-            transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+            transition: box-shadow 0.16s ease, transform 0.16s ease, border-color 0.16s ease;
             animation: db-rise 0.16s ease both;
         }}
         .job-match-card:hover {{
             box-shadow: {t["shadow_md"]};
-            transform: translateY(-4px);
-            border-left-color: {t["accent"]};
+            border-color: rgba(37, 99, 235, 0.28);
         }}
         .job-match-card h3 {{
             color: {t["primary_deep"]};
@@ -806,7 +846,7 @@ def render_app_styles() -> None:
             margin-bottom: 1.35rem;
             border-radius: {t["radius_lg"]};
             background: {t["surface"]};
-            border: 1px solid rgba(14, 116, 144, 0.08);
+            border: 1px solid rgba(37, 99, 235, 0.08);
             box-shadow: {t["shadow_md"]};
             animation: db-rise 0.16s ease both;
         }}
@@ -823,7 +863,7 @@ def render_app_styles() -> None:
             justify-content: center;
             flex-shrink: 0;
             overflow: hidden;
-            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.28), 0 8px 20px rgba(14, 116, 144, 0.3);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18), 0 8px 20px rgba(37, 99, 235, 0.18);
         }}
         .profile-avatar img {{
             width: 100%;
@@ -844,7 +884,7 @@ def render_app_styles() -> None:
             display: inline-block;
             padding: 0.28rem 0.7rem;
             border-radius: 999px;
-            background: rgba(14, 116, 144, 0.08);
+            background: rgba(37, 99, 235, 0.08);
             color: {t["primary_dark"]};
             font-size: 0.78rem;
             font-weight: 600;
@@ -865,7 +905,7 @@ def render_app_styles() -> None:
             align-items: center;
             padding: 0.28rem 0.7rem;
             border-radius: 999px;
-            background: rgba(14, 116, 144, 0.08);
+            background: rgba(37, 99, 235, 0.08);
             color: {t["primary_dark"]};
             font-size: 0.78rem;
             font-weight: 600;
@@ -885,21 +925,48 @@ def render_app_styles() -> None:
             border: 0;
             height: 1px;
             margin: 1.4rem 0 1.1rem;
-            background: linear-gradient(90deg, rgba(14,116,144,0.25), transparent);
+            background: linear-gradient(90deg, rgba(37,99,235,0.25), transparent);
         }}
         .job-match-card {{
-            padding: 1.1rem 1.25rem 0.55rem;
+            padding: 18px;
         }}
         .job-match-card-simple {{
-            padding: 0.7rem 0.95rem 0.65rem;
-            margin-bottom: 0.55rem;
+            padding: 18px;
+            margin-bottom: 0.75rem;
         }}
         .job-match-card-simple:hover {{
             transform: none;
         }}
         .job-match-card-simple .job-card-title {{
-            font-size: 1.02rem !important;
-            margin-bottom: 0.1rem !important;
+            font-size: 17px !important;
+            margin-bottom: 0.15rem !important;
+        }}
+        .job-card-company {{
+            margin: 0 0 0.15rem !important;
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            color: {t["muted"]} !important;
+        }}
+        .job-card-meta {{
+            margin: 0 0 0.45rem;
+            font-size: 14px;
+            color: {t["muted"]};
+        }}
+        .job-card-tags {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            margin: 0.35rem 0 0.15rem;
+        }}
+        .job-card-tag {{
+            display: inline-flex;
+            align-items: center;
+            padding: 0.2rem 0.55rem;
+            border-radius: 6px;
+            background: #F3F4F6;
+            color: {t["muted"]};
+            font-size: 12px;
+            font-weight: 700;
         }}
         .job-match-card-simple .job-card-facts {{
             margin-bottom: 0;
@@ -935,7 +1002,7 @@ def render_app_styles() -> None:
         }}
         .stat-card {{
             background: {t["surface"]};
-            border: 1px solid rgba(14, 116, 144, 0.1);
+            border: 1px solid rgba(37, 99, 235, 0.1);
             border-radius: {t["radius_md"]};
             padding: 1rem 1.1rem 0.95rem;
             box-shadow: {t["shadow_sm"]};
@@ -955,7 +1022,7 @@ def render_app_styles() -> None:
             width: 64px;
             height: 64px;
             border-radius: 50%;
-            background: linear-gradient(135deg, rgba(14,116,144,0.12), transparent);
+            background: linear-gradient(135deg, rgba(37,99,235,0.12), transparent);
         }}
         .stat-card-label {{
             margin: 0;
@@ -983,7 +1050,7 @@ def render_app_styles() -> None:
             border-radius: {t["radius_xl"]};
             padding: 2.4rem 1.5rem;
             box-shadow: {t["shadow_md"]};
-            border: 1px solid rgba(14, 116, 144, 0.08);
+            border: 1px solid rgba(37, 99, 235, 0.08);
             margin-bottom: 1rem;
             animation: db-rise 0.18s ease both;
         }}
@@ -1011,7 +1078,7 @@ def render_app_styles() -> None:
             align-items: center;
             padding: 0.22rem 0.7rem;
             border-radius: 999px;
-            background: rgba(14, 116, 144, 0.08);
+            background: rgba(37, 99, 235, 0.08);
             color: {t["primary_deep"]};
             font-size: 0.78rem;
             font-weight: 600;
@@ -1032,7 +1099,7 @@ def render_app_styles() -> None:
         }}
         .dash-chart-panel {{
             background: {t["surface"]};
-            border: 1px solid rgba(14, 116, 144, 0.08);
+            border: 1px solid rgba(37, 99, 235, 0.08);
             border-radius: {t["radius_lg"]};
             padding: 0.75rem 0.85rem 0.45rem;
             box-shadow: {t["shadow_sm"]};
@@ -1065,7 +1132,7 @@ def render_app_styles() -> None:
             border-radius: 50%;
             display: grid;
             place-items: center;
-            background: conic-gradient(var(--ring, {t["primary"]}) calc(var(--p, 0) * 1%), #E7F1EE 0);
+            background: conic-gradient(var(--ring, {t["primary"]}) calc(var(--p, 0) * 1%), #F3F4F6 0);
             flex-shrink: 0;
         }}
         .dash-score-ring span {{
@@ -1087,7 +1154,7 @@ def render_app_styles() -> None:
         }}
         .dash-quality-panel {{
             background: {t["surface"]};
-            border: 1px solid rgba(14, 116, 144, 0.08);
+            border: 1px solid rgba(37, 99, 235, 0.08);
             border-radius: {t["radius_lg"]};
             padding: 0.95rem 1rem 1rem;
             box-shadow: {t["shadow_sm"]};
@@ -1123,7 +1190,7 @@ def render_app_styles() -> None:
             grid-column: 1 / -1;
             height: 8px;
             border-radius: 999px;
-            background: #E7F1EE;
+            background: #F3F4F6;
             overflow: hidden;
         }}
         .dash-band-track i {{
@@ -1141,7 +1208,7 @@ def render_app_styles() -> None:
             align-items: center;
             padding: 0.55rem 0.65rem;
             border-radius: 14px;
-            border: 1px solid rgba(14, 116, 144, 0.08);
+            border: 1px solid rgba(37, 99, 235, 0.08);
             background: linear-gradient(180deg, #fff, {t["surface_soft"]});
         }}
         .dash-top-match strong {{
@@ -1163,9 +1230,9 @@ def render_app_styles() -> None:
             color: #fff;
             background: linear-gradient(135deg, {t["primary"]}, {t["primary_dark"]});
         }}
-        .dash-score-pill.high {{ background: linear-gradient(135deg, #0F9F6E, #0B7A55); }}
-        .dash-score-pill.mid {{ background: linear-gradient(135deg, #E8B923, #C49212); color: #0B1220; }}
-        .dash-score-pill.low {{ background: linear-gradient(135deg, #FB7185, #E11D48); }}
+        .dash-score-pill.high {{ background: {t["success"]}; }}
+        .dash-score-pill.mid {{ background: {t["primary"]}; color: #fff; }}
+        .dash-score-pill.low {{ background: {t["danger"]}; }}
         .dash-empty-insight {{
             margin: 0.4rem 0 0;
             color: {t["muted"]};
@@ -1188,8 +1255,8 @@ def render_app_styles() -> None:
         }}
         .job-card-title {{
             margin: 0 0 0.25rem !important;
-            font-size: 1.15rem !important;
-            font-weight: 800 !important;
+            font-size: 17px !important;
+            font-weight: 700 !important;
             color: {t["primary_deep"]} !important;
             line-height: 1.3 !important;
         }}
@@ -1241,7 +1308,7 @@ def render_app_styles() -> None:
             padding: 0.28rem 0.65rem;
             border-radius: 999px;
             background: {t["surface_soft"]};
-            border: 1px solid rgba(14, 116, 144, 0.1);
+            border: 1px solid rgba(37, 99, 235, 0.1);
             color: {t["primary_deep"]};
             font-size: 0.78rem;
             font-weight: 700;
@@ -1251,7 +1318,7 @@ def render_app_styles() -> None:
             background: rgba(255,255,255,0.55);
             padding: 0.35rem;
             border-radius: 999px;
-            border: 1px solid rgba(14, 116, 144, 0.08);
+            border: 1px solid rgba(37, 99, 235, 0.08);
             margin-bottom: 0.85rem;
         }}
         .stTabs [data-baseweb="tab"] {{
@@ -1296,7 +1363,7 @@ def render_app_styles() -> None:
             font-weight: 800;
             letter-spacing: 0.12em;
             text-transform: uppercase;
-            color: #BE123C;
+            color: {t["danger"]};
         }}
         .danger-zone-row {{
             display: flex;
@@ -1314,7 +1381,7 @@ def render_app_styles() -> None:
             font-size: 1.05rem;
             font-weight: 800;
             color: #fff;
-            background: linear-gradient(135deg, #FB7185, #E11D48);
+            background: {t["danger"]};
             box-shadow: 0 8px 18px rgba(225, 29, 72, 0.28);
         }}
         .danger-zone-title,
@@ -1342,7 +1409,7 @@ def render_app_styles() -> None:
         /* —— Support chat —— */
         .support-thread {{
             background: {t["surface"]};
-            border: 1px solid rgba(14, 116, 144, 0.08);
+            border: 1px solid rgba(37, 99, 235, 0.08);
             border-radius: {t["radius_lg"]};
             padding: 1rem 1.1rem 1.15rem;
             box-shadow: {t["shadow_sm"]};
@@ -1367,7 +1434,7 @@ def render_app_styles() -> None:
             margin-right: auto;
             background: {t["surface_soft"]};
             color: {t["primary_deep"]};
-            border: 1px solid rgba(14, 116, 144, 0.12);
+            border: 1px solid rgba(37, 99, 235, 0.12);
             border-bottom-left-radius: 6px;
         }}
         .support-bubble .meta {{
@@ -1387,7 +1454,7 @@ def render_app_styles() -> None:
         .support-inbox-item {{
             padding: 0.75rem 0.85rem;
             border-radius: 14px;
-            border: 1px solid rgba(14, 116, 144, 0.1);
+            border: 1px solid rgba(37, 99, 235, 0.1);
             background: {t["surface"]};
             margin-bottom: 0.5rem;
         }}
@@ -1395,7 +1462,7 @@ def render_app_styles() -> None:
         .support-inbox-item small {{ color: {t["muted"]}; }}
         .support-space-header {{
             background: {t["surface"]};
-            border: 1px solid rgba(14, 116, 144, 0.12);
+            border: 1px solid rgba(37, 99, 235, 0.12);
             border-radius: {t["radius_lg"]};
             padding: 0.85rem 1rem 0.95rem;
             margin-bottom: 0.7rem;
@@ -1408,7 +1475,7 @@ def render_app_styles() -> None:
         /* —— File uploader —— */
         [data-testid="stFileUploader"] section {{
             background: {t["surface_soft"]};
-            border: 2px dashed rgba(14, 116, 144, 0.2);
+            border: 2px dashed rgba(37, 99, 235, 0.2);
             border-radius: {t["radius_lg"]};
             padding: 0.75rem;
             transition: border-color 0.2s ease;
@@ -1488,7 +1555,7 @@ def render_app_styles() -> None:
         [class*="st-key-delete_account_btn"] [data-testid="stBaseButton-secondary"],
         [class*="st-key-delete_account_btn"] [data-testid="stBaseButton-primary"] {{
             background: #fff !important;
-            color: #E11D48 !important;
+            color: #EF4444 !important;
             border: 1.5px solid rgba(225, 29, 72, 0.38) !important;
             border-radius: 12px !important;
             font-weight: 700 !important;
@@ -1496,21 +1563,21 @@ def render_app_styles() -> None:
             min-height: 2.45rem !important;
         }}
         [class*="st-key-delete_account_btn"] button:hover {{
-            background: #E11D48 !important;
+            background: #EF4444 !important;
             color: #fff !important;
             transform: none !important;
         }}
         [class*="st-key-delete_account_yes"] button,
         [class*="st-key-delete_account_yes"] [data-testid="stBaseButton-secondary"],
         [class*="st-key-delete_account_yes"] [data-testid="stBaseButton-primary"] {{
-            background: linear-gradient(135deg, #E11D48, #BE123C) !important;
+            background: {t["danger"]} !important;
             color: #fff !important;
             border: 0 !important;
             box-shadow: 0 8px 18px rgba(225, 29, 72, 0.28) !important;
         }}
         [class*="st-key-delete_account_no"] button {{
             background: #fff !important;
-            color: #0B1220 !important;
+            color: #1E3A8A !important;
             border: 1.5px solid rgba(11, 18, 32, 0.12) !important;
             box-shadow: none !important;
         }}
@@ -1663,12 +1730,12 @@ def render_auth_styles() -> None:
             align-items: center;
         }}
         .auth-illustration-wrap {{
-            background: linear-gradient(165deg, #0E7490 0%, #155E75 52%, #0B4A5C 100%);
+            background: linear-gradient(165deg, #2563EB 0%, #1E3A8A 100%);
             border-radius: 22px;
             padding: 1.4rem 1.15rem 1.55rem;
             margin-bottom: 1.45rem;
             width: min(100%, 320px);
-            box-shadow: 0 18px 40px rgba(14, 116, 144, 0.22);
+            box-shadow: 0 18px 40px rgba(37, 99, 235, 0.22);
         }}
         .auth-illustration {{
             width: min(100%, 270px);
@@ -1797,7 +1864,7 @@ def render_auth_styles() -> None:
         [data-testid="stWidgetLabel"] p {{
             font-size: 0.84rem !important;
             font-weight: 650 !important;
-            color: #0B1220 !important;
+            color: #1E3A8A !important;
         }}
         [data-testid="stTextInputRootElement"],
         [data-testid="stNumberInputContainer"],
@@ -1808,7 +1875,7 @@ def render_auth_styles() -> None:
             min-height: 3.15rem !important;
             height: 3.15rem !important;
             background: #ffffff !important;
-            color: #0B1220 !important;
+            color: #1E3A8A !important;
             border: 1px solid #D0D5DD !important;
             border-radius: 12px !important;
             box-shadow: none !important;
@@ -1832,7 +1899,7 @@ def render_auth_styles() -> None:
             width: 100% !important;
             min-height: calc(3.15rem - 2px) !important;
             background: transparent !important;
-            color: #0B1220 !important;
+            color: #1E3A8A !important;
             border: none !important;
             box-shadow: none !important;
             font-size: 0.98rem !important;
@@ -1849,7 +1916,7 @@ def render_auth_styles() -> None:
         [data-testid="stSelectbox"] .react-aria-Group:focus-within,
         [data-testid="stMultiSelect"] .react-aria-Group:focus-within {{
             border-color: {t["primary"]} !important;
-            box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.14) !important;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14) !important;
         }}
 
         /* Auth form actions — beat compact global pills */
@@ -1902,7 +1969,7 @@ def render_auth_styles() -> None:
             font-weight: 700 !important;
             letter-spacing: 0.01em !important;
             background: {t["primary"]} !important;
-            box-shadow: 0 6px 16px rgba(14, 116, 144, 0.22) !important;
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.22) !important;
         }}
         {split_right} div[data-testid="stFormSubmitButton"] button,
         [data-testid="stAppViewContainer"]:has(#auth-fullpage) div[data-testid="stFormSubmitButton"] button {{
@@ -1992,7 +2059,7 @@ def render_auth_styles() -> None:
             background: {t["primary"]} !important;
             color: #fff !important;
             border: none !important;
-            box-shadow: 0 6px 16px rgba(14, 116, 144, 0.22) !important;
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.22) !important;
         }}
         [class*="st-key-register_wizard_back"] button,
         [class*="st-key-auth_register_back_login"] button {{
