@@ -646,7 +646,7 @@
   "results.filter_stats": "**Filtrage strict** : {kept} offre(s) retenue(s) sur {total} — {contract} contrat · {geo} zone · {experience} niveau · {sector} secteur · {age} publication.",
   "results.success_summary": "{jobs} offre(s) éligible(s) après filtrage. Top **{top}** analysé(s) et classé(s) par score ATS (compétences, expériences, titre, lieu).",
   "results.simple_summary": "{jobs} offre(s) trouvées en ligne — **{top}** meilleures affichées, classées par similarité ATS.",
-  "results.simple_hint": "Ouvrez l'offre ou préparez le dossier depuis cette liste. Le détail ATS et le suivi restent dans le tableau de bord.",
+  "results.simple_hint": "Postulez automatiquement par e-mail (adresse sur l'offre ou via Hunter) ou ouvrez le site pour postuler manuellement. Le détail ATS et le suivi restent dans le tableau de bord.",
   "results.prepare_apply": "Dossier / postuler",
   "results.open_dashboard": "Ouvrir le tableau de bord",
   "results.simple_title": "{count} offre(s) classée(s)",

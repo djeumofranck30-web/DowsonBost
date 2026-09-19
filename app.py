@@ -3845,12 +3845,136 @@ def _render_candidate_documents(
                 )
 
 
+def _run_auto_apply_action(
+    *,
+    user_id: int | None,
+    result_id: int | None,
+    cv_text: str,
+    job: dict[str, Any],
+    match: dict[str, Any],
+    user_profile: dict[str, Any] | None,
+    cover_letter_text: str | None = None,
+    adapted_cv_text: str | None = None,
+) -> dict[str, Any]:
+    """Send the application by e-mail (listing or Hunter) and notify the candidate."""
+    job, match, cover_letter_text, adapted_cv_text = _hydrate_analysis_result(
+        user_id,
+        result_id,
+        job,
+        match,
+        cover_letter_text,
+        adapted_cv_text,
+    )
+    with st.spinner(t("job.apply_auto_running")):
+        current_letter = st.session_state.get(f"cover_{result_id}") or cover_letter_text
+        current_cv = st.session_state.get(f"adapted_{result_id}") or adapted_cv_text
+        auto_result = submit_application_automatically(
+            cv_text,
+            job,
+            match,
+            user_profile or {},
+            llm_call=call_llm,
+            cover_letter_text=current_letter,
+            adapted_cv_text=current_cv,
+            locale=get_locale(),
+        )
+    if auto_result["success"]:
+        if user_id and result_id:
+            save_generated_documents(
+                user_id,
+                result_id,
+                cover_letter_text=auto_result["cover_letter"],
+                adapted_cv_text=auto_result["adapted_cv"],
+            )
+            st.session_state[f"cover_{result_id}"] = auto_result["cover_letter"]
+            st.session_state[f"adapted_{result_id}"] = auto_result["adapted_cv"]
+            st.session_state[f"apply_pack_{result_id}"] = auto_result
+            record_application(
+                user_id,
+                result_id,
+                "auto_email",
+                status="applied",
+                notes=auto_result["message"],
+            )
+        st.success(auto_result["message"])
+    else:
+        st.error(auto_result["message"])
+    return auto_result
+
+
+def _render_apply_action_buttons(
+    job: dict[str, Any],
+    match: dict[str, Any],
+    *,
+    result_id: int | None,
+    user_id: int | None,
+    cv_text: str,
+    user_profile: dict[str, Any] | None,
+    cover_letter_text: str | None = None,
+    adapted_cv_text: str | None = None,
+    key_prefix: str = "apply",
+    widget_key: str | int | None = None,
+) -> bool:
+    """Two apply actions: automatic e-mail send, or open the listing."""
+    can_apply = bool(user_id and result_id and cv_text and user_profile)
+    action_key = widget_key if widget_key is not None else (result_id or "x")
+    applied = False
+    apply_col1, apply_col2 = st.columns(2)
+    with apply_col1:
+        if can_apply:
+            if st.button(
+                t("job.apply_auto"),
+                key=f"{key_prefix}_auto_{action_key}",
+                use_container_width=True,
+                help=t("job.apply_auto_help"),
+            ):
+                auto_result = _run_auto_apply_action(
+                    user_id=user_id,
+                    result_id=result_id,
+                    cv_text=cv_text,
+                    job=job,
+                    match=match,
+                    user_profile=user_profile,
+                    cover_letter_text=cover_letter_text,
+                    adapted_cv_text=adapted_cv_text,
+                )
+                applied = bool(auto_result.get("success"))
+        else:
+            st.button(
+                t("job.apply_auto"),
+                disabled=True,
+                use_container_width=True,
+                key=f"{key_prefix}_auto_disabled_{action_key}",
+            )
+    with apply_col2:
+        offer_url = str(job.get("url") or "").strip()
+        if offer_url:
+            st.link_button(
+                t("job.apply_manual"),
+                offer_url,
+                use_container_width=True,
+                help=t("job.apply_manual_help"),
+                key=f"{key_prefix}_manual_{action_key}",
+            )
+        else:
+            st.button(
+                t("job.apply_manual"),
+                disabled=True,
+                use_container_width=True,
+                key=f"{key_prefix}_manual_disabled_{action_key}",
+            )
+    return applied
+
+
 def render_simple_job_row(
     job: dict[str, Any],
     match: dict[str, Any],
     rank: int,
     *,
     result_id: int | None = None,
+    user_id: int | None = None,
+    cv_text: str = "",
+    user_profile: dict[str, Any] | None = None,
 ) -> None:
     """Compact analysis-page row: title, company, location, ATS score, apply shortcuts."""
     score = int(match.get("score_correspondance", 0))
@@ -3881,38 +4005,16 @@ def render_simple_job_row(
         ),
         unsafe_allow_html=True,
     )
-    offer_url = str(job.get("url") or "").strip()
-    open_col, dossier_col = st.columns(2)
-    with open_col:
-        if offer_url:
-            st.link_button(
-                t("job.apply_open_offer"),
-                offer_url,
-                use_container_width=True,
-            )
-        else:
-            st.button(
-                t("job.apply_open_offer"),
-                disabled=True,
-                use_container_width=True,
-                key=f"analysis_open_missing_{result_id or rank}",
-            )
-    with dossier_col:
-        if result_id:
-            if st.button(
-                t("results.prepare_apply"),
-                use_container_width=True,
-                key=f"analysis_apply_{result_id}",
-            ):
-                st.session_state[f"job_open_{int(result_id)}"] = True
-                _request_navigation("dashboard")
-        else:
-            if st.button(
-                t("results.open_dashboard"),
-                use_container_width=True,
-                key=f"analysis_dash_row_{rank}",
-            ):
-                _request_navigation("dashboard")
+    _render_apply_action_buttons(
+        job,
+        match,
+        result_id=result_id,
+        user_id=user_id,
+        cv_text=cv_text,
+        user_profile=user_profile,
+        key_prefix="analysis",
+        widget_key=result_id or rank,
+    )
 
 
 def render_job_card(
@@ -4120,70 +4222,20 @@ def render_job_card(
     listed_email = extract_apply_email(job)
     if listed_email:
         st.caption(t("job.recruiter_email_listing", email=listed_email))
-    apply_col1, apply_col2 = st.columns(2)
-    with apply_col1:
-        if can_apply:
-            if st.button(
-                t("job.apply_auto"),
-                key=f"apply_auto_{result_id}",
-                use_container_width=True,
-                help=t("job.apply_auto_help"),
-            ):
-                job, match, cover_letter_text, adapted_cv_text = _hydrate_analysis_result(
-                    user_id,
-                    result_id,
-                    job,
-                    match,
-                    cover_letter_text,
-                    adapted_cv_text,
-                )
-                with st.spinner(t("job.apply_auto_running")):
-                    current_letter = st.session_state.get(f"cover_{result_id}") or cover_letter_text
-                    current_cv = st.session_state.get(f"adapted_{result_id}") or adapted_cv_text
-                    auto_result = submit_application_automatically(
-                        cv_text,
-                        job,
-                        match,
-                        user_profile,
-                        llm_call=call_llm,
-                        cover_letter_text=current_letter,
-                        adapted_cv_text=current_cv,
-                        locale=get_locale(),
-                    )
-                if auto_result["success"]:
-                    save_generated_documents(
-                        user_id,
-                        result_id,
-                        cover_letter_text=auto_result["cover_letter"],
-                        adapted_cv_text=auto_result["adapted_cv"],
-                    )
-                    st.session_state[f"cover_{result_id}"] = auto_result["cover_letter"]
-                    st.session_state[f"adapted_{result_id}"] = auto_result["adapted_cv"]
-                    st.session_state[f"apply_pack_{result_id}"] = auto_result
-                    record_application(
-                        user_id,
-                        result_id,
-                        "auto_email",
-                        status="applied",
-                        notes=auto_result["message"],
-                    )
-                    st.success(auto_result["message"])
-                    st.session_state[details_key] = True
-                    show_details = True
-                else:
-                    st.error(auto_result["message"])
-        else:
-            st.button(t("job.apply_auto"), disabled=True, use_container_width=True)
-    with apply_col2:
-        if job.get("url"):
-            st.link_button(
-                t("job.apply_manual"),
-                job["url"],
-                use_container_width=True,
-                help=t("job.apply_manual_help"),
-            )
-        else:
-            st.button(t("job.apply_manual"), disabled=True, use_container_width=True)
+    if _render_apply_action_buttons(
+        job,
+        match,
+        result_id=result_id,
+        user_id=user_id,
+        cv_text=cv_text,
+        user_profile=user_profile,
+        cover_letter_text=cover_letter_text,
+        adapted_cv_text=adapted_cv_text,
+        key_prefix="job",
+        widget_key=result_id or rank,
+    ):
+        st.session_state[details_key] = True
+        show_details = True
 
     if show_details and can_apply:
         gen_col1, gen_col2 = st.columns(2)
@@ -6167,12 +6219,21 @@ def render_analysis_results(analysis: dict[str, Any]) -> None:
         f'<p class="section-title">{t("results.simple_title", count=len(results))}</p>',
         unsafe_allow_html=True,
     )
+    user = st.session_state.get("user") or {}
+    user_id = int(user["id"]) if user.get("id") else None
+    user_profile = analysis.get("user_profile") or (
+        _cached_user_profile(user) if user_id else {}
+    )
+    cv_text = str(analysis.get("cv_text") or "")
     for idx, entry in enumerate(results, start=1):
         render_simple_job_row(
             entry.get("job") or {},
             entry.get("match") or {},
             idx,
             result_id=entry.get("result_id"),
+            user_id=user_id,
+            cv_text=cv_text,
+            user_profile=user_profile,
         )
 
 

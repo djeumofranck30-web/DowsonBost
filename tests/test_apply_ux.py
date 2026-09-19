@@ -90,6 +90,7 @@ def test_apply_auto_label_is_honest() -> None:
     assert "e-mail" in en["job.apply_auto_help"].lower()
     assert 't("job.apply_auto")' in source
     assert 't("job.apply_manual")' in source
+    assert "def _render_apply_action_buttons(" in source
     assert 't("job.hunter_lookup")' not in source
     assert 't("job.apply_manual_confirm")' not in source
     assert "open_job_listing_tab(" not in source.split("def open_job_listing_tab")[-1]

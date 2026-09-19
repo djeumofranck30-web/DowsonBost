@@ -646,7 +646,7 @@
   "results.success_summary": "{jobs} eligible offer(s) after filtering. Top **{top}** analyzed and ranked by ATS score (skills, experiences, title, location).",
   "results.filter_stats": "**Strict filtering**: {kept} offer(s) retained on {total} — {contract} contract · {geo} zone · {experience} level · {sector} sector · {age} publication.",
   "results.simple_summary": "{jobs} offer(s) found online — **{top}** best shown, ranked by ATS similarity.",
-  "results.simple_hint": "Open the listing or prepare the pack from this list. ATS details and tracking stay on the dashboard.",
+  "results.simple_hint": "Apply automatically by e-mail (listing address or Hunter) or open the site to apply manually. ATS details and tracking stay on the dashboard.",
   "results.prepare_apply": "Pack / apply",
   "results.open_dashboard": "Open the dashboard",
   "results.simple_title": "{count} ranked offer(s)",

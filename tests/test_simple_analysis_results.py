@@ -22,6 +22,8 @@ def _analysis_results_fn() -> str:
 def test_analysis_results_use_simple_rows_not_full_cards() -> None:
     body = _analysis_results_fn()
     assert "render_simple_job_row(" in body
+    assert "cv_text=cv_text" in body
+    assert "user_profile=user_profile" in body
     assert "render_job_card(" not in body
     assert "render_cv_profile_summary(" not in body
     assert "results.cv_text_expander" not in body
@@ -70,7 +72,9 @@ def test_simple_results_locale_keys_exist() -> None:
             assert str(data[key]).strip()
     hint = json.loads(_read("locales/fr.json"))["results.simple_hint"].lower()
     assert "tableau de bord" in hint
-    assert "dossier" in hint
+    assert "automatiquement" in hint
+    assert "manuellement" in hint
+    assert "hunter" in hint
 
 
 def test_simple_job_row_styles_exist() -> None:
@@ -78,4 +82,6 @@ def test_simple_job_row_styles_exist() -> None:
     assert ".job-match-card-simple" in css
     assert "render_simple_job_row" in _read("app.py")
     assert "job-match-card-simple" in _read("app.py")
-    assert "results.prepare_apply" in _read("app.py")
+    assert 't("job.apply_auto")' in _read("app.py")
+    assert 't("job.apply_manual")' in _read("app.py")
+    assert "results.prepare_apply" not in _analysis_results_fn()
