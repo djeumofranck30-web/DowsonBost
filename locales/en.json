@@ -428,6 +428,8 @@
   "analysis.queue.pdf_too_large": "The PDF is larger than 8 MB. Compress it and try again.",
   "analysis.progress.filter": "Strict filtering of offers…",
   "analysis.progress.search": "CV extracted — company career sites first, then Welcome to the Jungle and other job boards…",
+  "analysis.progress.career_sites": "Searching company career sites…",
+  "analysis.progress.search_phase": "Job boards — {phase} (“{query}”)…",
   "analysis.progress.match": "Matching ATS offer by offer…",
   "analysis.missing_cv": "Missing CV — upload a PDF or save an active CV.",
   "job.skills": "SKILLS",

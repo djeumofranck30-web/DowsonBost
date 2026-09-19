@@ -427,6 +427,8 @@
   "analysis.progress.init": "Initialisation de l'analyse…",
   "analysis.progress.extract": "Extraction du CV et plan de recherche IA…",
   "analysis.progress.search": "CV extrait — sites carrière des entreprises d'abord, puis Welcome to the Jungle et les autres job boards…",
+  "analysis.progress.career_sites": "Recherche sur les sites carrière des entreprises…",
+  "analysis.progress.search_phase": "Job boards — {phase} (« {query} »)…",
   "analysis.progress.filter": "Filtrage strict des offres…",
   "analysis.progress.match": "Matching ATS offre par offre…",
   "analysis.progress.done": "Analyse terminée",

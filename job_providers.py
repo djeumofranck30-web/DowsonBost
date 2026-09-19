@@ -331,9 +331,10 @@ WTTJ_JOB_INDEXES = (
     "wttj_jobs_production_fr",
     "wttj_jobs_production_en",
 )
-WTTJ_MAX_PAGES = 10
+WTTJ_MAX_PAGES = 3
+WTTJ_PAGE_HARD_CAP = 10
 WTTJ_HITS_PER_PAGE = 50
-WTTJ_MAX_JOBS = 300
+WTTJ_MAX_JOBS = 150
 WTTJ_COUNTRY_CODES: dict[str, str] = {
     "france": "FR",
     "belgique": "BE",
@@ -610,7 +611,7 @@ def search_jobs_wttj(
     seen_urls: set[str] = set()
     facet_filters = _wttj_contract_facet_filters(contract_type)
     optional_filters = _wttj_optional_filters(location, country)
-    page_cap = max(1, min(int(max_pages), WTTJ_MAX_PAGES))
+    page_cap = max(1, min(int(max_pages), WTTJ_PAGE_HARD_CAP))
     per_page = max(1, min(int(hits_per_page), 100))
 
     for index_name in WTTJ_JOB_INDEXES:
@@ -1663,7 +1664,9 @@ def _search_career_sites_via_google(
     limit: int,
 ) -> list[dict[str, Any]]:
     jobs: list[dict[str, Any]] = []
-    for google_query in _career_site_google_queries(query, location):
+    for index, google_query in enumerate(_career_site_google_queries(query, location)):
+        if index >= 3:
+            break
         try:
             organic = _search_google_organic(google_query, country, api_key)
         except requests.HTTPError as exc:

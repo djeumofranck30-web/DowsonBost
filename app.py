@@ -45,6 +45,8 @@ from job_filters import (
     GEO_FILTER_MODES,
     SECTOR_OPTIONS,
     SEARCH_PHASE_TITLE,
+    SEARCH_PHASE_SIMILAR,
+    SEARCH_PHASE_SKILLS,
     SEARCH_PHASE_CAREER,
     SEARCH_PHASE_BONUS,
     apply_strict_job_filters,
@@ -135,6 +137,8 @@ from constants import (
     PARALLEL_MATCH_NUMBERED_KEY_MAX,
     PROFILE_SECTION_KEYS,
     SEARCH_LOCATION_MAX_WORKERS,
+    SEARCH_PROVIDER_MAX_WORKERS,
+    GEMINI_MODELS_CACHE_TTL_SEC,
     TOP_MATCHING_JOBS,
     JOB_CARDS_PER_PAGE,
     HISTORY_ROWS_PER_PAGE,
@@ -1236,17 +1240,25 @@ def call_openai_vision(ocr_prompt: str, image_b64: str) -> str:
     return (content or "").strip()
 
 
+_GEMINI_MODELS_CACHE: dict[str, tuple[float, list[str], bool]] = {}
+
+
 def _fetch_gemini_models_from_api(api_key: str | None = None) -> tuple[list[str], bool]:
     """List models supporting generateContent for this API key."""
     gemini_key = api_key or get_secret("GEMINI_API_KEY")
     if not gemini_key:
         return list(GEMINI_PREFERRED_MODELS), False
 
+    cached = _GEMINI_MODELS_CACHE.get(gemini_key)
+    now = time.time()
+    if cached and now - cached[0] < GEMINI_MODELS_CACHE_TTL_SEC:
+        return list(cached[1]), cached[2]
+
     try:
         response = requests.get(
             f"{GEMINI_API_BASE}/models",
             headers={"x-goog-api-key": gemini_key},
-            timeout=30,
+            timeout=8,
         )
         if not response.ok:
             return list(GEMINI_PREFERRED_MODELS), False
@@ -1257,6 +1269,7 @@ def _fetch_gemini_models_from_api(api_key: str | None = None) -> tuple[list[str]
             if "generateContent" in item.get("supportedGenerationMethods", [])
         ]
         if model_ids:
+            _GEMINI_MODELS_CACHE[gemini_key] = (now, model_ids, True)
             return model_ids, True
         return list(GEMINI_PREFERRED_MODELS), False
     except Exception:  # noqa: BLE001
@@ -2423,6 +2436,9 @@ def cached_extract_criteria(cv_text: str) -> dict[str, Any]:
     return extract_search_criteria(cv_text)
 
 
+_active_search_progress: ProgressReporter | None = None
+
+
 @st.cache_data(ttl=CACHE_TTL_SECONDS, show_spinner=False)
 def cached_search_jobs(
     provider: str,
@@ -2458,6 +2474,7 @@ def cached_search_jobs(
         list(boosted_alts),
         skill_queries=list(boosted_skills),
         target_count=target_count,
+        progress=_active_search_progress,
     )
 
 
@@ -2812,6 +2829,7 @@ def search_jobs_for_profile(
     alternate_queries: list[str] | None = None,
     skill_queries: list[str] | None = None,
     target_count: int = 0,
+    progress: ProgressReporter | None = None,
 ) -> dict[str, Any]:
     """Search title first, then similar titles, then CV skills/missions, and merge."""
     max_age_days = normalize_job_max_age_days(profile.get("job_max_age_days"))
@@ -2842,6 +2860,7 @@ def search_jobs_for_profile(
         all_locations.extend(locs)
 
     include_career = True
+    _report_progress(progress, 24, t("analysis.progress.career_sites"))
     board_keys = selected_job_providers(
         provider,
         available=configured_providers(secrets=provider_secrets_from_getter(get_secret)),
@@ -2875,14 +2894,33 @@ def search_jobs_for_profile(
             strategies.append("career:sites")
 
     career_count = len(merged)
+    enough_boards = max(int(target) * 2, int(target) + 20)
     if board_provider:
         for phase_name, queries in phases:
             board_count = max(0, len(merged) - career_count)
-            use_all_locations = phase_name == "title" or board_count < target
+            if board_count >= enough_boards:
+                break
+            use_all_locations = phase_name == SEARCH_PHASE_TITLE and board_count < target
+            phase_pct = {
+                SEARCH_PHASE_TITLE: 28,
+                SEARCH_PHASE_SIMILAR: 36,
+                SEARCH_PHASE_SKILLS: 42,
+            }.get(phase_name, 32)
+            _report_progress(
+                progress,
+                phase_pct,
+                t(
+                    "analysis.progress.search_phase",
+                    phase=phase_name,
+                    query=queries[0] if queries else query,
+                ),
+            )
             for q_try in queries:
-                if phase_name != "title" and board_count >= max(target * 2, target + 20):
+                if board_count >= enough_boards:
                     break
                 for search_country in countries:
+                    if board_count >= enough_boards:
+                        break
                     country_locations = country_locations_map.get(search_country) or [""]
                     if not use_all_locations:
                         country_locations = country_locations[:1]
@@ -3002,21 +3040,39 @@ def _search_all_providers_with_fallback(
         merged: list[dict[str, Any]] = []
         used: list[str] = []
         loc = location.strip()
-        for engine in query_list:
-            try:
-                batch = search_jobs(
-                    engine,
-                    q_try,
-                    loc,
-                    country,
-                    contract_type,
-                    max_age_days=max_age_days,
-                )
-            except (RuntimeError, requests.RequestException):
-                continue
-            if batch:
-                used.append(engine)
-                merged = merge_job_lists([merged, batch])
+
+        def _query_engine(engine: str) -> tuple[str, list[dict[str, Any]]]:
+            batch = search_jobs(
+                engine,
+                q_try,
+                loc,
+                country,
+                contract_type,
+                max_age_days=max_age_days,
+            )
+            return engine, batch or []
+
+        worker_count = min(SEARCH_PROVIDER_MAX_WORKERS, max(1, len(query_list)))
+        if worker_count > 1 and len(query_list) > 1:
+            with ThreadPoolExecutor(max_workers=worker_count) as executor:
+                futures = [executor.submit(_query_engine, engine) for engine in query_list]
+                for future in as_completed(futures):
+                    try:
+                        engine, batch = future.result()
+                    except (RuntimeError, requests.RequestException):
+                        continue
+                    if batch:
+                        used.append(engine)
+                        merged = merge_job_lists([merged, batch])
+        else:
+            for engine in query_list:
+                try:
+                    engine, batch = _query_engine(engine)
+                except (RuntimeError, requests.RequestException):
+                    continue
+                if batch:
+                    used.append(engine)
+                    merged = merge_job_lists([merged, batch])
         if merged:
             return {
                 "jobs": merged,
@@ -6550,18 +6606,23 @@ def run_cv_analysis_pipeline(
         }
     )
 
-    search_result = cached_search_jobs(
-        job_provider,
-        query,
-        country,
-        profile_json,
-        metier,
-        contract_type=contract_type,
-        alternate_queries=alternate_queries,
-        refresh_key=search_refresh_key,
-        skill_queries=skill_queries,
-        target_count=pool_size,
-    )
+    global _active_search_progress
+    _active_search_progress = progress
+    try:
+        search_result = cached_search_jobs(
+            job_provider,
+            query,
+            country,
+            profile_json,
+            metier,
+            contract_type=contract_type,
+            alternate_queries=alternate_queries,
+            refresh_key=search_refresh_key,
+            skill_queries=skill_queries,
+            target_count=pool_size,
+        )
+    finally:
+        _active_search_progress = None
 
     _report_progress(progress, 48, t("analysis.progress.filter"))
 
