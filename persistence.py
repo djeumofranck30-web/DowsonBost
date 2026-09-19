@@ -903,6 +903,7 @@ def job_card_preview(job: dict[str, Any] | None) -> dict[str, Any]:
         "published_at": data.get("published_at") or "",
         "contract_type": data.get("contract_type") or "",
         "inferred_contract": data.get("inferred_contract") or "",
+        "company_url": data.get("company_url") or "",
     }
 
 

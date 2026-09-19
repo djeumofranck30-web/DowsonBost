@@ -190,6 +190,7 @@ from services.analysis_worker import (
     kick_embedded_analysis_worker,
 )
 from services.application import (
+    auto_apply_readiness,
     build_application_profile,
     extract_apply_email,
     format_application_autofill_text,
@@ -6178,6 +6179,13 @@ def render_analysis_results(analysis: dict[str, Any]) -> None:
         )
     )
     st.caption(t("results.simple_hint"))
+    apply_ready = auto_apply_readiness()
+    if apply_ready["ready"]:
+        st.success(t("job.apply_auto_ready"))
+    else:
+        st.warning(
+            t("job.apply_auto_setup", missing=" · ".join(apply_ready["missing"]))
+        )
 
     dash_col, pdf_col = st.columns([2, 1])
     with dash_col:

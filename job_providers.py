@@ -407,6 +407,7 @@ def _standard_job(
     contract_type: str = "",
     source: str = "",
     published_at: str | int | float = "",
+    company_url: str = "",
 ) -> dict[str, Any]:
     job: dict[str, Any] = {
         "title": title or "N/A",
@@ -419,6 +420,8 @@ def _standard_job(
     }
     if published_at not in ("", None):
         job["published_at"] = published_at
+    if company_url:
+        job["company_url"] = company_url
     return job
 
 
@@ -521,6 +524,11 @@ def _wttj_hit_to_job(hit: dict[str, Any]) -> dict[str, Any]:
         or hit.get("updated_at")
         or ""
     )
+    company_url = ""
+    if isinstance(org, dict):
+        company_url = str(
+            org.get("website_url") or org.get("website") or org.get("url") or ""
+        ).strip()
     return {
         "title": hit.get("name", "N/A"),
         "company": company,
@@ -530,6 +538,7 @@ def _wttj_hit_to_job(hit: dict[str, Any]) -> dict[str, Any]:
         "contract_type": raw_contract,
         "source": "Welcome to the Jungle",
         "published_at": published,
+        **({"company_url": company_url} if company_url else {}),
     }
 
 

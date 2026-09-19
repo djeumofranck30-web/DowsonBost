@@ -8,7 +8,9 @@ from unittest.mock import patch
 
 from services.application import extract_apply_email, resolve_apply_email
 from services.hunter import (
+    clean_company_name,
     clear_hunter_cache,
+    company_slug_from_job,
     find_recruiter_email,
     infer_company_domain,
     is_job_board_or_ats_host,
@@ -50,6 +52,36 @@ def test_infer_domain_skips_job_boards() -> None:
     assert infer_company_domain({"website": "acme.fr"}) == "acme.fr"
 
 
+def test_infer_domain_from_description_website() -> None:
+    job = {
+        "url": "https://www.indeed.fr/viewjob?jk=abc",
+        "company": "Acme",
+        "description": "Plus d'infos sur https://www.acme.fr/carrieres",
+    }
+    assert infer_company_domain(job) == "acme.fr"
+
+
+def test_company_slug_from_wttj_and_ats_urls() -> None:
+    assert (
+        company_slug_from_job(
+            {
+                "url": "https://www.welcometothejungle.com/fr/companies/malt/jobs/dev-python"
+            }
+        )
+        == "malt"
+    )
+    assert (
+        company_slug_from_job({"url": "https://boards.greenhouse.io/acme/jobs/123"})
+        == "acme"
+    )
+
+
+def test_clean_company_name_strips_legal_noise() -> None:
+    assert clean_company_name("Acme SAS (Paris)") == "Acme"
+    assert clean_company_name("N/A") == ""
+    assert clean_company_name("L'Oréal") == "L'Oréal"
+
+
 def test_pick_recruiter_email_prefers_hr_generic() -> None:
     assert pick_recruiter_email(HUNTER_PAYLOAD) == "jobs@acme.fr"
     assert pick_recruiter_email({"data": {"emails": []}}) is None
@@ -66,6 +98,19 @@ def test_pick_recruiter_email_prefers_hr_generic() -> None:
         }
     }
     assert pick_recruiter_email(personal_only) is None
+    low_generic = {
+        "data": {
+            "emails": [
+                {
+                    "value": "contact@acme.fr",
+                    "type": "generic",
+                    "confidence": 8,
+                    "department": None,
+                }
+            ]
+        }
+    }
+    assert pick_recruiter_email(low_generic) == "contact@acme.fr"
 
 
 def test_find_recruiter_email_calls_hunter_and_caches() -> None:
@@ -79,7 +124,32 @@ def test_find_recruiter_email_calls_hunter_and_caches() -> None:
     assert mocked.call_count == 1
     params = mocked.call_args.args[0]
     assert params["domain"] == "acme.fr"
-    assert params["department"] == "hr"
+    assert params.get("type") == "generic"
+    assert "department" not in params
+    clear_hunter_cache()
+
+
+def test_find_recruiter_email_retries_company_without_hr_filter() -> None:
+    clear_hunter_cache()
+    job = {
+        "company": "Acme SAS (Paris)",
+        "url": "https://www.indeed.fr/viewjob?jk=abc",
+        "description": "Postulez en ligne.",
+    }
+    empty = {"data": {"emails": []}}
+    with patch(
+        "services.hunter._hunter_get",
+        side_effect=[empty, HUNTER_PAYLOAD],
+    ) as mocked:
+        email = find_recruiter_email(job, api_key="hunter-test")
+    assert email == "jobs@acme.fr"
+    assert mocked.call_count == 2
+    first, second = mocked.call_args_list[0].args[0], mocked.call_args_list[1].args[0]
+    assert first["company"] == "Acme"
+    assert first.get("type") == "generic"
+    assert "department" not in first
+    assert second["company"] == "Acme"
+    assert "type" not in second
     clear_hunter_cache()
 
 
@@ -158,5 +228,7 @@ def test_hunter_ui_and_secret_hooks() -> None:
     assert "resolve_apply_email" in (ROOT / "services/application.py").read_text(encoding="utf-8")
     secrets = (ROOT / ".streamlit/secrets.toml.example").read_text(encoding="utf-8")
     assert "HUNTER_API_KEY" in secrets
+    assert "RESEND_API_KEY" in secrets
+    assert not secrets.split("HUNTER_API_KEY")[0].rstrip().endswith("#")
     config = (ROOT / "config.py").read_text(encoding="utf-8")
     assert "HUNTER_API_KEY" in config

@@ -5,6 +5,7 @@ from __future__ import annotations
 from unittest.mock import patch
 
 from services.application import (
+    auto_apply_readiness,
     build_application_profile,
     extract_apply_email,
     format_application_autofill_text,
@@ -14,6 +15,33 @@ from services.application import (
     prepare_manual_application,
     submit_application_automatically,
 )
+
+
+@patch("services.application.llm_keys_configured", return_value=True)
+@patch("services.application.email_configured", return_value=True)
+@patch("services.hunter.hunter_configured", return_value=True)
+def test_auto_apply_readiness_is_ready_when_all_secrets_exist(
+    _hunter: object,
+    _mail: object,
+    _llm: object,
+) -> None:
+    status = auto_apply_readiness()
+    assert status["ready"] is True
+    assert status["missing"] == []
+
+
+@patch("services.application.llm_keys_configured", return_value=False)
+@patch("services.application.email_configured", return_value=False)
+@patch("services.hunter.hunter_configured", return_value=False)
+def test_auto_apply_readiness_lists_missing_secrets(
+    _hunter: object,
+    _mail: object,
+    _llm: object,
+) -> None:
+    status = auto_apply_readiness()
+    assert status["ready"] is False
+    assert "HUNTER_API_KEY" in status["missing"]
+    assert any("RESEND" in item for item in status["missing"])
 
 
 def test_extract_apply_email_prefers_recruitment_address():
@@ -71,9 +99,13 @@ def test_build_application_profile_formats_core_fields():
     assert "Lettre type" in fill
 
 
+@patch("services.hunter.hunter_configured", return_value=True)
+@patch("services.application.email_configured", return_value=True)
 @patch("services.application.resolve_apply_email", return_value=None)
 def test_submit_application_automatically_fails_without_recruiter_email(
     _resolve: object,
+    _mail: object,
+    _hunter: object,
 ):
     job = {
         "title": "Dev Python",
@@ -105,16 +137,12 @@ def test_submit_application_automatically_fails_without_recruiter_email(
     )
     assert result["success"] is False
     assert result["method"] == "missing_recruiter_email"
-    assert "Lettre" in result["cover_letter"]
-    assert "CV adapté" in result["adapted_cv"]
     assert "manuellement" in result["message"].lower()
 
 
-@patch("services.application.resolve_apply_email", return_value="jobs@acme.fr")
 @patch("services.application.email_configured", return_value=False)
 def test_submit_application_automatically_fails_when_mail_not_configured(
     _configured: object,
-    _resolve: object,
 ):
     result = submit_application_automatically(
         "CV source",
@@ -131,8 +159,7 @@ def test_submit_application_automatically_fails_when_mail_not_configured(
     )
     assert result["success"] is False
     assert result["method"] == "email_not_configured"
-    assert result["apply_email"] == "jobs@acme.fr"
-    assert "manuellement" in result["message"].lower()
+    assert "resend" in result["message"].lower() or "smtp" in result["message"].lower()
 
 
 def test_job_listing_open_script_embeds_safe_url():
@@ -141,7 +168,7 @@ def test_job_listing_open_script_embeds_safe_url():
         "Prénom : Jane",
     )
     assert "https://www.indeed.com/viewjob?jk=abc" in html
-    assert "Prénom : Jane" in html
+    assert "Prénom : Jane" in html or "Pr\\u00e9nom : Jane" in html
     assert "clipboard.writeText" in html
     assert "window.top" in html
     assert job_listing_open_script("") == ""

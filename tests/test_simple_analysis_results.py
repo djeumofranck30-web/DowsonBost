@@ -67,6 +67,8 @@ def test_simple_results_locale_keys_exist() -> None:
             "results.simple_title",
             "results.simple_score",
             "results.prepare_apply",
+            "job.apply_auto_ready",
+            "job.apply_auto_setup",
         ):
             assert key in data, f"missing {key} in {locale}.json"
             assert str(data[key]).strip()

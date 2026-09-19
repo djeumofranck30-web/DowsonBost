@@ -6,6 +6,7 @@ DowsonBost still sends from its own mailbox; it does not log into job boards.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 from urllib.parse import urlparse
 
@@ -29,6 +30,11 @@ _PRIORITY_LOCAL_PARTS = (
     "talent",
     "talents",
     "emploi",
+    "contact",
+    "hello",
+    "info",
+    "apply",
+    "application",
 )
 
 _ATS_OR_BOARD_HOSTS = (
@@ -76,6 +82,20 @@ _ATS_OR_BOARD_HOSTS = (
     "dowsonbost.streamlit.app",
 )
 
+_URL_IN_TEXT_RE = re.compile(r"https?://[^\s<>\"')\]]+", re.I)
+_WTTJ_SLUG_RE = re.compile(
+    r"/(?:companies|entreprises)/([^/?#]+)/(?:jobs|offres)",
+    re.I,
+)
+_LINKEDIN_SLUG_RE = re.compile(r"/company/([^/?#]+)", re.I)
+_PAREN_RE = re.compile(r"\s*[\(\[][^)\]]+[\)\]]")
+_LEGAL_SUFFIX_RE = re.compile(
+    r",?\s+(s\.?a\.?s\.?u?|s\.?a\.?r\.?l\.?|e\.?u\.?r\.?l\.?|s\.?e\.?s\.?|"
+    r"s\.?a\.?|inc\.?|ltd\.?|llc\.?|gmbh|plc|corp\.?|groupe|group)\.?$",
+    re.I,
+)
+_PLACEHOLDER_COMPANIES = {"", "n/a", "na", "none", "unknown", "confidentiel"}
+
 _cache: dict[str, str | None] = {}
 
 
@@ -114,12 +134,95 @@ def is_job_board_or_ats_host(host: str) -> bool:
     return False
 
 
+def clean_company_name(value: str) -> str:
+    """Strip legal suffixes and location noise so Hunter can resolve the firm."""
+    text = str(value or "").strip()
+    if text.lower() in _PLACEHOLDER_COMPANIES:
+        return ""
+    text = _PAREN_RE.sub(" ", text)
+    text = re.split(r"\s+[|\u2013\u2014/]\s+", text, maxsplit=1)[0]
+    text = re.sub(r"\s+", " ", text).strip(" .,;:-")
+    text = _LEGAL_SUFFIX_RE.sub("", text)
+    text = text.strip(" .,;:-")
+    if text.lower() in _PLACEHOLDER_COMPANIES:
+        return ""
+    return text
+
+
+def _path_segments(url: str) -> list[str]:
+    try:
+        path = urlparse(url if "://" in url else f"https://{url}").path
+    except ValueError:
+        return []
+    return [part for part in path.split("/") if part]
+
+
+def company_slug_from_job(job: dict[str, Any]) -> str | None:
+    """Tenant / company slug from WTTJ, LinkedIn or ATS URLs — not a mailbox domain."""
+    for field in ("url", "apply_url", "company_url"):
+        raw = str(job.get(field) or "").strip()
+        if not raw:
+            continue
+        host = _host_from_url(raw)
+        if "welcometothejungle.com" in host or "welcome-to-the-jungle.com" in host:
+            match = _WTTJ_SLUG_RE.search(raw)
+            if match:
+                return match.group(1).strip().lower()
+        if "linkedin.com" in host:
+            match = _LINKEDIN_SLUG_RE.search(raw)
+            if match:
+                return match.group(1).strip().lower()
+        parts = _path_segments(raw)
+        if not parts:
+            continue
+        if "greenhouse.io" in host and parts[0] not in {"embed", "jobs"}:
+            return parts[0].lower()
+        if "lever.co" in host:
+            return parts[0].lower()
+        if "ashbyhq.com" in host:
+            return parts[0].lower()
+        if "smartrecruiters.com" in host:
+            return parts[0].lower()
+        if "workable.com" in host:
+            return parts[0].lower()
+        if "myworkdayjobs.com" in host:
+            sub = host.split(".")[0]
+            if sub and not re.fullmatch(r"wd\d+", sub):
+                return sub.lower()
+        if "personio." in host:
+            sub = host.split(".")[0]
+            if sub not in {"jobs", "www"}:
+                return sub.lower()
+            if parts:
+                return parts[0].lower()
+    return None
+
+
+def _domains_from_text(text: str) -> list[str]:
+    found: list[str] = []
+    seen: set[str] = set()
+    for match in _URL_IN_TEXT_RE.finditer(text or ""):
+        host = _host_from_url(match.group(0))
+        if not host or is_job_board_or_ats_host(host) or host in seen:
+            continue
+        seen.add(host)
+        found.append(host)
+    return found
+
+
 def infer_company_domain(job: dict[str, Any]) -> str | None:
     """Company website host, never an Indeed/LinkedIn/ATS aggregator host."""
     for field in ("company_url", "website", "company_domain", "company_website"):
         host = _host_from_url(str(job.get(field) or ""))
         if host and not is_job_board_or_ats_host(host):
             return host
+    blob = "\n".join(
+        str(job.get(field) or "")
+        for field in ("description", "apply_url", "url")
+    )
+    from_text = _domains_from_text(blob)
+    if from_text:
+        return from_text[0]
     host = _host_from_url(str(job.get("url") or job.get("apply_url") or ""))
     if host and not is_job_board_or_ats_host(host):
         return host
@@ -150,7 +253,7 @@ def _score_hunter_email(entry: dict[str, Any]) -> int:
     if any(token in position for token in ("recruit", "talent", "rh", "hr ", "human resource")):
         score += 30
     if kind == "generic":
-        score += 10
+        score += 40
     elif kind == "personal" and not hr_dept and not priority_local:
         return -1
     return score
@@ -163,18 +266,24 @@ def pick_recruiter_email(payload: dict[str, Any]) -> str | None:
     if not isinstance(emails, list):
         return None
     ranked: list[tuple[int, str]] = []
+    generic_fallback: list[tuple[int, str]] = []
     for item in emails:
         if not isinstance(item, dict):
             continue
         email = str(item.get("value") or "").strip().lower()
-        score = _score_hunter_email(item)
-        if score < 20 or not email or "@" not in email:
+        if not email or "@" not in email:
             continue
-        ranked.append((score, email))
-    if not ranked:
+        score = _score_hunter_email(item)
+        kind = str(item.get("type") or "").strip().lower()
+        if score >= 20:
+            ranked.append((score, email))
+        elif kind == "generic" and score >= 0:
+            generic_fallback.append((score, email))
+    pool = ranked or generic_fallback
+    if not pool:
         return None
-    ranked.sort(key=lambda pair: pair[0], reverse=True)
-    return ranked[0][1]
+    pool.sort(key=lambda pair: pair[0], reverse=True)
+    return pool[0][1]
 
 
 def _hunter_get(params: dict[str, str]) -> dict[str, Any] | None:
@@ -195,6 +304,38 @@ def _hunter_get(params: dict[str, str]) -> dict[str, Any] | None:
     return payload if isinstance(payload, dict) else None
 
 
+def _search_queries(job: dict[str, Any]) -> list[dict[str, str]]:
+    """Ordered Hunter lookups: generic inboxes first, then unfiltered, then name."""
+    domain = infer_company_domain(job)
+    company = clean_company_name(str(job.get("company") or ""))
+    slug = company_slug_from_job(job)
+    if slug and not company:
+        company = slug.replace("-", " ").replace("_", " ").strip()
+
+    queries: list[dict[str, str]] = []
+
+    def _add(**extra: str) -> None:
+        query = {key: value for key, value in extra.items() if value}
+        if "domain" not in query and "company" not in query:
+            return
+        if query in queries:
+            return
+        queries.append(query)
+
+    if domain:
+        _add(domain=domain, type="generic")
+        _add(domain=domain)
+    if company:
+        _add(company=company, type="generic")
+        _add(company=company)
+    if slug:
+        slug_name = slug.replace("-", " ").replace("_", " ").strip()
+        if slug_name and slug_name.lower() != company.lower():
+            _add(company=slug_name, type="generic")
+            _add(company=slug_name)
+    return queries
+
+
 def find_recruiter_email(
     job: dict[str, Any],
     *,
@@ -204,32 +345,22 @@ def find_recruiter_email(
     key = (api_key if api_key is not None else hunter_api_key()).strip()
     if not key:
         return None
-    domain = infer_company_domain(job)
-    company = str(job.get("company") or "").strip()
-    cache_key = domain or company.lower()
-    if not cache_key:
+    queries = _search_queries(job)
+    if not queries:
         return None
+    cache_key = "|".join(
+        f"{item.get('domain') or item.get('company')}:{item.get('type') or '*'}"
+        for item in queries
+    )
     if cache_key in _cache:
         return _cache[cache_key]
 
-    params: dict[str, str] = {"api_key": key, "limit": "10"}
-    if domain:
-        params["domain"] = domain
-        params["department"] = "hr"
-    elif company:
-        params["company"] = company
-        params["department"] = "hr"
-    else:
-        _cache[cache_key] = None
-        return None
-
-    payload = _hunter_get(params)
-    email = pick_recruiter_email(payload or {})
-    if not email and domain:
-        fallback = dict(params)
-        fallback.pop("department", None)
-        payload = _hunter_get(fallback)
-        email = pick_recruiter_email(payload or {})
+    email: str | None = None
+    for extra in queries:
+        params = {"api_key": key, "limit": "10", **extra}
+        email = pick_recruiter_email(_hunter_get(params) or {})
+        if email:
+            break
     _cache[cache_key] = email
     return email
 

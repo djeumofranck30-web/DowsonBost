@@ -55,6 +55,37 @@ class ApplicationResult(TypedDict):
     user_notified: bool
 
 
+def llm_keys_configured() -> bool:
+    from config import collect_raw_provider_api_keys
+
+    return any(
+        collect_raw_provider_api_keys(name) for name in ("groq", "gemini", "openai")
+    )
+
+
+def auto_apply_readiness() -> dict[str, Any]:
+    """What Streamlit secrets are in place for automatic e-mail apply."""
+    from services.hunter import hunter_configured
+
+    hunter = hunter_configured()
+    mail = email_configured()
+    llm = llm_keys_configured()
+    missing: list[str] = []
+    if not hunter:
+        missing.append("HUNTER_API_KEY")
+    if not mail:
+        missing.append("RESEND_API_KEY ou SMTP_HOST + SMTP_USER")
+    if not llm:
+        missing.append("GROQ_API_KEY / GEMINI_API_KEY / OPENAI_API_KEY")
+    return {
+        "hunter": hunter,
+        "email": mail,
+        "llm": llm,
+        "ready": bool(hunter and mail and llm),
+        "missing": missing,
+    }
+
+
 def _normalize_job_text(job: dict[str, Any]) -> str:
     chunks = [
         str(job.get("description") or ""),
@@ -386,6 +417,30 @@ def submit_application_automatically(
             job_url=job_url,
         )
 
+    if not email_configured():
+        return _empty_result(
+            method="email_not_configured",
+            message=t("job.apply_auto_mail_not_configured", locale=locale),
+            profile_text=profile_text,
+            job_url=job_url,
+        )
+
+    apply_email = resolve_apply_email(job)
+    if not apply_email:
+        from services.hunter import hunter_configured
+
+        missing_key = (
+            t("job.apply_auto_hunter_missing", locale=locale)
+            if not hunter_configured()
+            else t("job.apply_auto_no_recruiter", locale=locale)
+        )
+        return _empty_result(
+            method="missing_recruiter_email",
+            message=missing_key,
+            profile_text=profile_text,
+            job_url=job_url,
+        )
+
     try:
         letter, adapted = ensure_application_documents(
             cv_text,
@@ -402,26 +457,6 @@ def submit_application_automatically(
             message=t("job.apply_auto_generation_error", locale=locale, error=str(exc)),
             cover_letter=cover_letter_text or "",
             adapted_cv=adapted_cv_text or "",
-            job_url=job_url,
-            profile_text=profile_text,
-        )
-
-    apply_email = resolve_apply_email(job)
-    if not apply_email:
-        return _empty_result(
-            method="missing_recruiter_email",
-            message=t("job.apply_auto_no_recruiter", locale=locale),
-            cover_letter=letter,
-            adapted_cv=adapted,
-            job_url=job_url,
-            profile_text=profile_text,
-        )
-    if not email_configured():
-        return _empty_result(
-            method="email_not_configured",
-            message=t("job.apply_auto_mail_not_configured", locale=locale),
-            cover_letter=letter,
-            adapted_cv=adapted,
             apply_email=apply_email,
             job_url=job_url,
             profile_text=profile_text,
