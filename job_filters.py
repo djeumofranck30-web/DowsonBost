@@ -3,13 +3,10 @@
 from __future__ import annotations
 
 import json
-import math
 import re
 import unicodedata
 from datetime import datetime, timedelta, timezone
 from typing import Any
-
-import requests
 
 from france_geo import (
     find_region_for_department_code,
@@ -87,8 +84,17 @@ from world_geo import (
 GEO_FILTER_MODES = (
     "ville",
     "departement",
-    "rayon",
 )
+
+
+def normalize_geo_filter_mode(mode: str | None) -> str:
+    """Map a stored geo mode onto ville / département. Radius mode is retired."""
+    value = str(mode or "").strip().lower()
+    if value == "rayon":
+        return "departement"
+    if value in GEO_FILTER_MODES:
+        return value
+    return "departement"
 
 JOB_MAX_AGE_DAYS_OPTIONS = (1, 3, 7, 30)
 DEFAULT_JOB_MAX_AGE_DAYS = 7
@@ -353,39 +359,6 @@ def build_domicile_location(profile: dict[str, Any]) -> str:
         parts.append(postal)
     parts.append(country)
     return ", ".join(parts)
-
-
-def build_radius_center_location(profile: dict[str, Any]) -> str:
-    """Center point for optional radius filter — first selected city or zone."""
-    geo_map = merge_profile_geo(profile)
-    for country in profile_countries(profile):
-        geo = geo_map.get(country, {})
-        if country == "France":
-            fr_profile = sync_france_legacy_fields(
-                {**profile, "country": country},
-                geo,
-            )
-            cities = resolve_selected_cities(fr_profile)
-            if cities:
-                return f"{cities[0]}, {country}"
-            _, departments = resolve_multi_geo_from_profile(fr_profile)
-            if departments:
-                name = (departments[0].get("name") or departments[0].get("code") or "").strip()
-                if name:
-                    return f"{name}, {country}"
-            regions, _ = resolve_multi_geo_from_profile(fr_profile)
-            if regions:
-                return f"{regions[0]}, {country}"
-            continue
-
-        cities = geo.get("cities") or []
-        if cities:
-            return f"{cities[0]}, {country}"
-        for level in (geo.get("level1") or []) + (geo.get("level2") or []):
-            if str(level).strip():
-                return f"{level}, {country}"
-
-    return build_domicile_location(profile)
 
 
 def _build_france_search_locations(
@@ -1217,40 +1190,6 @@ def job_matches_salary(job: dict[str, Any], salary_min: int) -> bool:
     return listed >= floor
 
 
-def _coords_from_nominatim(query: str) -> tuple[float, float] | None:
-    if not query.strip():
-        return None
-    try:
-        response = requests.get(
-            "https://nominatim.openstreetmap.org/search",
-            params={"q": query, "format": "json", "limit": 1},
-            headers={"User-Agent": "DowsonBost/1.0 (job-matching)"},
-            timeout=15,
-        )
-        if not response.ok:
-            return None
-        results = response.json()
-        if not results:
-            return None
-        return float(results[0]["lat"]), float(results[0]["lon"])
-    except (requests.RequestException, ValueError, KeyError, TypeError):
-        return None
-
-
-def haversine_km(a: tuple[float, float], b: tuple[float, float]) -> float:
-    lat1, lon1 = a
-    lat2, lon2 = b
-    r = 6371.0
-    p1, p2 = math.radians(lat1), math.radians(lat2)
-    dlat = math.radians(lat2 - lat1)
-    dlon = math.radians(lon2 - lon1)
-    x = (
-        math.sin(dlat / 2) ** 2
-        + math.cos(p1) * math.cos(p2) * math.sin(dlon / 2) ** 2
-    )
-    return 2 * r * math.asin(math.sqrt(x))
-
-
 def _location_mentions_other_country(location: str, allowed_country: str) -> bool:
     """True when location text clearly names a different country."""
     loc = normalize_text(location)
@@ -1434,12 +1373,9 @@ def job_matches_city(job: dict[str, Any], profile: dict[str, Any]) -> bool:
 def job_matches_geography(
     job: dict[str, Any],
     profile: dict[str, Any],
-    user_coords: tuple[float, float] | None = None,
-    job_coords_cache: dict[str, tuple[float, float] | None] | None = None,
 ) -> bool:
-    """Strict filter: selected countries + subdivisions (+ optional radius for France)."""
-    mode = str(profile.get("geo_filter_mode", "departement")).strip().lower()
-    radius_km = int(profile.get("search_radius_km") or 20)
+    """Strict filter: selected countries + regions / departments / cities."""
+    mode = normalize_geo_filter_mode(profile.get("geo_filter_mode"))
     geo_map = merge_profile_geo(profile)
 
     if not job_matches_any_selected_country(job, profile):
@@ -1463,17 +1399,6 @@ def job_matches_geography(
                 cities = resolve_selected_cities(fr_profile)
                 if cities and not job_matches_city(job, fr_profile):
                     continue
-            if mode == "rayon":
-                if not user_coords:
-                    return True
-                cache = job_coords_cache if job_coords_cache is not None else {}
-                location_raw = str(job.get("location", ""))
-                if location_raw not in cache:
-                    cache[location_raw] = _coords_from_nominatim(location_raw)
-                job_coords = cache.get(location_raw)
-                if job_coords and haversine_km(user_coords, job_coords) <= radius_km:
-                    return True
-                continue
             return True
 
         if not _job_matches_international_geo(job, country, geo):
@@ -1519,17 +1444,11 @@ def apply_strict_job_filters(
     match zone, contract, level and sector.
     """
     user_contract = normalize_contract_type(str(profile.get("contract_type", "CDI")))
-    mode = str(profile.get("geo_filter_mode", "departement"))
     experience_level = resolve_experience_level(profile, cv_profile)
     target_sectors = resolve_target_sectors(profile, cv_profile)
     max_age_days = normalize_job_max_age_days(profile.get("job_max_age_days"))
     work_mode = normalize_work_mode(profile.get("work_mode"))
     salary_min = normalize_salary_min(profile.get("salary_min"))
-
-    user_coords: tuple[float, float] | None = None
-    job_coords_cache: dict[str, tuple[float, float] | None] = {}
-    if mode == "rayon":
-        user_coords = _coords_from_nominatim(build_radius_center_location(profile))
 
     filtered: list[dict[str, Any]] = []
     older_matches: list[dict[str, Any]] = []
@@ -1555,12 +1474,7 @@ def apply_strict_job_filters(
         if not job_matches_contract(job, user_contract):
             stats["rejected_contract"] += 1
             continue
-        if not job_matches_geography(
-            job,
-            profile,
-            user_coords=user_coords,
-            job_coords_cache=job_coords_cache,
-        ):
+        if not job_matches_geography(job, profile):
             stats["rejected_geo"] += 1
             continue
         if not job_matches_experience_level(job, experience_level):

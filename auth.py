@@ -39,6 +39,7 @@ from job_filters import (
     GEO_FILTER_MODES,
     SECTOR_OPTIONS,
     normalize_contract_type,
+    normalize_geo_filter_mode,
     normalize_experience_level,
     normalize_job_max_age_days,
     normalize_salary_min,
@@ -769,10 +770,8 @@ def _validate_profile_fields(
     normalized_contract = normalize_contract_type(contract_type)
     if normalized_contract not in CONTRACT_TYPES:
         return False, t("auth.validation.contract")
-    if geo_filter_mode not in GEO_FILTER_MODES:
+    if normalize_geo_filter_mode(geo_filter_mode) not in GEO_FILTER_MODES:
         return False, t("auth.validation.geo_mode")
-    if search_radius_km < 5 or search_radius_km > 200:
-        return False, t("auth.validation.radius")
     level = normalize_experience_level(experience_level)
     if level not in EXPERIENCE_LEVELS:
         return False, t("auth.validation.experience")
@@ -885,7 +884,7 @@ def _row_to_user(row: Any, include_created: bool = False) -> dict:
         "country": row["country"] or "France",
         "contract_type": row["contract_type"],
         "search_radius_km": row["search_radius_km"],
-        "geo_filter_mode": row["geo_filter_mode"],
+        "geo_filter_mode": normalize_geo_filter_mode(row["geo_filter_mode"]),
         "experience_level": row["experience_level"],
         "target_sectors": parse_target_sectors(row["target_sectors"]),
         "target_job_title": (row["target_job_title"] or "").strip(),
@@ -1084,7 +1083,7 @@ def register_user(
         )
     country = countries[0] if countries else "France"
     contract_type = normalize_contract_type(contract_type)
-    geo_filter_mode = geo_filter_mode.strip().lower()
+    geo_filter_mode = normalize_geo_filter_mode(geo_filter_mode)
     experience_level = normalize_experience_level(experience_level)
     sectors = target_sectors or []
     job_title = " ".join(target_job_title.strip().split())
@@ -1285,7 +1284,7 @@ def update_user_profile(
         )
     country = countries[0] if countries else "France"
     contract_type = normalize_contract_type(contract_type)
-    geo_filter_mode = geo_filter_mode.strip().lower()
+    geo_filter_mode = normalize_geo_filter_mode(geo_filter_mode)
     experience_level = normalize_experience_level(experience_level)
     sectors = target_sectors or []
     job_title = " ".join(target_job_title.strip().split())

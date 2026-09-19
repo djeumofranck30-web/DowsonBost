@@ -44,6 +44,7 @@ from job_filters import (
     EXPERIENCE_LEVELS,
     GEO_FILTER_MODES,
     SECTOR_OPTIONS,
+    normalize_geo_filter_mode,
     SEARCH_PHASE_TITLE,
     SEARCH_PHASE_SIMILAR,
     SEARCH_PHASE_SKILLS,
@@ -6244,14 +6245,10 @@ def render_cv_profile_summary(criteria: dict[str, Any], user_profile: dict[str, 
         if active_sectors:
             st.caption(f"**{t('cvprofile.sectors')} :** " + ", ".join(active_sectors))
 
-        geo_mode = user_profile.get("geo_filter_mode", "departement")
+        geo_mode = normalize_geo_filter_mode(user_profile.get("geo_filter_mode"))
         geo_labels = {
             "ville": geo_mode_label("ville"),
             "departement": geo_mode_label("departement", register=True),
-            "rayon": t(
-                "cvprofile.geo_rayon",
-                radius=user_profile.get("search_radius_km", 20),
-            ),
         }
         countries_label = format_countries_summary(user_profile)
         st.caption(
@@ -7688,8 +7685,8 @@ def _submit_register_wizard(draft: dict[str, Any]) -> None:
         all_cities=bool(geo.get("all_cities")),
         country=countries[0],
         contract_type=st.session_state.get("register_wiz_contract", CONTRACT_TYPES[0]),
-        geo_filter_mode=geo_mode,
-        search_radius_km=int(st.session_state.get("register_wiz_radius", 20)),
+        geo_filter_mode=normalize_geo_filter_mode(geo_mode),
+        search_radius_km=20,
         experience_level=st.session_state.get("register_wiz_experience", EXPERIENCE_LEVELS[1]),
         target_sectors=st.session_state.get("register_target_sectors", ["Informatique"]),
         target_job_title=draft.get("target_job", ""),
@@ -7832,20 +7829,12 @@ def _render_auth_register_form() -> None:
             format_func=experience_label,
             key="register_wiz_experience",
         )
-        geo_mode = st.selectbox(
+        st.selectbox(
             t("auth.register.geo_mode"),
             GEO_FILTER_MODES,
             index=1,
             format_func=lambda value: geo_mode_label(value, register=True),
             key="register_wiz_geo_mode",
-        )
-        st.slider(
-            t("auth.register.radius"),
-            5,
-            100,
-            20,
-            disabled=(geo_mode != "rayon"),
-            key="register_wiz_radius",
         )
         st.multiselect(
             t("auth.register.sectors"),
@@ -8396,11 +8385,12 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                     index=exp_index,
                     format_func=experience_label,
                 )
+                stored_geo_mode = normalize_geo_filter_mode(profile.get("geo_filter_mode"))
                 geo_mode = st.selectbox(
                     t("profile.geo_mode"),
                     GEO_FILTER_MODES,
-                    index=GEO_FILTER_MODES.index(profile.get("geo_filter_mode", "departement"))
-                    if profile.get("geo_filter_mode") in GEO_FILTER_MODES
+                    index=GEO_FILTER_MODES.index(stored_geo_mode)
+                    if stored_geo_mode in GEO_FILTER_MODES
                     else 1,
                     format_func=lambda mode: geo_mode_label(mode),
                 )
@@ -8418,13 +8408,7 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                     key=sectors_key,
                     format_func=sector_label,
                 )
-                search_radius = st.slider(
-                    t("profile.radius"),
-                    5,
-                    100,
-                    int(profile.get("search_radius_km") or 20),
-                    disabled=(geo_mode != "rayon"),
-                )
+                search_radius = 20
 
             st.markdown(f"**{t('profile.published_since')}**")
             profile_age_index = (
