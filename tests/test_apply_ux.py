@@ -72,8 +72,10 @@ def test_depth_labels_are_caps_not_guarantees() -> None:
     assert "jusqu'à 25" in fr["depth.rapide"]
     assert "jusqu'à 60" in fr["depth.standard"]
     assert "jusqu'à 100" in fr["depth.complet"]
+    assert "jusqu'à 150" in fr["depth.etendu"]
     assert "up to 25" in en["depth.rapide"]
     assert "up to 100" in en["depth.complet"]
+    assert "up to 150" in en["depth.etendu"]
     assert "plafond" in fr["app.analysis_depth_help"].lower()
 
 

@@ -20,9 +20,9 @@ SEARCH_LOCATION_MAX_WORKERS = 4
 CV_MATCH_TEXT_LIMIT_WITH_PROFILE = 4500
 ATS_MATCH_MAX_TOKENS = 3500
 
-ANALYSIS_DEPTH_OPTIONS = ("rapide", "standard", "complet")
-ANALYSIS_DEPTH_POOL = {"rapide": 25, "standard": 60, "complet": 100}
-ANALYSIS_DEPTH_TOP = {"rapide": 25, "standard": 60, "complet": 100}
+ANALYSIS_DEPTH_OPTIONS = ("rapide", "standard", "complet", "etendu")
+ANALYSIS_DEPTH_POOL = {"rapide": 25, "standard": 60, "complet": 100, "etendu": 150}
+ANALYSIS_DEPTH_TOP = {"rapide": 25, "standard": 60, "complet": 100, "etendu": 150}
 NAV_PAGE_KEYS = ("dashboard", "analysis", "events", "support", "profile")
 EVENTS_TAB_KEYS = ("applications", "history")
 NAV_PAGE_ALIASES = {

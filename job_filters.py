@@ -1514,7 +1514,7 @@ def apply_strict_job_filters(
 ) -> tuple[list[dict[str, Any]], dict[str, int]]:
     """Filter jobs by contract, geography, experience level and sector.
 
-    If ``min_keep`` is set (analysis depth 25/60/100) and the publication-age
+    If ``min_keep`` is set (analysis depth 25/60/100/150) and the publication-age
     filter leaves too few offers, backfill the newest older offers that still
     match zone, contract, level and sector.
     """
