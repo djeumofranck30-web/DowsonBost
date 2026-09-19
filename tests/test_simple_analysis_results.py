@@ -70,6 +70,7 @@ def test_simple_results_locale_keys_exist() -> None:
             "job.apply_auto_ready",
             "job.apply_auto_setup",
             "job.analyze_offer",
+            "job.apply_unexpected",
         ):
             assert key in data, f"missing {key} in {locale}.json"
             assert str(data[key]).strip()
@@ -104,7 +105,7 @@ def test_simple_job_row_styles_exist() -> None:
     assert "render_simple_job_row" in _read("app.py")
     assert "job-match-card-simple" in _read("app.py")
     assert "job-card-company" in _read("app.py")
-    assert 't("job.analyze_offer")' in _read("app.py")
+    assert 'st.expander(t("job.analyze_offer")' in _read("app.py")
     assert 't("job.apply_auto")' in _read("app.py")
     assert 't("job.apply_manual")' in _read("app.py")
     assert "results.prepare_apply" not in _analysis_results_fn()

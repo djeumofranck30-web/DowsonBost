@@ -113,32 +113,8 @@ def _shared_components_css(t: dict[str, str]) -> str:
             padding: 14px 22px !important;
             border-radius: 8px !important;
             cursor: pointer !important;
-            position: relative !important;
-            overflow: hidden !important;
             letter-spacing: 0.01em !important;
             transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease, background 0.16s ease, border-color 0.16s ease !important;
-        }}
-        .stButton > button::after,
-        div[data-testid="stFormSubmitButton"] button::after,
-        .stDownloadButton > button::after,
-        .stLinkButton a::after,
-        [data-testid^="stBaseLinkButton-"]::after {{
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 42%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.38), transparent);
-            transform: translateX(-130%) skewX(-12deg);
-            pointer-events: none;
-        }}
-        .stButton > button:hover::after,
-        div[data-testid="stFormSubmitButton"] button:hover::after,
-        .stDownloadButton > button:hover::after,
-        .stLinkButton a:hover::after,
-        [data-testid^="stBaseLinkButton-"]:hover::after {{
-            animation: db-shine 0.55s ease;
         }}
         .stButton > button:active,
         div[data-testid="stFormSubmitButton"] button:active,
@@ -486,7 +462,7 @@ def _shared_components_css(t: dict[str, str]) -> str:
             pointer-events: none;
         }}
         [data-testid="stAppViewContainer"] {{
-            overflow: hidden !important;
+            overflow: visible !important;
         }}
         [data-testid="stMain"],
         .main {{

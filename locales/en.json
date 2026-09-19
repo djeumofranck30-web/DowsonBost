@@ -456,6 +456,7 @@
   "job.apply_autofill_expander": "Details to paste into the job-site form",
   "job.apply_continue_on_site": "Open {name} and submit the pack",
   "job.apply_auto_running": "Finding the address and sending the application…",
+  "job.apply_unexpected": "Automatic send failed. Try again, or use Apply manually.",
   "job.apply_auto_missing_email": "Add your e-mail in My profile before sending the application.",
   "job.apply_auto_no_recruiter": "No recruiter e-mail found on the listing or via Hunter. Use Apply manually to submit on the job site.",
   "job.apply_auto_hunter_missing": "No address on the listing, and HUNTER_API_KEY is missing from Streamlit secrets. Add it to look up the recruiter e-mail, or use Apply manually.",

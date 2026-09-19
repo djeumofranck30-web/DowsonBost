@@ -3872,41 +3872,45 @@ def _run_auto_apply_action(
         cover_letter_text,
         adapted_cv_text,
     )
-    with st.spinner(t("job.apply_auto_running")):
-        current_letter = st.session_state.get(f"cover_{result_id}") or cover_letter_text
-        current_cv = st.session_state.get(f"adapted_{result_id}") or adapted_cv_text
-        auto_result = submit_application_automatically(
-            cv_text,
-            job,
-            match,
-            user_profile or {},
-            llm_call=call_llm,
-            cover_letter_text=current_letter,
-            adapted_cv_text=current_cv,
-            locale=get_locale(),
-        )
-    if auto_result["success"]:
-        if user_id and result_id:
-            save_generated_documents(
-                user_id,
-                result_id,
-                cover_letter_text=auto_result["cover_letter"],
-                adapted_cv_text=auto_result["adapted_cv"],
+    try:
+        with st.spinner(t("job.apply_auto_running")):
+            current_letter = st.session_state.get(f"cover_{result_id}") or cover_letter_text
+            current_cv = st.session_state.get(f"adapted_{result_id}") or adapted_cv_text
+            auto_result = submit_application_automatically(
+                cv_text,
+                job,
+                match,
+                user_profile or {},
+                llm_call=call_llm,
+                cover_letter_text=current_letter,
+                adapted_cv_text=current_cv,
+                locale=get_locale(),
             )
-            st.session_state[f"cover_{result_id}"] = auto_result["cover_letter"]
-            st.session_state[f"adapted_{result_id}"] = auto_result["adapted_cv"]
-            st.session_state[f"apply_pack_{result_id}"] = auto_result
-            record_application(
-                user_id,
-                result_id,
-                "auto_email",
-                status="applied",
-                notes=auto_result["message"],
-            )
-        st.success(auto_result["message"])
-    else:
-        st.error(auto_result["message"])
-    return auto_result
+        if auto_result["success"]:
+            if user_id and result_id:
+                save_generated_documents(
+                    user_id,
+                    result_id,
+                    cover_letter_text=auto_result["cover_letter"],
+                    adapted_cv_text=auto_result["adapted_cv"],
+                )
+                st.session_state[f"cover_{result_id}"] = auto_result["cover_letter"]
+                st.session_state[f"adapted_{result_id}"] = auto_result["adapted_cv"]
+                st.session_state[f"apply_pack_{result_id}"] = auto_result
+                record_application(
+                    user_id,
+                    result_id,
+                    "auto_email",
+                    status="applied",
+                    notes=auto_result["message"],
+                )
+            st.success(auto_result["message"])
+        else:
+            st.error(auto_result["message"])
+        return auto_result
+    except Exception:  # noqa: BLE001 — keep the page usable if mail/IA fails
+        st.error(t("job.apply_unexpected"))
+        return {"success": False, "message": t("job.apply_unexpected")}
 
 
 def _render_apply_action_buttons(
@@ -3926,6 +3930,23 @@ def _render_apply_action_buttons(
     can_apply = bool(user_id and result_id and cv_text and user_profile)
     action_key = widget_key if widget_key is not None else (result_id or "x")
     applied = False
+    pending = st.session_state.get("_pending_auto_apply") or {}
+    if (
+        pending.get("action_key") == action_key
+        and pending.get("key_prefix") == key_prefix
+    ):
+        st.session_state.pop("_pending_auto_apply", None)
+        auto_result = _run_auto_apply_action(
+            user_id=user_id,
+            result_id=result_id,
+            cv_text=cv_text,
+            job=job,
+            match=match,
+            user_profile=user_profile,
+            cover_letter_text=cover_letter_text,
+            adapted_cv_text=adapted_cv_text,
+        )
+        applied = bool(auto_result.get("success"))
     apply_col1, apply_col2 = st.columns(2)
     with apply_col1:
         if can_apply:
@@ -3936,17 +3957,11 @@ def _render_apply_action_buttons(
                 use_container_width=True,
                 help=t("job.apply_auto_help"),
             ):
-                auto_result = _run_auto_apply_action(
-                    user_id=user_id,
-                    result_id=result_id,
-                    cv_text=cv_text,
-                    job=job,
-                    match=match,
-                    user_profile=user_profile,
-                    cover_letter_text=cover_letter_text,
-                    adapted_cv_text=adapted_cv_text,
-                )
-                applied = bool(auto_result.get("success"))
+                st.session_state["_pending_auto_apply"] = {
+                    "action_key": action_key,
+                    "key_prefix": key_prefix,
+                }
+                st.rerun()
         else:
             st.button(
                 t("job.apply_auto"),
@@ -4078,17 +4093,8 @@ def render_simple_job_row(
     user_profile: dict[str, Any] | None = None,
 ) -> None:
     """LinkedIn-style analysis card: title, company, location, tags, apply."""
-    details_key = f"simple_job_open_{result_id or rank}"
-    show_details = bool(st.session_state.get(details_key))
     _render_job_offer_card_html(job, match, rank, simple=True, kicker=f"#{rank}")
-    if st.button(
-        t("job.hide_details") if show_details else t("job.analyze_offer"),
-        key=f"toggle_{details_key}",
-        use_container_width=True,
-    ):
-        st.session_state[details_key] = not show_details
-        st.rerun()
-    if show_details:
+    with st.expander(t("job.analyze_offer"), expanded=False):
         if match.get("synthese_ats"):
             st.caption(match["synthese_ats"])
         chips = (
@@ -5136,19 +5142,30 @@ def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None
         f"""
 <script>
 (function() {{
+  try {{
   const doc = window.parent.document;
+  if (!doc || !doc.body) return;
   const label = {help_label};
   const unread = {unread_n};
   const svg = '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M18 21h28a5 5 0 0 1 5 5v18a5 5 0 0 1-5 5H29l-9 7v-7h-2a5 5 0 0 1-5-5V26a5 5 0 0 1 5-5z" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linejoin="round"/></svg>';
   let fab = doc.getElementById("db-chat-fab");
-  if (!fab || fab.tagName !== "BUTTON") {{
-    if (fab) fab.remove();
+  if (!fab) {{
+    fab = doc.createElement("button");
+    fab.id = "db-chat-fab";
+    fab.type = "button";
+    doc.body.appendChild(fab);
+  }} else if (fab.tagName !== "BUTTON") {{
+    fab.id = "db-chat-fab-legacy";
+    fab.style.display = "none";
     fab = doc.createElement("button");
     fab.id = "db-chat-fab";
     fab.type = "button";
     doc.body.appendChild(fab);
   }}
-  fab.innerHTML = svg;
+  if (fab.getAttribute("data-svg") !== "1") {{
+    fab.innerHTML = svg;
+    fab.setAttribute("data-svg", "1");
+  }}
   fab.setAttribute("aria-label", label);
   fab.title = label;
   fab.setAttribute("data-page", {json.dumps(current_page or "")});
@@ -5166,8 +5183,10 @@ def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None
       doc.body.appendChild(badge);
     }}
     badge.textContent = String(unread);
+    badge.style.display = "flex";
   }} else if (badge) {{
-    badge.remove();
+    badge.textContent = "";
+    badge.style.display = "none";
   }}
   let style = doc.getElementById("db-chat-fab-style");
   if (!style) {{
@@ -5233,6 +5252,7 @@ def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None
       }}
     }}
   `;
+  }} catch (err) {{}}
 }})();
 </script>
         """,

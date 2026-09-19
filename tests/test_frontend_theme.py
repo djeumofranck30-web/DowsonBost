@@ -40,6 +40,9 @@ def test_theme_has_saas_buttons_and_motion():
     assert "animation: db-rise" in css
     assert "cursor: pointer !important" in css
     assert "scale(0.98)" in css
+    button_css = css.split("/* —— Buttons")[1].split("/* —— Inputs")[0]
+    assert "overflow: hidden" not in button_css
+    assert "::after" not in button_css
 
 
 def test_admin_and_auth_follow_the_saas_palette():

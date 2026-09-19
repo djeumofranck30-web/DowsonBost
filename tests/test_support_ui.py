@@ -39,6 +39,8 @@ def test_support_is_in_candidate_navigation():
     assert "Messagerie" in fab_fn
     assert "Inbox" in fab_fn
     assert "#E11D48" not in fab_fn
+    assert ".remove()" not in fab_fn
+    assert "display = \"none\"" in fab_fn
 
 
 def test_support_locale_keys_exist():

@@ -35,7 +35,8 @@ def test_analysis_row_renders_auto_and_manual_buttons() -> None:
     at.run()
     assert not at.exception
     labels = [button.label for button in at.button]
-    assert "Analyser l'offre" in labels
+    assert "Analyser l'offre" not in labels
+    assert any("Analyser l'offre" in str(getattr(exp, "label", exp)) for exp in at.expander)
     assert "Postuler automatiquement" in labels
     assert "Trouver l'e-mail recruteur (Hunter)" not in labels
     assert "J'ai postulé" not in labels
@@ -72,6 +73,8 @@ def test_analysis_auto_button_records_email_send() -> None:
     ):
         auto = next(button for button in at.button if button.label == "Postuler automatiquement")
         auto.click().run()
+        if not submit.called:
+            at.run()
     assert not at.exception
     submit.assert_called_once()
     save_docs.assert_called_once()

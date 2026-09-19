@@ -456,6 +456,7 @@
   "job.apply_autofill_expander": "Informations à coller dans le formulaire du site",
   "job.apply_continue_on_site": "Ouvrir {name} et déposer le dossier",
   "job.apply_auto_running": "Recherche de l'adresse et envoi de la candidature…",
+  "job.apply_unexpected": "L'envoi automatique a échoué. Réessayez, ou utilisez « Postuler manuellement ».",
   "job.apply_auto_missing_email": "Complétez l'e-mail dans Mon profil avant d'envoyer la candidature.",
   "job.apply_auto_no_recruiter": "Aucune adresse recruteur trouvée sur l'offre ni via Hunter. Utilisez « Postuler manuellement » pour déposer votre candidature sur le site.",
   "job.apply_auto_hunter_missing": "Aucune adresse dans l'offre, et HUNTER_API_KEY n'est pas dans les secrets Streamlit. Ajoutez-la pour chercher l'e-mail recruteur, ou utilisez « Postuler manuellement ».",
