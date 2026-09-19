@@ -425,6 +425,11 @@ def _standard_job(
     return job
 
 
+SERPAPI_SEARCH_URL = "https://serpapi.com/search.json"
+SERPAPI_TIMEOUT_SEC = 25
+SERPAPI_MAX_ATTEMPTS = 2
+
+
 def _serpapi_country_gl(country: str) -> str:
     mapping = {
         "france": "fr",
@@ -438,6 +443,34 @@ def _serpapi_country_gl(country: str) -> str:
         "etats-unis": "us",
     }
     return mapping.get(_normalize_country_key(country), "fr")
+
+
+def _serpapi_get(
+    params: dict[str, Any],
+    *,
+    timeout: int = SERPAPI_TIMEOUT_SEC,
+) -> dict[str, Any] | None:
+    """GET SerpApi JSON. Timeouts and network errors return None after one retry.
+
+    401/403 still raise so a bad key stays visible in connection tests.
+    Other HTTP errors return None so the rest of the analysis can continue.
+    """
+    for attempt in range(SERPAPI_MAX_ATTEMPTS):
+        try:
+            response = requests.get(SERPAPI_SEARCH_URL, params=params, timeout=timeout)
+            status = getattr(response, "status_code", 0)
+            if status in {401, 403}:
+                response.raise_for_status()
+            if not getattr(response, "ok", False):
+                return None
+            payload = response.json()
+            return payload if isinstance(payload, dict) else None
+        except requests.HTTPError:
+            raise
+        except (requests.RequestException, ValueError, TypeError):
+            if attempt + 1 >= SERPAPI_MAX_ATTEMPTS:
+                return None
+    return None
 
 
 def _wttj_algolia_headers() -> dict[str, str]:
@@ -1328,7 +1361,7 @@ def _search_google_organic(
     api_key: str,
     *,
     num: int = 20,
-) -> list[dict[str, Any]]:
+) -> list[dict[str, Any]] | None:
     params = {
         "engine": "google",
         "q": query.strip(),
@@ -1337,13 +1370,9 @@ def _search_google_organic(
         "gl": _serpapi_country_gl(country),
         "num": num,
     }
-    response = requests.get(
-        "https://serpapi.com/search.json",
-        params=params,
-        timeout=45,
-    )
-    response.raise_for_status()
-    payload = response.json()
+    payload = _serpapi_get(params)
+    if payload is None:
+        return None
     return list(payload.get("organic_results") or [])
 
 
@@ -1634,19 +1663,19 @@ def _search_career_sites_via_google(
     limit: int,
 ) -> list[dict[str, Any]]:
     jobs: list[dict[str, Any]] = []
-    last_error: BaseException | None = None
     for google_query in _career_site_google_queries(query, location):
         try:
             organic = _search_google_organic(google_query, country, api_key)
         except requests.HTTPError as exc:
-            last_error = exc
             status = exc.response.status_code if exc.response is not None else 0
             if status in {401, 403}:
                 raise
-            continue
-        except requests.RequestException as exc:
-            last_error = exc
-            continue
+            break
+        except requests.RequestException:
+            break
+        if organic is None:
+            # SerpApi timed out or was unreachable — do not stack more waits.
+            break
         batch: list[dict[str, Any]] = []
         for item in organic:
             if not isinstance(item, dict):
@@ -1657,8 +1686,6 @@ def _search_career_sites_via_google(
         jobs = merge_job_lists([jobs, batch])
         if len(jobs) >= limit:
             break
-    if not jobs and last_error and isinstance(last_error, requests.HTTPError):
-        raise last_error
     return jobs[:limit]
 
 
@@ -1756,13 +1783,10 @@ def search_jobs_serpapi_google_jobs(
         "hl": "fr",
         "gl": _serpapi_country_gl(country),
     }
-    response = requests.get(
-        "https://serpapi.com/search.json",
-        params=params,
-        timeout=45,
-    )
-    response.raise_for_status()
-    jobs = _parse_serpapi_google_jobs(response.json(), "Google Jobs (SerpApi)")
+    payload = _serpapi_get(params)
+    if not payload:
+        return []
+    jobs = _parse_serpapi_google_jobs(payload, "Google Jobs (SerpApi)")
 
     if source_filter:
         needle = source_filter.lower()
@@ -1858,13 +1882,8 @@ def search_jobs_indeed_serpapi(
         "gl": _serpapi_country_gl(country),
     }
     try:
-        response = requests.get(
-            "https://serpapi.com/search.json",
-            params=params,
-            timeout=45,
-        )
-        if response.ok:
-            data = response.json()
+        data = _serpapi_get(params)
+        if data:
             results = data.get("jobs_results") or data.get("organic_results") or []
             jobs: list[dict[str, Any]] = []
             for item in results:

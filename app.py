@@ -2644,9 +2644,12 @@ def search_jobs_with_fallback(
         if not q_try or key in seen:
             continue
         seen.add(key)
-        jobs = search_jobs(
-            provider, q_try, loc_try, country, contract_type, max_age_days=max_age_days
-        )
+        try:
+            jobs = search_jobs(
+                provider, q_try, loc_try, country, contract_type, max_age_days=max_age_days
+            )
+        except (RuntimeError, requests.RequestException):
+            continue
         if jobs:
             return {
                 "jobs": jobs,
@@ -2738,7 +2741,10 @@ def _search_jobs_at_country_locations(
                 for loc in location_iter
             ]
             for future in as_completed(futures):
-                result = future.result()
+                try:
+                    result = future.result()
+                except (RuntimeError, requests.RequestException):
+                    continue
                 if result.get("jobs"):
                     merged = merge_job_lists([merged, result["jobs"]])
                     query_used = result.get("query_used") or query_used
@@ -3006,7 +3012,7 @@ def _search_all_providers_with_fallback(
                     contract_type,
                     max_age_days=max_age_days,
                 )
-            except (RuntimeError, requests.HTTPError):
+            except (RuntimeError, requests.RequestException):
                 continue
             if batch:
                 used.append(engine)
