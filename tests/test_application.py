@@ -41,7 +41,7 @@ def test_auto_apply_readiness_lists_missing_secrets(
     status = auto_apply_readiness()
     assert status["ready"] is False
     assert "HUNTER_API_KEY" in status["missing"]
-    assert any("RESEND" in item for item in status["missing"])
+    assert any("SMTP" in item or "BREVO" in item for item in status["missing"])
 
 
 def test_extract_apply_email_prefers_recruitment_address():

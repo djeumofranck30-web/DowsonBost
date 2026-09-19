@@ -5,7 +5,11 @@ from __future__ import annotations
 from unittest.mock import patch
 
 from email_service import (
+    _from_header,
+    email_configured,
     send_application_confirmation_email,
+    send_alert_email,
+    send_application_email,
     send_password_reset_code_email,
     send_welcome_email,
 )
@@ -72,3 +76,65 @@ def test_send_welcome_email_requires_configuration(_configured: object):
     ok, message = send_welcome_email("a@b.com", "A", "http://x/", locale="fr")
     assert ok is False
     assert message
+
+
+def test_email_configured_accepts_gmail_smtp(monkeypatch):
+    monkeypatch.setattr("email_service._get_secret", lambda name: {
+        "SMTP_HOST": "smtp.gmail.com",
+        "SMTP_USER": "me@gmail.com",
+        "SMTP_PASSWORD": "abcd efgh ijkl mnop",
+    }.get(name, ""))
+    assert email_configured() is True
+
+
+def test_email_configured_accepts_brevo(monkeypatch):
+    monkeypatch.setattr("email_service._get_secret", lambda name: {
+        "BREVO_API_KEY": "xkeysib-test",
+        "EMAIL_FROM": "DowsonBost <me@gmail.com>",
+    }.get(name, ""))
+    assert email_configured() is True
+
+
+def test_from_header_uses_gmail_address(monkeypatch):
+    monkeypatch.setattr("email_service._get_secret", lambda name: {
+        "SMTP_USER": "me@gmail.com",
+        "SMTP_FROM": "DowsonBost <me@gmail.com>",
+    }.get(name, ""))
+    assert "me@gmail.com" in _from_header()
+
+
+@patch("email_service.requests.post")
+def test_send_alert_email_uses_brevo_when_no_resend(mocked_post, monkeypatch):
+    mocked_post.return_value.status_code = 201
+    mocked_post.return_value.text = "{}"
+    monkeypatch.setattr("email_service._get_secret", lambda name: {
+        "BREVO_API_KEY": "xkeysib-test",
+        "EMAIL_FROM": "DowsonBost <me@gmail.com>",
+    }.get(name, ""))
+    ok, message = send_alert_email("jane@example.com", "Sujet", "<p>Hi</p>", locale="fr")
+    assert ok is True
+    assert "Brevo" in message
+    assert mocked_post.call_args.args[0] == "https://api.brevo.com/v3/smtp/email"
+
+
+@patch("email_service.smtplib.SMTP")
+def test_send_application_email_uses_gmail_smtp(mocked_smtp, monkeypatch):
+    server = mocked_smtp.return_value.__enter__.return_value
+    monkeypatch.setattr("email_service._get_secret", lambda name: {
+        "SMTP_HOST": "smtp.gmail.com",
+        "SMTP_PORT": "587",
+        "SMTP_USER": "me@gmail.com",
+        "SMTP_PASSWORD": "app-pass",
+        "SMTP_FROM": "DowsonBost <me@gmail.com>",
+    }.get(name, ""))
+    ok, message = send_application_email(
+        "recrutement@acme.fr",
+        "Candidature",
+        "Bonjour",
+        locale="fr",
+    )
+    assert ok is True
+    server.starttls.assert_called_once()
+    server.login.assert_called_once_with("me@gmail.com", "app-pass")
+    server.sendmail.assert_called_once()
+    assert server.sendmail.call_args.args[0] == "me@gmail.com"

@@ -74,7 +74,7 @@ def auto_apply_readiness() -> dict[str, Any]:
     if not hunter:
         missing.append("HUNTER_API_KEY")
     if not mail:
-        missing.append("RESEND_API_KEY ou SMTP_HOST + SMTP_USER")
+        missing.append("SMTP Gmail (SMTP_HOST / SMTP_USER / SMTP_PASSWORD) ou BREVO_API_KEY")
     if not llm:
         missing.append("GROQ_API_KEY / GEMINI_API_KEY / OPENAI_API_KEY")
     return {

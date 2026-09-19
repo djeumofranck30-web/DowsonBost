@@ -228,7 +228,8 @@ def test_hunter_ui_and_secret_hooks() -> None:
     assert "resolve_apply_email" in (ROOT / "services/application.py").read_text(encoding="utf-8")
     secrets = (ROOT / ".streamlit/secrets.toml.example").read_text(encoding="utf-8")
     assert "HUNTER_API_KEY" in secrets
-    assert "RESEND_API_KEY" in secrets
+    assert "SMTP_HOST" in secrets
+    assert "smtp.gmail.com" in secrets
     assert not secrets.split("HUNTER_API_KEY")[0].rstrip().endswith("#")
     config = (ROOT / "config.py").read_text(encoding="utf-8")
     assert "HUNTER_API_KEY" in config

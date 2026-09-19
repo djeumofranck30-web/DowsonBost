@@ -8,6 +8,7 @@ import smtplib
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.utils import formataddr, parseaddr
 from typing import Any
 
 import requests
@@ -17,17 +18,237 @@ from i18n import get_locale, t
 
 from config import get_secret
 
+BREVO_SMTP_URL = "https://api.brevo.com/v3/smtp/email"
+
 
 def _get_secret(name: str) -> str:
     return get_secret(name, "")
 
 
+def _parse_mailbox(value: str) -> tuple[str, str]:
+    name, email = parseaddr((value or "").strip())
+    return name.strip(), email.strip()
+
+
+def _from_header() -> str:
+    raw = (
+        _get_secret("EMAIL_FROM")
+        or _get_secret("SMTP_FROM")
+        or _get_secret("SMTP_USER")
+        or "DowsonBost"
+    )
+    name, email = _parse_mailbox(raw)
+    if not email or "@" not in email:
+        fallback = _get_secret("SMTP_USER")
+        name, email = _parse_mailbox(fallback)
+    if not email or "@" not in email:
+        return raw
+    return formataddr((name or "DowsonBost", email))
+
+
+def _from_email() -> str:
+    _, email = _parse_mailbox(_from_header())
+    return email
+
+
 def email_configured() -> bool:
-    if _get_secret("RESEND_API_KEY"):
+    if _get_secret("RESEND_API_KEY") or _get_secret("BREVO_API_KEY"):
         return True
-    host = _get_secret("SMTP_HOST")
-    user = _get_secret("SMTP_USER")
-    return bool(host and user)
+    return bool(
+        _get_secret("SMTP_HOST")
+        and _get_secret("SMTP_USER")
+        and _get_secret("SMTP_PASSWORD")
+    )
+
+
+def _attachment_bytes(content: str | bytes) -> bytes:
+    if isinstance(content, bytes):
+        return content
+    return content.encode("utf-8")
+
+
+def _send_via_resend(
+    *,
+    to_email: str,
+    subject: str,
+    html_body: str,
+    text_body: str,
+    attachments: list[tuple[str, str | bytes, str]],
+    reply_to: str | None,
+    locale: str,
+) -> tuple[bool, str]:
+    key = _get_secret("RESEND_API_KEY")
+    payload: dict[str, Any] = {
+        "from": _from_header(),
+        "to": [to_email],
+        "subject": subject,
+        "html": html_body or None,
+        "text": text_body or t("email.text_fallback", locale=locale),
+    }
+    if not html_body:
+        payload.pop("html", None)
+    if reply_to:
+        payload["reply_to"] = reply_to
+    if attachments:
+        payload["attachments"] = [
+            {
+                "filename": filename,
+                "content": base64.b64encode(_attachment_bytes(content)).decode("ascii"),
+            }
+            for filename, content, _mime in attachments
+        ]
+    try:
+        response = requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {key}",
+                "Content-Type": "application/json",
+            },
+            json={k: v for k, v in payload.items() if v is not None},
+            timeout=30,
+        )
+    except requests.RequestException as exc:
+        return False, str(exc)
+    if response.status_code >= 400:
+        return False, f"Resend {response.status_code}: {response.text[:200]}"
+    return True, t("email.sent_resend", locale=locale)
+
+
+def _send_via_brevo(
+    *,
+    to_email: str,
+    subject: str,
+    html_body: str,
+    text_body: str,
+    attachments: list[tuple[str, str | bytes, str]],
+    reply_to: str | None,
+    locale: str,
+) -> tuple[bool, str]:
+    key = _get_secret("BREVO_API_KEY")
+    from_name, from_email = _parse_mailbox(_from_header())
+    if not from_email:
+        return False, t("email.not_configured", locale=locale)
+    payload: dict[str, Any] = {
+        "sender": {"name": from_name or "DowsonBost", "email": from_email},
+        "to": [{"email": to_email}],
+        "subject": subject,
+        "textContent": text_body or t("email.text_fallback", locale=locale),
+    }
+    if html_body:
+        payload["htmlContent"] = html_body
+    if reply_to:
+        payload["replyTo"] = {"email": reply_to}
+    if attachments:
+        payload["attachment"] = [
+            {
+                "name": filename,
+                "content": base64.b64encode(_attachment_bytes(content)).decode("ascii"),
+            }
+            for filename, content, _mime in attachments
+        ]
+    try:
+        response = requests.post(
+            BREVO_SMTP_URL,
+            headers={
+                "accept": "application/json",
+                "content-type": "application/json",
+                "api-key": key,
+            },
+            json=payload,
+            timeout=30,
+        )
+    except requests.RequestException as exc:
+        return False, str(exc)
+    if response.status_code >= 400:
+        return False, f"Brevo {response.status_code}: {response.text[:200]}"
+    return True, t("email.sent_brevo", locale=locale)
+
+
+def _send_via_smtp(
+    *,
+    to_email: str,
+    subject: str,
+    html_body: str,
+    text_body: str,
+    attachments: list[tuple[str, str | bytes, str]],
+    reply_to: str | None,
+    locale: str,
+) -> tuple[bool, str]:
+    smtp_host = _get_secret("SMTP_HOST")
+    smtp_port = int(_get_secret("SMTP_PORT") or "587")
+    smtp_user = _get_secret("SMTP_USER")
+    smtp_password = _get_secret("SMTP_PASSWORD")
+    from_header = _from_header()
+    envelope = _from_email() or smtp_user
+    if not smtp_host or not smtp_user:
+        return False, t("email.not_configured", locale=locale)
+
+    if attachments:
+        message: MIMEMultipart = MIMEMultipart("mixed")
+        body_part = MIMEMultipart("alternative")
+        body_part.attach(MIMEText(text_body or t("email.text_fallback", locale=locale), "plain", "utf-8"))
+        if html_body:
+            body_part.attach(MIMEText(html_body, "html", "utf-8"))
+        message.attach(body_part)
+        for filename, content, mime in attachments:
+            raw = _attachment_bytes(content)
+            if (mime or "").startswith("application/pdf") or str(filename).lower().endswith(".pdf"):
+                part = MIMEApplication(raw, _subtype="pdf")
+                part.add_header("Content-Disposition", "attachment", filename=filename)
+            else:
+                part = MIMEText(raw.decode("utf-8"), "plain", "utf-8")
+                part.add_header("Content-Disposition", f'attachment; filename="{filename}"')
+            message.attach(part)
+    else:
+        message = MIMEMultipart("alternative")
+        message.attach(MIMEText(text_body or t("email.text_fallback", locale=locale), "plain", "utf-8"))
+        if html_body:
+            message.attach(MIMEText(html_body, "html", "utf-8"))
+
+    message["Subject"] = subject
+    message["From"] = from_header
+    message["To"] = to_email
+    if reply_to:
+        message["Reply-To"] = reply_to
+
+    try:
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as server:
+            server.starttls()
+            if smtp_password:
+                server.login(smtp_user, smtp_password)
+            server.sendmail(envelope, [to_email], message.as_string())
+        return True, t("email.sent_smtp", locale=locale)
+    except smtplib.SMTPException as exc:
+        return False, str(exc)
+
+
+def _deliver_email(
+    to_email: str,
+    subject: str,
+    *,
+    html_body: str = "",
+    text_body: str = "",
+    attachments: list[tuple[str, str | bytes, str]] | None = None,
+    reply_to: str | None = None,
+    locale: str = "fr",
+) -> tuple[bool, str]:
+    files = attachments or []
+    kwargs = {
+        "to_email": to_email,
+        "subject": subject,
+        "html_body": html_body,
+        "text_body": text_body,
+        "attachments": files,
+        "reply_to": reply_to,
+        "locale": locale,
+    }
+    if _get_secret("RESEND_API_KEY"):
+        return _send_via_resend(**kwargs)
+    if _get_secret("BREVO_API_KEY"):
+        return _send_via_brevo(**kwargs)
+    if _get_secret("SMTP_HOST") and _get_secret("SMTP_USER"):
+        return _send_via_smtp(**kwargs)
+    return False, t("email.not_configured", locale=locale)
 
 
 def build_alert_html(
@@ -72,61 +293,15 @@ def send_alert_email(
     text_body: str = "",
     locale: str | None = None,
 ) -> tuple[bool, str]:
-    """Send alert email via Resend or SMTP."""
+    """Send alert email via Gmail SMTP, Brevo or Resend."""
     lang = locale or get_locale()
-    resend_key = _get_secret("RESEND_API_KEY")
-    from_resend = _get_secret("EMAIL_FROM") or "DowsonBost <onboarding@resend.dev>"
-
-    if resend_key:
-        try:
-            response = requests.post(
-                "https://api.resend.com/emails",
-                headers={
-                    "Authorization": f"Bearer {resend_key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "from": from_resend,
-                    "to": [to_email],
-                    "subject": subject,
-                    "html": html_body,
-                    "text": text_body or t("email.text_fallback", locale=lang),
-                },
-                timeout=30,
-            )
-            if response.status_code >= 400:
-                return False, f"Resend {response.status_code}: {response.text[:200]}"
-            return True, t("email.sent_resend", locale=lang)
-        except requests.RequestException as exc:
-            return False, str(exc)
-
-    smtp_host = _get_secret("SMTP_HOST")
-    smtp_port = int(_get_secret("SMTP_PORT") or "587")
-    smtp_user = _get_secret("SMTP_USER")
-    smtp_password = _get_secret("SMTP_PASSWORD")
-    smtp_from = _get_secret("SMTP_FROM") or smtp_user
-
-    if not smtp_host or not smtp_user:
-        return False, t("email.not_configured", locale=lang)
-
-    message = MIMEMultipart("alternative")
-    message["Subject"] = subject
-    message["From"] = smtp_from
-    message["To"] = to_email
-    message.attach(
-        MIMEText(text_body or t("email.text_fallback", locale=lang), "plain", "utf-8")
+    return _deliver_email(
+        to_email,
+        subject,
+        html_body=html_body,
+        text_body=text_body,
+        locale=lang,
     )
-    message.attach(MIMEText(html_body, "html", "utf-8"))
-
-    try:
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as server:
-            server.starttls()
-            if smtp_password:
-                server.login(smtp_user, smtp_password)
-            server.sendmail(smtp_from, [to_email], message.as_string())
-        return True, t("email.sent_smtp", locale=lang)
-    except smtplib.SMTPException as exc:
-        return False, str(exc)
 
 
 def maybe_send_analysis_alert(
@@ -163,12 +338,6 @@ def maybe_send_analysis_alert(
     return send_alert_email(user_email, subject, html, locale=lang)
 
 
-def _attachment_bytes(content: str | bytes) -> bytes:
-    if isinstance(content, bytes):
-        return content
-    return content.encode("utf-8")
-
-
 def send_application_email(
     to_email: str,
     subject: str,
@@ -180,82 +349,17 @@ def send_application_email(
 ) -> tuple[bool, str]:
     """Send a job application e-mail with optional text or PDF attachments."""
     lang = locale or get_locale()
-    resend_key = _get_secret("RESEND_API_KEY")
-    from_resend = _get_secret("EMAIL_FROM") or "DowsonBost <onboarding@resend.dev>"
-    attachment_items = attachments or []
-
-    if resend_key:
-        try:
-            payload: dict[str, Any] = {
-                "from": from_resend,
-                "to": [to_email],
-                "subject": subject,
-                "text": body_text,
-            }
-            if reply_to:
-                payload["reply_to"] = reply_to
-            if attachment_items:
-                payload["attachments"] = [
-                    {
-                        "filename": filename,
-                        "content": base64.b64encode(_attachment_bytes(content)).decode("ascii"),
-                    }
-                    for filename, content, _mime in attachment_items
-                ]
-            response = requests.post(
-                "https://api.resend.com/emails",
-                headers={
-                    "Authorization": f"Bearer {resend_key}",
-                    "Content-Type": "application/json",
-                },
-                json=payload,
-                timeout=30,
-            )
-            if response.status_code >= 400:
-                return False, f"Resend {response.status_code}: {response.text[:200]}"
-            return True, t("email.application_sent", locale=lang)
-        except requests.RequestException as exc:
-            return False, str(exc)
-
-    smtp_host = _get_secret("SMTP_HOST")
-    smtp_port = int(_get_secret("SMTP_PORT") or "587")
-    smtp_user = _get_secret("SMTP_USER")
-    smtp_password = _get_secret("SMTP_PASSWORD")
-    smtp_from = _get_secret("SMTP_FROM") or smtp_user
-
-    if not smtp_host or not smtp_user:
-        return False, t("email.not_configured", locale=lang)
-
-    message = MIMEMultipart("mixed")
-    message["Subject"] = subject
-    message["From"] = smtp_from
-    message["To"] = to_email
-    if reply_to:
-        message["Reply-To"] = reply_to
-
-    body_part = MIMEMultipart("alternative")
-    body_part.attach(MIMEText(body_text, "plain", "utf-8"))
-    message.attach(body_part)
-
-    for filename, content, mime in attachment_items:
-        raw = _attachment_bytes(content)
-        if (mime or "").startswith("application/pdf") or str(filename).lower().endswith(".pdf"):
-            part = MIMEApplication(raw, _subtype="pdf")
-            part.add_header("Content-Disposition", "attachment", filename=filename)
-        else:
-            part = MIMEText(raw.decode("utf-8"), "plain", "utf-8")
-            part.add_header("Content-Disposition", f'attachment; filename="{filename}"')
-        message.attach(part)
-
-    try:
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as server:
-            server.starttls()
-            if smtp_password:
-                server.login(smtp_user, smtp_password)
-            server.sendmail(smtp_from, [to_email], message.as_string())
+    ok, detail = _deliver_email(
+        to_email,
+        subject,
+        text_body=body_text,
+        attachments=attachments,
+        reply_to=reply_to,
+        locale=lang,
+    )
+    if ok:
         return True, t("email.application_sent", locale=lang)
-    except smtplib.SMTPException as exc:
-        return False, str(exc)
+    return False, detail
 
 
 def send_password_reset_code_email(

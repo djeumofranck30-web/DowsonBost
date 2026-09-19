@@ -75,6 +75,13 @@ def export_streamlit_secrets_to_environ() -> int:
         "CAREERJET_API_KEY",
         "APIFY_API_TOKEN",
         "RESEND_API_KEY",
+        "BREVO_API_KEY",
+        "EMAIL_FROM",
+        "SMTP_HOST",
+        "SMTP_PORT",
+        "SMTP_USER",
+        "SMTP_PASSWORD",
+        "SMTP_FROM",
         *(
             f"{prefix}_{index}"
             for prefix in ("GROQ_API_KEY", "GEMINI_API_KEY", "OPENAI_API_KEY")
