@@ -259,16 +259,21 @@ def test_indeed_thales_listing_uses_hunter_company_domain() -> None:
             ],
         }
     }
+    class _Empty:
+        status_code = 200
+        text = "<html><body>Postuler en ligne</body></html>"
+
     with (
-        patch("services.application.requests.get") as page,
+        patch("services.application.requests.get", return_value=_Empty()) as page,
         patch("services.hunter.hunter_api_key", return_value="hunter-test"),
         patch("services.hunter._hunter_get", return_value=payload) as hunter,
     ):
         assert extract_apply_email(job) is None
         assert resolve_apply_email(job) == "recrutement@thalesgroup.com"
-    page.assert_not_called()
     assert hunter.call_count >= 1
     assert hunter.call_args_list[0].args[0]["domain"] == "thalesgroup.com"
+    assert page.call_count >= 1
+    assert any("thalesgroup.com" in str(call.args[0]) for call in page.call_args_list)
     clear_hunter_cache()
 
 

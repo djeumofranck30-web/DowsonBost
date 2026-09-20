@@ -11,6 +11,15 @@ from urllib.parse import urlparse
 
 import requests
 
+from priority_employers import (
+    career_company_names,
+    career_hosts,
+    employer_google_terms,
+    greenhouse_tokens,
+    lever_slugs,
+    smartrecruiters_companies,
+)
+
 JOB_PROVIDER_ADZUNA = "adzuna"
 JOB_PROVIDER_SERPAPI = "serpapi"
 JOB_PROVIDER_WTTJ = "wttj"
@@ -1040,104 +1049,62 @@ ATS_HOST_FRAGMENTS: tuple[str, ...] = (
     "phenom.com",
 )
 
-COMPANY_CAREER_HOSTS: tuple[str, ...] = (
-    "careers.societegenerale.com",
-    "emplois.societegenerale.com",
-    "jobs.atos.net",
-    "careers.atos.net",
-    "group.bnpparibas.com",
-    "jobs.capgemini.com",
-    "orange.jobs",
-    "careers.airbus.com",
-    "careers.thalesgroup.com",
+_LEGACY_COMPANY_CAREER_HOSTS: tuple[str, ...] = (
     "careers.loreal.com",
-    "jobs.engie.com",
-    "careers.axa.com",
-    "jobs.totalenergies.com",
-    "careers.sanofi.com",
-    "careers.stellantis.com",
-    "jobs.michelin.com",
     "jobs.airfrance.com",
     "careers.accor.com",
-    "jobs.veolia.com",
-    "recrute.edf.fr",
-    "emplois.sncf.com",
-    "laposterecrute.fr",
-    "careers.ovhcloud.com",
-    "amazon.jobs",
 )
 
-COMPANY_CAREER_COMPANY_NAMES: dict[str, str] = {
-    "careers.societegenerale.com": "Société Générale",
-    "emplois.societegenerale.com": "Société Générale",
-    "jobs.atos.net": "Atos",
-    "careers.atos.net": "Atos",
-    "group.bnpparibas.com": "BNP Paribas",
-    "jobs.capgemini.com": "Capgemini",
-    "orange.jobs": "Orange",
-    "careers.airbus.com": "Airbus",
-    "careers.thalesgroup.com": "Thales",
+COMPANY_CAREER_HOSTS: tuple[str, ...] = tuple(
+    dict.fromkeys((*career_hosts(), *_LEGACY_COMPANY_CAREER_HOSTS))
+)
+
+_LEGACY_CAREER_COMPANY_NAMES: dict[str, str] = {
     "careers.loreal.com": "L'Oréal",
-    "jobs.engie.com": "Engie",
-    "careers.axa.com": "AXA",
-    "jobs.totalenergies.com": "TotalEnergies",
-    "careers.sanofi.com": "Sanofi",
-    "careers.stellantis.com": "Stellantis",
-    "jobs.michelin.com": "Michelin",
     "jobs.airfrance.com": "Air France",
     "careers.accor.com": "Accor",
-    "jobs.veolia.com": "Veolia",
-    "recrute.edf.fr": "EDF",
-    "emplois.sncf.com": "SNCF",
-    "laposterecrute.fr": "La Poste",
-    "careers.ovhcloud.com": "OVHcloud",
-    "amazon.jobs": "Amazon",
+}
+
+COMPANY_CAREER_COMPANY_NAMES: dict[str, str] = {
+    **_LEGACY_CAREER_COMPANY_NAMES,
+    **career_company_names(),
 }
 
 # Public job-board tokens (Greenhouse / Lever / SmartRecruiters) queried directly,
 # so career-site search still runs when SerpApi is missing.
-GREENHOUSE_BOARD_TOKENS: tuple[tuple[str, str], ...] = (
+_LEGACY_GREENHOUSE_BOARD_TOKENS: tuple[tuple[str, str], ...] = (
     ("datadog", "Datadog"),
     ("stripe", "Stripe"),
-    ("doctolib", "Doctolib"),
-    ("mirakl", "Mirakl"),
     ("dashlane", "Dashlane"),
     ("algolia", "Algolia"),
     ("shifttechnology", "Shift Technology"),
 )
 
-LEVER_COMPANY_SLUGS: tuple[tuple[str, str], ...] = (
-    ("ledger", "Ledger"),
-    ("qonto", "Qonto"),
+GREENHOUSE_BOARD_TOKENS: tuple[tuple[str, str], ...] = tuple(
+    dict.fromkeys((*greenhouse_tokens(), *_LEGACY_GREENHOUSE_BOARD_TOKENS))
 )
 
-SMARTRECRUITERS_COMPANIES: tuple[tuple[str, str], ...] = (
-    ("thales", "Thales"),
+_LEGACY_LEVER_COMPANY_SLUGS: tuple[tuple[str, str], ...] = (
+    ("ledger", "Ledger"),
+)
+
+LEVER_COMPANY_SLUGS: tuple[tuple[str, str], ...] = tuple(
+    dict.fromkeys((*lever_slugs(), *_LEGACY_LEVER_COMPANY_SLUGS))
+)
+
+_LEGACY_SMARTRECRUITERS_COMPANIES: tuple[tuple[str, str], ...] = (
     ("LOrealGroup", "L'Oréal"),
+)
+
+SMARTRECRUITERS_COMPANIES: tuple[tuple[str, str], ...] = tuple(
+    dict.fromkeys((*smartrecruiters_companies(), *_LEGACY_SMARTRECRUITERS_COMPANIES))
 )
 
 DIRECT_ATS_MAX_WORKERS = 10
 DIRECT_ATS_PER_BOARD = 8
+CAREER_GOOGLE_QUERY_CAP = 6
 
-MAJOR_EMPLOYER_SEARCH_TERMS = (
-    '"Société Générale"',
-    "Atos",
-    '"BNP Paribas"',
-    "Capgemini",
-    "Orange",
-    "Airbus",
-    "Thales",
-    "\"L'Oréal\"",
-    "Engie",
-    "AXA",
-    "TotalEnergies",
-    "Sanofi",
-    "Renault",
-    "Stellantis",
-    '"Crédit Agricole"',
-    "SNCF",
-    "EDF",
-)
+MAJOR_EMPLOYER_SEARCH_TERMS = employer_google_terms()
 
 JOB_BOARD_EXCLUSION_HOSTS: tuple[str, ...] = (
     "indeed.com",
@@ -1336,23 +1303,42 @@ def _job_from_google_organic(
     )
 
 
+def _chunk_search_terms(terms: list[str], *, max_chars: int = 1400) -> list[list[str]]:
+    chunks: list[list[str]] = []
+    current: list[str] = []
+    size = 0
+    for term in terms:
+        extra = len(term) + (4 if current else 0)
+        if current and size + extra > max_chars:
+            chunks.append(current)
+            current = [term]
+            size = len(term)
+        else:
+            current.append(term)
+            size += extra
+    if current:
+        chunks.append(current)
+    return chunks
+
+
 def _career_site_google_queries(query: str, location: str) -> list[str]:
     q = query.strip()
     geo = f" {location.strip()}" if location.strip() else ""
     ats = " OR ".join(f"site:{host}" for host in CAREER_ATS_HOSTS)
     excluded = " ".join(f"-site:{host}" for host in JOB_BOARD_EXCLUSION_HOSTS[:14])
-    employers = " OR ".join(MAJOR_EMPLOYER_SEARCH_TERMS)
     queries = [f"{q}{geo} ({ats})"]
+    for chunk in _chunk_search_terms(list(MAJOR_EMPLOYER_SEARCH_TERMS))[:3]:
+        employers = " OR ".join(chunk)
+        queries.append(
+            f"{q}{geo} ({employers}) "
+            f"(inurl:careers OR inurl:carriere OR inurl:recrutement OR inurl:emploi) "
+            f"{excluded}"
+        )
     hosts = list(COMPANY_CAREER_HOSTS)
     for start in range(0, len(hosts), 12):
         chunk = hosts[start : start + 12]
         company_sites = " OR ".join(f"site:{host}" for host in chunk)
         queries.append(f"{q}{geo} ({company_sites})")
-    queries.append(
-        f"{q}{geo} ({employers}) "
-        f"(inurl:careers OR inurl:carriere OR inurl:recrutement OR inurl:emploi) "
-        f"{excluded}"
-    )
     return queries
 
 
@@ -1665,7 +1651,7 @@ def _search_career_sites_via_google(
 ) -> list[dict[str, Any]]:
     jobs: list[dict[str, Any]] = []
     for index, google_query in enumerate(_career_site_google_queries(query, location)):
-        if index >= 3:
+        if index >= CAREER_GOOGLE_QUERY_CAP:
             break
         try:
             organic = _search_google_organic(google_query, country, api_key)

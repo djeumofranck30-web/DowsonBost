@@ -13,8 +13,15 @@ from urllib.parse import urlparse
 import requests
 
 from config import get_secret
+from priority_employers import (
+    career_host_mail_domains,
+    generic_hr_local_parts,
+    mailbox_domain_for_company,
+    match_priority_employer,
+)
 
 HUNTER_DOMAIN_SEARCH_URL = "https://api.hunter.io/v2/domain-search"
+HUNTER_EMAIL_VERIFIER_URL = "https://api.hunter.io/v2/email-verifier"
 
 _PRIORITY_LOCAL_PARTS = (
     "recrutement",
@@ -113,65 +120,26 @@ _CAREER_HOST_PREFIXES = {
     "group",
 }
 
-# Career portals whose first label is not the company mailbox domain.
-CAREER_HOST_MAIL_DOMAINS: dict[str, str] = {
-    "careers.thalesgroup.com": "thalesgroup.com",
-    "jobs.thalesgroup.com": "thalesgroup.com",
-    "emploi.thalesgroup.com": "thalesgroup.com",
-    "careers.airbus.com": "airbus.com",
+_LEGACY_CAREER_HOST_MAIL_DOMAINS: dict[str, str] = {
     "careers.loreal.com": "loreal.com",
-    "careers.societegenerale.com": "societegenerale.com",
-    "emplois.societegenerale.com": "societegenerale.com",
-    "jobs.atos.net": "atos.net",
-    "careers.atos.net": "atos.net",
-    "group.bnpparibas.com": "bnpparibas.com",
-    "jobs.capgemini.com": "capgemini.com",
-    "orange.jobs": "orange.com",
-    "jobs.engie.com": "engie.com",
-    "careers.axa.com": "axa.com",
-    "jobs.totalenergies.com": "totalenergies.com",
-    "careers.sanofi.com": "sanofi.com",
-    "careers.stellantis.com": "stellantis.com",
-    "jobs.michelin.com": "michelin.com",
     "jobs.airfrance.com": "airfrance.fr",
     "careers.accor.com": "accor.com",
-    "jobs.veolia.com": "veolia.com",
-    "recrute.edf.fr": "edf.fr",
-    "emplois.sncf.com": "sncf.com",
-    "laposterecrute.fr": "laposte.fr",
-    "careers.ovhcloud.com": "ovhcloud.com",
-    "amazon.jobs": "amazon.com",
 }
 
-COMPANY_MAIL_DOMAINS: dict[str, str] = {
-    "thales": "thalesgroup.com",
-    "thales group": "thalesgroup.com",
-    "thalesgroup": "thalesgroup.com",
+CAREER_HOST_MAIL_DOMAINS: dict[str, str] = {
+    **_LEGACY_CAREER_HOST_MAIL_DOMAINS,
+    **career_host_mail_domains(),
+}
+
+_LEGACY_COMPANY_MAIL_DOMAINS: dict[str, str] = {
     "thales alenia space": "thalesaleniaspace.com",
-    "airbus": "airbus.com",
     "l'oreal": "loreal.com",
     "loreal": "loreal.com",
-    "societe generale": "societegenerale.com",
-    "bnp paribas": "bnpparibas.com",
-    "capgemini": "capgemini.com",
-    "orange": "orange.com",
-    "atos": "atos.net",
-    "engie": "engie.com",
-    "axa": "axa.com",
-    "totalenergies": "totalenergies.com",
-    "sanofi": "sanofi.com",
-    "stellantis": "stellantis.com",
-    "michelin": "michelin.com",
     "air france": "airfrance.fr",
     "accor": "accor.com",
-    "veolia": "veolia.com",
-    "edf": "edf.fr",
-    "sncf": "sncf.com",
-    "la poste": "laposte.fr",
-    "ovhcloud": "ovhcloud.com",
-    "ovh": "ovh.com",
-    "amazon": "amazon.com",
 }
+
+COMPANY_MAIL_DOMAINS: dict[str, str] = dict(_LEGACY_COMPANY_MAIL_DOMAINS)
 
 _cache: dict[str, str | None] = {}
 
@@ -204,11 +172,13 @@ def mailbox_domain_from_host(host: str) -> str:
     name = (host or "").lower().lstrip(".")
     if name.startswith("www."):
         name = name[4:]
-    if not name or is_job_board_or_ats_host(name):
+    if not name:
         return ""
     mapped = CAREER_HOST_MAIL_DOMAINS.get(name)
     if mapped:
         return mapped
+    if is_job_board_or_ats_host(name):
+        return ""
     parts = name.split(".")
     if len(parts) >= 3 and parts[0] in _CAREER_HOST_PREFIXES:
         return ".".join(parts[1:])
@@ -216,6 +186,9 @@ def mailbox_domain_from_host(host: str) -> str:
 
 
 def domain_from_company_name(value: str) -> str:
+    priority = mailbox_domain_for_company(value)
+    if priority:
+        return priority
     key = re.sub(r"\s+", " ", clean_company_name(value).lower()).strip()
     if not key:
         return ""
@@ -325,6 +298,9 @@ def _domains_from_text(text: str) -> list[str]:
 
 def infer_company_domain(job: dict[str, Any]) -> str | None:
     """Company website host, never an Indeed/LinkedIn/ATS aggregator host."""
+    priority = match_priority_employer(job)
+    if priority and priority.domain:
+        return priority.domain
     for field in ("company_url", "website", "company_domain", "company_website"):
         mapped = mailbox_domain_from_host(_host_from_url(str(job.get(field) or "")))
         if mapped:
@@ -421,6 +397,49 @@ def _hunter_get(params: dict[str, str]) -> dict[str, Any] | None:
     return payload if isinstance(payload, dict) else None
 
 
+def _hunter_verify(email: str, api_key: str) -> bool:
+    """True when Hunter says the mailbox exists (or the domain accepts all)."""
+    try:
+        response = requests.get(
+            HUNTER_EMAIL_VERIFIER_URL,
+            params={"email": email, "api_key": api_key},
+            timeout=12,
+        )
+    except requests.RequestException:
+        return False
+    if response.status_code >= 400:
+        return False
+    try:
+        payload = response.json()
+    except ValueError:
+        return False
+    data = payload.get("data") if isinstance(payload, dict) else None
+    status = ""
+    if isinstance(data, dict):
+        status = str(data.get("status") or "").strip().lower()
+    elif isinstance(payload, dict):
+        status = str(payload.get("status") or "").strip().lower()
+    return status in {"valid", "accept_all"}
+
+
+def find_generic_hr_inbox(domain: str, *, api_key: str) -> str | None:
+    """Try public HR local-parts on a known company domain, verified via Hunter."""
+    host = (domain or "").strip().lower().lstrip("@")
+    if not host or "@" in host:
+        return None
+    cache_key = f"generic:{host}"
+    if cache_key in _cache:
+        return _cache[cache_key]
+    found: str | None = None
+    for local in generic_hr_local_parts():
+        email = f"{local}@{host}"
+        if _hunter_verify(email, api_key):
+            found = email
+            break
+    _cache[cache_key] = found
+    return found
+
+
 def _search_queries(job: dict[str, Any]) -> list[dict[str, str]]:
     """Ordered Hunter lookups: generic inboxes first, then unfiltered, then name."""
     domain = infer_company_domain(job)
@@ -429,6 +448,9 @@ def _search_queries(job: dict[str, Any]) -> list[dict[str, str]]:
     if slug and not company:
         company = slug.replace("-", " ").replace("_", " ").strip()
     extra_domain = domain_from_company_name(company)
+    matched = match_priority_employer(job)
+    priority_domain = matched.domain if matched else ""
+    priority_name = matched.name if matched else ""
 
     queries: list[dict[str, str]] = []
 
@@ -440,10 +462,13 @@ def _search_queries(job: dict[str, Any]) -> list[dict[str, str]]:
             return
         queries.append(query)
 
-    for host in (domain, extra_domain):
+    for host in (priority_domain, domain, extra_domain):
         if host:
             _add(domain=host, type="generic")
             _add(domain=host)
+    if priority_name:
+        _add(company=priority_name, type="generic")
+        _add(company=priority_name)
     if company:
         _add(company=company, type="generic")
         _add(company=company)
@@ -466,7 +491,11 @@ def find_recruiter_email(
         return None
     queries = _search_queries(job)
     if not queries:
-        return None
+        matched = match_priority_employer(job)
+        if matched and matched.domain:
+            queries = [{"domain": matched.domain, "type": "generic"}, {"domain": matched.domain}]
+        else:
+            return None
     cache_key = "|".join(
         f"{item.get('domain') or item.get('company')}:{item.get('type') or '*'}"
         for item in queries
@@ -480,6 +509,11 @@ def find_recruiter_email(
         email = pick_recruiter_email(_hunter_get(params) or {})
         if email:
             break
+    if not email:
+        matched = match_priority_employer(job)
+        domain = (matched.domain if matched else "") or infer_company_domain(job) or ""
+        if domain:
+            email = find_generic_hr_inbox(domain, api_key=key)
     _cache[cache_key] = email
     return email
 

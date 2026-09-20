@@ -162,12 +162,19 @@ def _should_fetch_listing(url: str) -> bool:
 
 def extract_apply_email_from_pages(job: dict[str, Any]) -> str | None:
     """Fetch the public listing page and look for a mailto / recruiter address."""
+    from priority_employers import extra_career_page_urls, is_priority_employer
+
     urls: list[str] = []
     for field in ("apply_url", "url", "company_url"):
         raw = str(job.get(field) or "").strip()
         if raw and raw not in urls and _should_fetch_listing(raw):
             urls.append(raw)
-    for url in urls[:3]:
+    if is_priority_employer(job):
+        for extra in extra_career_page_urls(job):
+            if extra not in urls and _should_fetch_listing(extra):
+                urls.append(extra)
+    limit = 5 if is_priority_employer(job) else 3
+    for url in urls[:limit]:
         try:
             response = requests.get(url, timeout=8, headers=_PAGE_FETCH_HEADERS)
         except requests.RequestException:

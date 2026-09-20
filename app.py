@@ -71,6 +71,11 @@ from job_filters import (
     resolve_target_sectors,
     tag_jobs_search_phase,
 )
+from priority_employers import (
+    PRIORITY_EMPLOYER_RANK_BONUS,
+    is_priority_employer,
+    matching_priority_key,
+)
 from i18n import (
     LOCALE_LABELS,
     SUPPORTED_LOCALES,
@@ -3431,7 +3436,15 @@ def rank_jobs_for_cv(
         title_overlap = sum(1 for token in target_tokens if token in title)
         metier_overlap = sum(1 for token in metier_tokens if token in title)
         phase_bonus = SEARCH_PHASE_BONUS.get(str(job.get("_search_phase") or ""), 0)
-        return hits * 8 + cv_hits * 5 + title_overlap * 18 + metier_overlap * 12 + phase_bonus
+        employer_bonus = PRIORITY_EMPLOYER_RANK_BONUS if is_priority_employer(job) else 0
+        return (
+            hits * 8
+            + cv_hits * 5
+            + title_overlap * 18
+            + metier_overlap * 12
+            + phase_bonus
+            + employer_bonus
+        )
 
     return sorted(jobs, key=quick_score, reverse=True)[:top_n]
 
@@ -3570,7 +3583,10 @@ def build_matching_results(
 
     _report_progress(progress, match_end, "Classement des meilleures offres…")
     results.sort(
-        key=lambda entry: int(entry["match"].get("score_correspondance", 0)),
+        key=lambda entry: (
+            int(entry["match"].get("score_correspondance", 0)),
+            matching_priority_key(entry.get("job") or {}),
+        ),
         reverse=True,
     )
     # Search may find hundreds of offers; display only the N best requested by depth.
@@ -3602,7 +3618,10 @@ def cap_results_to_requested_best(
     """Keep the N best ATS matches, even if many more were found online."""
     ranked = sorted(
         list(results or []),
-        key=lambda item: int((item.get("match") or {}).get("score_correspondance", 0)),
+        key=lambda item: (
+            int((item.get("match") or {}).get("score_correspondance", 0)),
+            matching_priority_key(item.get("job") or {}),
+        ),
         reverse=True,
     )
     limit = int(top_n) if top_n is not None else matching_display_limit(analysis)
@@ -6743,6 +6762,7 @@ def run_cv_analysis_pipeline(
             ),
         }
     )
+    notices.append({"level": "info", "text": t("pipeline.priority_employers")})
 
     if not raw_jobs:
         notices.append({"level": "warning", "text": t("pipeline.no_raw_jobs")})

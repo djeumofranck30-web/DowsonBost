@@ -105,18 +105,25 @@ def test_search_jobs_career_sites_parses_ats_and_skips_job_boards() -> None:
         "source": "Société Générale",
     }
 
+    payloads = [
+        _organic_payload(greenhouse, indeed),
+        _organic_payload(sg_job),
+        _organic_payload(homepage, career_job),
+        _organic_payload(),
+        _organic_payload(),
+    ]
+
+    def fake_get(*_args, **_kwargs):
+        if payloads:
+            return payloads.pop(0)
+        return _organic_payload()
+
     with patch(
         "job_providers.search_jobs_direct_ats_boards",
         return_value=[],
     ), patch(
         "job_providers.requests.get",
-        side_effect=[
-            _organic_payload(greenhouse, indeed),
-            _organic_payload(sg_job),
-            _organic_payload(homepage, career_job),
-            _organic_payload(),
-            _organic_payload(),
-        ],
+        side_effect=fake_get,
     ) as mocked_get:
         jobs = search_jobs_career_sites(
             "développeur python",
@@ -150,6 +157,10 @@ def test_career_site_queries_target_major_employers() -> None:
     assert "bnpparibas" in lowered or "bnp paribas" in lowered
     assert "inurl:recrutement" in lowered
     assert "edf.fr" in lowered or "recrute.edf" in lowered
+    assert "arkema" in lowered
+    assert "air liquide" in lowered or "airliquide" in lowered
+    assert "nexans" in lowered
+    assert "clinique du parc lyon" not in lowered
 
 
 def test_ats_title_matches_french_query_to_english_engineer() -> None:
