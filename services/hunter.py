@@ -438,7 +438,8 @@ def find_generic_hr_inbox(domain: str, *, api_key: str) -> str | None:
         if _hunter_verify(email, api_key):
             found = email
             break
-    _cache[cache_key] = found
+    if found:
+        _cache[cache_key] = found
     return found
 
 
@@ -517,8 +518,9 @@ def find_recruiter_email(
         domain = (matched.domain if matched else "") or infer_company_domain(job) or ""
         if domain:
             email = find_generic_hr_inbox(domain, api_key=key)
-    with _cache_lock:
-        _cache[cache_key] = email
+    if email:
+        with _cache_lock:
+            _cache[cache_key] = email
     return email
 
 

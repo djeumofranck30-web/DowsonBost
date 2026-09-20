@@ -25,9 +25,10 @@ def test_auto_apply_is_deferred_off_the_clicked_button() -> None:
     end = source.index("def _format_job_salary(", start)
     body = source[start:end]
     assert "_pending_auto_apply" in body
-    assert "st.rerun()" in body
+    assert "on_click" in body
+    assert "_queue_pending_auto_apply" in body
     assert body.index("_pending_auto_apply") < body.index("st.button(")
-    assert "_run_auto_apply_action(" in body.split("if st.button(")[0]
+    assert "_run_auto_apply_action(" in body.split("st.button(")[0]
 
 
 def test_simple_row_uses_expander_instead_of_rerun_toggle() -> None:

@@ -218,7 +218,7 @@ def _send_via_smtp(
                 server.login(smtp_user, smtp_password)
             server.sendmail(envelope, [to_email], message.as_string())
         return True, t("email.sent_smtp", locale=locale)
-    except smtplib.SMTPException as exc:
+    except (smtplib.SMTPException, OSError, TimeoutError) as exc:
         return False, str(exc)
 
 

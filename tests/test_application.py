@@ -100,7 +100,7 @@ def test_build_application_profile_formats_core_fields():
     assert "Lettre type" in fill
 
 
-@patch("services.application._send_user_application_copy", return_value=True)
+@patch("services.application._send_user_application_copy", return_value=(True, "ok"))
 @patch("services.hunter.hunter_configured", return_value=True)
 @patch("services.application.email_configured", return_value=True)
 @patch("services.application.resolve_apply_email", return_value=None)
@@ -142,6 +142,8 @@ def test_submit_application_automatically_prepares_pack_without_recruiter_email(
     assert result["method"] == "prepared"
     assert result["cover_letter"]
     assert result["adapted_cv"]
+    assert result["email_to"] == "jane@example.com"
+    assert result["email_body"]
     assert "dossier" in result["message"].lower()
     assert "manuellement" in result["message"].lower()
     send_copy.assert_called_once()
@@ -226,13 +228,11 @@ def test_job_listing_open_script_embeds_safe_url():
     assert "</script>alert" not in unsafe
 
 
-@patch("services.application.notify_candidate_application", return_value=True)
 @patch("services.application.send_application_email", return_value=(True, "ok"))
 @patch("services.application.email_configured", return_value=True)
 def test_submit_application_automatically_sends_email_when_found(
     _configured: object,
     _send: object,
-    notify_user: object,
 ):
     job = {
         "title": "Dev Python",
@@ -261,15 +261,22 @@ def test_submit_application_automatically_sends_email_when_found(
     assert result["success"] is True
     assert result["method"] == "email"
     assert result["apply_email"] == "recrutement@acme.fr"
+    assert result["email_to"] == "recrutement@acme.fr"
+    assert result["email_subject"]
+    assert result["email_body"]
     assert result["user_notified"] is True
-    attachments = _send.call_args.kwargs["attachments"]
+    recipients = [call.kwargs["to_email"] for call in _send.call_args_list]
+    assert "recrutement@acme.fr" in recipients
+    assert "jane@example.com" in recipients
+    recruiter_call = next(
+        call for call in _send.call_args_list if call.kwargs["to_email"] == "recrutement@acme.fr"
+    )
+    attachments = recruiter_call.kwargs["attachments"]
     assert attachments[0][0].endswith(".pdf")
     assert attachments[0][1].startswith(b"%PDF")
     assert attachments[1][0].endswith(".pdf")
-    notify_user.assert_called_once()
-    assert notify_user.call_args.kwargs["method"] == "email"
-    assert notify_user.call_args.kwargs["recruiter_email"] == "recrutement@acme.fr"
-    assert "confirmation" in result["message"].lower()
+    assert "envoyée automatiquement" in result["message"].lower()
+    assert "copie" in result["message"].lower()
 
 
 @patch("services.application.send_application_confirmation_email", return_value=(True, "ok"))

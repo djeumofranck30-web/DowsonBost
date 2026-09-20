@@ -71,6 +71,9 @@ class ApplicationResult(TypedDict):
     job_url: str
     profile_text: str
     user_notified: bool
+    email_to: str
+    email_subject: str
+    email_body: str
 
 
 def llm_keys_configured() -> bool:
@@ -563,6 +566,23 @@ def _application_subject(job: dict[str, Any], profile: dict[str, str]) -> str:
     return f"Candidature — {title} — {name}"
 
 
+def _application_body(
+    letter: str,
+    profile_text: str,
+    job_url: str,
+    *,
+    locale: str,
+) -> str:
+    from i18n import t
+
+    return (
+        f"{letter}\n\n"
+        f"---\n"
+        f"{profile_text}\n\n"
+        f"{t('job.apply_email_footer', locale=locale, url=job_url or '—')}"
+    )
+
+
 def _send_user_application_copy(
     profile: dict[str, str],
     job: dict[str, Any],
@@ -575,24 +595,44 @@ def _send_user_application_copy(
     match: dict[str, Any] | None = None,
     user_profile: dict[str, Any] | None = None,
     original_cv: str = "",
-) -> bool:
-    """E-mail the prepared dossier to the candidate when no recruiter address exists."""
+    subject: str | None = None,
+    body_text: str | None = None,
+    recruiter_email: str | None = None,
+) -> tuple[bool, str]:
+    """E-mail the candidate a copy of the application that was (or would be) sent."""
     from i18n import t
 
     user_email = profile.get("email") or ""
     if not user_email or not email_configured():
-        return False
+        return False, t("job.apply_auto_missing_email", locale=locale)
     title = str(job.get("title") or "Offre").strip()
-    body = (
-        f"{t('job.apply_user_copy_intro', locale=locale, title=title)}\n\n"
-        f"{t('job.apply_user_copy_next', locale=locale)}\n"
-        f"{job_url or '—'}\n\n"
-        f"{profile_text}\n\n"
-        f"---\n{letter}\n"
+    candidature = body_text or _application_body(
+        letter, profile_text, job_url, locale=locale
     )
-    ok, _detail = send_application_email(
+    intro = (
+        t("job.apply_mail_copy_sent_intro", locale=locale, email=recruiter_email)
+        if recruiter_email
+        else t("job.apply_user_copy_intro", locale=locale, title=title)
+    )
+    next_line = (
+        t("job.apply_mail_copy_sent_next", locale=locale)
+        if recruiter_email
+        else t("job.apply_user_copy_next", locale=locale)
+    )
+    body = (
+        f"{intro}\n\n"
+        f"{next_line}\n"
+        f"{job_url or '—'}\n\n"
+        f"{candidature}"
+    )
+    copy_subject = t(
+        "job.apply_mail_copy_subject",
+        locale=locale,
+        subject=subject or _application_subject(job, profile),
+    )
+    return send_application_email(
         to_email=user_email,
-        subject=t("job.apply_user_copy_subject", locale=locale, title=title),
+        subject=copy_subject,
         body_text=body,
         attachments=application_document_attachments(
             letter,
@@ -602,8 +642,8 @@ def _send_user_application_copy(
             user_profile=user_profile or profile,
             original_cv=original_cv,
         ),
+        locale=locale,
     )
-    return ok
 
 
 def _external_prepared_message(
@@ -664,6 +704,9 @@ def _empty_result(**overrides: Any) -> ApplicationResult:
         "job_url": "",
         "profile_text": "",
         "user_notified": False,
+        "email_to": "",
+        "email_subject": "",
+        "email_body": "",
     }
     base.update(overrides)
     return base
@@ -711,84 +754,10 @@ def submit_application_automatically(
 
     apply_email = resolve_apply_email(job)
     if apply_email:
-        try:
-            letter, adapted = ensure_application_documents(
-                cv_text,
-                job,
-                match,
-                user_profile,
-                llm_call=llm_call,
-                cover_letter_text=cover_letter_text,
-                adapted_cv_text=adapted_cv_text,
-            )
-        except Exception as exc:
-            return _empty_result(
-                method="generation_error",
-                message=t("job.apply_auto_generation_error", locale=locale, error=str(exc)),
-                cover_letter=cover_letter_text or "",
-                adapted_cv=adapted_cv_text or "",
-                apply_email=apply_email,
-                job_url=job_url,
-                profile_text=profile_text,
-            )
-
-        body = (
-            f"{letter}\n\n"
-            f"---\n"
-            f"{profile_text}\n\n"
-            f"{t('job.apply_email_footer', locale=locale, url=job_url or '—')}"
-        )
-        ok, detail = send_application_email(
-            to_email=apply_email,
-            subject=_application_subject(job, profile),
-            body_text=body,
-            attachments=application_document_attachments(
-                letter,
-                adapted,
-                job=job,
-                match=match,
-                user_profile=user_profile,
-                original_cv=cv_text,
-            ),
-            reply_to=profile.get("email") or None,
-        )
-        if ok:
-            user_notified = notify_candidate_application(
-                profile,
-                job,
-                method="email",
-                recruiter_email=apply_email,
-                locale=locale,
-            )
-            message = t(
-                "job.apply_auto_email_sent",
-                locale=locale,
-                email=apply_email,
-            )
-            if user_notified:
-                message = (
-                    f"{message} "
-                    f"{t('job.apply_user_confirmation_sent', locale=locale, email=profile.get('email', ''))}"
-                )
-            return _empty_result(
-                success=True,
-                method="email",
-                message=message,
-                cover_letter=letter,
-                adapted_cv=adapted,
-                apply_email=apply_email,
-                job_url=job_url,
-                profile_text=profile_text,
-                user_notified=user_notified,
-            )
-        return _empty_result(
-            method="email_failed",
-            message=t("job.apply_auto_email_failed", locale=locale, error=detail),
-            cover_letter=letter,
-            adapted_cv=adapted,
-            apply_email=apply_email,
-            job_url=job_url,
-            profile_text=profile_text,
+        _stamp_recruiter_email(
+            job,
+            apply_email,
+            str(job.get("recruiter_email_source") or "lookup"),
         )
 
     try:
@@ -807,8 +776,92 @@ def submit_application_automatically(
             message=t("job.apply_auto_generation_error", locale=locale, error=str(exc)),
             cover_letter=cover_letter_text or "",
             adapted_cv=adapted_cv_text or "",
+            apply_email=apply_email,
             job_url=job_url,
             profile_text=profile_text,
+        )
+
+    subject = _application_subject(job, profile)
+    body = _application_body(letter, profile_text, job_url, locale=locale)
+    attachments = application_document_attachments(
+        letter,
+        adapted,
+        job=job,
+        match=match,
+        user_profile=user_profile,
+        original_cv=cv_text,
+    )
+    copy_kwargs = {
+        "locale": locale,
+        "match": match,
+        "user_profile": user_profile,
+        "original_cv": cv_text,
+        "subject": subject,
+        "body_text": body,
+        "recruiter_email": apply_email,
+    }
+
+    if apply_email:
+        ok, detail = send_application_email(
+            to_email=apply_email,
+            subject=subject,
+            body_text=body,
+            attachments=attachments,
+            reply_to=profile.get("email") or None,
+            locale=locale,
+        )
+        user_notified, _copy_detail = _send_user_application_copy(
+            profile,
+            job,
+            letter,
+            adapted,
+            profile_text,
+            job_url,
+            **copy_kwargs,
+        )
+        if ok:
+            message = t(
+                "job.apply_auto_email_sent",
+                locale=locale,
+                email=apply_email,
+            )
+            if user_notified:
+                message = (
+                    f"{message} "
+                    f"{t('job.apply_mail_copy_inbox', locale=locale, email=profile.get('email', ''))}"
+                )
+            return _empty_result(
+                success=True,
+                method="email",
+                message=message,
+                cover_letter=letter,
+                adapted_cv=adapted,
+                apply_email=apply_email,
+                job_url=job_url,
+                profile_text=profile_text,
+                user_notified=user_notified,
+                email_to=apply_email,
+                email_subject=subject,
+                email_body=body,
+            )
+        fail_message = t("job.apply_auto_email_failed", locale=locale, error=detail)
+        if user_notified:
+            fail_message = (
+                f"{fail_message} "
+                f"{t('job.apply_mail_copy_inbox', locale=locale, email=profile.get('email', ''))}"
+            )
+        return _empty_result(
+            method="email_failed",
+            message=fail_message,
+            cover_letter=letter,
+            adapted_cv=adapted,
+            apply_email=apply_email,
+            job_url=job_url,
+            profile_text=profile_text,
+            user_notified=user_notified,
+            email_to=apply_email,
+            email_subject=subject,
+            email_body=body,
         )
 
     from services.hunter import hunter_configured
@@ -818,23 +871,32 @@ def submit_application_automatically(
         if not hunter_configured()
         else t("job.apply_auto_no_recruiter", locale=locale)
     )
-    user_notified = _send_user_application_copy(
+    user_notified, copy_detail = _send_user_application_copy(
         profile,
         job,
         letter,
         adapted,
         profile_text,
         job_url,
-        locale=locale,
-        match=match,
-        user_profile=user_profile,
-        original_cv=cv_text,
+        **copy_kwargs,
     )
+    if not user_notified:
+        return _empty_result(
+            method="email_failed",
+            message=t("job.apply_auto_email_failed", locale=locale, error=copy_detail),
+            cover_letter=letter,
+            adapted_cv=adapted,
+            job_url=job_url,
+            profile_text=profile_text,
+            email_to=profile.get("email") or "",
+            email_subject=subject,
+            email_body=body,
+        )
     message = _external_prepared_message(
         profile,
         job,
         apply_email=None,
-        user_notified=user_notified,
+        user_notified=True,
         locale=locale,
     )
     return _empty_result(
@@ -846,7 +908,10 @@ def submit_application_automatically(
         apply_email=None,
         job_url=job_url,
         profile_text=profile_text,
-        user_notified=user_notified,
+        user_notified=True,
+        email_to=profile.get("email") or "",
+        email_subject=t("job.apply_mail_copy_subject", locale=locale, subject=subject),
+        email_body=body,
     )
 
 

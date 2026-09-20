@@ -4195,6 +4195,11 @@ def _run_auto_apply_action(
                 adapted_cv_text=current_cv,
                 locale=get_locale(),
             )
+        if auto_result.get("success") or auto_result.get("email_body") or auto_result.get("cover_letter"):
+            if result_id:
+                st.session_state[f"apply_pack_{result_id}"] = auto_result
+                st.session_state[f"cover_{result_id}"] = auto_result.get("cover_letter") or ""
+                st.session_state[f"adapted_{result_id}"] = auto_result.get("adapted_cv") or ""
         if auto_result["success"]:
             method = str(auto_result.get("method") or "email")
             if user_id and result_id:
@@ -4204,9 +4209,6 @@ def _run_auto_apply_action(
                     cover_letter_text=auto_result["cover_letter"],
                     adapted_cv_text=auto_result["adapted_cv"],
                 )
-                st.session_state[f"cover_{result_id}"] = auto_result["cover_letter"]
-                st.session_state[f"adapted_{result_id}"] = auto_result["adapted_cv"]
-                st.session_state[f"apply_pack_{result_id}"] = auto_result
                 record_application(
                     user_id,
                     result_id,
@@ -4221,9 +4223,48 @@ def _run_auto_apply_action(
         else:
             st.error(auto_result["message"])
         return auto_result
-    except Exception:  # noqa: BLE001 — keep the page usable if mail/IA fails
-        st.error(t("job.apply_unexpected"))
-        return {"success": False, "message": t("job.apply_unexpected")}
+    except Exception as exc:  # noqa: BLE001 — keep the page usable if mail/IA fails
+        st.error(f"{t('job.apply_unexpected')} ({exc})")
+        return {"success": False, "message": f"{t('job.apply_unexpected')} ({exc})"}
+
+
+def _queue_pending_auto_apply(action_key: str, key_prefix: str) -> None:
+    """Record the clicked offer before widgets rebuild (avoids a second rerun)."""
+    st.session_state["_pending_auto_apply"] = {
+        "action_key": str(action_key),
+        "key_prefix": str(key_prefix),
+    }
+
+
+def _render_application_mail(result: dict[str, Any], *, widget_key: str) -> None:
+    """Show the e-mail that was sent (or prepared) so the student can read it."""
+    to_email = str(result.get("email_to") or result.get("apply_email") or "").strip()
+    subject = str(result.get("email_subject") or "").strip()
+    body = str(result.get("email_body") or result.get("cover_letter") or "").strip()
+    if not (to_email or subject or body):
+        return
+    with st.expander(t("job.apply_mail_expander"), expanded=True):
+        if to_email:
+            st.text_input(
+                t("job.apply_mail_to"),
+                to_email,
+                disabled=True,
+                key=f"mail_to_{widget_key}",
+            )
+        if subject:
+            st.text_input(
+                t("job.apply_mail_subject"),
+                subject,
+                disabled=True,
+                key=f"mail_subject_{widget_key}",
+            )
+        if body:
+            st.text_area(
+                t("job.apply_mail_body"),
+                body,
+                height=240,
+                key=f"mail_body_{widget_key}",
+            )
 
 
 def _render_apply_action_buttons(
@@ -4241,7 +4282,7 @@ def _render_apply_action_buttons(
 ) -> bool:
     """Two apply actions: automatic e-mail send, or open the listing."""
     can_apply = bool(user_id and cv_text and user_profile)
-    action_key = widget_key if widget_key is not None else (result_id or "x")
+    action_key = str(widget_key if widget_key is not None else (result_id or "x"))
     freelance = is_freelance_mode(user_profile) or str(job.get("listing_kind") or "") == "mission"
     auto_label = t("job.apply_mission") if freelance else t("job.apply_auto")
     auto_help = t("job.apply_mission_help") if freelance else t("job.apply_auto_help")
@@ -4250,8 +4291,8 @@ def _render_apply_action_buttons(
     applied = False
     pending = st.session_state.get("_pending_auto_apply") or {}
     if (
-        pending.get("action_key") == action_key
-        and pending.get("key_prefix") == key_prefix
+        str(pending.get("action_key") or "") == action_key
+        and str(pending.get("key_prefix") or "") == str(key_prefix)
     ):
         st.session_state.pop("_pending_auto_apply", None)
         auto_result = _run_auto_apply_action(
@@ -4265,21 +4306,23 @@ def _render_apply_action_buttons(
             adapted_cv_text=adapted_cv_text,
         )
         applied = bool(auto_result.get("success"))
+        if result_id:
+            st.session_state[f"apply_pack_{result_id}"] = {
+                **(st.session_state.get(f"apply_pack_{result_id}") or {}),
+                **auto_result,
+            }
     apply_col1, apply_col2 = st.columns(2)
     with apply_col1:
         if can_apply:
-            if st.button(
+            st.button(
                 auto_label,
                 key=f"{key_prefix}_auto_{action_key}",
                 type="primary",
                 use_container_width=True,
                 help=auto_help,
-            ):
-                st.session_state["_pending_auto_apply"] = {
-                    "action_key": action_key,
-                    "key_prefix": key_prefix,
-                }
-                st.rerun()
+                on_click=_queue_pending_auto_apply,
+                args=(action_key, key_prefix),
+            )
         else:
             st.button(
                 auto_label,
@@ -4305,6 +4348,14 @@ def _render_apply_action_buttons(
                 use_container_width=True,
                 key=f"{key_prefix}_manual_disabled_{action_key}",
             )
+    mail = st.session_state.get(f"apply_pack_{result_id}") if result_id else None
+    if mail:
+        _render_application_mail(mail, widget_key=f"{key_prefix}_{action_key}")
+    elif not can_apply:
+        st.caption(t("job.apply_auto_need_session"))
+    elif not email_configured():
+        status = auto_apply_readiness()
+        st.caption(t("job.apply_auto_setup", missing=", ".join(status.get("missing") or [])))
     return applied
 
 

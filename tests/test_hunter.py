@@ -159,6 +159,22 @@ def test_find_recruiter_email_calls_hunter_and_caches() -> None:
     clear_hunter_cache()
 
 
+def test_find_recruiter_email_does_not_cache_misses() -> None:
+    clear_hunter_cache()
+    job = {"company": "Acme", "company_url": "https://www.acme.fr"}
+    empty = {"data": {"emails": []}}
+    with (
+        patch("services.hunter._hunter_get", return_value=empty) as mocked,
+        patch("services.hunter.find_generic_hr_inbox", return_value=None),
+    ):
+        assert find_recruiter_email(job, api_key="hunter-test") is None
+        first_calls = mocked.call_count
+        assert first_calls >= 1
+        assert find_recruiter_email(job, api_key="hunter-test") is None
+        assert mocked.call_count > first_calls
+    clear_hunter_cache()
+
+
 def test_find_recruiter_email_retries_company_without_hr_filter() -> None:
     clear_hunter_cache()
     job = {

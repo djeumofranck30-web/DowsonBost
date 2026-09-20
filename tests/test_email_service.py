@@ -138,3 +138,23 @@ def test_send_application_email_uses_gmail_smtp(mocked_smtp, monkeypatch):
     server.login.assert_called_once_with("me@gmail.com", "app-pass")
     server.sendmail.assert_called_once()
     assert server.sendmail.call_args.args[0] == "me@gmail.com"
+
+
+@patch("email_service.smtplib.SMTP", side_effect=OSError("timed out"))
+def test_send_application_email_reports_smtp_timeout(mocked_smtp, monkeypatch):
+    monkeypatch.setattr("email_service._get_secret", lambda name: {
+        "SMTP_HOST": "smtp.gmail.com",
+        "SMTP_PORT": "587",
+        "SMTP_USER": "me@gmail.com",
+        "SMTP_PASSWORD": "app-pass",
+        "SMTP_FROM": "DowsonBost <me@gmail.com>",
+    }.get(name, ""))
+    ok, message = send_application_email(
+        "recrutement@acme.fr",
+        "Candidature",
+        "Bonjour",
+        locale="fr",
+    )
+    assert ok is False
+    assert "timed out" in message
+    mocked_smtp.assert_called()

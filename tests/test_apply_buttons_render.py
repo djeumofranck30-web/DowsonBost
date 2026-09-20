@@ -65,6 +65,9 @@ def test_analysis_auto_button_records_email_send() -> None:
         "job_url": "https://www.acme.fr/jobs/1",
         "profile_text": "Jane",
         "user_notified": True,
+        "email_to": "recrutement@acme.fr",
+        "email_subject": "Candidature — Développeur Python — Acme — Jane Doe",
+        "email_body": "Madame, Monsieur,\n\nJe postule.",
     }
     with (
         patch("app.submit_application_automatically", return_value=sent) as submit,
@@ -81,6 +84,8 @@ def test_analysis_auto_button_records_email_send() -> None:
     record.assert_called_once()
     assert record.call_args.args[2] == "auto_email"
     assert "Candidature envoyée automatiquement" in at.success[0].value
+    assert any("Mail de candidature" in str(getattr(exp, "label", exp)) for exp in at.expander)
+    assert any(getattr(field, "value", "") == "recrutement@acme.fr" for field in at.text_input)
 
 
 def test_analysis_auto_button_records_prepared_pack() -> None:
@@ -99,6 +104,9 @@ def test_analysis_auto_button_records_prepared_pack() -> None:
         "job_url": "https://www.acme.fr/jobs/1",
         "profile_text": "Jane",
         "user_notified": True,
+        "email_to": "jane@example.com",
+        "email_subject": "Copie — Candidature — Développeur Python",
+        "email_body": "Votre dossier est prêt.",
     }
     with (
         patch("app.submit_application_automatically", return_value=prepared) as submit,
