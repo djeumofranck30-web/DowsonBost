@@ -228,6 +228,11 @@ def build_application_profile(user_profile: dict[str, Any]) -> dict[str, str]:
         "contract_type": str(user_profile.get("contract_type") or "").strip(),
         "experience_level": str(user_profile.get("experience_level") or "").strip(),
         "location": str(city).strip(),
+        "skills_text": str(user_profile.get("skills_text") or "").strip(),
+        "portfolio_url": str(user_profile.get("portfolio_url") or "").strip(),
+        "daily_rate": str(int(user_profile.get("daily_rate") or 0) or ""),
+        "availability": "disponible immédiatement",
+        "search_mode": str(user_profile.get("search_mode") or user_profile.get("contract_type") or "").strip(),
     }
 
 
@@ -264,8 +269,16 @@ def format_application_autofill_text(
         f"Ville : {profile.get('location') or '—'}",
         f"Poste : {profile.get('target_job_title') or '—'}",
     ]
+    if profile.get("skills_text"):
+        lines.append(f"Compétences : {profile['skills_text']}")
+    if profile.get("portfolio_url"):
+        lines.append(f"Portfolio : {profile['portfolio_url']}")
+    if profile.get("daily_rate"):
+        lines.append(f"TJM : {profile['daily_rate']} € HT / jour")
+    if profile.get("availability"):
+        lines.append(f"Disponibilité : {profile['availability']}")
     if cover_letter.strip():
-        lines.extend(["", "--- Lettre de motivation ---", cover_letter.strip()])
+        lines.extend(["", "--- Proposition / lettre ---", cover_letter.strip()])
     if adapted_cv.strip():
         structured = prepare_structured_cv(adapted_cv)
         clean = public_cv_text(structured) or cv_text_for_candidate(adapted_cv)

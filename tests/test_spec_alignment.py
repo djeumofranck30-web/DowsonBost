@@ -303,6 +303,8 @@ def test_spec_locale_and_ui_hooks() -> None:
         "profile.work_mode",
         "profile.salary_min",
         "profile.freelance_locked_help",
+        "profile.search_mode",
+        "job.apply_mission",
         "profile.gdpr_export",
         "notify.daily_limit",
         "job.freelance_proposal",

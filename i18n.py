@@ -201,6 +201,10 @@ def job_provider_label(provider: str) -> str:
     return t(key_map.get(provider, f"provider.{provider}"))
 
 
+def search_mode_label(mode: str) -> str:
+    return t(f"profile.search_mode.{mode}")
+
+
 def contract_label(contract: str) -> str:
     return t(f"contract.{contract}")
 

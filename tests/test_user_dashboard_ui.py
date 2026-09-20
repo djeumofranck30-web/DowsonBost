@@ -41,6 +41,9 @@ def test_dashboard_and_profile_locale_keys_exist():
             "profile.password_mismatch",
             "profile.freelance_mode",
             "profile.freelance_locked_help",
+            "profile.search_mode",
+            "profile.search_mode.emploi",
+            "profile.search_mode.freelance",
             "profile.daily_rate",
             "profile.portfolio_url",
             "profile.photo.title",
@@ -129,10 +132,10 @@ def test_profile_form_keeps_only_skills_for_analysis():
 
 def test_freelance_fields_stay_locked_until_checked():
     source = _read("app.py")
-    checkbox_at = source.index('key=f"{widget_prefix}_freelance"')
+    radio_at = source.index('key=f"{widget_prefix}_search_mode"')
     form_at = source.index('with st.form("profile_form"):')
-    assert checkbox_at < form_at
-    freelance_block = source[checkbox_at:form_at]
+    assert radio_at < form_at
+    freelance_block = source[radio_at:form_at]
     assert "disabled=not freelance_mode" in freelance_block
     assert freelance_block.count("disabled=not freelance_mode") >= 2
     assert 't("profile.daily_rate")' in freelance_block
@@ -141,6 +144,7 @@ def test_freelance_fields_stay_locked_until_checked():
     assert "disabled=freelance_mode" in source
     assert 'key=f"{widget_prefix}_contract"' in source
     assert 'contract_type = "Freelance"' in source
+    assert "SEARCH_MODES" in source
 
 
 def test_profile_and_dashboard_do_not_double_the_page_hero():

@@ -20,6 +20,11 @@ from priority_employers import (
     normalize_employer_country,
     smartrecruiters_companies,
 )
+from freelance_platforms import (
+    enrich_query_for_freelance,
+    platforms_for_countries,
+    tag_freelance_mission,
+)
 
 JOB_PROVIDER_ADZUNA = "adzuna"
 JOB_PROVIDER_SERPAPI = "serpapi"
@@ -1962,6 +1967,84 @@ def search_jobs_freelance_com(
         site="freelance.com",
         source_label="Freelance.com",
     )
+
+
+FREELANCE_PLATFORM_MAX_WORKERS = 6
+FREELANCE_PLATFORM_CAP = 6
+
+
+def search_jobs_freelance_platforms(
+    query: str,
+    location: str,
+    country: str,
+    api_key: str,
+    *,
+    countries: list[str] | tuple[str, ...] | None = None,
+    limit: int = 80,
+) -> list[dict[str, Any]]:
+    """Search country freelance marketplaces (Malt, Upwork, Freelance.com, …)."""
+    if not query.strip() or not api_key.strip():
+        return []
+    wanted = _search_countries(countries, country)
+    platforms = platforms_for_countries(wanted, max_platforms=FREELANCE_PLATFORM_CAP)
+    if not platforms:
+        return []
+    boosted = enrich_query_for_freelance(query)
+    collected: list[dict[str, Any]] = []
+    per_country = wanted[0] if wanted else (country or "France")
+
+    def _run(name: str, host: str) -> list[dict[str, Any]]:
+        batch = search_jobs_site_serpapi(
+            boosted,
+            location,
+            per_country,
+            api_key,
+            site=host,
+            source_label=name,
+        )
+        tagged: list[dict[str, Any]] = []
+        for job in batch:
+            item = tag_freelance_mission(job, platform=name)
+            item["source"] = name
+            tagged.append(item)
+        return tagged
+
+    workers = min(FREELANCE_PLATFORM_MAX_WORKERS, len(platforms))
+    with ThreadPoolExecutor(max_workers=max(1, workers)) as executor:
+        futures = [executor.submit(_run, name, host) for name, host in platforms]
+        for future in as_completed(futures):
+            try:
+                batch = future.result()
+            except Exception:  # noqa: BLE001
+                continue
+            if batch:
+                collected = merge_job_lists([collected, batch])
+            if len(collected) >= limit:
+                break
+    return collected[:limit]
+
+
+def try_search_freelance_platforms(
+    query: str,
+    location: str,
+    country: str,
+    api_key: str,
+    *,
+    countries: list[str] | tuple[str, ...] | None = None,
+    limit: int = 80,
+) -> list[dict[str, Any]]:
+    """Freelance marketplace search that never fails the surrounding analysis."""
+    try:
+        return search_jobs_freelance_platforms(
+            query,
+            location,
+            country,
+            api_key,
+            countries=countries,
+            limit=limit,
+        )
+    except (RuntimeError, requests.RequestException, ValueError, TypeError, KeyError):
+        return []
 
 
 def search_jobs_indeed_serpapi(

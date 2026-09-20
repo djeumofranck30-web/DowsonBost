@@ -53,12 +53,13 @@ from job_filters import (
     SEARCH_PHASE_SIMILAR,
     SEARCH_PHASE_SKILLS,
     SEARCH_PHASE_CAREER,
+    SEARCH_PHASE_FREELANCE,
     SEARCH_PHASE_BONUS,
     apply_strict_job_filters,
     build_country_search_locations,
     build_profile_search_locations,
     build_skill_mission_search_queries,
-    enrich_query_for_contract,
+    enrich_search_query,
     format_filter_rejection_hint,
     format_job_published_label,
     job_matches_publication_age,
@@ -74,6 +75,13 @@ from job_filters import (
     resolve_experience_level,
     resolve_target_sectors,
     tag_jobs_search_phase,
+)
+from freelance_platforms import (
+    SEARCH_MODE_FREELANCE,
+    SEARCH_MODES,
+    is_freelance_mode,
+    platforms_for_countries,
+    profile_search_mode,
 )
 from priority_employers import (
     PRIORITY_EMPLOYER_RANK_BONUS,
@@ -279,6 +287,7 @@ from job_providers import (
     search_jobs_career_sites,
     search_jobs_france_travail,
     search_jobs_freelance_com,
+    try_search_freelance_platforms,
     search_jobs_glassdoor_serpapi,
     search_jobs_hellowork,
     search_jobs_indeed_serpapi,
@@ -2224,13 +2233,7 @@ def match_cv_to_job(
     system_prompt = ATS_MATCH_SYSTEM_PROMPT
 
     desc_limit = 5000
-    job_summary = (
-        f"Titre : {job.get('title', '')}\n"
-        f"Entreprise : {job.get('company', '')}\n"
-        f"Lieu : {job.get('location', '')}\n"
-        f"Contrat : {job.get('contract_type', '') or job.get('inferred_contract', '')}\n"
-        f"Description :\n{job.get('description', '')[:desc_limit]}"
-    )
+    job_summary = _job_summary_for_match(job, desc_limit)
     candidate_block = build_cv_match_context(
         cv_text,
         cv_profile,
@@ -2354,11 +2357,20 @@ def build_cv_match_context(
 
 
 def _job_summary_for_match(job: dict[str, Any], desc_limit: int = 5000) -> str:
+    listing = (
+        "mission freelance"
+        if str(job.get("listing_kind") or "") == "mission"
+        else "offre d emploi"
+    )
     return (
         f"Titre : {job.get('title', '')}\n"
-        f"Entreprise : {job.get('company', '')}\n"
+        f"Entreprise / client : {job.get('company', '') or job.get('client', '')}\n"
         f"Lieu : {job.get('location', '')}\n"
         f"Contrat : {job.get('contract_type', '') or job.get('inferred_contract', '')}\n"
+        f"Type : {listing}\n"
+        f"Budget / TJM : {job.get('mission_budget') or job.get('daily_rate') or ''}\n"
+        f"Durée : {job.get('mission_duration') or ''}\n"
+        f"Mode : {job.get('inferred_work_mode') or job.get('work_mode') or ''}\n"
         f"Description :\n{job.get('description', '')[:desc_limit]}"
     )
 
@@ -2470,13 +2482,13 @@ def cached_search_jobs(
     # so each analysis launch can refetch instead of reusing the 24 h snapshot.
     _ = refresh_key
     profile = json.loads(profile_json)
-    boosted_query = enrich_query_for_contract(query, contract_type)
-    boosted_metier = enrich_query_for_contract(metier, contract_type)
+    boosted_query = enrich_search_query(query, profile, contract_type)
+    boosted_metier = enrich_search_query(metier, profile, contract_type)
     boosted_alts = tuple(
-        enrich_query_for_contract(item, contract_type) for item in alternate_queries
+        enrich_search_query(item, profile, contract_type) for item in alternate_queries
     )
     boosted_skills = tuple(
-        enrich_query_for_contract(item, contract_type) for item in skill_queries
+        enrich_search_query(item, profile, contract_type) for item in skill_queries
     )
     return search_jobs_for_profile(
         provider,
@@ -2879,6 +2891,43 @@ def _with_company_career_sites(
     )
 
 
+def _with_freelance_platforms(
+    result: dict[str, Any],
+    *,
+    query: str,
+    locations: list[str],
+    countries: list[str],
+    country: str,
+    limit: int = 80,
+) -> dict[str, Any]:
+    """Search country freelance marketplaces and merge them first."""
+    secrets = provider_secrets_from_getter(get_secret)
+    loc = ", ".join(item for item in (locations or [])[:2] if item)
+    wanted = [item for item in (countries or []) if str(item).strip()] or [
+        country or "France"
+    ]
+    extra = try_search_freelance_platforms(
+        query,
+        loc,
+        wanted[0],
+        secrets.get("serpapi_api_key") or "",
+        countries=wanted,
+        limit=max(80, int(limit or 80)),
+    )
+    extra = tag_jobs_search_phase(extra, SEARCH_PHASE_FREELANCE)
+    merged = dict(result)
+    if extra:
+        merged["jobs"] = merge_job_lists([extra, list(result.get("jobs") or [])])
+        used = list(result.get("providers_used") or [])
+        used.append("freelance_platforms")
+        merged["providers_used"] = list(dict.fromkeys(used))
+        names = ", ".join(name for name, _host in platforms_for_countries(wanted)[:4])
+        merged["strategy"] = (
+            f"Plateformes freelance ({names}) — missions du pays sélectionné"
+        )
+    return merged
+
+
 def search_jobs_for_profile(
     provider: str,
     query: str,
@@ -2919,8 +2968,11 @@ def search_jobs_for_profile(
         country_locations_map[search_country] = locs
         all_locations.extend(locs)
 
-    include_career = True
-    _report_progress(progress, 24, t("analysis.progress.career_sites"))
+    include_career = not is_freelance_mode(profile)
+    if is_freelance_mode(profile):
+        _report_progress(progress, 24, t("analysis.progress.freelance_platforms"))
+    else:
+        _report_progress(progress, 24, t("analysis.progress.career_sites"))
     board_keys = selected_job_providers(
         provider,
         available=configured_providers(secrets=provider_secrets_from_getter(get_secret)),
@@ -2930,6 +2982,31 @@ def search_jobs_for_profile(
 
     title_for_sites = (query or metier).strip()
     career_limit = max(80, int(target))
+    if is_freelance_mode(profile):
+        freelance_seed = _with_freelance_platforms(
+            {
+                "jobs": [],
+                "providers_used": [],
+                "query_used": title_for_sites,
+            },
+            query=title_for_sites,
+            locations=all_locations,
+            countries=countries,
+            country=country,
+            limit=career_limit,
+        )
+        freelance_jobs = tag_jobs_search_phase(
+            _keep_jobs_within_profile_age(
+                list(freelance_seed.get("jobs") or []),
+                max_age_days,
+            ),
+            SEARCH_PHASE_FREELANCE,
+        )
+        if freelance_jobs:
+            merged = freelance_jobs
+            providers_used.extend(freelance_seed.get("providers_used") or [])
+            query_used = str(freelance_seed.get("query_used") or query_used)
+            strategies.append("freelance:platforms")
     if include_career:
         career_seed = _with_company_career_sites(
             {
@@ -3012,10 +3089,19 @@ def search_jobs_for_profile(
         if len(all_locations) > 4:
             location_label += "…"
         countries_label = format_countries_summary(profile)
-        strategy = (
-            "Sites carrière des entreprises d'abord, puis Welcome to the Jungle "
-            "et les autres job boards (titre, similaires, compétences/missions)"
-        )
+        if is_freelance_mode(profile):
+            names = ", ".join(
+                name for name, _host in platforms_for_countries(countries)[:4]
+            )
+            strategy = (
+                f"Plateformes freelance ({names}) d'abord, puis les job boards "
+                "avec les mots-clés mission / contract / consultant"
+            )
+        else:
+            strategy = (
+                "Sites carrière des entreprises d'abord, puis Welcome to the Jungle "
+                "et les autres job boards (titre, similaires, compétences/missions)"
+            )
         if len(countries) > 1:
             strategy = f"{countries_label} — {strategy}"
         title_for_sites = (phases[0][1][0] if phases and phases[0][1] else query) or metier
@@ -4064,6 +4150,12 @@ def _run_auto_apply_action(
         with st.spinner(t("job.apply_auto_running")):
             current_letter = st.session_state.get(f"cover_{result_id}") or cover_letter_text
             current_cv = st.session_state.get(f"adapted_{result_id}") or adapted_cv_text
+            if is_freelance_mode(user_profile) or str(job.get("listing_kind") or "") == "mission":
+                proposal = st.session_state.get(f"proposal_{result_id}") or generate_freelance_proposal(
+                    cv_text, job, user_profile or {}
+                )
+                st.session_state[f"proposal_{result_id}"] = proposal
+                current_letter = proposal
             auto_result = submit_application_automatically(
                 cv_text,
                 job,
@@ -4117,6 +4209,11 @@ def _render_apply_action_buttons(
     """Two apply actions: automatic e-mail send, or open the listing."""
     can_apply = bool(user_id and result_id and cv_text and user_profile)
     action_key = widget_key if widget_key is not None else (result_id or "x")
+    freelance = is_freelance_mode(user_profile) or str(job.get("listing_kind") or "") == "mission"
+    auto_label = t("job.apply_mission") if freelance else t("job.apply_auto")
+    auto_help = t("job.apply_mission_help") if freelance else t("job.apply_auto_help")
+    manual_label = t("job.apply_open_mission") if freelance else t("job.apply_manual")
+    manual_help = t("job.apply_open_mission_help") if freelance else t("job.apply_manual_help")
     applied = False
     pending = st.session_state.get("_pending_auto_apply") or {}
     if (
@@ -4139,11 +4236,11 @@ def _render_apply_action_buttons(
     with apply_col1:
         if can_apply:
             if st.button(
-                t("job.apply_auto"),
+                auto_label,
                 key=f"{key_prefix}_auto_{action_key}",
                 type="primary",
                 use_container_width=True,
-                help=t("job.apply_auto_help"),
+                help=auto_help,
             ):
                 st.session_state["_pending_auto_apply"] = {
                     "action_key": action_key,
@@ -4152,7 +4249,7 @@ def _render_apply_action_buttons(
                 st.rerun()
         else:
             st.button(
-                t("job.apply_auto"),
+                auto_label,
                 disabled=True,
                 type="primary",
                 use_container_width=True,
@@ -4162,15 +4259,15 @@ def _render_apply_action_buttons(
         offer_url = str(job.get("url") or "").strip()
         if offer_url:
             st.link_button(
-                t("job.apply_manual"),
+                manual_label,
                 offer_url,
                 use_container_width=True,
-                help=t("job.apply_manual_help"),
+                help=manual_help,
                 key=f"{key_prefix}_manual_{action_key}",
             )
         else:
             st.button(
-                t("job.apply_manual"),
+                manual_label,
                 disabled=True,
                 use_container_width=True,
                 key=f"{key_prefix}_manual_disabled_{action_key}",
@@ -4233,7 +4330,16 @@ def _render_job_offer_card_html(
     score = int(match.get("score_correspondance", 0))
     score_color = _score_color(score)
     salary = _format_job_salary(job)
+    budget = job.get("mission_budget") or job.get("daily_rate")
+    if str(job.get("listing_kind") or "") == "mission" and budget and not salary:
+        try:
+            salary = f"{int(budget)} € / j"
+        except (TypeError, ValueError):
+            salary = str(budget)
     tags = _job_offer_tags(job, match)
+    duration = str(job.get("mission_duration") or "").strip()
+    if duration:
+        tags = [duration, *tags][:6]
     tags_html = "".join(
         f'<span class="job-card-tag">{html.escape(tag)}</span>' for tag in tags
     )
@@ -4538,11 +4644,9 @@ def render_job_card(
                     st.session_state[f"adapted_{result_id}"] = adapted
                     st.success(t("job.cv_ready"))
 
-        freelance_job = (
-            str((user_profile or {}).get("contract_type") or "").lower() == "freelance"
-            or str(job.get("inferred_contract") or job.get("contract_type") or "").lower()
-            == "freelance"
-        )
+        freelance_job = is_freelance_mode(user_profile) or str(
+            job.get("listing_kind") or job.get("inferred_contract") or job.get("contract_type") or ""
+        ).lower() in {"mission", "freelance"}
         if freelance_job:
             fr1, fr2 = st.columns(2)
             with fr1:
@@ -8248,6 +8352,7 @@ def _profile_header_chips(profile: dict[str, Any]) -> str:
     job_title = str(profile.get("target_job_title") or "").strip()
     if job_title:
         chips.append(job_title)
+    chips.append(t(f"profile.search_mode.{profile_search_mode(profile)}"))
     contract = profile.get("contract_type")
     if contract:
         chips.append(contract_label(str(contract)))
@@ -8401,8 +8506,8 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
 
         seed_session_value(
             st.session_state,
-            f"{widget_prefix}_freelance",
-            str(profile.get("contract_type") or "") == "Freelance",
+            f"{widget_prefix}_search_mode",
+            profile_search_mode(profile),
         )
         seed_session_value(
             st.session_state,
@@ -8414,11 +8519,15 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
             f"{widget_prefix}_portfolio",
             profile.get("portfolio_url") or "",
         )
-        freelance_mode = st.checkbox(
-            t("profile.freelance_mode"),
-            help=t("profile.freelance_mode_help"),
-            key=f"{widget_prefix}_freelance",
+        search_mode = st.radio(
+            t("profile.search_mode"),
+            list(SEARCH_MODES),
+            format_func=lambda mode: t(f"profile.search_mode.{mode}"),
+            horizontal=True,
+            help=t("profile.search_mode_help"),
+            key=f"{widget_prefix}_search_mode",
         )
+        freelance_mode = search_mode == SEARCH_MODE_FREELANCE
         daily_rate = st.number_input(
             t("profile.daily_rate"),
             min_value=0,

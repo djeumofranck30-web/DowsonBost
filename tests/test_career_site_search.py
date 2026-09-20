@@ -27,7 +27,8 @@ def test_analysis_search_always_merges_career_sites() -> None:
     source = Path(__file__).resolve().parents[1].joinpath("app.py").read_text(encoding="utf-8")
     assert "def _with_company_career_sites(" in source
     assert source.count("_with_company_career_sites(") >= 3
-    assert "include_career = True" in source
+    assert "include_career =" in source
+    assert "is_freelance_mode(profile)" in source
     assert "SEARCH_PHASE_CAREER" in source
     assert JOB_PROVIDER_SIDEBAR_ORDER[1] == JOB_PROVIDER_CAREER_SITES
     assert JOB_PROVIDER_SIDEBAR_ORDER[2] == "wttj"

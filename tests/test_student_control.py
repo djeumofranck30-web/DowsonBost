@@ -30,6 +30,7 @@ def test_student_control_locale_and_ui() -> None:
         "overview.student_plan",
         "job.apply_duplicate",
         "profile.freelance_mode",
+        "profile.search_mode",
     ):
         assert fr[key].strip(), key
         assert en[key].strip(), key
@@ -39,4 +40,4 @@ def test_student_control_locale_and_ui() -> None:
     assert "control_center_counts" in source
     assert "already_applied_to_company" in source
     assert "applications_needing_followup" in source
-    assert "profile.freelance_mode" in source
+    assert "profile.search_mode" in source

@@ -14,6 +14,16 @@ from france_geo import (
     resolve_multi_geo_from_profile,
     resolve_selected_cities,
 )
+from freelance_platforms import (
+    SEARCH_MODE_EMPLOI,
+    SEARCH_MODE_FREELANCE,
+    SEARCH_MODES,
+    enrich_query_for_freelance,
+    is_freelance_mode,
+    job_matches_budget,
+    profile_search_mode,
+    tag_freelance_mission,
+)
 from job_providers import WTTJ_CONTRACT_MAP
 from i18n import experience_label, job_age_label, published_label, sector_label, t
 
@@ -808,11 +818,22 @@ def enrich_query_for_contract(query: str, contract_type: str) -> str:
     return f"{cleaned} {boost}".strip()
 
 
+def enrich_search_query(query: str, profile: dict[str, Any] | None, contract_type: str = "") -> str:
+    """Boost the query for employment contract or freelance mission search."""
+    contract = contract_type or str((profile or {}).get("contract_type") or "")
+    boosted = enrich_query_for_contract(query, contract)
+    if is_freelance_mode(profile) or normalize_contract_type(contract) == "Freelance":
+        return enrich_query_for_freelance(boosted)
+    return boosted
+
+
 SEARCH_PHASE_TITLE = "title"
 SEARCH_PHASE_SIMILAR = "similar"
 SEARCH_PHASE_SKILLS = "skills"
 SEARCH_PHASE_CAREER = "career"
+SEARCH_PHASE_FREELANCE = "freelance_platforms"
 SEARCH_PHASE_BONUS = {
+    SEARCH_PHASE_FREELANCE: 130,
     SEARCH_PHASE_CAREER: 120,
     SEARCH_PHASE_TITLE: 100,
     SEARCH_PHASE_SIMILAR: 45,
@@ -1002,6 +1023,8 @@ def format_filter_rejection_hint(
         parts.append(
             f"date de publication (**{job_max_age_label(profile.get('job_max_age_days', 7))}**)"
         )
+    if stats.get("rejected_budget", 0):
+        parts.append("budget / TJM de la mission")
     return " · ".join(parts) if parts else "filtres stricts du profil"
 
 
@@ -1407,6 +1430,11 @@ def _enrich_filtered_job(job: dict[str, Any]) -> dict[str, Any]:
     enriched["inferred_sector"] = infer_job_sector(job)
     enriched["inferred_work_mode"] = infer_job_work_mode(job)
     enriched["inferred_salary_min"] = infer_job_salary_min(job)
+    if str(job.get("listing_kind") or "") == "mission" or str(
+        job.get("contract_type") or ""
+    ).lower() == "freelance":
+        tagged = tag_freelance_mission(enriched)
+        enriched.update(tagged)
     return enriched
 
 
@@ -1434,11 +1462,13 @@ def apply_strict_job_filters(
     """
     _ = min_keep
     user_contract = normalize_contract_type(str(profile.get("contract_type", "CDI")))
+    freelance = is_freelance_mode(profile) or user_contract == "Freelance"
     experience_level = resolve_experience_level(profile, cv_profile)
     target_sectors = resolve_target_sectors(profile, cv_profile)
     max_age_days = normalize_job_max_age_days(profile.get("job_max_age_days"))
     work_mode = normalize_work_mode(profile.get("work_mode"))
     salary_min = normalize_salary_min(profile.get("salary_min"))
+    daily_rate = int(profile.get("daily_rate") or 0)
 
     filtered: list[dict[str, Any]] = []
     stats = {
@@ -1450,6 +1480,7 @@ def apply_strict_job_filters(
         "rejected_publication_age": 0,
         "rejected_work_mode": 0,
         "rejected_salary": 0,
+        "rejected_budget": 0,
         "kept": 0,
         "kept_strict": 0,
         "backfilled_older": 0,
@@ -1474,13 +1505,20 @@ def apply_strict_job_filters(
         if not job_matches_work_mode(job, work_mode):
             stats["rejected_work_mode"] += 1
             continue
-        if not job_matches_salary(job, salary_min):
+        if freelance:
+            if not job_matches_budget(job, daily_rate):
+                stats["rejected_budget"] += 1
+                continue
+        elif not job_matches_salary(job, salary_min):
             stats["rejected_salary"] += 1
             continue
         if not job_matches_publication_age(job, max_age_days):
             stats["rejected_publication_age"] += 1
             continue
-        filtered.append(_enrich_filtered_job(job))
+        kept_job = dict(job)
+        if freelance or str(job.get("listing_kind") or "") == "mission":
+            kept_job = tag_freelance_mission(kept_job)
+        filtered.append(_enrich_filtered_job(kept_job))
 
     stats["kept_strict"] = len(filtered)
     stats["kept"] = len(filtered)

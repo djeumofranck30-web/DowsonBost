@@ -695,30 +695,68 @@ def generate_followup_message(
     ).replace("  ", " ")
 
 
+def _freelance_skill_lines(user_profile: dict[str, Any], cv_text: str, *, limit: int = 3) -> list[str]:
+    raw = str(user_profile.get("skills_text") or "")
+    skills = [item.strip(" -•\t") for item in re.split(r"[,;\n]", raw) if item.strip()]
+    if len(skills) < limit:
+        for token in re.split(r"[,;\n]", cv_text or ""):
+            word = token.strip(" -•\t")
+            if 2 < len(word) <= 40 and word not in skills:
+                skills.append(word)
+            if len(skills) >= limit:
+                break
+    return skills[:limit]
+
+
+def _freelance_project_lines(user_profile: dict[str, Any], cv_text: str, *, limit: int = 2) -> list[str]:
+    """Use only experiences the student actually wrote — never invent missions."""
+    _ = cv_text
+    chunks: list[str] = []
+    for line in str(user_profile.get("experiences_text") or "").splitlines():
+        cleaned = line.strip(" -•\t")
+        if len(cleaned) < 12:
+            continue
+        if cleaned not in chunks:
+            chunks.append(cleaned[:180])
+        if len(chunks) >= limit:
+            break
+    return chunks[:limit]
+
+
 def generate_freelance_proposal(
     cv_text: str,
     job: dict[str, Any],
     user_profile: dict[str, Any],
 ) -> str:
-    """Commercial proposal for a freelance mission (no invented experience)."""
+    """Outreach message for a freelance mission (no invented experience)."""
     name = str(user_profile.get("full_name") or "Indépendant").strip()
     title = str(job.get("title") or "Mission").strip()
-    company = str(job.get("company") or "Client").strip()
-    skills = str(user_profile.get("skills_text") or "").strip()
-    excerpt = " ".join(str(cv_text or "").split())[:400]
+    company = str(job.get("company") or job.get("client") or "Client").strip()
+    skills = _freelance_skill_lines(user_profile, cv_text)
+    projects = _freelance_project_lines(user_profile, cv_text)
+    rate = int(user_profile.get("daily_rate") or 0)
+    portfolio = str(user_profile.get("portfolio_url") or "").strip()
+    skill_block = "\n".join(f"- {item}" for item in skills) or "- Compétences détaillées dans le CV joint"
+    if projects:
+        project_block = "\n".join(f"- {item}" for item in projects)
+        project_section = (
+            f"J’ai déjà réalisé des projets similaires :\n{project_block}\n"
+        )
+    else:
+        project_section = (
+            "Les projets déjà réalisés sont décrits dans le CV joint "
+            "(aucune mission n’est inventée).\n"
+        )
+    rate_line = f"TJM : {rate} € HT / jour.\n" if rate else ""
+    portfolio_line = f"Portfolio : {portfolio}\n" if portfolio else ""
     return (
-        f"Proposition commerciale — {title}\n"
-        f"Client : {company}\n"
-        f"Intervenant : {name}\n\n"
-        f"1. Contexte\n"
-        f"Cette proposition répond à la mission « {title} » publiée par {company}.\n\n"
-        f"2. Approche\n"
-        f"Je propose un cadrage court, des livrables hebdomadaires et un suivi transparent.\n\n"
-        f"3. Profil\n"
-        f"{skills or excerpt or 'Profil détaillé dans le CV joint.'}\n\n"
-        f"4. Modalités\n"
-        f"TJM : {int(user_profile.get('daily_rate') or 0) or 'à convenir'} € HT / jour.\n"
-        f"Démarrage selon votre calendrier.\n\n"
+        f"Bonjour,\n\n"
+        f"Je suis intéressé par votre mission « {title} » ({company}). "
+        f"Voici ce que je peux apporter :\n"
+        f"{skill_block}\n\n"
+        f"{project_section}\n"
+        f"Je suis disponible immédiatement.\n"
+        f"{rate_line}{portfolio_line}\n"
         f"Cordialement,\n{name}\n"
     )
 
