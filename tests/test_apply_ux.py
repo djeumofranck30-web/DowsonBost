@@ -94,6 +94,8 @@ def test_apply_auto_label_is_honest() -> None:
     assert 't("job.apply_manual")' in source
     assert "def _render_apply_action_buttons(" in source
     assert "_pending_auto_apply" in source
+    assert "can_apply = bool(user_id and cv_text and user_profile)" in source
+    assert "auto_prepared" in source
     assert "job.apply_unexpected" in fr
     assert "job.apply_unexpected" in en
     assert 't("job.hunter_lookup")' not in source

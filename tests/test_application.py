@@ -7,6 +7,7 @@ from unittest.mock import patch
 from services.application import (
     auto_apply_readiness,
     build_application_profile,
+    enrich_application_profile,
     extract_apply_email,
     format_application_autofill_text,
     format_application_profile_text,
@@ -99,13 +100,15 @@ def test_build_application_profile_formats_core_fields():
     assert "Lettre type" in fill
 
 
+@patch("services.application._send_user_application_copy", return_value=True)
 @patch("services.hunter.hunter_configured", return_value=True)
 @patch("services.application.email_configured", return_value=True)
 @patch("services.application.resolve_apply_email", return_value=None)
-def test_submit_application_automatically_fails_without_recruiter_email(
+def test_submit_application_automatically_prepares_pack_without_recruiter_email(
     _resolve: object,
     _mail: object,
     _hunter: object,
+    send_copy: object,
 ):
     job = {
         "title": "Dev Python",
@@ -135,9 +138,55 @@ def test_submit_application_automatically_fails_without_recruiter_email(
         llm_call=fake_llm,
         locale="fr",
     )
-    assert result["success"] is False
-    assert result["method"] == "missing_recruiter_email"
+    assert result["success"] is True
+    assert result["method"] == "prepared"
+    assert result["cover_letter"]
+    assert result["adapted_cv"]
+    assert "dossier" in result["message"].lower()
     assert "manuellement" in result["message"].lower()
+    send_copy.assert_called_once()
+
+
+def test_enrich_application_profile_fills_account_email():
+    with patch(
+        "auth.get_user_by_id",
+        return_value={"email": "jane@example.com", "full_name": "Jane Doe", "phone": "+33600000000"},
+    ):
+        out = enrich_application_profile({"id": 7, "target_job_title": "Dev"})
+    assert out["email"] == "jane@example.com"
+    assert out["full_name"] == "Jane Doe"
+    assert out["phone"] == "+33600000000"
+
+
+@patch("services.application.notify_candidate_application", return_value=True)
+@patch("services.application.send_application_email", return_value=(True, "ok"))
+@patch("services.application.email_configured", return_value=True)
+@patch("services.application.resolve_apply_email", return_value="jobs@acme.fr")
+def test_submit_application_automatically_enriches_missing_snapshot_email(
+    _resolve: object,
+    _configured: object,
+    _send: object,
+    _notify: object,
+):
+    with patch(
+        "auth.get_user_by_id",
+        return_value={"email": "jane@example.com", "full_name": "Jane Doe"},
+    ):
+        result = submit_application_automatically(
+            "CV source",
+            {
+                "title": "Dev Python",
+                "company": "Acme",
+                "description": "Postulez.",
+                "url": "https://example.com/jobs/1",
+            },
+            {"score_correspondance": 80},
+            {"id": 7, "target_job_title": "Dev Python"},
+            llm_call=lambda *_a, **_k: "Document généré.",
+            locale="fr",
+        )
+    assert result["success"] is True
+    assert result["method"] == "email"
 
 
 @patch("services.application.email_configured", return_value=False)

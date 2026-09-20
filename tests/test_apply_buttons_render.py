@@ -81,3 +81,38 @@ def test_analysis_auto_button_records_email_send() -> None:
     record.assert_called_once()
     assert record.call_args.args[2] == "auto_email"
     assert "Candidature envoyée automatiquement" in at.success[0].value
+
+
+def test_analysis_auto_button_records_prepared_pack() -> None:
+    at = AppTest.from_string(SCRIPT)
+    at.run()
+    prepared = {
+        "success": True,
+        "method": "prepared",
+        "message": (
+            "Dossier préparé : profil, lettre et CV adaptés. "
+            "Envoyez-les sur le site de l'offre."
+        ),
+        "cover_letter": "Lettre",
+        "adapted_cv": "CV adapté",
+        "apply_email": None,
+        "job_url": "https://www.acme.fr/jobs/1",
+        "profile_text": "Jane",
+        "user_notified": True,
+    }
+    with (
+        patch("app.submit_application_automatically", return_value=prepared) as submit,
+        patch("app.save_generated_documents") as save_docs,
+        patch("app.record_application") as record,
+    ):
+        auto = next(button for button in at.button if button.label == "Postuler automatiquement")
+        auto.click().run()
+        if not submit.called:
+            at.run()
+    assert not at.exception
+    submit.assert_called_once()
+    save_docs.assert_called_once()
+    record.assert_called_once()
+    assert record.call_args.args[2] == "auto_prepared"
+    assert record.call_args.kwargs["status"] == "saved"
+    assert "Dossier préparé" in at.warning[0].value

@@ -3944,13 +3944,16 @@ def _hydrate_analysis_result(
     """Load full job/match/documents when a collapsed card is opened or applied to."""
     if not user_id or not result_id:
         return job, match, cover_letter_text, adapted_cv_text
-    if "description" in job and "analyse_competences" in match:
-        return job, match, cover_letter_text, adapted_cv_text
     full = get_analysis_result(int(user_id), int(result_id))
     if not full:
         return job, match, cover_letter_text, adapted_cv_text
+    loaded_job = dict(full.get("job") or job)
+    if stored_recruiter_email(job) and not stored_recruiter_email(loaded_job):
+        loaded_job["recruiter_email"] = job.get("recruiter_email")
+        loaded_job["recruiter_email_source"] = job.get("recruiter_email_source")
+        loaded_job["recruiter_email_resolved"] = job.get("recruiter_email_resolved")
     return (
-        full.get("job") or job,
+        loaded_job,
         full.get("match") or match,
         full.get("cover_letter_text")
         if full.get("cover_letter_text") is not None
@@ -4164,13 +4167,21 @@ def _run_auto_apply_action(
         cover_letter_text,
         adapted_cv_text,
     )
+    profile = dict(user_profile or {})
+    session_user = st.session_state.get("user") or {}
+    if not str(profile.get("email") or "").strip() and session_user.get("email"):
+        profile["email"] = session_user.get("email")
+    if not profile.get("id") and session_user.get("id"):
+        profile["id"] = session_user.get("id")
+    if not str(profile.get("full_name") or "").strip() and session_user.get("full_name"):
+        profile["full_name"] = session_user.get("full_name")
     try:
         with st.spinner(t("job.apply_auto_running")):
             current_letter = st.session_state.get(f"cover_{result_id}") or cover_letter_text
             current_cv = st.session_state.get(f"adapted_{result_id}") or adapted_cv_text
-            if is_freelance_mode(user_profile) or str(job.get("listing_kind") or "") == "mission":
+            if is_freelance_mode(profile) or str(job.get("listing_kind") or "") == "mission":
                 proposal = st.session_state.get(f"proposal_{result_id}") or generate_freelance_proposal(
-                    cv_text, job, user_profile or {}
+                    cv_text, job, profile or {}
                 )
                 st.session_state[f"proposal_{result_id}"] = proposal
                 current_letter = proposal
@@ -4178,13 +4189,14 @@ def _run_auto_apply_action(
                 cv_text,
                 job,
                 match,
-                user_profile or {},
+                profile or {},
                 llm_call=call_llm,
                 cover_letter_text=current_letter,
                 adapted_cv_text=current_cv,
                 locale=get_locale(),
             )
         if auto_result["success"]:
+            method = str(auto_result.get("method") or "email")
             if user_id and result_id:
                 save_generated_documents(
                     user_id,
@@ -4198,11 +4210,14 @@ def _run_auto_apply_action(
                 record_application(
                     user_id,
                     result_id,
-                    "auto_email",
-                    status="applied",
+                    "auto_prepared" if method == "prepared" else "auto_email",
+                    status="saved" if method == "prepared" else "applied",
                     notes=auto_result["message"],
                 )
-            st.success(auto_result["message"])
+            if method == "prepared":
+                st.warning(auto_result["message"])
+            else:
+                st.success(auto_result["message"])
         else:
             st.error(auto_result["message"])
         return auto_result
@@ -4225,7 +4240,7 @@ def _render_apply_action_buttons(
     widget_key: str | int | None = None,
 ) -> bool:
     """Two apply actions: automatic e-mail send, or open the listing."""
-    can_apply = bool(user_id and result_id and cv_text and user_profile)
+    can_apply = bool(user_id and cv_text and user_profile)
     action_key = widget_key if widget_key is not None else (result_id or "x")
     freelance = is_freelance_mode(user_profile) or str(job.get("listing_kind") or "") == "mission"
     auto_label = t("job.apply_mission") if freelance else t("job.apply_auto")

@@ -227,10 +227,12 @@ def _stamp_recruiter_email(
     email: str | None,
     source: str,
 ) -> dict[str, Any]:
-    """Persist the lookup result on the job so Apply does not search again."""
+    """Persist a found recruiter address so Apply can reuse it."""
     cleaned = stored_recruiter_email({"recruiter_email": email or ""}) or ""
+    if not cleaned:
+        return job
     job["recruiter_email"] = cleaned
-    job["recruiter_email_source"] = source if cleaned else "none"
+    job["recruiter_email_source"] = source
     job["recruiter_email_resolved"] = True
     return job
 
@@ -258,15 +260,13 @@ def resolve_apply_email(
 ) -> str | None:
     """Listing address first, then the public page, then Hunter.io.
 
-    When analysis already resolved an address (or confirmed there is none),
-    reuse that result instead of calling Hunter again.
+    When analysis already found an address, reuse it. An empty prefetch
+    (Indeed/LinkedIn with no public mailbox) must not block a later Hunter lookup.
     """
     if not refresh:
         stored = stored_recruiter_email(job)
         if stored:
             return stored
-        if job.get("recruiter_email_resolved"):
-            return None
     listed = extract_apply_email(job)
     if listed:
         return listed
@@ -368,16 +368,11 @@ def prefetch_recruiter_emails(
                         hunter_rows.append(future.result())
                     except Exception:  # noqa: BLE001
                         continue
-        stamped_ids: set[int] = set()
         for indices, email in hunter_rows:
-            source = "hunter" if email else "none"
+            if not email:
+                continue
             for index in indices:
-                _stamp_recruiter_email(stamped[index], email, source)
-                stamped_ids.add(index)
-        remaining = [index for index in remaining if index not in stamped_ids]
-
-    for index in remaining:
-        _stamp_recruiter_email(stamped[index], None, "none")
+                _stamp_recruiter_email(stamped[index], email, "hunter")
     return stamped
 
 
@@ -395,6 +390,29 @@ def prefetch_recruiter_emails_for_results(
         item["job"] = job
         prepared.append(item)
     return prepared
+
+
+def enrich_application_profile(user_profile: dict[str, Any]) -> dict[str, Any]:
+    """Fill missing contact fields from the logged-in account when the snapshot omitted them."""
+    profile = dict(user_profile or {})
+    if str(profile.get("email") or "").strip():
+        return profile
+    user_id = profile.get("id")
+    if not user_id:
+        return profile
+    try:
+        from auth import get_user_by_id
+
+        account = get_user_by_id(int(user_id)) or {}
+    except Exception:  # noqa: BLE001
+        return profile
+    if account.get("email"):
+        profile["email"] = account["email"]
+    if account.get("full_name") and not str(profile.get("full_name") or "").strip():
+        profile["full_name"] = account["full_name"]
+    if account.get("phone") and not str(profile.get("phone") or "").strip():
+        profile["phone"] = account["phone"]
+    return profile
 
 
 def build_application_profile(user_profile: dict[str, Any]) -> dict[str, str]:
@@ -590,7 +608,7 @@ def _send_user_application_copy(
 
 def _external_prepared_message(
     profile: dict[str, str],
-    job: dict[str, Any],
+    _job: dict[str, Any],
     *,
     apply_email: str | None,
     user_notified: bool,
@@ -605,8 +623,6 @@ def _external_prepared_message(
         )
     elif not apply_email:
         parts.append(t("job.apply_auto_prepared_next", locale=locale))
-    if job.get("url"):
-        parts.append(t("job.apply_auto_opens_site", locale=locale))
     if user_notified:
         parts.append(
             t("job.apply_auto_prepared_user_email", locale=locale, email=profile.get("email", ""))
@@ -672,6 +688,7 @@ def submit_application_automatically(
     """
     from i18n import t
 
+    user_profile = enrich_application_profile(user_profile)
     profile = build_application_profile(user_profile)
     job_url = str(job.get("url") or "").strip()
     profile_text = format_application_profile_text(profile)
@@ -693,19 +710,85 @@ def submit_application_automatically(
         )
 
     apply_email = resolve_apply_email(job)
-    if not apply_email:
-        from services.hunter import hunter_configured
+    if apply_email:
+        try:
+            letter, adapted = ensure_application_documents(
+                cv_text,
+                job,
+                match,
+                user_profile,
+                llm_call=llm_call,
+                cover_letter_text=cover_letter_text,
+                adapted_cv_text=adapted_cv_text,
+            )
+        except Exception as exc:
+            return _empty_result(
+                method="generation_error",
+                message=t("job.apply_auto_generation_error", locale=locale, error=str(exc)),
+                cover_letter=cover_letter_text or "",
+                adapted_cv=adapted_cv_text or "",
+                apply_email=apply_email,
+                job_url=job_url,
+                profile_text=profile_text,
+            )
 
-        missing_key = (
-            t("job.apply_auto_hunter_missing", locale=locale)
-            if not hunter_configured()
-            else t("job.apply_auto_no_recruiter", locale=locale)
+        body = (
+            f"{letter}\n\n"
+            f"---\n"
+            f"{profile_text}\n\n"
+            f"{t('job.apply_email_footer', locale=locale, url=job_url or '—')}"
         )
+        ok, detail = send_application_email(
+            to_email=apply_email,
+            subject=_application_subject(job, profile),
+            body_text=body,
+            attachments=application_document_attachments(
+                letter,
+                adapted,
+                job=job,
+                match=match,
+                user_profile=user_profile,
+                original_cv=cv_text,
+            ),
+            reply_to=profile.get("email") or None,
+        )
+        if ok:
+            user_notified = notify_candidate_application(
+                profile,
+                job,
+                method="email",
+                recruiter_email=apply_email,
+                locale=locale,
+            )
+            message = t(
+                "job.apply_auto_email_sent",
+                locale=locale,
+                email=apply_email,
+            )
+            if user_notified:
+                message = (
+                    f"{message} "
+                    f"{t('job.apply_user_confirmation_sent', locale=locale, email=profile.get('email', ''))}"
+                )
+            return _empty_result(
+                success=True,
+                method="email",
+                message=message,
+                cover_letter=letter,
+                adapted_cv=adapted,
+                apply_email=apply_email,
+                job_url=job_url,
+                profile_text=profile_text,
+                user_notified=user_notified,
+            )
         return _empty_result(
-            method="missing_recruiter_email",
-            message=missing_key,
-            profile_text=profile_text,
+            method="email_failed",
+            message=t("job.apply_auto_email_failed", locale=locale, error=detail),
+            cover_letter=letter,
+            adapted_cv=adapted,
+            apply_email=apply_email,
             job_url=job_url,
+            profile_text=profile_text,
         )
 
     try:
@@ -724,68 +807,46 @@ def submit_application_automatically(
             message=t("job.apply_auto_generation_error", locale=locale, error=str(exc)),
             cover_letter=cover_letter_text or "",
             adapted_cv=adapted_cv_text or "",
-            apply_email=apply_email,
             job_url=job_url,
             profile_text=profile_text,
         )
 
-    body = (
-        f"{letter}\n\n"
-        f"---\n"
-        f"{profile_text}\n\n"
-        f"{t('job.apply_email_footer', locale=locale, url=job_url or '—')}"
+    from services.hunter import hunter_configured
+
+    missing = (
+        t("job.apply_auto_hunter_missing", locale=locale)
+        if not hunter_configured()
+        else t("job.apply_auto_no_recruiter", locale=locale)
     )
-    ok, detail = send_application_email(
-        to_email=apply_email,
-        subject=_application_subject(job, profile),
-        body_text=body,
-        attachments=application_document_attachments(
-            letter,
-            adapted,
-            job=job,
-            match=match,
-            user_profile=user_profile,
-            original_cv=cv_text,
-        ),
-        reply_to=profile.get("email") or None,
+    user_notified = _send_user_application_copy(
+        profile,
+        job,
+        letter,
+        adapted,
+        profile_text,
+        job_url,
+        locale=locale,
+        match=match,
+        user_profile=user_profile,
+        original_cv=cv_text,
     )
-    if ok:
-        user_notified = notify_candidate_application(
-            profile,
-            job,
-            method="email",
-            recruiter_email=apply_email,
-            locale=locale,
-        )
-        message = t(
-            "job.apply_auto_email_sent",
-            locale=locale,
-            email=apply_email,
-        )
-        if user_notified:
-            message = (
-                f"{message} "
-                f"{t('job.apply_user_confirmation_sent', locale=locale, email=profile.get('email', ''))}"
-            )
-        return _empty_result(
-            success=True,
-            method="email",
-            message=message,
-            cover_letter=letter,
-            adapted_cv=adapted,
-            apply_email=apply_email,
-            job_url=job_url,
-            profile_text=profile_text,
-            user_notified=user_notified,
-        )
+    message = _external_prepared_message(
+        profile,
+        job,
+        apply_email=None,
+        user_notified=user_notified,
+        locale=locale,
+    )
     return _empty_result(
-        method="email_failed",
-        message=t("job.apply_auto_email_failed", locale=locale, error=detail),
+        success=True,
+        method="prepared",
+        message=f"{message} {missing}",
         cover_letter=letter,
         adapted_cv=adapted,
-        apply_email=apply_email,
+        apply_email=None,
         job_url=job_url,
         profile_text=profile_text,
+        user_notified=user_notified,
     )
 
 
@@ -804,6 +865,7 @@ def prepare_manual_application(
     """Prepare dossier for manual application on the job board."""
     from i18n import t
 
+    user_profile = enrich_application_profile(user_profile)
     profile = build_application_profile(user_profile)
     profile_text = format_application_profile_text(profile)
     job_url = str(job.get("url") or "").strip()

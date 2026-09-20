@@ -12,6 +12,7 @@ from persistence import (
     get_analysis,
     get_analysis_apply_context,
     get_analysis_result,
+    job_card_preview,
     list_dashboard_results,
     list_user_applications,
     record_application,
@@ -300,6 +301,30 @@ def test_session_analysis_omits_heavy_result_payloads(sqlite_db):
     assert "description" not in result["job"]
     assert result["job"]["company"] == "Acme"
     assert "analyse_competences" not in result["match"]
+
+
+def test_job_card_preview_keeps_recruiter_email_and_skips_description():
+    preview = job_card_preview(
+        {
+            "title": "Dev",
+            "company": "Acme",
+            "description": "LONG JOB DESCRIPTION " * 80,
+            "url": "https://example.com/1",
+            "listing_kind": "mission",
+            "apply_url": "https://example.com/apply",
+            "recruiter_email": "jobs@acme.fr",
+            "recruiter_email_source": "hunter",
+            "recruiter_email_resolved": True,
+        }
+    )
+    assert preview["recruiter_email"] == "jobs@acme.fr"
+    assert preview["recruiter_email_source"] == "hunter"
+    assert preview["listing_kind"] == "mission"
+    assert preview["apply_url"] == "https://example.com/apply"
+    assert "description" not in preview
+    empty = job_card_preview({"title": "Dev", "description": "x", "recruiter_email": ""})
+    assert "recruiter_email" not in empty
+    assert "recruiter_email_resolved" not in empty
 
 
 def test_application_list_skips_documents_until_hydrated(sqlite_db):

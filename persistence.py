@@ -894,7 +894,7 @@ def _optional_int(value: Any) -> int | None:
 def job_card_preview(job: dict[str, Any] | None) -> dict[str, Any]:
     """Keep only the fields needed to render a collapsed job card."""
     data = job or {}
-    return {
+    preview = {
         "title": data.get("title") or "",
         "company": data.get("company") or "",
         "location": data.get("location") or "",
@@ -904,7 +904,15 @@ def job_card_preview(job: dict[str, Any] | None) -> dict[str, Any]:
         "contract_type": data.get("contract_type") or "",
         "inferred_contract": data.get("inferred_contract") or "",
         "company_url": data.get("company_url") or "",
+        "listing_kind": data.get("listing_kind") or "",
+        "apply_url": data.get("apply_url") or "",
     }
+    email = str(data.get("recruiter_email") or "").strip()
+    if email:
+        preview["recruiter_email"] = email
+        preview["recruiter_email_source"] = str(data.get("recruiter_email_source") or "")
+        preview["recruiter_email_resolved"] = True
+    return preview
 
 
 def match_card_preview(
@@ -934,7 +942,8 @@ def match_card_preview(
 
 
 def _job_preview_from_row(row: Any) -> dict[str, Any]:
-    return {
+    keys = set(row.keys()) if hasattr(row, "keys") else set()
+    preview = {
         "title": row["job_title"] or "",
         "company": row["job_company"] or "",
         "location": row["job_location"] or "",
@@ -944,6 +953,24 @@ def _job_preview_from_row(row: Any) -> dict[str, Any]:
         "contract_type": row["job_contract_type"] or "",
         "inferred_contract": row["job_inferred_contract"] or "",
     }
+    if "job_listing_kind" in keys:
+        preview["listing_kind"] = str(row["job_listing_kind"] or "")
+    if "job_apply_url" in keys:
+        preview["apply_url"] = str(row["job_apply_url"] or "")
+    if "job_company_url" in keys:
+        preview["company_url"] = str(row["job_company_url"] or "")
+    email = ""
+    if "job_recruiter_email" in keys:
+        email = str(row["job_recruiter_email"] or "").strip()
+    if email:
+        preview["recruiter_email"] = email
+        preview["recruiter_email_source"] = (
+            str(row["job_recruiter_email_source"] or "")
+            if "job_recruiter_email_source" in keys
+            else ""
+        )
+        preview["recruiter_email_resolved"] = True
+    return preview
 
 
 def _match_preview_from_row(row: Any) -> dict[str, Any]:
@@ -976,6 +1003,11 @@ def _analysis_result_select_preview_sql() -> str:
         {_sql_json_text(job, "published_at")} AS job_published_at,
         {_sql_json_text(job, "contract_type")} AS job_contract_type,
         {_sql_json_text(job, "inferred_contract")} AS job_inferred_contract,
+        {_sql_json_text(job, "listing_kind")} AS job_listing_kind,
+        {_sql_json_text(job, "apply_url")} AS job_apply_url,
+        {_sql_json_text(job, "company_url")} AS job_company_url,
+        {_sql_json_text(job, "recruiter_email")} AS job_recruiter_email,
+        {_sql_json_text(job, "recruiter_email_source")} AS job_recruiter_email_source,
         {_sql_json_text(match, "score_competences")} AS match_score_competences,
         {_sql_json_text(match, "score_experiences")} AS match_score_experiences,
         {_sql_json_text(match, "score_titre")} AS match_score_titre,

@@ -358,17 +358,42 @@ def test_resolve_apply_email_reuses_prepared_address() -> None:
         pages.assert_not_called()
 
 
-def test_resolve_apply_email_skips_search_after_failed_prefetch() -> None:
+def test_resolve_apply_email_retries_hunter_after_empty_prefetch() -> None:
     job = {
         "description": "Postulez en ligne.",
         "company": "Acme",
         "recruiter_email": "",
         "recruiter_email_resolved": True,
         "url": "https://www.indeed.fr/viewjob?jk=1",
+        "company_url": "https://www.acme.fr",
     }
-    with patch("services.hunter.find_recruiter_email") as hunter:
-        assert resolve_apply_email(job) is None
-        hunter.assert_not_called()
+    with (
+        patch("services.application.extract_apply_email_from_pages", return_value=None),
+        patch("services.hunter.find_recruiter_email", return_value="jobs@acme.fr") as hunter,
+    ):
+        assert resolve_apply_email(job) == "jobs@acme.fr"
+        hunter.assert_called_once()
+
+
+def test_prefetch_does_not_stamp_empty_resolved() -> None:
+    from services.application import prefetch_recruiter_emails
+
+    jobs = [
+        {
+            "title": "Dev",
+            "company": "Acme",
+            "description": "CDI Paris",
+            "url": "https://www.indeed.fr/viewjob?jk=1",
+            "company_url": "https://www.acme.fr",
+        }
+    ]
+    with (
+        patch("services.application.extract_apply_email_from_pages", return_value=None),
+        patch("services.hunter.find_recruiter_email", return_value=None),
+    ):
+        out = prefetch_recruiter_emails(jobs, max_workers=1)
+    assert not out[0].get("recruiter_email")
+    assert out[0].get("recruiter_email_resolved") is not True
 
 
 def test_prefetch_stamps_listing_email_without_hunter() -> None:
