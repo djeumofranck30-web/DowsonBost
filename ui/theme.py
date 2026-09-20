@@ -1894,6 +1894,19 @@ def render_auth_styles() -> None:
             border-color: {t["primary"]} !important;
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14) !important;
         }}
+        [data-testid="stTextInput"] input:disabled,
+        [data-testid="stNumberInput"] input:disabled,
+        [data-testid="stTextInputField"]:disabled,
+        [data-testid="stNumberInputField"]:disabled {{
+            color: #6B7280 !important;
+            -webkit-text-fill-color: #6B7280 !important;
+            cursor: not-allowed !important;
+        }}
+        [data-testid="stTextInputRootElement"]:has(input:disabled),
+        [data-testid="stNumberInputContainer"]:has(input:disabled) {{
+            background: #F3F4F6 !important;
+            border-color: #E5E7EB !important;
+        }}
 
         /* Auth form actions — beat compact global pills */
         [class*="st-key-auth_go_reset"],

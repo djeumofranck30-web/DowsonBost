@@ -8439,6 +8439,7 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                 if freelance_mode
                 else t("profile.freelance_locked_help")
             ),
+            placeholder="https://",
             key=f"{widget_prefix}_portfolio",
             disabled=not freelance_mode,
         )
