@@ -6,14 +6,20 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-from services.application import extract_apply_email, resolve_apply_email
+from services.application import (
+    extract_apply_email,
+    extract_apply_email_from_pages,
+    resolve_apply_email,
+)
 from services.hunter import (
     clean_company_name,
     clear_hunter_cache,
     company_slug_from_job,
+    domain_from_company_name,
     find_recruiter_email,
     infer_company_domain,
     is_job_board_or_ats_host,
+    mailbox_domain_from_host,
     pick_recruiter_email,
 )
 
@@ -50,6 +56,30 @@ def test_infer_domain_skips_job_boards() -> None:
     ) is None
     assert infer_company_domain({"company_url": "https://www.acme.fr/jobs/1"}) == "acme.fr"
     assert infer_company_domain({"website": "acme.fr"}) == "acme.fr"
+
+
+def test_infer_thales_career_portal_uses_company_mailbox_domain() -> None:
+    assert mailbox_domain_from_host("careers.thalesgroup.com") == "thalesgroup.com"
+    assert mailbox_domain_from_host("jobs.thalesgroup.com") == "thalesgroup.com"
+    assert domain_from_company_name("Thales") == "thalesgroup.com"
+    assert (
+        infer_company_domain(
+            {
+                "company": "Thales",
+                "url": "https://careers.thalesgroup.com/job/radar-engineer",
+            }
+        )
+        == "thalesgroup.com"
+    )
+    assert (
+        infer_company_domain(
+            {
+                "company": "Thales Group",
+                "url": "https://www.indeed.fr/viewjob?jk=thales",
+            }
+        )
+        == "thalesgroup.com"
+    )
 
 
 def test_infer_domain_from_description_website() -> None:
@@ -175,6 +205,71 @@ def test_resolve_apply_email_falls_back_to_hunter() -> None:
     with patch("services.hunter.find_recruiter_email", return_value="jobs@acme.fr"):
         assert extract_apply_email(job) is None
         assert resolve_apply_email(job) == "jobs@acme.fr"
+
+
+def test_resolve_apply_email_reads_thales_listing_page() -> None:
+    job = {
+        "title": "Ingénieur radar",
+        "company": "Thales",
+        "description": "Postulez en ligne sur le portail carrière.",
+        "url": "https://careers.thalesgroup.com/job/radar-engineer",
+        "apply_url": "https://careers.thalesgroup.com/job/radar-engineer",
+    }
+    html = (
+        "<html><body>"
+        '<a href="mailto:recrutement@thalesgroup.com">Postuler</a>'
+        "</body></html>"
+    )
+
+    class _Resp:
+        status_code = 200
+        text = html
+
+    with (
+        patch("services.application.requests.get", return_value=_Resp()) as mocked,
+        patch("services.hunter.find_recruiter_email") as hunter,
+    ):
+        assert extract_apply_email(job) is None
+        assert extract_apply_email_from_pages(job) == "recrutement@thalesgroup.com"
+        assert resolve_apply_email(job) == "recrutement@thalesgroup.com"
+        hunter.assert_not_called()
+    assert mocked.call_count >= 1
+    assert "careers.thalesgroup.com" in mocked.call_args_list[0].args[0]
+
+
+def test_indeed_thales_listing_uses_hunter_company_domain() -> None:
+    clear_hunter_cache()
+    job = {
+        "title": "Ingénieur radar",
+        "company": "Thales",
+        "description": "Postulez sur Indeed.",
+        "url": "https://www.indeed.fr/viewjob?jk=thales",
+    }
+    payload = {
+        "data": {
+            "domain": "thalesgroup.com",
+            "emails": [
+                {
+                    "value": "recrutement@thalesgroup.com",
+                    "type": "generic",
+                    "confidence": 91,
+                    "department": "hr",
+                    "position": None,
+                }
+            ],
+        }
+    }
+    with (
+        patch("services.application.requests.get") as page,
+        patch("services.hunter.hunter_api_key", return_value="hunter-test"),
+        patch("services.hunter._hunter_get", return_value=payload) as hunter,
+    ):
+        assert extract_apply_email(job) is None
+        assert resolve_apply_email(job) == "recrutement@thalesgroup.com"
+    page.assert_not_called()
+    assert hunter.call_count >= 1
+    assert hunter.call_args_list[0].args[0]["domain"] == "thalesgroup.com"
+    clear_hunter_cache()
 
 
 def test_submit_uses_hunter_when_listing_has_no_email() -> None:

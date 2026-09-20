@@ -57,6 +57,7 @@ from job_filters import (
     enrich_query_for_contract,
     format_filter_rejection_hint,
     format_job_published_label,
+    job_matches_publication_age,
     job_max_age_label,
     JOB_MAX_AGE_DAYS_OPTIONS,
     WORK_MODES,
@@ -2796,6 +2797,25 @@ def _search_jobs_at_country_locations(
     }
 
 
+def _keep_jobs_within_profile_age(
+    jobs: list[dict[str, Any]],
+    max_age_days: int,
+) -> list[dict[str, Any]]:
+    """Drop listings older than the profile publication window (unknown dates stay)."""
+    if not jobs:
+        return []
+    window = normalize_job_max_age_days(max_age_days)
+    if window <= 0:
+        return list(jobs)
+    return [job for job in jobs if job_matches_publication_age(job, window)]
+
+
+def _profile_match_count(jobs: list[dict[str, Any]], profile: dict[str, Any]) -> int:
+    """How many offers still match zone / contract / date / level after filters."""
+    kept, _stats = apply_strict_job_filters(list(jobs or []), profile, min_keep=0)
+    return len(kept)
+
+
 def _with_company_career_sites(
     result: dict[str, Any],
     *,
@@ -2805,6 +2825,7 @@ def _with_company_career_sites(
     countries: list[str],
     country: str,
     provider: str,
+    limit: int = 80,
 ) -> dict[str, Any]:
     """Always mix company career-site openings into an analysis search."""
     secrets = provider_secrets_from_getter(get_secret)
@@ -2817,6 +2838,7 @@ def _with_company_career_sites(
         country=(countries[0] if countries else country) or "France",
         provider=provider,
         api_key=secrets.get("serpapi_api_key") or "",
+        limit=max(80, int(limit or 80)),
     )
 
 
@@ -2870,6 +2892,7 @@ def search_jobs_for_profile(
     board_provider = encode_job_providers(board_keys) if board_keys else ""
 
     title_for_sites = (query or metier).strip()
+    career_limit = max(80, int(target))
     if include_career:
         career_seed = _with_company_career_sites(
             {
@@ -2883,9 +2906,13 @@ def search_jobs_for_profile(
             countries=countries,
             country=country,
             provider="",
+            limit=career_limit,
         )
         career_jobs = tag_jobs_search_phase(
-            list(career_seed.get("jobs") or []),
+            _keep_jobs_within_profile_age(
+                list(career_seed.get("jobs") or []),
+                max_age_days,
+            ),
             SEARCH_PHASE_CAREER,
         )
         if career_jobs:
@@ -2894,14 +2921,11 @@ def search_jobs_for_profile(
             query_used = str(career_seed.get("query_used") or query_used)
             strategies.append("career:sites")
 
-    career_count = len(merged)
-    enough_boards = max(int(target) * 2, int(target) + 20)
+    enough = max(1, int(target))
     if board_provider:
         for phase_name, queries in phases:
-            board_count = max(0, len(merged) - career_count)
-            if board_count >= enough_boards:
+            if _profile_match_count(merged, profile) >= enough:
                 break
-            use_all_locations = phase_name == SEARCH_PHASE_TITLE and board_count < target
             phase_pct = {
                 SEARCH_PHASE_TITLE: 28,
                 SEARCH_PHASE_SIMILAR: 36,
@@ -2917,14 +2941,12 @@ def search_jobs_for_profile(
                 ),
             )
             for q_try in queries:
-                if board_count >= enough_boards:
+                if _profile_match_count(merged, profile) >= enough:
                     break
                 for search_country in countries:
-                    if board_count >= enough_boards:
+                    if _profile_match_count(merged, profile) >= enough:
                         break
                     country_locations = country_locations_map.get(search_country) or [""]
-                    if not use_all_locations:
-                        country_locations = country_locations[:1]
                     result = _search_jobs_at_country_locations(
                         board_provider,
                         q_try,
@@ -2935,10 +2957,15 @@ def search_jobs_for_profile(
                         None,
                         max_age_days,
                     )
-                    batch = tag_jobs_search_phase(result.get("jobs") or [], phase_name)
+                    batch = tag_jobs_search_phase(
+                        _keep_jobs_within_profile_age(
+                            result.get("jobs") or [],
+                            max_age_days,
+                        ),
+                        phase_name,
+                    )
                     if batch:
                         merged = merge_job_lists([merged, batch])
-                        board_count = max(0, len(merged) - career_count)
                         query_used = result.get("query_used") or q_try or query_used
                         providers_used.extend(result.get("providers_used") or [])
                         strategies.append(f"{phase_name}:{q_try}")
@@ -2966,7 +2993,7 @@ def search_jobs_for_profile(
         }
         if not include_career:
             return payload
-        return _with_company_career_sites(
+        extra = _with_company_career_sites(
             payload,
             query=title_for_sites,
             metier=metier or title_for_sites,
@@ -2974,7 +3001,13 @@ def search_jobs_for_profile(
             countries=countries,
             country=country,
             provider="",
+            limit=career_limit,
         )
+        extra["jobs"] = _keep_jobs_within_profile_age(
+            list(extra.get("jobs") or []),
+            max_age_days,
+        )
+        return extra
 
     fallback_country = profile_primary_country(profile) or country or "France"
     fallback = search_jobs_with_fallback(
@@ -2991,7 +3024,7 @@ def search_jobs_for_profile(
     fallback["profile_locations"] = all_locations
     if not include_career:
         return fallback
-    return _with_company_career_sites(
+    extra = _with_company_career_sites(
         fallback,
         query=query,
         metier=metier,
@@ -2999,7 +3032,13 @@ def search_jobs_for_profile(
         countries=countries,
         country=country,
         provider="",
+        limit=career_limit,
     )
+    extra["jobs"] = _keep_jobs_within_profile_age(
+        list(extra.get("jobs") or []),
+        max_age_days,
+    )
+    return extra
 
 
 def _search_all_providers_with_fallback(
@@ -3191,12 +3230,17 @@ def search_jobs(
     """Dispatch job search to the selected provider."""
     secrets = provider_secrets_from_getter(get_secret)
 
+    def _finish(found: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return _keep_jobs_within_profile_age(found, max_age_days)
+
     if provider == JOB_PROVIDER_WTTJ:
-        return search_jobs_wttj(
-            query,
-            contract_type=contract_type,
-            location=location,
-            country=country,
+        return _finish(
+            search_jobs_wttj(
+                query,
+                contract_type=contract_type,
+                location=location,
+                country=country,
+            )
         )
 
     if provider == JOB_PROVIDER_JOOBLE:
@@ -3204,8 +3248,10 @@ def search_jobs(
             raise RuntimeError(
                 "Clé Jooble manquante. Configurez JOOBLE_API_KEY (fr.jooble.org/api/about)."
             )
-        return search_jobs_jooble(
+        return _finish(
+            search_jobs_jooble(
             query, location, country, secrets["jooble_api_key"]
+        )
         )
 
     if provider == JOB_PROVIDER_OPTIONCARRIERE:
@@ -3214,7 +3260,8 @@ def search_jobs(
                 "Clé Careerjet manquante. Configurez CAREERJET_API_KEY "
                 "(optioncarriere.com/partners/api)."
             )
-        return search_jobs_optioncarriere(
+        return _finish(
+            search_jobs_optioncarriere(
             query,
             location,
             country,
@@ -3226,14 +3273,17 @@ def search_jobs(
             referer=resolve_careerjet_referer(secrets["careerjet_referer"]),
             contract_type=contract_type,
         )
+        )
 
     if provider == JOB_PROVIDER_JOBTEASER:
         if not secrets["apify_api_token"]:
             raise RuntimeError(
                 "Token Apify manquant. Configurez APIFY_API_TOKEN pour JobTeaser."
             )
-        return search_jobs_jobteaser(
+        return _finish(
+            search_jobs_jobteaser(
             query, location, contract_type, secrets["apify_api_token"]
+        )
         )
 
     serp_key = secrets["serpapi_api_key"]
@@ -3244,12 +3294,14 @@ def search_jobs(
             raise RuntimeError(
                 "HelloWork requiert APIFY_API_TOKEN et/ou SERPAPI_API_KEY."
             )
-        return search_jobs_hellowork(
+        return _finish(
+            search_jobs_hellowork(
             query,
             location,
             contract_type,
             apify_token,
             serpapi_key=serp_key,
+        )
         )
 
     if provider == JOB_PROVIDER_MONSTER:
@@ -3257,7 +3309,8 @@ def search_jobs(
             raise RuntimeError(
                 "Monster requiert APIFY_API_TOKEN et/ou SERPAPI_API_KEY."
             )
-        return search_jobs_monster(
+        return _finish(
+            search_jobs_monster(
             query,
             location,
             country,
@@ -3265,58 +3318,77 @@ def search_jobs(
             serpapi_key=serp_key,
             contract_type=contract_type,
         )
+        )
 
     if provider == JOB_PROVIDER_TALENT:
         if not apify_token and not serp_key:
             raise RuntimeError(
                 "Talent.com requiert APIFY_API_TOKEN et/ou SERPAPI_API_KEY."
             )
-        return search_jobs_talent(
+        return _finish(
+            search_jobs_talent(
             query,
             location,
             country,
             apify_token,
             serpapi_key=serp_key,
         )
+        )
 
     if provider == JOB_PROVIDER_INDEED:
         if not serp_key:
             raise RuntimeError("SERPAPI_API_KEY requise pour Indeed.")
-        return search_jobs_indeed_serpapi(query, location, country, serp_key)
+        return _finish(
+            search_jobs_indeed_serpapi(query, location, country, serp_key)
+        )
 
     if provider == JOB_PROVIDER_LINKEDIN:
         if not serp_key:
             raise RuntimeError("SERPAPI_API_KEY requise pour LinkedIn Jobs.")
-        return search_jobs_linkedin_serpapi(query, location, country, serp_key)
+        return _finish(
+            search_jobs_linkedin_serpapi(query, location, country, serp_key)
+        )
 
     if provider == JOB_PROVIDER_GLASSDOOR:
         if not serp_key:
             raise RuntimeError("SERPAPI_API_KEY requise pour Glassdoor.")
-        return search_jobs_glassdoor_serpapi(query, location, country, serp_key)
+        return _finish(
+            search_jobs_glassdoor_serpapi(query, location, country, serp_key)
+        )
 
     if provider == JOB_PROVIDER_CAREER_SITES:
-        return search_jobs_career_sites(query, location, country, serp_key)
+        return _finish(
+            search_jobs_career_sites(query, location, country, serp_key)
+        )
 
     if provider == JOB_PROVIDER_FRANCE_TRAVAIL:
         if not serp_key:
             raise RuntimeError("SERPAPI_API_KEY requise pour France Travail.")
-        return search_jobs_france_travail(query, location, country, serp_key)
+        return _finish(
+            search_jobs_france_travail(query, location, country, serp_key)
+        )
 
     if provider == JOB_PROVIDER_FREELANCE:
         if not serp_key:
             raise RuntimeError("SERPAPI_API_KEY requise pour Freelance.com.")
-        return search_jobs_freelance_com(query, location, country, serp_key)
+        return _finish(
+            search_jobs_freelance_com(query, location, country, serp_key)
+        )
 
     if provider == JOB_PROVIDER_SERPAPI:
         if not serp_key:
             raise RuntimeError("Clé SerpApi manquante. Configurez SERPAPI_API_KEY.")
         serp_location = f"{location}, {country}" if location else country
-        return search_jobs_serpapi_google_jobs(
+        return _finish(
+            search_jobs_serpapi_google_jobs(
             query, serp_location, country, serp_key
+        )
         )
 
     country_code = resolve_country_code(country)
-    return search_jobs_adzuna(query, location, country_code, max_days_old=max_age_days)
+    return _finish(
+        search_jobs_adzuna(query, location, country_code, max_days_old=max_age_days)
+    )
 
 
 def rank_jobs_for_cv(
@@ -6635,7 +6707,7 @@ def run_cv_analysis_pipeline(
         raw_jobs,
         user_profile,
         cv_profile=criteria,
-        min_keep=top_n,
+        min_keep=0,
     )
     _report_progress(
         progress,

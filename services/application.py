@@ -7,6 +7,8 @@ import json
 import re
 from typing import Any, Callable, TypedDict
 
+import requests
+
 from document_generation import generate_adapted_cv, generate_cover_letter
 from email_service import (
     email_configured,
@@ -41,6 +43,18 @@ _PRIORITY_LOCAL_HINTS = (
     "talent",
     "contact",
 )
+_SKIP_PAGE_HOSTS = (
+    "indeed.",
+    "linkedin.",
+    "facebook.",
+    "twitter.",
+    "x.com",
+    "youtube.",
+)
+_PAGE_FETCH_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (compatible; DowsonBost/1.0; +https://dowsonbost.streamlit.app)",
+    "Accept": "text/html,application/xhtml+xml",
+}
 
 
 class ApplicationResult(TypedDict):
@@ -103,9 +117,14 @@ def _collect_email_candidates(text: str) -> list[str]:
     def _add(raw: str) -> None:
         email = raw.lower().strip().strip(".;,)")
         local = email.split("@", 1)[0]
+        host = email.split("@", 1)[-1] if "@" in email else ""
         if not email or "@" not in email or email in seen:
             return
         if any(local.startswith(prefix) for prefix in _IGNORE_LOCAL_PARTS):
+            return
+        from services.hunter import is_job_board_or_ats_host
+
+        if is_job_board_or_ats_host(host):
             return
         seen.add(email)
         candidates.append(email)
@@ -133,11 +152,48 @@ def extract_apply_email(job: dict[str, Any]) -> str | None:
     return candidates[0]
 
 
+def _should_fetch_listing(url: str) -> bool:
+    raw = (url or "").strip()
+    if not raw.startswith(("http://", "https://")):
+        return False
+    lowered = raw.lower()
+    return not any(skip in lowered for skip in _SKIP_PAGE_HOSTS)
+
+
+def extract_apply_email_from_pages(job: dict[str, Any]) -> str | None:
+    """Fetch the public listing page and look for a mailto / recruiter address."""
+    urls: list[str] = []
+    for field in ("apply_url", "url", "company_url"):
+        raw = str(job.get(field) or "").strip()
+        if raw and raw not in urls and _should_fetch_listing(raw):
+            urls.append(raw)
+    for url in urls[:3]:
+        try:
+            response = requests.get(url, timeout=8, headers=_PAGE_FETCH_HEADERS)
+        except requests.RequestException:
+            continue
+        if response.status_code >= 400 or not response.text:
+            continue
+        snippet = html.unescape(response.text[:180_000])
+        candidates = _collect_email_candidates(snippet)
+        if not candidates:
+            continue
+        for hint in _PRIORITY_LOCAL_HINTS:
+            for email in candidates:
+                if hint in email:
+                    return email
+        return candidates[0]
+    return None
+
+
 def resolve_apply_email(job: dict[str, Any]) -> str | None:
-    """Listing address first, then Hunter.io if the offer has none."""
+    """Listing address first, then the public page, then Hunter.io."""
     listed = extract_apply_email(job)
     if listed:
         return listed
+    from_page = extract_apply_email_from_pages(job)
+    if from_page:
+        return from_page
     from services.hunter import find_recruiter_email
 
     return find_recruiter_email(job)

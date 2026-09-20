@@ -1126,17 +1126,14 @@ def infer_job_sector(job: dict[str, Any]) -> str:
 
 
 def job_matches_experience_level(job: dict[str, Any], expected_level: str) -> bool:
-    """Strict experience filter — exact match; unknown job level is rejected."""
+    """Keep unknown levels; drop only a clear mismatch with the profile."""
     expected = normalize_experience_level(expected_level)
     if not expected or expected == "tous":
         return True
     inferred = infer_job_experience_level(job)
     if not inferred:
-        return is_company_career_job(job)
-    if inferred == expected:
         return True
-    # Career pages often say "Senior" for mid/confirmed engineering roles.
-    return is_company_career_job(job) and expected == "confirme" and inferred == "senior"
+    return inferred == expected
 
 
 def job_matches_sector(job: dict[str, Any], target_sectors: list[str]) -> bool:
@@ -1160,11 +1157,11 @@ def job_matches_sector(job: dict[str, Any], target_sectors: list[str]) -> bool:
 
 
 def job_matches_contract(job: dict[str, Any], user_contract: str) -> bool:
-    """Strict contract filter — exact match only."""
+    """Keep unknown contracts; drop only a clear mismatch with the profile."""
     expected = normalize_contract_type(user_contract)
     inferred = infer_job_contract(job)
     if not inferred:
-        return is_company_career_job(job)
+        return True
     return inferred == expected
 
 
@@ -1437,12 +1434,13 @@ def apply_strict_job_filters(
     *,
     min_keep: int = 0,
 ) -> tuple[list[dict[str, Any]], dict[str, int]]:
-    """Filter jobs by contract, geography, experience level and sector.
+    """Filter jobs by contract, geography, experience, sector and publication date.
 
-    If ``min_keep`` is set (analysis depth 25/60/100/150) and the publication-age
-    filter leaves too few offers, backfill the newest older offers that still
-    match zone, contract, level and sector.
+    ``min_keep`` is ignored: older offers are not backfilled to fake a depth
+    target. The search loop must keep querying until enough *matching* offers
+    exist (or providers are exhausted).
     """
+    _ = min_keep
     user_contract = normalize_contract_type(str(profile.get("contract_type", "CDI")))
     experience_level = resolve_experience_level(profile, cv_profile)
     target_sectors = resolve_target_sectors(profile, cv_profile)
@@ -1451,7 +1449,6 @@ def apply_strict_job_filters(
     salary_min = normalize_salary_min(profile.get("salary_min"))
 
     filtered: list[dict[str, Any]] = []
-    older_matches: list[dict[str, Any]] = []
     stats = {
         "total": len(jobs),
         "rejected_contract": 0,
@@ -1470,7 +1467,6 @@ def apply_strict_job_filters(
     }
 
     for job in jobs:
-        age_ok = job_matches_publication_age(job, max_age_days)
         if not job_matches_contract(job, user_contract):
             stats["rejected_contract"] += 1
             continue
@@ -1489,24 +1485,12 @@ def apply_strict_job_filters(
         if not job_matches_salary(job, salary_min):
             stats["rejected_salary"] += 1
             continue
-        enriched = _enrich_filtered_job(job)
-        if age_ok:
-            filtered.append(enriched)
-        else:
+        if not job_matches_publication_age(job, max_age_days):
             stats["rejected_publication_age"] += 1
-            older_matches.append(enriched)
+            continue
+        filtered.append(_enrich_filtered_job(job))
 
     stats["kept_strict"] = len(filtered)
-    target = max(0, int(min_keep or 0))
-    if target and len(filtered) < target and older_matches:
-        older_matches.sort(key=_published_sort_key, reverse=True)
-        extra = older_matches[: target - len(filtered)]
-        filtered.extend(extra)
-        stats["backfilled_older"] = len(extra)
-        stats["rejected_publication_age"] = max(
-            0, stats["rejected_publication_age"] - len(extra)
-        )
-
     stats["kept"] = len(filtered)
     return filtered, stats
 

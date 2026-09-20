@@ -1,4 +1,4 @@
-"""Strict job filters: publication age can backfill toward the analysis depth."""
+"""Strict job filters honor zone, contract, level and publication date."""
 
 from __future__ import annotations
 
@@ -79,7 +79,7 @@ def test_age_filter_without_min_keep_drops_older_offers() -> None:
     assert all(item["title"].startswith("Recent") for item in kept)
 
 
-def test_min_keep_backfills_newest_older_matching_offers() -> None:
+def test_min_keep_does_not_backfill_older_offers() -> None:
     jobs = [
         *[_job(f"Recent {i}", published_days_ago=2) for i in range(5)],
         *[_job(f"Older {i:02d}", published_days_ago=10 + i) for i in range(40)],
@@ -92,29 +92,26 @@ def test_min_keep_backfills_newest_older_matching_offers() -> None:
         ),
     ]
     kept, stats = apply_strict_job_filters(jobs, _paris_profile(), min_keep=25)
-    assert len(kept) == 25
+    assert len(kept) == 5
     assert stats["kept_strict"] == 5
-    assert stats["backfilled_older"] == 20
-    assert stats["kept"] == 25
+    assert stats["backfilled_older"] == 0
+    assert stats["kept"] == 5
     titles = [item["title"] for item in kept]
-    assert titles[:5] == [f"Recent {i}" for i in range(5)]
-    assert titles[5:] == [f"Older {i:02d}" for i in range(20)]
+    assert titles == [f"Recent {i}" for i in range(5)]
     assert "Lyon older" not in titles
-    assert "Paris stage older" not in titles
+    assert all(item["title"].startswith("Recent") for item in kept)
 
 
-def test_min_keep_prefers_newest_jobs_outside_age_window() -> None:
+def test_min_keep_still_drops_jobs_outside_age_window() -> None:
     jobs = [
         *[_job(f"Recent {i}", published_days_ago=1) for i in range(5)],
         *[_job(f"Older {i:02d}", published_days_ago=10 + i) for i in range(40)],
     ]
     kept, stats = apply_strict_job_filters(jobs, _paris_profile(), min_keep=25)
-    assert len(kept) == 25
+    assert len(kept) == 5
     assert stats["kept_strict"] == 5
-    assert stats["backfilled_older"] == 20
-    backfilled = [item["title"] for item in kept[5:]]
-    assert backfilled == [f"Older {i:02d}" for i in range(20)]
-    assert stats["rejected_publication_age"] == 20
+    assert stats["backfilled_older"] == 0
+    assert stats["rejected_publication_age"] == 40
 
 
 def test_min_keep_cannot_invent_offers_outside_zone_or_contract() -> None:
@@ -129,18 +126,18 @@ def test_min_keep_cannot_invent_offers_outside_zone_or_contract() -> None:
     assert stats["rejected_geo"] == 80
 
 
-def test_complet_depth_fills_toward_100_when_age_filter_is_tight() -> None:
+def test_complet_depth_does_not_relax_publication_date() -> None:
     jobs = [
         *[_job(f"Recent {i}", published_days_ago=3) for i in range(27)],
         *[_job(f"Older {i:03d}", published_days_ago=14 + (i % 20)) for i in range(200)],
     ]
     kept, stats = apply_strict_job_filters(jobs, _paris_profile(), min_keep=100)
     assert stats["kept_strict"] == 27
-    assert stats["backfilled_older"] == 73
-    assert len(kept) == 100
+    assert stats["backfilled_older"] == 0
+    assert len(kept) == 27
 
 
-def test_career_site_senior_and_france_wide_kept_for_confirme() -> None:
+def test_career_site_senior_dropped_when_profile_is_confirme() -> None:
     jobs = [
         {
             "title": "Senior Software Engineer",
@@ -165,12 +162,9 @@ def test_career_site_senior_and_france_wide_kept_for_confirme() -> None:
         jobs,
         _paris_profile(experience_level="confirme", target_sectors=[]),
     )
-    assert {job["title"] for job in kept} == {
-        "Senior Software Engineer",
-        "Software Engineer",
-    }
+    assert {job["title"] for job in kept} == {"Software Engineer"}
     assert stats["rejected_geo"] == 0
-    assert stats["rejected_experience"] == 0
+    assert stats["rejected_experience"] == 1
 
 
 def test_career_site_jobs_are_kept_without_cdi_or_level_words() -> None:
@@ -208,7 +202,10 @@ def test_pipeline_passes_min_keep_and_refresh_key() -> None:
     app_src = (ROOT / "app.py").read_text(encoding="utf-8")
     assert "refresh_key: str = \"\"" in app_src
     assert "search_refresh_key: str = \"\"" in app_src
-    assert "min_keep=top_n" in app_src
+    assert "min_keep=0" in app_src
+    assert "def _profile_match_count(" in app_src
+    assert "def _keep_jobs_within_profile_age(" in app_src
+    assert "_profile_match_count(merged, profile) >= enough" in app_src
     assert "pipeline.filter_backfill" in app_src
     worker = (ROOT / "services/analysis_worker.py").read_text(encoding="utf-8")
     assert "search_refresh_key=str(job_id)" in worker

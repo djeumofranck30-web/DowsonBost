@@ -96,6 +96,83 @@ _LEGAL_SUFFIX_RE = re.compile(
 )
 _PLACEHOLDER_COMPANIES = {"", "n/a", "na", "none", "unknown", "confidentiel"}
 
+_CAREER_HOST_PREFIXES = {
+    "careers",
+    "career",
+    "jobs",
+    "job",
+    "emploi",
+    "emplois",
+    "recrute",
+    "recrutement",
+    "rh",
+    "talent",
+    "talents",
+    "apply",
+    "application",
+    "group",
+}
+
+# Career portals whose first label is not the company mailbox domain.
+CAREER_HOST_MAIL_DOMAINS: dict[str, str] = {
+    "careers.thalesgroup.com": "thalesgroup.com",
+    "jobs.thalesgroup.com": "thalesgroup.com",
+    "emploi.thalesgroup.com": "thalesgroup.com",
+    "careers.airbus.com": "airbus.com",
+    "careers.loreal.com": "loreal.com",
+    "careers.societegenerale.com": "societegenerale.com",
+    "emplois.societegenerale.com": "societegenerale.com",
+    "jobs.atos.net": "atos.net",
+    "careers.atos.net": "atos.net",
+    "group.bnpparibas.com": "bnpparibas.com",
+    "jobs.capgemini.com": "capgemini.com",
+    "orange.jobs": "orange.com",
+    "jobs.engie.com": "engie.com",
+    "careers.axa.com": "axa.com",
+    "jobs.totalenergies.com": "totalenergies.com",
+    "careers.sanofi.com": "sanofi.com",
+    "careers.stellantis.com": "stellantis.com",
+    "jobs.michelin.com": "michelin.com",
+    "jobs.airfrance.com": "airfrance.fr",
+    "careers.accor.com": "accor.com",
+    "jobs.veolia.com": "veolia.com",
+    "recrute.edf.fr": "edf.fr",
+    "emplois.sncf.com": "sncf.com",
+    "laposterecrute.fr": "laposte.fr",
+    "careers.ovhcloud.com": "ovhcloud.com",
+    "amazon.jobs": "amazon.com",
+}
+
+COMPANY_MAIL_DOMAINS: dict[str, str] = {
+    "thales": "thalesgroup.com",
+    "thales group": "thalesgroup.com",
+    "thalesgroup": "thalesgroup.com",
+    "thales alenia space": "thalesaleniaspace.com",
+    "airbus": "airbus.com",
+    "l'oreal": "loreal.com",
+    "loreal": "loreal.com",
+    "societe generale": "societegenerale.com",
+    "bnp paribas": "bnpparibas.com",
+    "capgemini": "capgemini.com",
+    "orange": "orange.com",
+    "atos": "atos.net",
+    "engie": "engie.com",
+    "axa": "axa.com",
+    "totalenergies": "totalenergies.com",
+    "sanofi": "sanofi.com",
+    "stellantis": "stellantis.com",
+    "michelin": "michelin.com",
+    "air france": "airfrance.fr",
+    "accor": "accor.com",
+    "veolia": "veolia.com",
+    "edf": "edf.fr",
+    "sncf": "sncf.com",
+    "la poste": "laposte.fr",
+    "ovhcloud": "ovhcloud.com",
+    "ovh": "ovh.com",
+    "amazon": "amazon.com",
+}
+
 _cache: dict[str, str | None] = {}
 
 
@@ -120,6 +197,42 @@ def _host_from_url(value: str) -> str:
     if host.startswith("www."):
         host = host[4:]
     return host
+
+
+def mailbox_domain_from_host(host: str) -> str:
+    """Turn a career/ATS host into the company domain Hunter can search."""
+    name = (host or "").lower().lstrip(".")
+    if name.startswith("www."):
+        name = name[4:]
+    if not name or is_job_board_or_ats_host(name):
+        return ""
+    mapped = CAREER_HOST_MAIL_DOMAINS.get(name)
+    if mapped:
+        return mapped
+    parts = name.split(".")
+    if len(parts) >= 3 and parts[0] in _CAREER_HOST_PREFIXES:
+        return ".".join(parts[1:])
+    return name
+
+
+def domain_from_company_name(value: str) -> str:
+    key = re.sub(r"\s+", " ", clean_company_name(value).lower()).strip()
+    if not key:
+        return ""
+    folded = (
+        key.replace("é", "e")
+        .replace("è", "e")
+        .replace("ê", "e")
+        .replace("à", "a")
+        .replace("ù", "u")
+        .replace("ô", "o")
+        .replace("î", "i")
+        .replace("ï", "i")
+        .replace("ç", "c")
+        .replace("'", "")
+        .replace("’", "")
+    )
+    return COMPANY_MAIL_DOMAINS.get(key) or COMPANY_MAIL_DOMAINS.get(folded) or ""
 
 
 def is_job_board_or_ats_host(host: str) -> bool:
@@ -213,20 +326,24 @@ def _domains_from_text(text: str) -> list[str]:
 def infer_company_domain(job: dict[str, Any]) -> str | None:
     """Company website host, never an Indeed/LinkedIn/ATS aggregator host."""
     for field in ("company_url", "website", "company_domain", "company_website"):
-        host = _host_from_url(str(job.get(field) or ""))
-        if host and not is_job_board_or_ats_host(host):
-            return host
+        mapped = mailbox_domain_from_host(_host_from_url(str(job.get(field) or "")))
+        if mapped:
+            return mapped
     blob = "\n".join(
         str(job.get(field) or "")
         for field in ("description", "apply_url", "url")
     )
-    from_text = _domains_from_text(blob)
-    if from_text:
-        return from_text[0]
-    host = _host_from_url(str(job.get("url") or job.get("apply_url") or ""))
-    if host and not is_job_board_or_ats_host(host):
-        return host
-    return None
+    for host in _domains_from_text(blob):
+        mapped = mailbox_domain_from_host(host)
+        if mapped:
+            return mapped
+    mapped = mailbox_domain_from_host(
+        _host_from_url(str(job.get("url") or job.get("apply_url") or ""))
+    )
+    if mapped:
+        return mapped
+    named = domain_from_company_name(str(job.get("company") or ""))
+    return named or None
 
 
 def _score_hunter_email(entry: dict[str, Any]) -> int:
@@ -311,6 +428,7 @@ def _search_queries(job: dict[str, Any]) -> list[dict[str, str]]:
     slug = company_slug_from_job(job)
     if slug and not company:
         company = slug.replace("-", " ").replace("_", " ").strip()
+    extra_domain = domain_from_company_name(company)
 
     queries: list[dict[str, str]] = []
 
@@ -322,9 +440,10 @@ def _search_queries(job: dict[str, Any]) -> list[dict[str, str]]:
             return
         queries.append(query)
 
-    if domain:
-        _add(domain=domain, type="generic")
-        _add(domain=domain)
+    for host in (domain, extra_domain):
+        if host:
+            _add(domain=host, type="generic")
+            _add(domain=host)
     if company:
         _add(company=company, type="generic")
         _add(company=company)
