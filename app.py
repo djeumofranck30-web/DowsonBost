@@ -24,6 +24,12 @@ import requests
 import streamlit as st
 from fpdf import FPDF
 
+from profile_session import (
+    clear_profile_widget_keys,
+    profile_widget_prefix,
+    retain_multiselect_session,
+    seed_session_value,
+)
 from france_geo import (
     city_options_for_departments,
     communes_supported_for_country,
@@ -7038,8 +7044,7 @@ def render_countries_multiselect(
     """ISO 3166-1 multi-select for job search countries."""
     initial = profile_countries(profile)
     countries_key = f"{key_prefix}_selected_countries"
-    if countries_key not in st.session_state:
-        st.session_state[countries_key] = initial
+    seed_session_value(st.session_state, countries_key, initial)
 
     selected = st.multiselect(
         t("profile.countries"),
@@ -7064,8 +7069,7 @@ def render_international_city_selector(
     zones_key = f"{key_prefix}_intl_zones_sig_{country}"
     schema = country_geo_schema(country)
 
-    if all_cities_key not in st.session_state:
-        st.session_state[all_cities_key] = country_geo_all_cities(geo)
+    seed_session_value(st.session_state, all_cities_key, country_geo_all_cities(geo))
 
     requires_zone = bool(schema)
     has_zone = bool(level1 or level2)
@@ -7073,7 +7077,6 @@ def render_international_city_selector(
     if requires_zone and not has_zone:
         st.checkbox(
             "Toutes les villes des zones sélectionnées",
-            value=False,
             disabled=True,
             key=all_cities_key,
         )
@@ -7094,15 +7097,16 @@ def render_international_city_selector(
     with st.spinner("Chargement des villes…"):
         available = city_options_for_country_zone(country, level1, level2)
 
-    if cities_key not in st.session_state:
-        st.session_state[cities_key] = labels_for_selected_intl_cities(
+    retain_multiselect_session(
+        st.session_state,
+        values_key=cities_key,
+        signature_key=zones_key,
+        current_signature=zone_sig,
+        seed_values=labels_for_selected_intl_cities(
             initial_cities, level1, level2, available
-        )
-
-    if st.session_state.get(zones_key) != zone_sig:
-        previous = st.session_state.get(cities_key, [])
-        st.session_state[cities_key] = [label for label in previous if label in available]
-        st.session_state[zones_key] = zone_sig
+        ),
+        allowed=list(available),
+    )
 
     zone_label = (schema or {}).get("level2_label") or (schema or {}).get("level1_label") or "zones"
     all_cities = st.checkbox(
@@ -7174,10 +7178,11 @@ def render_international_geo_selectors(
     level1_options = schema.get("level1_options") or []
     if level1_options:
         level1_key = f"{key_prefix}_l1_{country}"
-        if level1_key not in st.session_state:
-            st.session_state[level1_key] = [
-                item for item in (geo.get("level1") or []) if item in level1_options
-            ]
+        seed_session_value(
+            st.session_state,
+            level1_key,
+            [item for item in (geo.get("level1") or []) if item in level1_options],
+        )
         result["level1"] = st.multiselect(
             schema.get("level1_label", "Région"),
             level1_options,
@@ -7190,10 +7195,11 @@ def render_international_geo_selectors(
         level2_key = f"{key_prefix}_l2_{country}"
         level2_options = schema.get("level2_options") or []
         if level2_options:
-            if level2_key not in st.session_state:
-                st.session_state[level2_key] = [
-                    item for item in (geo.get("level2") or []) if item in level2_options
-                ]
+            seed_session_value(
+                st.session_state,
+                level2_key,
+                [item for item in (geo.get("level2") or []) if item in level2_options],
+            )
             result["level2"] = st.multiselect(
                 level2_label,
                 level2_options,
@@ -7237,8 +7243,7 @@ def render_region_department_selectors(
     depts_key = f"{key_prefix}_department_labels"
     last_regions_key = f"{key_prefix}_last_admin_regions"
 
-    if regions_key not in st.session_state:
-        st.session_state[regions_key] = initial_regions
+    seed_session_value(st.session_state, regions_key, initial_regions)
 
     selected_regions = st.multiselect(
         "Régions",
@@ -7248,18 +7253,16 @@ def render_region_department_selectors(
     )
 
     available_labels = department_labels_for_regions(selected_regions)
-
-    if st.session_state.get(last_regions_key) != tuple(selected_regions):
-        previous = st.session_state.get(depts_key, [])
-        st.session_state[depts_key] = [label for label in previous if label in available_labels]
-        st.session_state[last_regions_key] = tuple(selected_regions)
-
-    if depts_key not in st.session_state:
-        seed_regions = selected_regions or initial_regions
-        initial_labels = labels_for_selected_departments(initial_depts, seed_regions)
-        st.session_state[depts_key] = [
-            label for label in initial_labels if label in available_labels
-        ]
+    seed_regions = selected_regions or initial_regions
+    initial_labels = labels_for_selected_departments(initial_depts, seed_regions)
+    retain_multiselect_session(
+        st.session_state,
+        values_key=depts_key,
+        signature_key=last_regions_key,
+        current_signature=tuple(selected_regions),
+        seed_values=initial_labels,
+        allowed=available_labels,
+    )
 
     selected_labels = st.multiselect(
         "Départements",
@@ -7286,8 +7289,7 @@ def render_city_selector(
     last_depts_key = f"{key_prefix}_last_departments_for_cities"
     all_cities_key = f"{key_prefix}_all_cities"
 
-    if all_cities_key not in st.session_state:
-        st.session_state[all_cities_key] = profile_all_cities(profile)
+    seed_session_value(st.session_state, all_cities_key, profile_all_cities(profile))
 
     if not communes_supported_for_country(country):
         st.multiselect(
@@ -7301,7 +7303,6 @@ def render_city_selector(
     if not selected_departments:
         st.checkbox(
             "Toutes les villes des départements sélectionnés",
-            value=False,
             disabled=True,
             key=all_cities_key,
         )
@@ -7319,15 +7320,16 @@ def render_city_selector(
     dept_sig = tuple(sorted(str(d.get("code", "")).strip().upper() for d in selected_departments))
     initial_cities = resolve_selected_cities(profile)
 
-    if cities_key not in st.session_state:
-        st.session_state[cities_key] = labels_for_selected_cities(
+    retain_multiselect_session(
+        st.session_state,
+        values_key=cities_key,
+        signature_key=last_depts_key,
+        current_signature=dept_sig,
+        seed_values=labels_for_selected_cities(
             initial_cities, selected_departments, available
-        )
-
-    if st.session_state.get(last_depts_key) != dept_sig:
-        previous = st.session_state.get(cities_key, [])
-        st.session_state[cities_key] = [label for label in previous if label in available]
-        st.session_state[last_depts_key] = dept_sig
+        ),
+        allowed=list(available),
+    )
 
     all_cities = st.checkbox(
         "Toutes les villes des départements sélectionnés",
@@ -7483,6 +7485,7 @@ def _render_auth_login_form() -> None:
                 if ok_lang and updated
                 else {**user, "preferred_language": login_locale}
             )
+            clear_profile_widget_keys(st.session_state, int(user["id"]))
             st.session_state._profile_cache = st.session_state.user
             st.session_state._profile_cache_at = time.time()
             set_locale(login_locale)
@@ -8415,34 +8418,90 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
         with st.form("profile_form"):
             st.markdown(f"**{t('profile.identity_section')}**")
             st.caption(t("profile.identity_hint"))
+            widget_prefix = profile_widget_prefix(int(user["id"]))
+            stored_contract = (
+                profile.get("contract_type")
+                if profile.get("contract_type") in CONTRACT_TYPES
+                else "CDI"
+            )
+            stored_work_mode = (
+                normalize_work_mode(profile.get("work_mode"))
+                if normalize_work_mode(profile.get("work_mode")) in WORK_MODES
+                else WORK_MODES[0]
+            )
+            stored_geo_mode = normalize_geo_filter_mode(profile.get("geo_filter_mode"))
+            if stored_geo_mode not in GEO_FILTER_MODES:
+                stored_geo_mode = GEO_FILTER_MODES[1] if len(GEO_FILTER_MODES) > 1 else GEO_FILTER_MODES[0]
+            stored_experience = (
+                profile.get("experience_level", "confirme")
+                if profile.get("experience_level") in EXPERIENCE_LEVELS
+                else "confirme"
+            )
+            stored_age = current_age if current_age in JOB_MAX_AGE_DAYS_OPTIONS else 7
+            seed_session_value(st.session_state, f"{widget_prefix}_first_name", profile_first)
+            seed_session_value(st.session_state, f"{widget_prefix}_last_name", profile_last)
+            seed_session_value(st.session_state, f"{widget_prefix}_phone", profile_phone)
+            seed_session_value(st.session_state, f"{widget_prefix}_email", profile.get("email", ""))
+            seed_session_value(
+                st.session_state,
+                f"{widget_prefix}_target_job",
+                profile.get("target_job_title", "") or "",
+            )
+            seed_session_value(st.session_state, f"{widget_prefix}_contract", stored_contract)
+            seed_session_value(
+                st.session_state,
+                f"{widget_prefix}_freelance",
+                str(profile.get("contract_type") or "") == "Freelance",
+            )
+            seed_session_value(st.session_state, f"{widget_prefix}_work_mode", stored_work_mode)
+            seed_session_value(
+                st.session_state,
+                f"{widget_prefix}_salary_min",
+                normalize_salary_min(profile.get("salary_min")),
+            )
+            seed_session_value(
+                st.session_state,
+                f"{widget_prefix}_daily_rate",
+                int(profile.get("daily_rate") or 0),
+            )
+            seed_session_value(
+                st.session_state,
+                f"{widget_prefix}_skills",
+                profile.get("skills_text") or "",
+            )
+            seed_session_value(st.session_state, f"{widget_prefix}_experience", stored_experience)
+            seed_session_value(st.session_state, f"{widget_prefix}_geo_mode", stored_geo_mode)
+            seed_session_value(
+                st.session_state,
+                f"{widget_prefix}_sectors",
+                [s for s in (profile.get("target_sectors") or []) if s in SECTOR_OPTIONS],
+            )
+            seed_session_value(st.session_state, f"{widget_prefix}_job_age", stored_age)
+
             name_col1, name_col2 = st.columns(2)
             with name_col1:
                 profile_first_name = st.text_input(
                     t("common.first_name"),
-                    value=profile_first,
-                    key=f"profile_first_name_{user['id']}",
+                    key=f"{widget_prefix}_first_name",
                 )
             with name_col2:
                 profile_last_name = st.text_input(
                     t("common.last_name"),
-                    value=profile_last,
-                    key=f"profile_last_name_{user['id']}",
+                    key=f"{widget_prefix}_last_name",
                 )
             contact_col1, contact_col2 = st.columns(2)
             with contact_col1:
                 profile_phone_input = st.text_input(
                     t("common.phone"),
-                    value=profile_phone,
                     placeholder="+33 6 12 34 56 78",
-                    key=f"profile_phone_{user['id']}",
+                    key=f"{widget_prefix}_phone",
                 )
             with contact_col2:
                 st.text_input(
                     t("common.email"),
-                    value=profile.get("email", ""),
                     disabled=True,
                     help=t("profile.email_readonly"),
-                    key=f"profile_email_{user['id']}",
+                    key=f"{widget_prefix}_email",
                 )
 
             st.markdown(f"**{t('profile.search_section')}**")
@@ -8450,22 +8509,20 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
             with id_col1:
                 target_job_title = st.text_input(
                     t("profile.target_job"),
-                    value=profile.get("target_job_title", ""),
                     help=t("profile.target_job_help"),
+                    key=f"{widget_prefix}_target_job",
                 )
             with id_col2:
                 contract_type = st.selectbox(
                     t("profile.contract"),
                     CONTRACT_TYPES,
-                    index=CONTRACT_TYPES.index(profile.get("contract_type", "CDI"))
-                    if profile.get("contract_type") in CONTRACT_TYPES
-                    else 0,
                     format_func=contract_label,
+                    key=f"{widget_prefix}_contract",
                 )
             freelance_mode = st.checkbox(
                 t("profile.freelance_mode"),
-                value=str(profile.get("contract_type") or "") == "Freelance",
                 help=t("profile.freelance_mode_help"),
+                key=f"{widget_prefix}_freelance",
             )
             if freelance_mode:
                 contract_type = "Freelance"
@@ -8475,11 +8532,9 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                 work_mode = st.selectbox(
                     t("profile.work_mode"),
                     WORK_MODES,
-                    index=WORK_MODES.index(normalize_work_mode(profile.get("work_mode")))
-                    if normalize_work_mode(profile.get("work_mode")) in WORK_MODES
-                    else 0,
                     format_func=work_mode_label,
                     help=t("profile.work_mode_help"),
+                    key=f"{widget_prefix}_work_mode",
                 )
             with mode_col2:
                 salary_min = st.number_input(
@@ -8487,8 +8542,8 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                     min_value=0,
                     max_value=500000,
                     step=1000,
-                    value=normalize_salary_min(profile.get("salary_min")),
                     help=t("profile.salary_min_help"),
+                    key=f"{widget_prefix}_salary_min",
                 )
             if freelance_mode:
                 daily_rate = st.number_input(
@@ -8496,70 +8551,51 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                     min_value=0,
                     max_value=5000,
                     step=10,
-                    value=int(profile.get("daily_rate") or 0),
                     help=t("profile.daily_rate_help"),
+                    key=f"{widget_prefix}_daily_rate",
                 )
             else:
-                daily_rate = int(profile.get("daily_rate") or 0)
+                daily_rate = int(st.session_state.get(f"{widget_prefix}_daily_rate") or 0)
 
             skills_text = st.text_area(
                 t("profile.skills"),
-                value=profile.get("skills_text") or "",
                 help=t("profile.skills_help"),
                 height=80,
+                key=f"{widget_prefix}_skills",
             )
 
             pref_col1, pref_col2 = st.columns(2)
             with pref_col1:
-                exp_index = (
-                    EXPERIENCE_LEVELS.index(profile.get("experience_level", "confirme"))
-                    if profile.get("experience_level") in EXPERIENCE_LEVELS
-                    else 1
-                )
                 experience_level = st.selectbox(
                     t("profile.experience"),
                     EXPERIENCE_LEVELS,
-                    index=exp_index,
                     format_func=experience_label,
+                    key=f"{widget_prefix}_experience",
                 )
-                stored_geo_mode = normalize_geo_filter_mode(profile.get("geo_filter_mode"))
                 geo_mode = st.selectbox(
                     t("profile.geo_mode"),
                     GEO_FILTER_MODES,
-                    index=GEO_FILTER_MODES.index(stored_geo_mode)
-                    if stored_geo_mode in GEO_FILTER_MODES
-                    else 1,
                     format_func=lambda mode: geo_mode_label(mode),
+                    key=f"{widget_prefix}_geo_mode",
                 )
             with pref_col2:
-                current_sectors = profile.get("target_sectors") or []
-                sectors_key = f"profile_sectors_{user['id']}"
-                if sectors_key not in st.session_state:
-                    st.session_state[sectors_key] = [
-                        s for s in current_sectors if s in SECTOR_OPTIONS
-                    ]
                 target_sectors = st.multiselect(
                     t("profile.sectors"),
                     SECTOR_OPTIONS,
                     help=t("profile.sectors_help"),
-                    key=sectors_key,
+                    key=f"{widget_prefix}_sectors",
                     format_func=sector_label,
                 )
                 search_radius = 20
 
             st.markdown(f"**{t('profile.published_since')}**")
-            profile_age_index = (
-                JOB_MAX_AGE_DAYS_OPTIONS.index(current_age)
-                if current_age in JOB_MAX_AGE_DAYS_OPTIONS
-                else JOB_MAX_AGE_DAYS_OPTIONS.index(7)
-            )
             job_max_age_days = st.radio(
                 t("profile.publication"),
                 JOB_MAX_AGE_DAYS_OPTIONS,
-                index=profile_age_index,
                 format_func=job_age_label,
                 horizontal=True,
                 label_visibility="collapsed",
+                key=f"{widget_prefix}_job_age",
             )
 
             if st.form_submit_button(
@@ -8606,17 +8642,7 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                     if ok and updated:
                         st.session_state.user = updated
                         _clear_profile_page_caches()
-                        st.session_state.pop(sectors_key, None)
-                        prefix = f"profile_{user['id']}"
-                        for suffix in (
-                            "admin_regions",
-                            "department_labels",
-                            "last_admin_regions",
-                            "selected_cities",
-                            "last_departments_for_cities",
-                            "all_cities",
-                        ):
-                            st.session_state.pop(f"{prefix}_{suffix}", None)
+                        clear_profile_widget_keys(st.session_state, int(user["id"]))
                         st.session_state.analysis_notices = [
                             {"level": "success", "text": message}
                         ]
@@ -9242,8 +9268,11 @@ def render_app() -> None:
         if account_email:
             st.caption(account_email)
         if st.button(t("app.logout"), use_container_width=True, key="logout_button"):
+            uid = int(user.get("id") or 0)
             api_logout()
             _clear_profile_page_caches()
+            if uid:
+                clear_profile_widget_keys(st.session_state, uid)
             st.session_state.authenticated = False
             st.session_state.user = None
             st.session_state.analysis = None

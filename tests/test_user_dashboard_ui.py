@@ -133,3 +133,7 @@ def test_profile_and_dashboard_do_not_double_the_page_hero():
     assert "render_page_hero" not in dashboard_branch
     assert "render_dashboard_page(user)" in dashboard_branch
     assert "render_profile_page(user, job_provider)" in profile_branch
+    source = _read("app.py")
+    assert "retain_multiselect_session(" in source
+    assert "clear_profile_widget_keys(st.session_state" in source
+    assert 'key=f"{widget_prefix}_target_job"' in source
