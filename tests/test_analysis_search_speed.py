@@ -11,7 +11,7 @@ from job_providers import WTTJ_MAX_JOBS, WTTJ_MAX_PAGES
 def test_wttj_defaults_do_not_paginate_hundreds_of_pages() -> None:
     assert WTTJ_MAX_PAGES <= 3
     assert WTTJ_MAX_JOBS <= 150
-    assert SEARCH_PROVIDER_MAX_WORKERS >= 4
+    assert SEARCH_PROVIDER_MAX_WORKERS >= 8
     assert GEMINI_MODELS_CACHE_TTL_SEC >= 600
 
 

@@ -467,6 +467,15 @@ GEMINI_KEY_PLACEHOLDERS = {
     "aiza...",
     "aizasy...",
 }
+_GEMINI_KEY_PLACEHOLDER_MARKERS = (
+    "...",
+    "premiere_cle",
+    "deuxieme_cle",
+    "troisieme_cle",
+    "quatrieme_cle",
+    "cinquieme_cle",
+    "votre_cle",
+)
 
 
 def resolve_streamlit_client_ip() -> str:
@@ -533,7 +542,9 @@ def _is_valid_provider_key(provider: str, key: str) -> bool:
             return False
         return key.startswith("gsk_") and len(key) >= 50
     if provider == "gemini":
-        if lower in GEMINI_KEY_PLACEHOLDERS or "votre_cle" in lower:
+        if lower in GEMINI_KEY_PLACEHOLDERS or any(
+            marker in lower for marker in _GEMINI_KEY_PLACEHOLDER_MARKERS
+        ):
             return False
         return (key.startswith("AIza") and len(key) >= 35) or (
             key.startswith("AQ.") and len(key) >= 20
@@ -561,14 +572,20 @@ def get_provider_api_keys(provider: str) -> list[str]:
 def collect_parallel_llm_slots(
     max_per_provider: int = PARALLEL_MATCH_KEYS_PER_PROVIDER,
 ) -> list[tuple[str, str]]:
-    """Build Groq + Gemini key slots (up to 8 each) for parallel ATS matching."""
+    """Every configured Gemini + Groq + OpenAI key becomes a matching worker."""
     slots: list[tuple[str, str]] = []
     seen_pairs: set[tuple[str, str]] = set()
-    groq_ok = not st.session_state.get("groq_quota_exhausted")
+    groq_ok = True
+    try:
+        groq_ok = not bool(st.session_state.get("groq_quota_exhausted"))
+    except Exception:  # noqa: BLE001 — worker thread has no ScriptRunContext
+        groq_ok = True
 
-    for provider in ("groq", "gemini"):
-        if provider == "groq" and not groq_ok:
-            continue
+    ordered_providers = ["gemini"]
+    if groq_ok:
+        ordered_providers.append("groq")
+    ordered_providers.append("openai")
+    for provider in ordered_providers:
         for key in get_provider_api_keys(provider)[:max_per_provider]:
             pair = (provider, key)
             if pair in seen_pairs:
@@ -576,15 +593,28 @@ def collect_parallel_llm_slots(
             seen_pairs.add(pair)
             slots.append(pair)
 
-    if not slots:
-        for provider in ("openai",):
-            for key in get_provider_api_keys(provider)[:max_per_provider]:
-                pair = (provider, key)
-                if pair not in seen_pairs:
-                    seen_pairs.add(pair)
-                    slots.append(pair)
-
     return slots
+
+
+def _first_llm_slot_per_provider() -> list[tuple[str, str]]:
+    """One live key per backend — used to race analysis calls (CV, plan)."""
+    seen: set[str] = set()
+    unique: list[tuple[str, str]] = []
+    for provider, key in collect_parallel_llm_slots(PARALLEL_MATCH_KEYS_PER_PROVIDER):
+        if provider in seen:
+            continue
+        seen.add(provider)
+        unique.append((provider, key))
+    return unique
+
+
+def _remember_llm_provider(provider: str) -> None:
+    try:
+        st.session_state.llm_backend_active = provider
+        labels = {"groq": "Groq (gratuit)", "gemini": "Gemini", "openai": "OpenAI"}
+        st.session_state.active_llm_provider = labels.get(provider, provider)
+    except Exception:  # noqa: BLE001 — worker thread has no ScriptRunContext
+        pass
 
 
 def count_parallel_keys_by_provider() -> dict[str, int]:
@@ -1272,6 +1302,7 @@ def call_openai_vision(ocr_prompt: str, image_b64: str) -> str:
 
 
 _GEMINI_MODELS_CACHE: dict[str, tuple[float, list[str], bool]] = {}
+_GEMINI_WORKING_MODEL: dict[str, str] = {}
 
 
 def _fetch_gemini_models_from_api(api_key: str | None = None) -> tuple[list[str], bool]:
@@ -1571,13 +1602,20 @@ def _gemini_generate_content(
         raise RuntimeError("GEMINI_API_KEY manquante.")
 
     key_label = "AQ." if is_aq_gemini_key(gemini_key) else "AIza"
-    live_models, live_from_api = _fetch_gemini_models_from_api(gemini_key)
-    models_to_try = build_gemini_model_priority(live_models, live_from_api=live_from_api)
+    key_fp = hashlib.sha256(gemini_key.encode()).hexdigest()[:20]
+    working = _GEMINI_WORKING_MODEL.get(key_fp)
+    if working:
+        models_to_try = [working] + [
+            model for model in GEMINI_PREFERRED_MODELS if model != working
+        ]
+    else:
+        models_to_try = list(GEMINI_PREFERRED_MODELS)
 
     errors: list[str] = []
     for model in models_to_try:
         text, err = _gemini_via_sdk(parts, system_prompt, model, api_key=gemini_key)
         if text:
+            _GEMINI_WORKING_MODEL[key_fp] = model
             if not api_key:
                 st.session_state.active_llm_provider = f"Gemini ({model}, SDK, {key_label})"
             return text
@@ -1586,19 +1624,24 @@ def _gemini_generate_content(
 
         text, err = _gemini_via_rest(parts, system_prompt, model, api_key=gemini_key)
         if text:
+            _GEMINI_WORKING_MODEL[key_fp] = model
             if not api_key:
                 st.session_state.active_llm_provider = f"Gemini ({model}, REST, {key_label})"
             return text
         if err:
             errors.append(err)
 
-        if _gemini_supports_interactions(model):
-            text, err = _gemini_via_interactions(parts, system_prompt, model)
+    if not working:
+        live_models, live_from_api = _fetch_gemini_models_from_api(gemini_key)
+        extra = [
+            model
+            for model in build_gemini_model_priority(live_models, live_from_api=live_from_api)
+            if model not in models_to_try
+        ]
+        for model in extra[:4]:
+            text, err = _gemini_via_rest(parts, system_prompt, model, api_key=gemini_key)
             if text:
-                if not api_key:
-                    st.session_state.active_llm_provider = (
-                        f"Gemini ({model}, Interactions, {key_label})"
-                    )
+                _GEMINI_WORKING_MODEL[key_fp] = model
                 return text
             if err:
                 errors.append(err)
@@ -1917,14 +1960,46 @@ def _append_llm_switch_notice(from_provider: str, to_provider: str, reason: str)
 
 
 def call_llm(system_prompt: str, user_prompt: str, *, max_tokens: int = 1200) -> str:
-    """Auto-select Groq, Gemini or OpenAI — no manual preference required."""
+    """Race every configured backend (Gemini + Groq + OpenAI) and keep the first reply."""
+    race_slots = _first_llm_slot_per_provider()
+    errors: list[str] = []
+    if len(race_slots) > 1:
+        with ThreadPoolExecutor(max_workers=len(race_slots)) as executor:
+            futures = {
+                executor.submit(
+                    call_llm_direct,
+                    provider,
+                    system_prompt,
+                    user_prompt,
+                    api_key=key,
+                    max_tokens=max_tokens,
+                ): provider
+                for provider, key in race_slots
+            }
+            for future in as_completed(futures):
+                provider = futures[future]
+                try:
+                    result = future.result()
+                except GroqRateLimitError:
+                    try:
+                        st.session_state.groq_quota_exhausted = True
+                    except Exception:  # noqa: BLE001
+                        pass
+                    errors.append("Groq : quota / rate limit")
+                    continue
+                except Exception as exc:  # noqa: BLE001
+                    errors.append(f"{provider} : {str(exc)[:120]}")
+                    continue
+                if result:
+                    _remember_llm_provider(provider)
+                    return result
+
     chain = get_llm_provider_chain()
-    if not chain:
+    if not chain and not race_slots:
         raise RuntimeError(
             "Aucune clé IA utilisable. Ajoutez GROQ_API_KEY, GEMINI_API_KEY ou OPENAI_API_KEY."
         )
 
-    errors: list[str] = []
     for idx, provider in enumerate(chain):
         try:
             result = _call_llm_backend(
@@ -1933,13 +2008,16 @@ def call_llm(system_prompt: str, user_prompt: str, *, max_tokens: int = 1200) ->
                 user_prompt,
                 max_tokens=max_tokens,
             )
-            st.session_state.llm_backend_active = provider
+            _remember_llm_provider(provider)
             return result
-        except GroqRateLimitError as exc:
-            st.session_state.groq_quota_exhausted = True
-            if st.session_state.get("llm_backend_active") == "groq":
-                st.session_state.pop("llm_backend_active", None)
-            errors.append(f"Groq : quota / rate limit")
+        except GroqRateLimitError:
+            try:
+                st.session_state.groq_quota_exhausted = True
+                if st.session_state.get("llm_backend_active") == "groq":
+                    st.session_state.pop("llm_backend_active", None)
+            except Exception:  # noqa: BLE001
+                pass
+            errors.append("Groq : quota / rate limit")
             if idx + 1 < len(chain):
                 _append_llm_switch_notice("groq", chain[idx + 1], "quota atteint")
             continue
@@ -1948,7 +2026,10 @@ def call_llm(system_prompt: str, user_prompt: str, *, max_tokens: int = 1200) ->
             errors.append(f"{provider} : {err[:120]}")
             if "401" in err or "invalid api key" in err.lower():
                 if provider == "groq":
-                    st.session_state.groq_quota_exhausted = True
+                    try:
+                        st.session_state.groq_quota_exhausted = True
+                    except Exception:  # noqa: BLE001
+                        pass
             if idx + 1 < len(chain):
                 _append_llm_switch_notice(provider, chain[idx + 1], "erreur")
             continue
@@ -1956,7 +2037,7 @@ def call_llm(system_prompt: str, user_prompt: str, *, max_tokens: int = 1200) ->
     raise RuntimeError(
         "Aucun moteur IA disponible pour cette requête.\n"
         + "\n".join(errors[:4])
-        + "\n\nAjoutez plusieurs clés (Groq + Gemini AQ./AIza…) pour la bascule auto, "
+        + "\n\nAjoutez plusieurs clés (Groq + Gemini AQ./AIza…) pour les lancer ensemble, "
         "ou attendez 1–2 minutes si seul Groq est configuré."
     )
 
@@ -2991,19 +3072,97 @@ def search_jobs_for_profile(
 
     title_for_sites = (query or metier).strip()
     career_limit = max(80, int(target))
-    if is_freelance_mode(profile):
-        freelance_seed = _with_freelance_platforms(
-            {
-                "jobs": [],
-                "providers_used": [],
-                "query_used": title_for_sites,
-            },
-            query=title_for_sites,
-            locations=all_locations,
-            countries=countries,
-            country=country,
-            limit=career_limit,
-        )
+
+    def _site_seed() -> dict[str, Any]:
+        return {
+            "jobs": [],
+            "providers_used": [],
+            "query_used": title_for_sites,
+        }
+
+    enough = max(1, int(target))
+    site_executor = ThreadPoolExecutor(max_workers=2)
+    freelance_future = None
+    career_future = None
+    try:
+        if is_freelance_mode(profile):
+            freelance_future = site_executor.submit(
+                _with_freelance_platforms,
+                _site_seed(),
+                query=title_for_sites,
+                locations=all_locations,
+                countries=countries,
+                country=country,
+                limit=career_limit,
+            )
+        if include_career:
+            career_future = site_executor.submit(
+                _with_company_career_sites,
+                _site_seed(),
+                query=title_for_sites,
+                metier=metier or title_for_sites,
+                locations=all_locations,
+                countries=countries,
+                country=country,
+                provider="",
+                limit=career_limit,
+            )
+
+        if board_provider:
+            for phase_name, queries in phases:
+                if _profile_match_count(merged, profile) >= enough:
+                    break
+                phase_pct = {
+                    SEARCH_PHASE_TITLE: 28,
+                    SEARCH_PHASE_SIMILAR: 36,
+                    SEARCH_PHASE_SKILLS: 42,
+                }.get(phase_name, 32)
+                _report_progress(
+                    progress,
+                    phase_pct,
+                    t(
+                        "analysis.progress.search_phase",
+                        phase=phase_name,
+                        query=queries[0] if queries else query,
+                    ),
+                )
+                for q_try in queries:
+                    if _profile_match_count(merged, profile) >= enough:
+                        break
+                    for search_country in countries:
+                        if _profile_match_count(merged, profile) >= enough:
+                            break
+                        country_locations = country_locations_map.get(search_country) or [""]
+                        result = _search_jobs_at_country_locations(
+                            board_provider,
+                            q_try,
+                            search_country,
+                            country_locations,
+                            q_try,
+                            contract_type,
+                            None,
+                            max_age_days,
+                        )
+                        batch = tag_jobs_search_phase(
+                            _keep_jobs_within_profile_age(
+                                result.get("jobs") or [],
+                                max_age_days,
+                            ),
+                            phase_name,
+                        )
+                        if batch:
+                            merged = merge_job_lists([merged, batch])
+                            query_used = result.get("query_used") or q_try or query_used
+                            providers_used.extend(result.get("providers_used") or [])
+                            strategies.append(f"{phase_name}:{q_try}")
+    finally:
+        site_executor.shutdown(wait=True)
+
+    if freelance_future is not None:
+        try:
+            freelance_seed = freelance_future.result()
+        except Exception:  # noqa: BLE001 — career/freelance must not fail boards
+            freelance_seed = {}
         freelance_jobs = tag_jobs_search_phase(
             _keep_jobs_within_profile_age(
                 list(freelance_seed.get("jobs") or []),
@@ -3012,25 +3171,16 @@ def search_jobs_for_profile(
             SEARCH_PHASE_FREELANCE,
         )
         if freelance_jobs:
-            merged = freelance_jobs
-            providers_used.extend(freelance_seed.get("providers_used") or [])
+            merged = merge_job_lists([freelance_jobs, merged])
+            providers_used = list(freelance_seed.get("providers_used") or []) + providers_used
             query_used = str(freelance_seed.get("query_used") or query_used)
             strategies.append("freelance:platforms")
-    if include_career:
-        career_seed = _with_company_career_sites(
-            {
-                "jobs": [],
-                "providers_used": [],
-                "query_used": title_for_sites,
-            },
-            query=title_for_sites,
-            metier=metier or title_for_sites,
-            locations=all_locations,
-            countries=countries,
-            country=country,
-            provider="",
-            limit=career_limit,
-        )
+
+    if career_future is not None:
+        try:
+            career_seed = career_future.result()
+        except Exception:  # noqa: BLE001
+            career_seed = {}
         career_jobs = tag_jobs_search_phase(
             _keep_jobs_within_profile_age(
                 list(career_seed.get("jobs") or []),
@@ -3039,59 +3189,10 @@ def search_jobs_for_profile(
             SEARCH_PHASE_CAREER,
         )
         if career_jobs:
-            merged = career_jobs
-            providers_used.extend(career_seed.get("providers_used") or [])
+            merged = merge_job_lists([career_jobs, merged])
+            providers_used = list(career_seed.get("providers_used") or []) + providers_used
             query_used = str(career_seed.get("query_used") or query_used)
             strategies.append("career:sites")
-
-    enough = max(1, int(target))
-    if board_provider:
-        for phase_name, queries in phases:
-            if _profile_match_count(merged, profile) >= enough:
-                break
-            phase_pct = {
-                SEARCH_PHASE_TITLE: 28,
-                SEARCH_PHASE_SIMILAR: 36,
-                SEARCH_PHASE_SKILLS: 42,
-            }.get(phase_name, 32)
-            _report_progress(
-                progress,
-                phase_pct,
-                t(
-                    "analysis.progress.search_phase",
-                    phase=phase_name,
-                    query=queries[0] if queries else query,
-                ),
-            )
-            for q_try in queries:
-                if _profile_match_count(merged, profile) >= enough:
-                    break
-                for search_country in countries:
-                    if _profile_match_count(merged, profile) >= enough:
-                        break
-                    country_locations = country_locations_map.get(search_country) or [""]
-                    result = _search_jobs_at_country_locations(
-                        board_provider,
-                        q_try,
-                        search_country,
-                        country_locations,
-                        q_try,
-                        contract_type,
-                        None,
-                        max_age_days,
-                    )
-                    batch = tag_jobs_search_phase(
-                        _keep_jobs_within_profile_age(
-                            result.get("jobs") or [],
-                            max_age_days,
-                        ),
-                        phase_name,
-                    )
-                    if batch:
-                        merged = merge_job_lists([merged, batch])
-                        query_used = result.get("query_used") or q_try or query_used
-                        providers_used.extend(result.get("providers_used") or [])
-                        strategies.append(f"{phase_name}:{q_try}")
 
     if merged:
         location_label = ", ".join(all_locations[:4])
@@ -3103,17 +3204,16 @@ def search_jobs_for_profile(
                 name for name, _host in platforms_for_countries(countries)[:4]
             )
             strategy = (
-                f"Plateformes freelance ({names}) d'abord, puis les job boards "
+                f"Plateformes freelance ({names}) et job boards en parallèle "
                 "avec les mots-clés mission / contract / consultant"
             )
         else:
             strategy = (
-                "Sites carrière des entreprises d'abord, puis Welcome to the Jungle "
-                "et les autres job boards (titre, similaires, compétences/missions)"
+                "Sites carrière des entreprises et job boards en parallèle "
+                "(titre, similaires, compétences/missions)"
             )
         if len(countries) > 1:
             strategy = f"{countries_label} — {strategy}"
-        title_for_sites = (phases[0][1][0] if phases and phases[0][1] else query) or metier
         payload = {
             "jobs": merged,
             "strategy": strategy,
@@ -3123,23 +3223,7 @@ def search_jobs_for_profile(
             "profile_locations": all_locations,
             "search_phases": [name for name, _ in phases],
         }
-        if not include_career:
-            return payload
-        extra = _with_company_career_sites(
-            payload,
-            query=title_for_sites,
-            metier=metier or title_for_sites,
-            locations=all_locations,
-            countries=countries,
-            country=country,
-            provider="",
-            limit=career_limit,
-        )
-        extra["jobs"] = _keep_jobs_within_profile_age(
-            list(extra.get("jobs") or []),
-            max_age_days,
-        )
-        return extra
+        return payload
 
     fallback_country = profile_primary_country(profile) or country or "France"
     fallback = search_jobs_with_fallback(
@@ -3154,23 +3238,7 @@ def search_jobs_for_profile(
     )
     fallback["jobs"] = tag_jobs_search_phase(fallback.get("jobs") or [], "title")
     fallback["profile_locations"] = all_locations
-    if not include_career:
-        return fallback
-    extra = _with_company_career_sites(
-        fallback,
-        query=query,
-        metier=metier,
-        locations=all_locations,
-        countries=countries,
-        country=country,
-        provider="",
-        limit=career_limit,
-    )
-    extra["jobs"] = _keep_jobs_within_profile_age(
-        list(extra.get("jobs") or []),
-        max_age_days,
-    )
-    return extra
+    return fallback
 
 
 def _search_all_providers_with_fallback(
@@ -3252,11 +3320,10 @@ def _search_all_providers_with_fallback(
                         used.append(engine)
                         merged = merge_job_lists([merged, batch])
 
-        free_engines = [key for key in query_list if not provider_uses_serpapi(key)]
-        serp_engines = [key for key in query_list if provider_uses_serpapi(key)]
-        _collect(free_engines)
-        if not merged and serp_engines and not serpapi_quota_exhausted():
-            _collect(serp_engines)
+        engines = list(query_list)
+        if serpapi_quota_exhausted():
+            engines = [key for key in engines if not provider_uses_serpapi(key)]
+        _collect(engines)
         if merged:
             return {
                 "jobs": merged,
@@ -3642,7 +3709,11 @@ def build_matching_results(
     _report_progress(
         progress,
         60,
-        f"Matching ATS — analyse de {len(candidates)} offre(s)…",
+        t(
+            "analysis.progress.match_keys",
+            offers=len(candidates),
+            keys=parallel_match_summary(),
+        ),
     )
 
     results: list[dict[str, Any]] = []
@@ -9139,6 +9210,9 @@ def render_cv_analysis(
             )
             + f" {t('analysis.filters_editable')}"
         )
+        st.caption(t("analysis.parallel_keys", summary=parallel_match_summary()))
+        if count_parallel_keys_by_provider()["total"] < 2:
+            st.caption(t("analysis.parallel_keys_hint"))
 
         uploaded_file = st.file_uploader(
             t("analysis.file_upload"),
@@ -9245,7 +9319,8 @@ def render_config_tests_panel(*, show_clear_cache: bool = True, expanded: bool =
         st.markdown("**Mode IA :** sélection automatique")
         if chain:
             st.caption(
-                "Ordre de bascule : "
+                "Toutes les clés IA tournent ensemble (matching + analyse). "
+                "Secours : "
                 + " → ".join({"groq": "Groq", "gemini": "Gemini", "openai": "OpenAI"}[p] for p in chain)
             )
         st.markdown(f"**Moteur en cours :** `{active}`")
@@ -9259,15 +9334,15 @@ def render_config_tests_panel(*, show_clear_cache: bool = True, expanded: bool =
         counts = count_parallel_keys_by_provider()
         if counts["total"] > 1:
             st.success(
-                f"Matching parallèle : **{counts['groq']} Groq** + "
-                f"**{counts['gemini']} Gemini** "
-                f"(**{min(PARALLEL_MATCH_MAX_WORKERS, counts['total'])}** offres simultanées max)."
+                f"APIs en parallèle : **{counts['gemini']} Gemini** + "
+                f"**{counts['groq']} Groq** + **{counts['openai']} OpenAI** "
+                f"(**{min(PARALLEL_MATCH_MAX_WORKERS, counts['total'])}** offres simultanées)."
             )
         else:
             st.caption(
-                "Matching parallèle : ajoutez jusqu'à **5 clés Gemini** "
-                "(`GEMINI_API_KEY` + `GEMINI_API_KEY_2` … `_5`, ou `GEMINI_API_KEYS`) "
-                "pour analyser plusieurs offres en même temps."
+                "Pour accélérer, ajoutez jusqu'à **5 clés Gemini** "
+                "(`GEMINI_API_KEY` + `GEMINI_API_KEY_2` … `_5`) "
+                "en plus de Groq / OpenAI — elles tournent toutes en même temps."
             )
 
         if groq_configured:

@@ -110,8 +110,11 @@ def test_freelance_platforms_skip_http_when_quota_already_tripped() -> None:
     mocked.assert_not_called()
 
 
-def test_fusion_keeps_wttj_and_skips_serpapi_engines(monkeypatch) -> None:
+def test_fusion_queries_all_selected_engines_together(monkeypatch) -> None:
     from app import _search_all_providers_with_fallback
+    from job_providers import reset_serpapi_quota_state
+
+    reset_serpapi_quota_state()
 
     wttj_job = {
         "title": "Développeur Python",
@@ -119,13 +122,21 @@ def test_fusion_keeps_wttj_and_skips_serpapi_engines(monkeypatch) -> None:
         "url": "https://www.welcometothejungle.com/fr/companies/acme/jobs/1",
         "source": "Welcome to the Jungle",
     }
+    serp_job = {
+        "title": "Python engineer",
+        "company": "Indeed Co",
+        "url": "https://www.indeed.com/viewjob?jk=1",
+        "source": "Indeed",
+    }
     called: list[str] = []
 
     def fake_search(engine, *args, **kwargs):
         called.append(engine)
         if engine == "wttj":
             return [wttj_job]
-        raise requests.ReadTimeout("should not be called")
+        if engine == "indeed":
+            return [serp_job]
+        return []
 
     monkeypatch.setattr("app.search_jobs", fake_search)
     monkeypatch.setattr(
@@ -143,14 +154,19 @@ def test_fusion_keeps_wttj_and_skips_serpapi_engines(monkeypatch) -> None:
         "France",
         providers=["wttj", "indeed", "serpapi"],
     )
-    assert result["jobs"] == [wttj_job]
-    assert result["providers_used"] == ["wttj"]
-    assert "indeed" not in called
-    assert "serpapi" not in called
+    assert "wttj" in called
+    assert "indeed" in called
+    assert "serpapi" in called
+    urls = {job["url"] for job in result["jobs"]}
+    assert wttj_job["url"] in urls
+    assert serp_job["url"] in urls
 
 
 def test_fusion_uses_serpapi_when_free_engines_are_empty(monkeypatch) -> None:
     from app import _search_all_providers_with_fallback
+    from job_providers import reset_serpapi_quota_state
+
+    reset_serpapi_quota_state()
 
     serp_job = {
         "title": "Développeur Python",
@@ -187,6 +203,48 @@ def test_fusion_uses_serpapi_when_free_engines_are_empty(monkeypatch) -> None:
     assert "indeed" in called
 
 
+def test_fusion_skips_serpapi_when_quota_already_exhausted(monkeypatch) -> None:
+    from app import _search_all_providers_with_fallback
+    from job_providers import mark_serpapi_quota_exhausted, reset_serpapi_quota_state
+
+    mark_serpapi_quota_exhausted()
+    wttj_job = {
+        "title": "Développeur Python",
+        "company": "Acme",
+        "url": "https://www.welcometothejungle.com/fr/companies/acme/jobs/1",
+        "source": "Welcome to the Jungle",
+    }
+    called: list[str] = []
+
+    def fake_search(engine, *args, **kwargs):
+        called.append(engine)
+        if engine == "wttj":
+            return [wttj_job]
+        return [{"title": "should-not-run", "url": "https://indeed.test/x"}]
+
+    monkeypatch.setattr("app.search_jobs", fake_search)
+    monkeypatch.setattr(
+        "app.configured_providers",
+        lambda secrets=None: ["wttj", "indeed", "serpapi"],
+    )
+    monkeypatch.setattr(
+        "app.provider_secrets_from_getter",
+        lambda getter: {"serpapi_api_key": "k"},
+    )
+
+    result = _search_all_providers_with_fallback(
+        "python",
+        "Paris",
+        "France",
+        providers=["wttj", "indeed", "serpapi"],
+    )
+    assert result["jobs"] == [wttj_job]
+    assert "wttj" in called
+    assert "indeed" not in called
+    assert "serpapi" not in called
+    reset_serpapi_quota_state()
+
+
 def test_pipeline_notice_locale_keys_exist() -> None:
     for locale in ("fr", "en"):
         data = json.loads((ROOT / f"locales/{locale}.json").read_text(encoding="utf-8"))
@@ -205,4 +263,5 @@ def test_pipeline_appends_serpapi_exhausted_notice() -> None:
     assert "reset_serpapi_quota_state()" in app_src
     assert "pipeline.serpapi_exhausted" in app_src
     assert "provider_uses_serpapi" in app_src
-    assert "if not merged and serp_engines and not serpapi_quota_exhausted()" in app_src
+    assert "if serpapi_quota_exhausted():" in app_src
+    assert "if not merged and serp_engines and not serpapi_quota_exhausted()" not in app_src
