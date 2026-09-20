@@ -56,6 +56,7 @@ def test_send_application_confirmation_email_builds_message(_configured: object,
     assert "Dev Python" in html
     assert "Acme" in html
     assert "recrutement@acme.fr" in html
+    assert "votre adresse" in html
     assert "https://example.com/jobs/1" in html
 
 
@@ -138,6 +139,33 @@ def test_send_application_email_uses_gmail_smtp(mocked_smtp, monkeypatch):
     server.login.assert_called_once_with("me@gmail.com", "app-pass")
     server.sendmail.assert_called_once()
     assert server.sendmail.call_args.args[0] == "me@gmail.com"
+
+
+@patch("email_service.smtplib.SMTP")
+def test_send_application_email_uses_candidate_from_and_reply_to(mocked_smtp, monkeypatch):
+    server = mocked_smtp.return_value.__enter__.return_value
+    monkeypatch.setattr("email_service._get_secret", lambda name: {
+        "SMTP_HOST": "smtp.gmail.com",
+        "SMTP_PORT": "587",
+        "SMTP_USER": "me@gmail.com",
+        "SMTP_PASSWORD": "app-pass",
+        "SMTP_FROM": "DowsonBost <me@gmail.com>",
+    }.get(name, ""))
+    ok, _message = send_application_email(
+        "recrutement@acme.fr",
+        "Candidature",
+        "Bonjour",
+        from_email="jane@example.com",
+        from_name="Jane Doe",
+        locale="fr",
+    )
+    assert ok is True
+    raw = server.sendmail.call_args.args[2]
+    assert "jane@example.com" in raw
+    assert "Jane Doe" in raw
+    assert "Reply-To" in raw
+    assert server.sendmail.call_args.args[0] == "me@gmail.com"
+
 
 
 @patch("email_service.smtplib.SMTP", side_effect=OSError("timed out"))

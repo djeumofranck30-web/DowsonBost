@@ -51,6 +51,15 @@ def _from_email() -> str:
     return email
 
 
+def _identity_header(from_email: str | None, from_name: str | None) -> str | None:
+    """Build a From header for the logged-in candidate, if an address is present."""
+    email = str(from_email or "").strip()
+    if not email or "@" not in email:
+        return None
+    name = str(from_name or "").strip() or email.split("@", 1)[0]
+    return formataddr((name, email))
+
+
 def email_configured() -> bool:
     if _get_secret("RESEND_API_KEY") or _get_secret("BREVO_API_KEY"):
         return True
@@ -76,10 +85,14 @@ def _send_via_resend(
     attachments: list[tuple[str, str | bytes, str]],
     reply_to: str | None,
     locale: str,
+    from_email: str | None = None,
+    from_name: str | None = None,
 ) -> tuple[bool, str]:
     key = _get_secret("RESEND_API_KEY")
+    platform_name, platform_email = _parse_mailbox(_from_header())
+    display_name = str(from_name or "").strip() or platform_name or "DowsonBost"
     payload: dict[str, Any] = {
-        "from": _from_header(),
+        "from": formataddr((display_name, platform_email)) if platform_email else _from_header(),
         "to": [to_email],
         "subject": subject,
         "html": html_body or None,
@@ -87,8 +100,9 @@ def _send_via_resend(
     }
     if not html_body:
         payload.pop("html", None)
-    if reply_to:
-        payload["reply_to"] = reply_to
+    reply = (reply_to or from_email or "").strip()
+    if reply:
+        payload["reply_to"] = reply
     if attachments:
         payload["attachments"] = [
             {
@@ -123,21 +137,25 @@ def _send_via_brevo(
     attachments: list[tuple[str, str | bytes, str]],
     reply_to: str | None,
     locale: str,
+    from_email: str | None = None,
+    from_name: str | None = None,
 ) -> tuple[bool, str]:
     key = _get_secret("BREVO_API_KEY")
-    from_name, from_email = _parse_mailbox(_from_header())
-    if not from_email:
+    platform_name, platform_email = _parse_mailbox(_from_header())
+    if not platform_email:
         return False, t("email.not_configured", locale=locale)
+    display_name = str(from_name or "").strip() or platform_name or "DowsonBost"
     payload: dict[str, Any] = {
-        "sender": {"name": from_name or "DowsonBost", "email": from_email},
+        "sender": {"name": display_name, "email": platform_email},
         "to": [{"email": to_email}],
         "subject": subject,
         "textContent": text_body or t("email.text_fallback", locale=locale),
     }
     if html_body:
         payload["htmlContent"] = html_body
-    if reply_to:
-        payload["replyTo"] = {"email": reply_to}
+    reply = (reply_to or from_email or "").strip()
+    if reply:
+        payload["replyTo"] = {"email": reply, "name": display_name}
     if attachments:
         payload["attachment"] = [
             {
@@ -173,52 +191,72 @@ def _send_via_smtp(
     attachments: list[tuple[str, str | bytes, str]],
     reply_to: str | None,
     locale: str,
+    from_email: str | None = None,
+    from_name: str | None = None,
 ) -> tuple[bool, str]:
     smtp_host = _get_secret("SMTP_HOST")
     smtp_port = int(_get_secret("SMTP_PORT") or "587")
     smtp_user = _get_secret("SMTP_USER")
     smtp_password = _get_secret("SMTP_PASSWORD")
-    from_header = _from_header()
+    platform_header = _from_header()
     envelope = _from_email() or smtp_user
     if not smtp_host or not smtp_user:
         return False, t("email.not_configured", locale=locale)
 
-    if attachments:
-        message: MIMEMultipart = MIMEMultipart("mixed")
-        body_part = MIMEMultipart("alternative")
-        body_part.attach(MIMEText(text_body or t("email.text_fallback", locale=locale), "plain", "utf-8"))
-        if html_body:
-            body_part.attach(MIMEText(html_body, "html", "utf-8"))
-        message.attach(body_part)
-        for filename, content, mime in attachments:
-            raw = _attachment_bytes(content)
-            if (mime or "").startswith("application/pdf") or str(filename).lower().endswith(".pdf"):
-                part = MIMEApplication(raw, _subtype="pdf")
-                part.add_header("Content-Disposition", "attachment", filename=filename)
-            else:
-                part = MIMEText(raw.decode("utf-8"), "plain", "utf-8")
-                part.add_header("Content-Disposition", f'attachment; filename="{filename}"')
-            message.attach(part)
-    else:
-        message = MIMEMultipart("alternative")
-        message.attach(MIMEText(text_body or t("email.text_fallback", locale=locale), "plain", "utf-8"))
-        if html_body:
-            message.attach(MIMEText(html_body, "html", "utf-8"))
+    candidate_header = _identity_header(from_email, from_name)
+    reply = (reply_to or from_email or "").strip() or None
 
-    message["Subject"] = subject
-    message["From"] = from_header
-    message["To"] = to_email
-    if reply_to:
-        message["Reply-To"] = reply_to
+    def _build(display_from: str) -> MIMEMultipart:
+        if attachments:
+            message: MIMEMultipart = MIMEMultipart("mixed")
+            body_part = MIMEMultipart("alternative")
+            body_part.attach(
+                MIMEText(text_body or t("email.text_fallback", locale=locale), "plain", "utf-8")
+            )
+            if html_body:
+                body_part.attach(MIMEText(html_body, "html", "utf-8"))
+            message.attach(body_part)
+            for filename, content, mime in attachments:
+                raw = _attachment_bytes(content)
+                if (mime or "").startswith("application/pdf") or str(filename).lower().endswith(".pdf"):
+                    part = MIMEApplication(raw, _subtype="pdf")
+                    part.add_header("Content-Disposition", "attachment", filename=filename)
+                else:
+                    part = MIMEText(raw.decode("utf-8"), "plain", "utf-8")
+                    part.add_header("Content-Disposition", f'attachment; filename="{filename}"')
+                message.attach(part)
+        else:
+            message = MIMEMultipart("alternative")
+            message.attach(
+                MIMEText(text_body or t("email.text_fallback", locale=locale), "plain", "utf-8")
+            )
+            if html_body:
+                message.attach(MIMEText(html_body, "html", "utf-8"))
+        message["Subject"] = subject
+        message["From"] = display_from
+        message["To"] = to_email
+        if reply:
+            message["Reply-To"] = reply
+        return message
 
-    try:
+    def _transmit(display_from: str) -> None:
+        message = _build(display_from)
         with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as server:
             server.starttls()
             if smtp_password:
                 server.login(smtp_user, smtp_password)
             server.sendmail(envelope, [to_email], message.as_string())
+
+    try:
+        _transmit(candidate_header or platform_header)
         return True, t("email.sent_smtp", locale=locale)
     except (smtplib.SMTPException, OSError, TimeoutError) as exc:
+        if candidate_header and candidate_header != platform_header:
+            try:
+                _transmit(platform_header)
+                return True, t("email.sent_smtp", locale=locale)
+            except (smtplib.SMTPException, OSError, TimeoutError) as retry_exc:
+                return False, str(retry_exc)
         return False, str(exc)
 
 
@@ -230,6 +268,8 @@ def _deliver_email(
     text_body: str = "",
     attachments: list[tuple[str, str | bytes, str]] | None = None,
     reply_to: str | None = None,
+    from_email: str | None = None,
+    from_name: str | None = None,
     locale: str = "fr",
 ) -> tuple[bool, str]:
     files = attachments or []
@@ -240,6 +280,8 @@ def _deliver_email(
         "text_body": text_body,
         "attachments": files,
         "reply_to": reply_to,
+        "from_email": from_email,
+        "from_name": from_name,
         "locale": locale,
     }
     if _get_secret("RESEND_API_KEY"):
@@ -345,16 +387,21 @@ def send_application_email(
     *,
     attachments: list[tuple[str, str | bytes, str]] | None = None,
     reply_to: str | None = None,
+    from_email: str | None = None,
+    from_name: str | None = None,
     locale: str | None = None,
 ) -> tuple[bool, str]:
-    """Send a job application e-mail with optional text or PDF attachments."""
+    """Send a job application e-mail from the candidate's address when possible."""
     lang = locale or get_locale()
+    sender = str(from_email or "").strip() or None
     ok, detail = _deliver_email(
         to_email,
         subject,
         text_body=body_text,
         attachments=attachments,
-        reply_to=reply_to,
+        reply_to=reply_to or sender,
+        from_email=sender,
+        from_name=from_name,
         locale=lang,
     )
     if ok:

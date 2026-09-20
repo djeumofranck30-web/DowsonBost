@@ -4239,11 +4239,19 @@ def _queue_pending_auto_apply(action_key: str, key_prefix: str) -> None:
 def _render_application_mail(result: dict[str, Any], *, widget_key: str) -> None:
     """Show the e-mail that was sent (or prepared) so the student can read it."""
     to_email = str(result.get("email_to") or result.get("apply_email") or "").strip()
+    from_email = str(result.get("email_from") or "").strip()
     subject = str(result.get("email_subject") or "").strip()
     body = str(result.get("email_body") or result.get("cover_letter") or "").strip()
-    if not (to_email or subject or body):
+    if not (to_email or subject or body or from_email):
         return
     with st.expander(t("job.apply_mail_expander"), expanded=True):
+        if from_email:
+            st.text_input(
+                t("job.apply_mail_from"),
+                from_email,
+                disabled=True,
+                key=f"mail_from_{widget_key}",
+            )
         if to_email:
             st.text_input(
                 t("job.apply_mail_to"),

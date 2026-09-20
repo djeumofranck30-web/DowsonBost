@@ -74,6 +74,7 @@ class ApplicationResult(TypedDict):
     email_to: str
     email_subject: str
     email_body: str
+    email_from: str
 
 
 def llm_keys_configured() -> bool:
@@ -642,6 +643,9 @@ def _send_user_application_copy(
             user_profile=user_profile or profile,
             original_cv=original_cv,
         ),
+        from_email=user_email,
+        from_name=profile.get("full_name") or "",
+        reply_to=user_email,
         locale=locale,
     )
 
@@ -707,6 +711,7 @@ def _empty_result(**overrides: Any) -> ApplicationResult:
         "email_to": "",
         "email_subject": "",
         "email_body": "",
+        "email_from": "",
     }
     base.update(overrides)
     return base
@@ -791,15 +796,8 @@ def submit_application_automatically(
         user_profile=user_profile,
         original_cv=cv_text,
     )
-    copy_kwargs = {
-        "locale": locale,
-        "match": match,
-        "user_profile": user_profile,
-        "original_cv": cv_text,
-        "subject": subject,
-        "body_text": body,
-        "recruiter_email": apply_email,
-    }
+    sender_email = profile.get("email") or ""
+    sender_name = profile.get("full_name") or ""
 
     if apply_email:
         ok, detail = send_application_email(
@@ -807,28 +805,30 @@ def submit_application_automatically(
             subject=subject,
             body_text=body,
             attachments=attachments,
-            reply_to=profile.get("email") or None,
+            from_email=sender_email,
+            from_name=sender_name,
+            reply_to=sender_email or None,
             locale=locale,
         )
-        user_notified, _copy_detail = _send_user_application_copy(
-            profile,
-            job,
-            letter,
-            adapted,
-            profile_text,
-            job_url,
-            **copy_kwargs,
-        )
+        user_notified = False
         if ok:
+            user_notified = notify_candidate_application(
+                profile,
+                job,
+                method="email",
+                recruiter_email=apply_email,
+                locale=locale,
+            )
             message = t(
                 "job.apply_auto_email_sent",
                 locale=locale,
                 email=apply_email,
+                from_email=sender_email,
             )
             if user_notified:
                 message = (
                     f"{message} "
-                    f"{t('job.apply_mail_copy_inbox', locale=locale, email=profile.get('email', ''))}"
+                    f"{t('job.apply_user_confirmation_sent', locale=locale, email=sender_email)}"
                 )
             return _empty_result(
                 success=True,
@@ -843,25 +843,20 @@ def submit_application_automatically(
                 email_to=apply_email,
                 email_subject=subject,
                 email_body=body,
-            )
-        fail_message = t("job.apply_auto_email_failed", locale=locale, error=detail)
-        if user_notified:
-            fail_message = (
-                f"{fail_message} "
-                f"{t('job.apply_mail_copy_inbox', locale=locale, email=profile.get('email', ''))}"
+                email_from=sender_email,
             )
         return _empty_result(
             method="email_failed",
-            message=fail_message,
+            message=t("job.apply_auto_email_failed", locale=locale, error=detail),
             cover_letter=letter,
             adapted_cv=adapted,
             apply_email=apply_email,
             job_url=job_url,
             profile_text=profile_text,
-            user_notified=user_notified,
             email_to=apply_email,
             email_subject=subject,
             email_body=body,
+            email_from=sender_email,
         )
 
     from services.hunter import hunter_configured
@@ -871,16 +866,17 @@ def submit_application_automatically(
         if not hunter_configured()
         else t("job.apply_auto_no_recruiter", locale=locale)
     )
-    user_notified, copy_detail = _send_user_application_copy(
-        profile,
-        job,
-        letter,
-        adapted,
-        profile_text,
-        job_url,
-        **copy_kwargs,
+    pack_ok, copy_detail = send_application_email(
+        to_email=sender_email,
+        subject=subject,
+        body_text=body,
+        attachments=attachments,
+        from_email=sender_email,
+        from_name=sender_name,
+        reply_to=sender_email or None,
+        locale=locale,
     )
-    if not user_notified:
+    if not pack_ok:
         return _empty_result(
             method="email_failed",
             message=t("job.apply_auto_email_failed", locale=locale, error=copy_detail),
@@ -888,17 +884,29 @@ def submit_application_automatically(
             adapted_cv=adapted,
             job_url=job_url,
             profile_text=profile_text,
-            email_to=profile.get("email") or "",
+            email_to=sender_email,
             email_subject=subject,
             email_body=body,
+            email_from=sender_email,
         )
+    user_notified = notify_candidate_application(
+        profile,
+        job,
+        method="auto_prepared",
+        locale=locale,
+    )
     message = _external_prepared_message(
         profile,
         job,
         apply_email=None,
-        user_notified=True,
+        user_notified=user_notified,
         locale=locale,
     )
+    if user_notified:
+        message = (
+            f"{message} "
+            f"{t('job.apply_user_confirmation_sent', locale=locale, email=sender_email)}"
+        )
     return _empty_result(
         success=True,
         method="prepared",
@@ -908,10 +916,11 @@ def submit_application_automatically(
         apply_email=None,
         job_url=job_url,
         profile_text=profile_text,
-        user_notified=True,
-        email_to=profile.get("email") or "",
-        email_subject=t("job.apply_mail_copy_subject", locale=locale, subject=subject),
+        user_notified=user_notified,
+        email_to=sender_email,
+        email_subject=subject,
         email_body=body,
+        email_from=sender_email,
     )
 
 
