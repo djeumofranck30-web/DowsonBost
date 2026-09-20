@@ -218,6 +218,8 @@ from services.application import (
     format_application_autofill_text,
     format_application_profile_text,
     job_listing_open_script,
+    prefetch_recruiter_emails_for_results,
+    stored_recruiter_email,
     submit_application_automatically,
 )
 from services.support import (
@@ -4428,6 +4430,9 @@ def render_simple_job_row(
         key_prefix="analysis",
         widget_key=result_id or rank,
     )
+    ready_email = stored_recruiter_email(job)
+    if ready_email:
+        st.caption(t("job.recruiter_email_ready", email=ready_email))
 
 
 def render_job_card(
@@ -4600,9 +4605,13 @@ def render_job_card(
                     ),
                 )
             )
-    listed_email = extract_apply_email(job)
+    listed_email = stored_recruiter_email(job) or extract_apply_email(job)
     if listed_email:
-        st.caption(t("job.recruiter_email_listing", email=listed_email))
+        source = str(job.get("recruiter_email_source") or "")
+        if source == "hunter":
+            st.caption(t("job.recruiter_email_hunter", email=listed_email))
+        else:
+            st.caption(t("job.recruiter_email_listing", email=listed_email))
     if _render_apply_action_buttons(
         job,
         match,
@@ -7031,6 +7040,22 @@ def run_cv_analysis_pipeline(
         progress=progress,
     )
     results = cap_results_to_requested_best(results, top_n=top_n)
+
+    _report_progress(progress, 96, t("analysis.progress.recruiter_emails"))
+    results = prefetch_recruiter_emails_for_results(results)
+    prepared_emails = sum(
+        1 for entry in results if stored_recruiter_email(entry.get("job") or {})
+    )
+    notices.append(
+        {
+            "level": "info",
+            "text": t(
+                "pipeline.recruiter_emails",
+                found=prepared_emails,
+                total=len(results),
+            ),
+        }
+    )
 
     _report_progress(progress, 98, t("analysis.progress.match"))
 

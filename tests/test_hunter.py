@@ -321,10 +321,15 @@ def test_hunter_ui_and_secret_hooks() -> None:
     en = json.loads((ROOT / "locales/en.json").read_text(encoding="utf-8"))
     assert "Hunter" in fr["job.apply_auto_help"]
     assert "Hunter" in en["job.apply_auto_help"]
+    assert "pipeline.recruiter_emails" in fr
+    assert "{found}" in fr["pipeline.recruiter_emails"]
+    assert "job.recruiter_email_ready" in fr
     app_source = (ROOT / "app.py").read_text(encoding="utf-8")
     assert 't("job.apply_auto")' in app_source
     assert "find_recruiter_email(" not in app_source
     assert "hunter_lookup" not in app_source
+    assert "prefetch_recruiter_emails_for_results(" in app_source
+    assert "pipeline.recruiter_emails" in app_source
     assert "resolve_apply_email" in (ROOT / "services/application.py").read_text(encoding="utf-8")
     secrets = (ROOT / ".streamlit/secrets.toml.example").read_text(encoding="utf-8")
     assert "HUNTER_API_KEY" in secrets
@@ -333,3 +338,107 @@ def test_hunter_ui_and_secret_hooks() -> None:
     assert not secrets.split("HUNTER_API_KEY")[0].rstrip().endswith("#")
     config = (ROOT / "config.py").read_text(encoding="utf-8")
     assert "HUNTER_API_KEY" in config
+
+
+def test_resolve_apply_email_reuses_prepared_address() -> None:
+    job = {
+        "description": "Postulez en ligne.",
+        "company": "Acme",
+        "recruiter_email": "jobs@acme.fr",
+        "recruiter_email_source": "hunter",
+        "recruiter_email_resolved": True,
+        "url": "https://www.indeed.fr/viewjob?jk=1",
+    }
+    with (
+        patch("services.hunter.find_recruiter_email") as hunter,
+        patch("services.application.extract_apply_email_from_pages") as pages,
+    ):
+        assert resolve_apply_email(job) == "jobs@acme.fr"
+        hunter.assert_not_called()
+        pages.assert_not_called()
+
+
+def test_resolve_apply_email_skips_search_after_failed_prefetch() -> None:
+    job = {
+        "description": "Postulez en ligne.",
+        "company": "Acme",
+        "recruiter_email": "",
+        "recruiter_email_resolved": True,
+        "url": "https://www.indeed.fr/viewjob?jk=1",
+    }
+    with patch("services.hunter.find_recruiter_email") as hunter:
+        assert resolve_apply_email(job) is None
+        hunter.assert_not_called()
+
+
+def test_prefetch_stamps_listing_email_without_hunter() -> None:
+    from services.application import prefetch_recruiter_emails
+
+    jobs = [
+        {
+            "title": "Dev",
+            "company": "Acme",
+            "description": "Écrire à recrutement@acme.fr",
+            "url": "https://www.acme.fr/jobs/1",
+        }
+    ]
+    with (
+        patch("services.hunter.find_recruiter_email") as hunter,
+        patch("services.application.extract_apply_email_from_pages", return_value=None),
+    ):
+        out = prefetch_recruiter_emails(jobs)
+    assert out[0]["recruiter_email"] == "recrutement@acme.fr"
+    assert out[0]["recruiter_email_source"] == "listing"
+    assert out[0]["recruiter_email_resolved"] is True
+    hunter.assert_not_called()
+
+
+def test_prefetch_calls_hunter_once_per_company() -> None:
+    from services.application import prefetch_recruiter_emails
+
+    jobs = [
+        {
+            "title": "Dev 1",
+            "company": "Acme",
+            "description": "CDI Paris",
+            "url": "https://www.indeed.fr/viewjob?jk=1",
+            "company_url": "https://www.acme.fr",
+        },
+        {
+            "title": "Dev 2",
+            "company": "Acme",
+            "description": "CDI Lyon",
+            "url": "https://www.indeed.fr/viewjob?jk=2",
+            "company_url": "https://www.acme.fr",
+        },
+    ]
+    with (
+        patch("services.application.extract_apply_email_from_pages", return_value=None),
+        patch("services.hunter.find_recruiter_email", return_value="jobs@acme.fr") as hunter,
+    ):
+        out = prefetch_recruiter_emails(jobs, max_workers=1)
+    assert hunter.call_count == 1
+    assert out[0]["recruiter_email"] == "jobs@acme.fr"
+    assert out[1]["recruiter_email"] == "jobs@acme.fr"
+    assert out[0]["recruiter_email_source"] == "hunter"
+    assert out[1]["recruiter_email_resolved"] is True
+
+
+def test_prefetch_results_keep_match_payload() -> None:
+    from services.application import prefetch_recruiter_emails_for_results
+
+    results = [
+        {
+            "job": {
+                "title": "Dev",
+                "company": "Acme",
+                "description": "Mail rh@acme.fr",
+                "url": "https://www.acme.fr/jobs/1",
+            },
+            "match": {"score_correspondance": 88},
+        }
+    ]
+    with patch("services.application.extract_apply_email_from_pages", return_value=None):
+        out = prefetch_recruiter_emails_for_results(results)
+    assert out[0]["match"]["score_correspondance"] == 88
+    assert out[0]["job"]["recruiter_email"] == "rh@acme.fr"

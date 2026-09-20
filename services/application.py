@@ -5,7 +5,9 @@ from __future__ import annotations
 import html
 import json
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Callable, TypedDict
+from urllib.parse import urlparse
 
 import requests
 
@@ -55,6 +57,8 @@ _PAGE_FETCH_HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; DowsonBost/1.0; +https://dowsonbost.streamlit.app)",
     "Accept": "text/html,application/xhtml+xml",
 }
+RECRUITER_PREFETCH_MAX_WORKERS = 8
+RECRUITER_PREFETCH_PAGE_TIMEOUT_SEC = 4
 
 
 class ApplicationResult(TypedDict):
@@ -160,23 +164,35 @@ def _should_fetch_listing(url: str) -> bool:
     return not any(skip in lowered for skip in _SKIP_PAGE_HOSTS)
 
 
-def extract_apply_email_from_pages(job: dict[str, Any]) -> str | None:
+def extract_apply_email_from_pages(
+    job: dict[str, Any],
+    *,
+    timeout: int = 8,
+    skip_job_boards: bool = False,
+) -> str | None:
     """Fetch the public listing page and look for a mailto / recruiter address."""
     from priority_employers import extra_career_page_urls, is_priority_employer
+    from services.hunter import is_job_board_or_ats_host
 
+    priority = is_priority_employer(job)
     urls: list[str] = []
     for field in ("apply_url", "url", "company_url"):
         raw = str(job.get(field) or "").strip()
         if raw and raw not in urls and _should_fetch_listing(raw):
+            if skip_job_boards and not priority:
+                host = urlparse(raw).netloc.lower()
+                if is_job_board_or_ats_host(host):
+                    continue
             urls.append(raw)
-    if is_priority_employer(job):
+    if priority:
         for extra in extra_career_page_urls(job):
             if extra not in urls and _should_fetch_listing(extra):
                 urls.append(extra)
-    limit = 5 if is_priority_employer(job) else 3
+    limit = 5 if priority else 3
+    wait = max(2, int(timeout or 8))
     for url in urls[:limit]:
         try:
-            response = requests.get(url, timeout=8, headers=_PAGE_FETCH_HEADERS)
+            response = requests.get(url, timeout=wait, headers=_PAGE_FETCH_HEADERS)
         except requests.RequestException:
             continue
         if response.status_code >= 400 or not response.text:
@@ -193,17 +209,192 @@ def extract_apply_email_from_pages(job: dict[str, Any]) -> str | None:
     return None
 
 
-def resolve_apply_email(job: dict[str, Any]) -> str | None:
-    """Listing address first, then the public page, then Hunter.io."""
+def stored_recruiter_email(job: dict[str, Any] | None) -> str | None:
+    """Return a recruiter address already attached to the offer, if any."""
+    raw = str((job or {}).get("recruiter_email") or "").strip()
+    if "@" not in raw:
+        return None
+    local, _, host = raw.lower().partition("@")
+    if not local or "." not in host:
+        return None
+    if any(local.startswith(prefix) for prefix in _IGNORE_LOCAL_PARTS):
+        return None
+    return f"{local}@{host}"
+
+
+def _stamp_recruiter_email(
+    job: dict[str, Any],
+    email: str | None,
+    source: str,
+) -> dict[str, Any]:
+    """Persist the lookup result on the job so Apply does not search again."""
+    cleaned = stored_recruiter_email({"recruiter_email": email or ""}) or ""
+    job["recruiter_email"] = cleaned
+    job["recruiter_email_source"] = source if cleaned else "none"
+    job["recruiter_email_resolved"] = True
+    return job
+
+
+def recruiter_lookup_key(job: dict[str, Any]) -> str:
+    """Group jobs that share one Hunter / company mailbox lookup."""
+    from services.hunter import clean_company_name, infer_company_domain
+
+    domain = str(infer_company_domain(job) or "").strip().lower()
+    if domain:
+        return f"domain:{domain}"
+    company = clean_company_name(str(job.get("company") or ""))
+    if company:
+        return f"company:{company.lower()}"
+    url = str(job.get("url") or "").strip().lower()
+    return f"url:{url}" if url else f"anon:{id(job)}"
+
+
+def resolve_apply_email(
+    job: dict[str, Any],
+    *,
+    refresh: bool = False,
+    skip_job_boards: bool = False,
+    page_timeout: int = 8,
+) -> str | None:
+    """Listing address first, then the public page, then Hunter.io.
+
+    When analysis already resolved an address (or confirmed there is none),
+    reuse that result instead of calling Hunter again.
+    """
+    if not refresh:
+        stored = stored_recruiter_email(job)
+        if stored:
+            return stored
+        if job.get("recruiter_email_resolved"):
+            return None
     listed = extract_apply_email(job)
     if listed:
         return listed
-    from_page = extract_apply_email_from_pages(job)
+    from_page = extract_apply_email_from_pages(
+        job,
+        timeout=page_timeout,
+        skip_job_boards=skip_job_boards,
+    )
     if from_page:
         return from_page
     from services.hunter import find_recruiter_email
 
     return find_recruiter_email(job)
+
+
+def prefetch_recruiter_emails(
+    jobs: list[dict[str, Any]],
+    *,
+    max_workers: int = RECRUITER_PREFETCH_MAX_WORKERS,
+) -> list[dict[str, Any]]:
+    """Resolve recruiter addresses during analysis and stamp them on each offer."""
+    stamped = [dict(job or {}) for job in jobs]
+    if not stamped:
+        return stamped
+
+    remaining: list[int] = []
+    for index, job in enumerate(stamped):
+        listed = extract_apply_email(job)
+        if listed:
+            _stamp_recruiter_email(job, listed, "listing")
+        else:
+            remaining.append(index)
+
+    def _fetch_page(index: int) -> tuple[int, str | None]:
+        job = stamped[index]
+        try:
+            email = extract_apply_email_from_pages(
+                job,
+                timeout=RECRUITER_PREFETCH_PAGE_TIMEOUT_SEC,
+                skip_job_boards=True,
+            )
+        except Exception:  # noqa: BLE001 — one listing must not fail the analysis
+            email = None
+        return index, email
+
+    if remaining:
+        workers = min(max(1, int(max_workers)), len(remaining))
+        page_hits: dict[int, str] = {}
+        if workers == 1:
+            for index in remaining:
+                idx, email = _fetch_page(index)
+                if email:
+                    page_hits[idx] = email
+        else:
+            with ThreadPoolExecutor(max_workers=workers) as executor:
+                futures = [executor.submit(_fetch_page, index) for index in remaining]
+                for future in as_completed(futures):
+                    try:
+                        idx, email = future.result()
+                    except Exception:  # noqa: BLE001
+                        continue
+                    if email:
+                        page_hits[idx] = email
+        still_need: list[int] = []
+        for index in remaining:
+            email = page_hits.get(index)
+            if email:
+                _stamp_recruiter_email(stamped[index], email, "page")
+            else:
+                still_need.append(index)
+        remaining = still_need
+
+    groups: dict[str, list[int]] = {}
+    for index in remaining:
+        groups.setdefault(recruiter_lookup_key(stamped[index]), []).append(index)
+
+    def _fetch_hunter(indices: list[int]) -> tuple[list[int], str | None]:
+        from services.hunter import find_recruiter_email
+
+        try:
+            email = find_recruiter_email(stamped[indices[0]])
+        except Exception:  # noqa: BLE001
+            email = None
+        return indices, email
+
+    if groups:
+        group_items = list(groups.values())
+        workers = min(max(1, int(max_workers)), len(group_items))
+        if workers == 1:
+            hunter_rows = [_fetch_hunter(indices) for indices in group_items]
+        else:
+            hunter_rows = []
+            with ThreadPoolExecutor(max_workers=workers) as executor:
+                futures = [
+                    executor.submit(_fetch_hunter, indices) for indices in group_items
+                ]
+                for future in as_completed(futures):
+                    try:
+                        hunter_rows.append(future.result())
+                    except Exception:  # noqa: BLE001
+                        continue
+        stamped_ids: set[int] = set()
+        for indices, email in hunter_rows:
+            source = "hunter" if email else "none"
+            for index in indices:
+                _stamp_recruiter_email(stamped[index], email, source)
+                stamped_ids.add(index)
+        remaining = [index for index in remaining if index not in stamped_ids]
+
+    for index in remaining:
+        _stamp_recruiter_email(stamped[index], None, "none")
+    return stamped
+
+
+def prefetch_recruiter_emails_for_results(
+    results: list[dict[str, Any]],
+    *,
+    max_workers: int = RECRUITER_PREFETCH_MAX_WORKERS,
+) -> list[dict[str, Any]]:
+    """Stamp recruiter e-mails onto analysis result job payloads."""
+    jobs = [dict(entry.get("job") or {}) for entry in results]
+    stamped = prefetch_recruiter_emails(jobs, max_workers=max_workers)
+    prepared: list[dict[str, Any]] = []
+    for entry, job in zip(results, stamped, strict=False):
+        item = dict(entry)
+        item["job"] = job
+        prepared.append(item)
+    return prepared
 
 
 def build_application_profile(user_profile: dict[str, Any]) -> dict[str, str]:

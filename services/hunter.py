@@ -7,6 +7,7 @@ DowsonBost still sends from its own mailbox; it does not log into job boards.
 from __future__ import annotations
 
 import re
+import threading
 from typing import Any
 from urllib.parse import urlparse
 
@@ -142,6 +143,7 @@ _LEGACY_COMPANY_MAIL_DOMAINS: dict[str, str] = {
 COMPANY_MAIL_DOMAINS: dict[str, str] = dict(_LEGACY_COMPANY_MAIL_DOMAINS)
 
 _cache: dict[str, str | None] = {}
+_cache_lock = threading.Lock()
 
 
 def hunter_api_key() -> str:
@@ -500,8 +502,9 @@ def find_recruiter_email(
         f"{item.get('domain') or item.get('company')}:{item.get('type') or '*'}"
         for item in queries
     )
-    if cache_key in _cache:
-        return _cache[cache_key]
+    with _cache_lock:
+        if cache_key in _cache:
+            return _cache[cache_key]
 
     email: str | None = None
     for extra in queries:
@@ -514,9 +517,11 @@ def find_recruiter_email(
         domain = (matched.domain if matched else "") or infer_company_domain(job) or ""
         if domain:
             email = find_generic_hr_inbox(domain, api_key=key)
-    _cache[cache_key] = email
+    with _cache_lock:
+        _cache[cache_key] = email
     return email
 
 
 def clear_hunter_cache() -> None:
-    _cache.clear()
+    with _cache_lock:
+        _cache.clear()
