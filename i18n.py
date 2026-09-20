@@ -201,6 +201,13 @@ def job_provider_label(provider: str) -> str:
     return t(key_map.get(provider, f"provider.{provider}"))
 
 
+def job_provider_menu_label(provider: str) -> str:
+    """Short platform name for the compact dropdown."""
+    key = f"provider.{provider}_menu"
+    label = t(key)
+    return job_provider_label(provider) if label == key else label
+
+
 def search_mode_label(mode: str) -> str:
     return t(f"profile.search_mode.{mode}")
 

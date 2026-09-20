@@ -116,9 +116,10 @@ def test_job_provider_widget_is_analysis_page_only():
     source = (ROOT / "app.py").read_text(encoding="utf-8")
     render_app = source.split("def render_app()", 1)[1].split("def main()", 1)[0]
     assert render_app.index('if page == "analysis":') < render_app.index(
-        'key="sidebar_job_providers"'
+        "render_job_provider_picker("
     )
-    assert render_app.count('key="sidebar_job_providers"') == 1
+    assert render_app.count("render_job_provider_picker(") == 1
+    assert source.count('key="sidebar_job_providers"') == 1
 
 
 def test_theme_does_not_block_on_google_fonts():

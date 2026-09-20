@@ -1463,6 +1463,30 @@ def render_app_styles() -> None:
         {_shared_components_css(t)}
 
         /* Late overrides — beat compact button styles */
+        [data-testid="stSidebar"] .sidebar-field-label {{
+            margin: 0 0 0.35rem;
+            font-size: 0.84rem;
+            font-weight: 650;
+            color: #E2E8F0;
+        }}
+        [data-testid="stSidebar"] .st-key-sidebar_job_providers button {{
+            width: 100% !important;
+            min-height: 2.6rem !important;
+            height: auto !important;
+            justify-content: space-between !important;
+            text-align: left !important;
+            background: #ffffff !important;
+            color: #1E3A8A !important;
+            border: 1px solid #D0D5DD !important;
+            border-radius: 12px !important;
+            box-shadow: none !important;
+            font-weight: 550 !important;
+            padding: 0.55rem 0.85rem !important;
+        }}
+        [data-testid="stSidebar"] .st-key-sidebar_job_providers button:hover {{
+            border-color: {t["primary"]} !important;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14) !important;
+        }}
         [data-testid="stSidebar"] [class*="st-key-sidebar_locale_select"] {{
             padding-top: 0.85rem;
         }}

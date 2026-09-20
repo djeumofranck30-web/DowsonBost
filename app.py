@@ -100,6 +100,7 @@ from i18n import (
     init_locale,
     job_age_label,
     job_provider_label,
+    job_provider_menu_label,
     nav_label,
     sector_label,
     set_locale,
@@ -9527,6 +9528,86 @@ def _sidebar_job_provider() -> str:
     return provider
 
 
+def _job_provider_selection_keys(job_provider: str) -> list[str]:
+    selectable = list(JOB_PROVIDER_CHOICES)
+    current_keys = parse_job_providers(job_provider)
+    if current_keys == [JOB_PROVIDER_ALL]:
+        current_keys = list(selectable)
+    current_keys = [key for key in selectable if key in current_keys]
+    if not current_keys:
+        preferred = {JOB_PROVIDER_WTTJ, JOB_PROVIDER_CAREER_SITES}
+        current_keys = [key for key in selectable if key in preferred]
+    return current_keys
+
+
+def _job_provider_summary(selected: list[str]) -> str:
+    if not selected:
+        return t("app.job_provider_placeholder")
+    if len(selected) == len(JOB_PROVIDER_CHOICES):
+        return t("app.job_provider_all")
+    if len(selected) == 1:
+        return job_provider_menu_label(selected[0])
+    if len(selected) == 2:
+        return t(
+            "app.job_provider_two",
+            first=job_provider_menu_label(selected[0]),
+            second=job_provider_menu_label(selected[1]),
+        )
+    return t("app.job_provider_summary", count=len(selected))
+
+
+def render_job_provider_picker(job_provider: str) -> str:
+    """Compact dropdown: one summary line, checkboxes to pick platforms."""
+    selectable = list(JOB_PROVIDER_CHOICES)
+    current_keys = _job_provider_selection_keys(job_provider)
+    for key in selectable:
+        box_key = f"sidebar_job_provider_{key}"
+        if box_key not in st.session_state:
+            st.session_state[box_key] = key in current_keys
+
+    selected = [key for key in selectable if st.session_state.get(f"sidebar_job_provider_{key}")]
+    st.markdown(
+        f'<p class="sidebar-field-label">{html.escape(t("app.job_provider"))}</p>',
+        unsafe_allow_html=True,
+    )
+    with st.popover(
+        _job_provider_summary(selected),
+        help=t("app.job_provider_help"),
+        use_container_width=True,
+        key="sidebar_job_providers",
+    ):
+        all_col, reset_col = st.columns(2)
+        with all_col:
+            if st.button(
+                t("app.job_provider_select_all"),
+                use_container_width=True,
+                key="sidebar_job_providers_all",
+            ):
+                for key in selectable:
+                    st.session_state[f"sidebar_job_provider_{key}"] = True
+                st.rerun()
+        with reset_col:
+            if st.button(
+                t("app.job_provider_reset"),
+                use_container_width=True,
+                key="sidebar_job_providers_reset",
+            ):
+                defaults = {JOB_PROVIDER_CAREER_SITES, JOB_PROVIDER_WTTJ}
+                for key in selectable:
+                    st.session_state[f"sidebar_job_provider_{key}"] = key in defaults
+                st.rerun()
+        for key in selectable:
+            st.checkbox(job_provider_menu_label(key), key=f"sidebar_job_provider_{key}")
+
+    selected = [key for key in selectable if st.session_state.get(f"sidebar_job_provider_{key}")]
+    if not selected:
+        st.caption(t("app.job_provider_empty"))
+        selected = current_keys or [JOB_PROVIDER_WTTJ]
+    encoded = encode_job_providers(selected)
+    st.session_state.job_provider = encoded
+    return encoded
+
+
 def render_app() -> None:
     """Main application shell with navigation."""
     render_app_styles()
@@ -9574,35 +9655,7 @@ def render_app() -> None:
 
         if page == "analysis":
             st.markdown("---")
-            selectable = list(JOB_PROVIDER_CHOICES)
-            current_keys = parse_job_providers(job_provider)
-            if current_keys == [JOB_PROVIDER_ALL]:
-                current_keys = list(selectable)
-            current_keys = [key for key in selectable if key in current_keys]
-            if not current_keys:
-                current_keys = [JOB_PROVIDER_WTTJ, JOB_PROVIDER_CAREER_SITES]
-                current_keys = [key for key in selectable if key in current_keys]
-            if "sidebar_job_providers" not in st.session_state:
-                st.session_state.sidebar_job_providers = current_keys
-            elif isinstance(st.session_state.get("sidebar_job_providers"), str):
-                migrated = parse_job_providers(st.session_state.sidebar_job_providers)
-                if migrated == [JOB_PROVIDER_ALL]:
-                    migrated = list(selectable)
-                st.session_state.sidebar_job_providers = [
-                    key for key in selectable if key in migrated
-                ] or current_keys
-            selected_providers = st.multiselect(
-                t("app.job_provider"),
-                selectable,
-                format_func=job_provider_label,
-                help=t("app.job_provider_help"),
-                key="sidebar_job_providers",
-            )
-            if not selected_providers:
-                st.caption(t("app.job_provider_empty"))
-                selected_providers = current_keys or [JOB_PROVIDER_WTTJ]
-            job_provider = encode_job_providers(selected_providers)
-            st.session_state.job_provider = job_provider
+            job_provider = render_job_provider_picker(job_provider)
 
             current_depth = st.session_state.get("analysis_depth", "standard")
             if current_depth not in ANALYSIS_DEPTH_OPTIONS:
