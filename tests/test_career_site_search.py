@@ -163,6 +163,29 @@ def test_career_site_queries_target_major_employers() -> None:
     assert "clinique du parc lyon" not in lowered
 
 
+def test_career_site_queries_follow_profile_country() -> None:
+    canada = " ".join(
+        _career_site_google_queries("developer", "Toronto", countries=["Canada"])
+    ).lower()
+    assert "shopify" in canada
+    assert "sncf" not in canada
+    assert "societegenerale" not in canada
+    us = " ".join(
+        _career_site_google_queries("engineer", "New York", countries=["États-Unis"])
+    ).lower()
+    assert "apple" in us
+    assert "microsoft" in us
+    ci = " ".join(
+        _career_site_google_queries(
+            "développeur",
+            "Abidjan",
+            countries=["Côte d’Ivoire"],
+        )
+    ).lower()
+    assert "orange" in ci
+    assert "sncf" not in ci
+
+
 def test_ats_title_matches_french_query_to_english_engineer() -> None:
     assert _title_matches_ats_query("Software Engineer", "Développeur Python")
     assert _title_matches_ats_query("Python Developer", "Développeur")
@@ -267,3 +290,16 @@ def test_merge_career_site_results_appends_once(monkeypatch: pytest.MonkeyPatch)
         api_key="key",
     )
     assert dedicated["providers_used"] == [JOB_PROVIDER_CAREER_SITES]
+
+
+def test_serpapi_gl_follows_selected_country() -> None:
+    from job_providers import _serpapi_country_gl
+
+    assert _serpapi_country_gl("Canada") == "ca"
+    assert _serpapi_country_gl("États-Unis") == "us"
+    assert _serpapi_country_gl("Côte d’Ivoire") == "ci"
+    assert _serpapi_country_gl("Kenya") == "ke"
+    assert _serpapi_country_gl("Nigeria") == "ng"
+    assert _serpapi_country_gl("Rwanda") == "rw"
+    assert _serpapi_country_gl("Suède") == "se"
+    assert _serpapi_country_gl("Afrique du Sud") == "za"

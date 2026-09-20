@@ -6,10 +6,13 @@ from unittest.mock import patch
 
 from priority_employers import (
     PRIORITY_EMPLOYERS,
+    employers_for_countries,
     extra_career_page_urls,
     is_priority_employer,
     mailbox_domain_for_company,
     match_priority_employer,
+    normalize_employer_country,
+    priority_employer_countries,
 )
 from services.hunter import (
     clear_hunter_cache,
@@ -106,3 +109,92 @@ def test_rank_jobs_boosts_priority_employers() -> None:
     ]
     ranked = rank_jobs_for_cv(jobs, "Python Django", ["python", "django"], top_n=2)
     assert ranked[0]["company"] == "Thales"
+
+
+def test_catalogue_covers_requested_countries() -> None:
+    names = {item.country: set() for item in PRIORITY_EMPLOYERS}
+    for item in PRIORITY_EMPLOYERS:
+        names[item.country].add(item.name)
+    assert "Shopify" in names["Canada"]
+    assert "Proximus" in names["Belgique"]
+    assert "Nestlé" in names["Suisse"]
+    assert "Apple" in names["Etats-Unis"]
+    assert "HSBC" in names["Royaume-Uni"]
+    assert "Siemens" in names["Allemagne"]
+    assert "Inditex" in names["Espagne"]
+    assert "Enel" in names["Italie"]
+    assert "EDP" in names["Portugal"]
+    assert "ASML" in names["Pays-Bas"]
+    assert "Spotify" in names["Suede"]
+    assert "Equinor" in names["Norvege"]
+    assert "Novo Nordisk" in names["Danemark"]
+    assert "Nokia" in names["Finlande"]
+    assert "BHP" in names["Australie"]
+    assert "Fonterra" in names["Nouvelle-Zelande"]
+    assert "OCP Group" in names["Maroc"]
+    assert any("Orange" in n for n in names["Cote d Ivoire"])
+    assert "Sonatel" in names["Senegal"]
+    assert "Safaricom" in names["Kenya"]
+    assert "MTN Nigeria" in names["Nigeria"]
+    assert "Sasol" in names["Afrique du Sud"]
+    assert "Sonatrach" in names["Algerie"]
+    assert "Telecom Egypt" in names["Egypte"]
+    assert "Bank of Kigali" in names["Rwanda"]
+    extra = [c for c in priority_employer_countries() if c != "France"]
+    assert extra[:3] == ["Canada", "Belgique", "Suisse"]
+    for country in extra:
+        assert len(employers_for_countries([country])) >= 10
+
+
+def test_normalize_employer_country_folds_accents() -> None:
+    assert normalize_employer_country("Côte d’Ivoire") == "Cote d Ivoire"
+    assert normalize_employer_country("États-Unis") == "Etats-Unis"
+    assert normalize_employer_country("Suède") == "Suede"
+    assert normalize_employer_country("Nouvelle-Zélande") == "Nouvelle-Zelande"
+
+
+def test_country_pool_prefers_local_brand() -> None:
+    shopify = match_priority_employer({"company": "Shopify"}, countries=["Canada"])
+    assert shopify is not None
+    assert shopify.country == "Canada"
+    assert shopify.domain == "shopify.com"
+    apple = match_priority_employer({"company": "Apple"}, countries=["États-Unis"])
+    assert apple is not None
+    assert apple.country == "Etats-Unis"
+    orange_ci = match_priority_employer(
+        {"company": "Orange Côte d’Ivoire"},
+        countries=["Côte d’Ivoire"],
+    )
+    assert orange_ci is not None
+    assert orange_ci.country == "Cote d Ivoire"
+    assert orange_ci.domain == "orange.ci"
+    assert is_priority_employer({"company": "Shopify"}, countries=["Canada"])
+    assert not is_priority_employer({"company": "SNCF"}, countries=["Canada"])
+    assert mailbox_domain_for_company("SNCF") == "sncf.fr"
+
+
+def test_rank_jobs_boosts_selected_country_employers() -> None:
+    from app import rank_jobs_for_cv
+
+    jobs = [
+        {
+            "title": "Développeur Python",
+            "company": "SNCF",
+            "description": "Python Django",
+            "url": "https://emplois.sncf.com/job/1",
+        },
+        {
+            "title": "Développeur Python",
+            "company": "Shopify",
+            "description": "Python Django",
+            "url": "https://careers.shopify.com/jobs/1",
+        },
+    ]
+    ranked = rank_jobs_for_cv(
+        jobs,
+        "Python Django",
+        ["python", "django"],
+        top_n=2,
+        user_profile={"selected_countries": ["Canada"], "country": "Canada"},
+    )
+    assert ranked[0]["company"] == "Shopify"

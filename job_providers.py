@@ -17,6 +17,7 @@ from priority_employers import (
     employer_google_terms,
     greenhouse_tokens,
     lever_slugs,
+    normalize_employer_country,
     smartrecruiters_companies,
 )
 
@@ -261,6 +262,26 @@ COUNTRY_LOCALE_CODES: dict[str, str] = {
     "suisse": "fr_CH",
     "canada": "en_CA",
     "etats-unis": "en_US",
+    "portugal": "pt_PT",
+    "pays-bas": "nl_NL",
+    "suede": "sv_SE",
+    "norvege": "nb_NO",
+    "danemark": "da_DK",
+    "finlande": "fi_FI",
+    "australie": "en_AU",
+    "nouvelle-zelande": "en_NZ",
+    "maroc": "fr_MA",
+    "cote-d-ivoire": "fr_CI",
+    "senegal": "fr_SN",
+    "cameroun": "fr_CM",
+    "kenya": "en_KE",
+    "nigeria": "en_NG",
+    "ghana": "en_GH",
+    "afrique-du-sud": "en_ZA",
+    "tunisie": "fr_TN",
+    "algerie": "fr_DZ",
+    "egypte": "ar_EG",
+    "rwanda": "en_RW",
 }
 
 JOOBLE_API_HOSTS: dict[str, str] = {
@@ -396,7 +417,12 @@ def merge_job_lists(job_lists: list[list[dict[str, Any]]]) -> list[dict[str, Any
 
 
 def _normalize_country_key(country: str) -> str:
-    return country.strip().lower() or "france"
+    canonical = normalize_employer_country(country)
+    label = canonical or (country or "").strip() or "france"
+    folded = unicodedata.normalize("NFD", label.lower())
+    folded = "".join(char for char in folded if unicodedata.category(char) != "Mn")
+    folded = re.sub(r"[^a-z0-9]+", "-", folded).strip("-")
+    return folded or "france"
 
 
 def _locale_for_country(country: str) -> str:
@@ -451,6 +477,26 @@ def _serpapi_country_gl(country: str) -> str:
         "suisse": "ch",
         "canada": "ca",
         "etats-unis": "us",
+        "portugal": "pt",
+        "pays-bas": "nl",
+        "suede": "se",
+        "norvege": "no",
+        "danemark": "dk",
+        "finlande": "fi",
+        "australie": "au",
+        "nouvelle-zelande": "nz",
+        "maroc": "ma",
+        "cote-d-ivoire": "ci",
+        "senegal": "sn",
+        "cameroun": "cm",
+        "kenya": "ke",
+        "nigeria": "ng",
+        "ghana": "gh",
+        "afrique-du-sud": "za",
+        "tunisie": "tn",
+        "algerie": "dz",
+        "egypte": "eg",
+        "rwanda": "rw",
     }
     return mapping.get(_normalize_country_key(country), "fr")
 
@@ -1321,20 +1367,36 @@ def _chunk_search_terms(terms: list[str], *, max_chars: int = 1400) -> list[list
     return chunks
 
 
-def _career_site_google_queries(query: str, location: str) -> list[str]:
+def _search_countries(countries: list[str] | tuple[str, ...] | None, country: str) -> list[str]:
+    wanted: list[str] = []
+    for item in list(countries or []) or [country or "France"]:
+        name = normalize_employer_country(item) or str(item or "").strip()
+        if name and name not in wanted:
+            wanted.append(name)
+    return wanted or ["France"]
+
+
+def _career_site_google_queries(
+    query: str,
+    location: str,
+    countries: list[str] | tuple[str, ...] | None = None,
+) -> list[str]:
     q = query.strip()
     geo = f" {location.strip()}" if location.strip() else ""
     ats = " OR ".join(f"site:{host}" for host in CAREER_ATS_HOSTS)
     excluded = " ".join(f"-site:{host}" for host in JOB_BOARD_EXCLUSION_HOSTS[:14])
     queries = [f"{q}{geo} ({ats})"]
-    for chunk in _chunk_search_terms(list(MAJOR_EMPLOYER_SEARCH_TERMS))[:3]:
+    terms = list(employer_google_terms(countries or ["France"]))
+    for chunk in _chunk_search_terms(terms)[:3]:
         employers = " OR ".join(chunk)
         queries.append(
             f"{q}{geo} ({employers}) "
             f"(inurl:careers OR inurl:carriere OR inurl:recrutement OR inurl:emploi) "
             f"{excluded}"
         )
-    hosts = list(COMPANY_CAREER_HOSTS)
+    hosts = list(career_hosts(countries or ["France"]))
+    if not hosts and not (countries or []):
+        hosts = list(COMPANY_CAREER_HOSTS)
     for start in range(0, len(hosts), 12):
         chunk = hosts[start : start + 12]
         company_sites = " OR ".join(f"site:{host}" for host in chunk)
@@ -1603,16 +1665,33 @@ def search_jobs_direct_ats_boards(
     location: str = "",
     *,
     limit: int = 80,
+    countries: list[str] | tuple[str, ...] | None = None,
 ) -> list[dict[str, Any]]:
     """Query public Greenhouse / Lever / SmartRecruiters boards without SerpApi."""
     if not query.strip() or limit <= 0:
         return []
+    if countries:
+        gh_tokens = tuple(
+            dict.fromkeys((*greenhouse_tokens(countries), *_LEGACY_GREENHOUSE_BOARD_TOKENS))
+        )
+        lever_tokens = tuple(
+            dict.fromkeys((*lever_slugs(countries), *_LEGACY_LEVER_COMPANY_SLUGS))
+        )
+        sr_tokens = tuple(
+            dict.fromkeys(
+                (*smartrecruiters_companies(countries), *_LEGACY_SMARTRECRUITERS_COMPANIES)
+            )
+        )
+    else:
+        gh_tokens = GREENHOUSE_BOARD_TOKENS
+        lever_tokens = LEVER_COMPANY_SLUGS
+        sr_tokens = SMARTRECRUITERS_COMPANIES
     tasks: list[tuple[str, str, str]] = []
-    for token, company in GREENHOUSE_BOARD_TOKENS:
+    for token, company in gh_tokens:
         tasks.append(("greenhouse", token, company))
-    for slug, company in LEVER_COMPANY_SLUGS:
+    for slug, company in lever_tokens:
         tasks.append(("lever", slug, company))
-    for company_id, company in SMARTRECRUITERS_COMPANIES:
+    for company_id, company in sr_tokens:
         tasks.append(("smartrecruiters", company_id, company))
 
     collected: list[dict[str, Any]] = []
@@ -1648,10 +1727,16 @@ def _search_career_sites_via_google(
     api_key: str,
     *,
     limit: int,
+    countries: list[str] | tuple[str, ...] | None = None,
+    query_cap: int | None = None,
 ) -> list[dict[str, Any]]:
     jobs: list[dict[str, Any]] = []
-    for index, google_query in enumerate(_career_site_google_queries(query, location)):
-        if index >= CAREER_GOOGLE_QUERY_CAP:
+    wanted = list(countries or [country or "France"])
+    cap = CAREER_GOOGLE_QUERY_CAP if query_cap is None else max(1, int(query_cap))
+    for index, google_query in enumerate(
+        _career_site_google_queries(query, location, countries=wanted)
+    ):
+        if index >= cap:
             break
         try:
             organic = _search_google_organic(google_query, country, api_key)
@@ -1685,17 +1770,37 @@ def search_jobs_career_sites(
     api_key: str,
     *,
     limit: int = 80,
+    countries: list[str] | tuple[str, ...] | None = None,
 ) -> list[dict[str, Any]]:
     """Find openings on company career / ATS pages (direct APIs, then Google)."""
     if not query.strip():
         return []
 
-    jobs = search_jobs_direct_ats_boards(query, location, limit=limit)
+    wanted = _search_countries(countries, country)
+    jobs = search_jobs_direct_ats_boards(
+        query, location, limit=limit, countries=wanted
+    )
     if api_key.strip():
-        extra = _search_career_sites_via_google(
-            query, location, country, api_key, limit=limit
+        n_countries = max(1, len(wanted))
+        per_country_limit = max(20, int(limit) // n_countries)
+        query_cap = (
+            CAREER_GOOGLE_QUERY_CAP
+            if n_countries == 1
+            else max(3, CAREER_GOOGLE_QUERY_CAP // n_countries)
         )
-        jobs = merge_job_lists([jobs, extra])
+        for search_country in wanted:
+            extra = _search_career_sites_via_google(
+                query,
+                location,
+                search_country,
+                api_key,
+                limit=per_country_limit,
+                countries=[search_country],
+                query_cap=query_cap,
+            )
+            jobs = merge_job_lists([jobs, extra])
+            if len(jobs) >= limit:
+                break
     return jobs[:limit]
 
 
@@ -1706,13 +1811,19 @@ def try_search_career_sites(
     api_key: str,
     *,
     limit: int = 80,
+    countries: list[str] | tuple[str, ...] | None = None,
 ) -> list[dict[str, Any]]:
     """Career-site search that never fails the surrounding analysis."""
     if not query.strip():
         return []
     try:
         return search_jobs_career_sites(
-            query, location, country, api_key, limit=limit
+            query,
+            location,
+            country,
+            api_key,
+            limit=limit,
+            countries=countries,
         )
     except (RuntimeError, requests.RequestException, ValueError, TypeError, KeyError):
         return []
@@ -1725,6 +1836,7 @@ def merge_career_site_results(
     metier: str = "",
     location: str = "",
     country: str = "France",
+    countries: list[str] | tuple[str, ...] | None = None,
     provider: str = "",
     api_key: str = "",
     limit: int = 80,
@@ -1742,6 +1854,7 @@ def merge_career_site_results(
         country or "France",
         api_key,
         limit=limit,
+        countries=countries,
     )
     if not extra:
         return result

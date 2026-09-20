@@ -1,15 +1,18 @@
-"""Priority French employers: search first, and always try hard to find an apply e-mail.
+"""Priority employers by country: search first, and always try hard to find an apply e-mail.
 
-When analysis finds an opening at one of these companies, recruiter-email lookup
-uses the mapped mailbox domain, career-site pages, Hunter.io, then generic HR
-inboxes (recrutement@, jobs@, …) verified through Hunter.
+When analysis finds an opening at one of these companies in the student's
+selected country, recruiter-email lookup uses the mapped mailbox domain,
+career-site pages, Hunter.io, then generic HR inboxes (recrutement@, jobs@, …)
+verified through Hunter.
 """
 
 from __future__ import annotations
 
 import re
 import unicodedata
-from typing import Any, NamedTuple
+from typing import Any, Iterable, NamedTuple
+
+from priority_employer_countries import COUNTRY_EMPLOYER_ROWS
 
 PRIORITY_EMPLOYER_RANK_BONUS = 80
 
@@ -33,6 +36,7 @@ class PriorityEmployer(NamedTuple):
     greenhouse: str = ""
     lever: str = ""
     smartrecruiters: str = ""
+    country: str = "France"
 
 
 # name, extra aliases (name is always an alias), mailbox domain, career hosts,
@@ -325,9 +329,12 @@ def _parc_clinic_rows() -> tuple[tuple[object, ...], ...]:
     return tuple(rows)
 
 
-def _build_employers() -> tuple[PriorityEmployer, ...]:
+def _build_employers(
+    rows: tuple[tuple[object, ...], ...],
+    country: str,
+) -> tuple[PriorityEmployer, ...]:
     built: list[PriorityEmployer] = []
-    for row in (*_ROWS, *_parc_clinic_rows()):
+    for row in rows:
         name = str(row[0]).strip()
         aliases = tuple(
             dict.fromkeys(
@@ -349,17 +356,127 @@ def _build_employers() -> tuple[PriorityEmployer, ...]:
                 greenhouse=str(row[4] or "").strip(),
                 lever=str(row[5] or "").strip(),
                 smartrecruiters=str(row[6] or "").strip(),
+                country=country,
             )
         )
     return tuple(built)
 
 
-PRIORITY_EMPLOYERS: tuple[PriorityEmployer, ...] = _build_employers()
+PRIORITY_EMPLOYERS: tuple[PriorityEmployer, ...] = (
+    *_build_employers((*_ROWS, *_parc_clinic_rows()), "France"),
+    *(
+        employer
+        for country, rows in COUNTRY_EMPLOYER_ROWS.items()
+        for employer in _build_employers(rows, country)
+    ),
+)
+
+_EXTRA_COUNTRY_ALIASES: dict[str, str] = {
+    "usa": "Etats-Unis",
+    "us": "Etats-Unis",
+    "united states": "Etats-Unis",
+    "united states of america": "Etats-Unis",
+    "ivory coast": "Cote d Ivoire",
+    "cote divoire": "Cote d Ivoire",
+    "ci": "Cote d Ivoire",
+    "uk": "Royaume-Uni",
+    "gb": "Royaume-Uni",
+    "united kingdom": "Royaume-Uni",
+    "south africa": "Afrique du Sud",
+    "za": "Afrique du Sud",
+    "new zealand": "Nouvelle-Zelande",
+    "nz": "Nouvelle-Zelande",
+    "nl": "Pays-Bas",
+    "netherlands": "Pays-Bas",
+    "holland": "Pays-Bas",
+    "se": "Suede",
+    "sweden": "Suede",
+    "no": "Norvege",
+    "norway": "Norvege",
+    "dk": "Danemark",
+    "denmark": "Danemark",
+    "fi": "Finlande",
+    "finland": "Finlande",
+    "pt": "Portugal",
+    "au": "Australie",
+    "australia": "Australie",
+    "eg": "Egypte",
+    "egypt": "Egypte",
+    "dz": "Algerie",
+    "algeria": "Algerie",
+    "tn": "Tunisie",
+    "tunisia": "Tunisie",
+    "ma": "Maroc",
+    "morocco": "Maroc",
+    "sn": "Senegal",
+    "cm": "Cameroun",
+    "cameroon": "Cameroun",
+    "ke": "Kenya",
+    "ng": "Nigeria",
+    "gh": "Ghana",
+    "rw": "Rwanda",
+    "be": "Belgique",
+    "ch": "Suisse",
+    "switzerland": "Suisse",
+    "de": "Allemagne",
+    "germany": "Allemagne",
+    "es": "Espagne",
+    "spain": "Espagne",
+    "it": "Italie",
+    "italy": "Italie",
+    "ca": "Canada",
+    "fr": "France",
+}
 
 
-def _alias_index() -> list[tuple[str, int, PriorityEmployer]]:
+def _country_canonical_map() -> dict[str, str]:
+    mapping: dict[str, str] = dict(_EXTRA_COUNTRY_ALIASES)
+    for name in ("France", *COUNTRY_EMPLOYER_ROWS):
+        mapping[fold_employer_key(name)] = name
+    return mapping
+
+
+_COUNTRY_CANONICAL = _country_canonical_map()
+
+
+def normalize_employer_country(value: str) -> str:
+    """Map a profile / ISO / accented country label to a catalogue key."""
+    folded = fold_employer_key(value)
+    if not folded:
+        return ""
+    return _COUNTRY_CANONICAL.get(folded, "")
+
+
+def priority_employer_countries() -> tuple[str, ...]:
+    return ("France", *COUNTRY_EMPLOYER_ROWS)
+
+
+def _canonical_country_list(countries: Iterable[str] | None) -> tuple[str, ...]:
+    if not countries:
+        return ()
+    seen: list[str] = []
+    for item in countries:
+        name = normalize_employer_country(str(item or ""))
+        if name and name not in seen:
+            seen.append(name)
+    return tuple(seen)
+
+
+def employers_for_countries(
+    countries: Iterable[str] | None = None,
+) -> tuple[PriorityEmployer, ...]:
+    wanted = _canonical_country_list(countries)
+    if not wanted:
+        return PRIORITY_EMPLOYERS
+    wanted_set = set(wanted)
+    return tuple(emp for emp in PRIORITY_EMPLOYERS if emp.country in wanted_set)
+
+
+def _alias_index_for(
+    employers: tuple[PriorityEmployer, ...],
+) -> list[tuple[str, int, PriorityEmployer]]:
     rows: list[tuple[str, int, PriorityEmployer]] = []
-    for employer in PRIORITY_EMPLOYERS:
+    for employer in employers:
         for alias in employer.aliases:
             key = fold_employer_key(alias)
             if len(key) < 2:
@@ -369,8 +486,27 @@ def _alias_index() -> list[tuple[str, int, PriorityEmployer]]:
     return rows
 
 
-_ALIAS_INDEX = _alias_index()
+_ALIAS_INDEX = _alias_index_for(PRIORITY_EMPLOYERS)
 _ALIAS_EXACT = {key: emp for key, _length, emp in reversed(_ALIAS_INDEX)}
+_COUNTRY_INDEX_CACHE: dict[
+    tuple[str, ...],
+    tuple[list[tuple[str, int, PriorityEmployer]], dict[str, PriorityEmployer]],
+] = {}
+
+
+def _indexes_for_countries(
+    countries: Iterable[str] | None,
+) -> tuple[list[tuple[str, int, PriorityEmployer]], dict[str, PriorityEmployer]]:
+    wanted = _canonical_country_list(countries)
+    if not wanted:
+        return _ALIAS_INDEX, _ALIAS_EXACT
+    cached = _COUNTRY_INDEX_CACHE.get(wanted)
+    if cached:
+        return cached
+    index = _alias_index_for(employers_for_countries(wanted))
+    exact = {key: emp for key, _length, emp in reversed(index)}
+    _COUNTRY_INDEX_CACHE[wanted] = (index, exact)
+    return index, exact
 
 
 def generic_hr_local_parts() -> tuple[str, ...]:
@@ -397,10 +533,11 @@ def career_host_mail_domains() -> dict[str, str]:
     return mapping
 
 
-def career_hosts() -> tuple[str, ...]:
+def career_hosts(countries: Iterable[str] | None = None) -> tuple[str, ...]:
     """Career/jobs hosts worth targeting with Google site: queries."""
+    wanted = _canonical_country_list(countries)
     hosts: list[str] = []
-    for employer in PRIORITY_EMPLOYERS:
+    for employer in employers_for_countries(countries):
         for host in employer.career_hosts:
             name = _clean_career_host(host)
             if not name or "." not in name:
@@ -410,14 +547,15 @@ def career_hosts() -> tuple[str, ...]:
                 token in lowered
                 for token in ("career", "job", "emploi", "recrut", "talent")
             )
-            if careerish or lowered.count(".") >= 2:
+            # Country lists are short and often use the corporate domain.
+            if careerish or lowered.count(".") >= 2 or wanted:
                 hosts.append(name)
     return tuple(dict.fromkeys(hosts))
 
 
-def career_company_names() -> dict[str, str]:
+def career_company_names(countries: Iterable[str] | None = None) -> dict[str, str]:
     mapping: dict[str, str] = {}
-    for employer in PRIORITY_EMPLOYERS:
+    for employer in employers_for_countries(countries):
         for host in employer.career_hosts:
             name = _clean_career_host(host)
             if name and "." in name and name not in mapping:
@@ -425,10 +563,10 @@ def career_company_names() -> dict[str, str]:
     return mapping
 
 
-def employer_google_terms() -> tuple[str, ...]:
+def employer_google_terms(countries: Iterable[str] | None = None) -> tuple[str, ...]:
     terms: list[str] = []
     seen: set[str] = set()
-    for employer in PRIORITY_EMPLOYERS:
+    for employer in employers_for_countries(countries):
         label = employer.name.strip()
         folded = fold_employer_key(label)
         if not folded or folded in seen:
@@ -443,22 +581,28 @@ def employer_google_terms() -> tuple[str, ...]:
     return tuple(terms)
 
 
-def greenhouse_tokens() -> tuple[tuple[str, str], ...]:
+def greenhouse_tokens(
+    countries: Iterable[str] | None = None,
+) -> tuple[tuple[str, str], ...]:
     return tuple(
         (item.greenhouse, item.name)
-        for item in PRIORITY_EMPLOYERS
+        for item in employers_for_countries(countries)
         if item.greenhouse
     )
 
 
-def lever_slugs() -> tuple[tuple[str, str], ...]:
-    return tuple((item.lever, item.name) for item in PRIORITY_EMPLOYERS if item.lever)
+def lever_slugs(countries: Iterable[str] | None = None) -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (item.lever, item.name) for item in employers_for_countries(countries) if item.lever
+    )
 
 
-def smartrecruiters_companies() -> tuple[tuple[str, str], ...]:
+def smartrecruiters_companies(
+    countries: Iterable[str] | None = None,
+) -> tuple[tuple[str, str], ...]:
     return tuple(
         (item.smartrecruiters, item.name)
-        for item in PRIORITY_EMPLOYERS
+        for item in employers_for_countries(countries)
         if item.smartrecruiters
     )
 
@@ -472,13 +616,54 @@ def _alias_in_text(folded_text: str, alias: str) -> bool:
     return re.search(pattern, folded_text) is not None
 
 
+def _match_in_pool(
+    *,
+    company_text: str,
+    url_text: str,
+    employers: tuple[PriorityEmployer, ...],
+    alias_index: list[tuple[str, int, PriorityEmployer]],
+    alias_exact: dict[str, PriorityEmployer],
+) -> PriorityEmployer | None:
+    folded_company = fold_employer_key(company_text)
+    folded_url = fold_employer_key(url_text)
+
+    if folded_company:
+        exact = alias_exact.get(folded_company)
+        if exact:
+            return exact
+        for alias, _length, employer in alias_index:
+            if _alias_in_text(folded_company, alias):
+                return employer
+
+    lowered_url = url_text.lower()
+    for employer in employers:
+        for host in employer.career_hosts:
+            needle = host.lower().split("/", 1)[0]
+            if needle and needle in lowered_url:
+                return employer
+        if employer.domain and employer.domain in lowered_url:
+            return employer
+
+    if folded_url:
+        for alias, _length, employer in alias_index:
+            if len(alias) >= 5 and _alias_in_text(folded_url, alias):
+                return employer
+    return None
+
+
 def match_priority_employer(
     job: dict[str, Any] | None = None,
     *,
     company: str = "",
     url: str = "",
+    countries: Iterable[str] | None = None,
 ) -> PriorityEmployer | None:
-    """Return the priority employer for a job / company name / URL, if any."""
+    """Return the priority employer for a job / company name / URL, if any.
+
+    When *countries* is set, the selected-country catalogue is tried first so
+    Amazon Canada wins over Amazon France. E-mail lookup still falls back to
+    the global catalogue when the listing belongs to another listed employer.
+    """
     payload = job or {}
     company_text = " ".join(
         str(part or "")
@@ -497,35 +682,40 @@ def match_priority_employer(
             payload.get("company_url"),
         )
     )
-    folded_company = fold_employer_key(company_text)
-    folded_url = fold_employer_key(url_text)
-
-    if folded_company:
-        exact = _ALIAS_EXACT.get(folded_company)
-        if exact:
-            return exact
-        for alias, _length, employer in _ALIAS_INDEX:
-            if _alias_in_text(folded_company, alias):
-                return employer
-
-    lowered_url = url_text.lower()
-    for employer in PRIORITY_EMPLOYERS:
-        for host in employer.career_hosts:
-            needle = host.lower().split("/", 1)[0]
-            if needle and needle in lowered_url:
-                return employer
-        if employer.domain and employer.domain in lowered_url:
-            return employer
-
-    if folded_url:
-        for alias, _length, employer in _ALIAS_INDEX:
-            if len(alias) >= 5 and _alias_in_text(folded_url, alias):
-                return employer
-    return None
+    wanted = _canonical_country_list(countries)
+    pool = employers_for_countries(wanted) if wanted else PRIORITY_EMPLOYERS
+    alias_index, alias_exact = _indexes_for_countries(wanted or None)
+    matched = _match_in_pool(
+        company_text=company_text,
+        url_text=url_text,
+        employers=pool,
+        alias_index=alias_index,
+        alias_exact=alias_exact,
+    )
+    if matched or not wanted:
+        return matched
+    return _match_in_pool(
+        company_text=company_text,
+        url_text=url_text,
+        employers=PRIORITY_EMPLOYERS,
+        alias_index=_ALIAS_INDEX,
+        alias_exact=_ALIAS_EXACT,
+    )
 
 
-def is_priority_employer(job: dict[str, Any] | None = None, *, company: str = "") -> bool:
-    return match_priority_employer(job, company=company) is not None
+def is_priority_employer(
+    job: dict[str, Any] | None = None,
+    *,
+    company: str = "",
+    countries: Iterable[str] | None = None,
+) -> bool:
+    matched = match_priority_employer(job, company=company, countries=countries)
+    if matched is None:
+        return False
+    wanted = _canonical_country_list(countries)
+    if not wanted:
+        return True
+    return matched.country in wanted
 
 
 def mailbox_domain_for_company(company: str, job: dict[str, Any] | None = None) -> str:
@@ -547,6 +737,9 @@ def extra_career_page_urls(job: dict[str, Any]) -> list[str]:
     return urls
 
 
-def matching_priority_key(job: dict[str, Any]) -> int:
+def matching_priority_key(
+    job: dict[str, Any],
+    countries: Iterable[str] | None = None,
+) -> int:
     """Tie-break so equal ATS scores keep priority employers first."""
-    return 1 if is_priority_employer(job) else 0
+    return 1 if is_priority_employer(job, countries=countries) else 0

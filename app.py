@@ -307,7 +307,11 @@ ADZUNA_COUNTRY_CODES = {
     "Belgique": "be",
     "Suisse": "ch",
     "États-Unis": "us",
+    "Etats-Unis": "us",
     "Australie": "au",
+    "Canada": "ca",
+    "Nouvelle-Zelande": "nz",
+    "Afrique du Sud": "za",
 }
 
 
@@ -2589,11 +2593,13 @@ def test_adzuna_connection() -> tuple[bool, str]:
 
 def resolve_country_code(country: str) -> str:
     """Map French country name (any casing) to Adzuna ISO code."""
-    normalized = country.strip().lower()
+    from job_providers import _normalize_country_key
+
+    normalized = _normalize_country_key(country)
     if not normalized:
         return "fr"
     for name, code in ADZUNA_COUNTRY_CODES.items():
-        if name.lower() == normalized:
+        if _normalize_country_key(name) == normalized:
             return code
     aliases = {
         "france": "fr",
@@ -2606,6 +2612,25 @@ def resolve_country_code(country: str) -> str:
         "pays-bas": "nl",
         "etats-unis": "us",
         "australie": "au",
+        "canada": "ca",
+        "nouvelle-zelande": "nz",
+        "afrique-du-sud": "za",
+        "portugal": "pt",
+        "suede": "se",
+        "norvege": "no",
+        "danemark": "dk",
+        "finlande": "fi",
+        "maroc": "ma",
+        "cote-d-ivoire": "ci",
+        "senegal": "sn",
+        "cameroun": "cm",
+        "kenya": "ke",
+        "nigeria": "ng",
+        "ghana": "gh",
+        "tunisie": "tn",
+        "algerie": "dz",
+        "egypte": "eg",
+        "rwanda": "rw",
     }
     return aliases.get(normalized, "fr")
 
@@ -2835,12 +2860,16 @@ def _with_company_career_sites(
     """Always mix company career-site openings into an analysis search."""
     secrets = provider_secrets_from_getter(get_secret)
     loc = ", ".join(item for item in (locations or [])[:2] if item)
+    wanted = [item for item in (countries or []) if str(item).strip()] or [
+        country or "France"
+    ]
     return merge_career_site_results(
         result,
         query=query,
         metier=metier,
         location=loc,
-        country=(countries[0] if countries else country) or "France",
+        country=wanted[0],
+        countries=wanted,
         provider=provider,
         api_key=secrets.get("serpapi_api_key") or "",
         limit=max(80, int(limit or 80)),
@@ -3404,6 +3433,7 @@ def rank_jobs_for_cv(
     *,
     target_job_title: str = "",
     cv_profile: dict[str, Any] | None = None,
+    user_profile: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Pre-rank jobs by keyword and title overlap before deep AI matching."""
     cv_lower = cv_text.lower()
@@ -3427,6 +3457,7 @@ def rank_jobs_for_cv(
     metier_tokens = {
         t for t in re.findall(r"\w+", metier.lower()) if t not in stopwords and len(t) > 2
     }
+    employer_countries = profile_countries(user_profile) if user_profile else None
 
     def quick_score(job: dict[str, Any]) -> int:
         title = str(job.get("title", "")).lower()
@@ -3436,7 +3467,11 @@ def rank_jobs_for_cv(
         title_overlap = sum(1 for token in target_tokens if token in title)
         metier_overlap = sum(1 for token in metier_tokens if token in title)
         phase_bonus = SEARCH_PHASE_BONUS.get(str(job.get("_search_phase") or ""), 0)
-        employer_bonus = PRIORITY_EMPLOYER_RANK_BONUS if is_priority_employer(job) else 0
+        employer_bonus = (
+            PRIORITY_EMPLOYER_RANK_BONUS
+            if is_priority_employer(job, countries=employer_countries)
+            else 0
+        )
         return (
             hits * 8
             + cv_hits * 5
@@ -3487,6 +3522,7 @@ def build_matching_results(
         top_n=candidate_limit,
         target_job_title=target_job_title,
         cv_profile=cv_profile,
+        user_profile=user_profile,
     )
 
     key_slots = collect_parallel_llm_slots(PARALLEL_MATCH_KEYS_PER_PROVIDER)
@@ -3581,11 +3617,12 @@ def build_matching_results(
             results.append({"job": job, "match": match})
             _report_match_progress(index + 1)
 
+    employer_countries = profile_countries(user_profile) if user_profile else None
     _report_progress(progress, match_end, "Classement des meilleures offres…")
     results.sort(
         key=lambda entry: (
             int(entry["match"].get("score_correspondance", 0)),
-            matching_priority_key(entry.get("job") or {}),
+            matching_priority_key(entry.get("job") or {}, countries=employer_countries),
         ),
         reverse=True,
     )
@@ -6762,7 +6799,15 @@ def run_cv_analysis_pipeline(
             ),
         }
     )
-    notices.append({"level": "info", "text": t("pipeline.priority_employers")})
+    notices.append(
+        {
+            "level": "info",
+            "text": t(
+                "pipeline.priority_employers",
+                countries=", ".join(profile_countries(user_profile) or [country]),
+            ),
+        }
+    )
 
     if not raw_jobs:
         notices.append({"level": "warning", "text": t("pipeline.no_raw_jobs")})
