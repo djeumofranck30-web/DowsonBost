@@ -302,6 +302,7 @@ def test_spec_locale_and_ui_hooks() -> None:
     for key in (
         "profile.work_mode",
         "profile.salary_min",
+        "profile.freelance_locked_help",
         "profile.gdpr_export",
         "notify.daily_limit",
         "job.freelance_proposal",

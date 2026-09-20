@@ -256,6 +256,7 @@
   "profile.contract": "Type of contract",
   "profile.freelance_mode": "Freelance mode (missions)",
   "profile.freelance_mode_help": "Search freelance missions instead of a permanent role. The CV and letter still adapt to each offer.",
+  "profile.freelance_locked_help": "Check freelance mode to unlock the daily rate and portfolio fields.",
   "profile.experience": "Experience level",
   "profile.geo_mode": "Geographic scope",
   "profile.sectors": "Targeted sectors",

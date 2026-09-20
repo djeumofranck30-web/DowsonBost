@@ -256,6 +256,7 @@
   "profile.contract": "Type de contrat",
   "profile.freelance_mode": "Mode freelance (missions)",
   "profile.freelance_mode_help": "Cherche des missions freelance plutôt qu'un CDI. Le CV et la lettre restent adaptés à chaque offre.",
+  "profile.freelance_locked_help": "Cochez le mode freelance pour déverrouiller le TJM et le portfolio.",
   "profile.experience": "Niveau d'expérience",
   "profile.geo_mode": "Périmètre géographique",
   "profile.sectors": "Secteurs ciblés",

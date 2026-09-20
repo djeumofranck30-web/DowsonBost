@@ -8359,6 +8359,7 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
         )
 
         profile_key_prefix = f"profile_{user['id']}"
+        widget_prefix = profile_widget_prefix(int(user["id"]))
         selected_countries = render_countries_multiselect(profile, key_prefix=profile_key_prefix)
 
         st.markdown(
@@ -8398,10 +8399,55 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                     key_prefix=profile_key_prefix,
                 )
 
+        seed_session_value(
+            st.session_state,
+            f"{widget_prefix}_freelance",
+            str(profile.get("contract_type") or "") == "Freelance",
+        )
+        seed_session_value(
+            st.session_state,
+            f"{widget_prefix}_daily_rate",
+            int(profile.get("daily_rate") or 0),
+        )
+        seed_session_value(
+            st.session_state,
+            f"{widget_prefix}_portfolio",
+            profile.get("portfolio_url") or "",
+        )
+        freelance_mode = st.checkbox(
+            t("profile.freelance_mode"),
+            help=t("profile.freelance_mode_help"),
+            key=f"{widget_prefix}_freelance",
+        )
+        daily_rate = st.number_input(
+            t("profile.daily_rate"),
+            min_value=0,
+            max_value=5000,
+            step=10,
+            help=(
+                t("profile.daily_rate_help")
+                if freelance_mode
+                else t("profile.freelance_locked_help")
+            ),
+            key=f"{widget_prefix}_daily_rate",
+            disabled=not freelance_mode,
+        )
+        portfolio_url = st.text_input(
+            t("profile.portfolio_url"),
+            help=(
+                t("profile.portfolio_url_help")
+                if freelance_mode
+                else t("profile.freelance_locked_help")
+            ),
+            key=f"{widget_prefix}_portfolio",
+            disabled=not freelance_mode,
+        )
+        if not freelance_mode:
+            st.caption(t("profile.freelance_locked_help"))
+
         with st.form("profile_form"):
             st.markdown(f"**{t('profile.identity_section')}**")
             st.caption(t("profile.identity_hint"))
-            widget_prefix = profile_widget_prefix(int(user["id"]))
             stored_contract = (
                 profile.get("contract_type")
                 if profile.get("contract_type") in CONTRACT_TYPES
@@ -8428,21 +8474,11 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                 profile.get("target_job_title", "") or "",
             )
             seed_session_value(st.session_state, f"{widget_prefix}_contract", stored_contract)
-            seed_session_value(
-                st.session_state,
-                f"{widget_prefix}_freelance",
-                str(profile.get("contract_type") or "") == "Freelance",
-            )
             seed_session_value(st.session_state, f"{widget_prefix}_work_mode", stored_work_mode)
             seed_session_value(
                 st.session_state,
                 f"{widget_prefix}_salary_min",
                 normalize_salary_min(profile.get("salary_min")),
-            )
-            seed_session_value(
-                st.session_state,
-                f"{widget_prefix}_daily_rate",
-                int(profile.get("daily_rate") or 0),
             )
             seed_session_value(
                 st.session_state,
@@ -8497,12 +8533,8 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                     CONTRACT_TYPES,
                     format_func=contract_label,
                     key=f"{widget_prefix}_contract",
+                    disabled=freelance_mode,
                 )
-            freelance_mode = st.checkbox(
-                t("profile.freelance_mode"),
-                help=t("profile.freelance_mode_help"),
-                key=f"{widget_prefix}_freelance",
-            )
             if freelance_mode:
                 contract_type = "Freelance"
 
@@ -8524,17 +8556,6 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                     help=t("profile.salary_min_help"),
                     key=f"{widget_prefix}_salary_min",
                 )
-            if freelance_mode:
-                daily_rate = st.number_input(
-                    t("profile.daily_rate"),
-                    min_value=0,
-                    max_value=5000,
-                    step=10,
-                    help=t("profile.daily_rate_help"),
-                    key=f"{widget_prefix}_daily_rate",
-                )
-            else:
-                daily_rate = int(st.session_state.get(f"{widget_prefix}_daily_rate") or 0)
 
             skills_text = st.text_area(
                 t("profile.skills"),
@@ -8610,7 +8631,7 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                         diplomas_text=profile.get("diplomas_text") or "",
                         experiences_text=profile.get("experiences_text") or "",
                         daily_rate=int(daily_rate or 0),
-                        portfolio_url=profile.get("portfolio_url") or "",
+                        portfolio_url=(portfolio_url or "").strip(),
                     )
                     if ok and updated:
                         st.session_state.user = updated
