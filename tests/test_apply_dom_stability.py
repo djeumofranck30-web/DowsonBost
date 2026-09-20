@@ -27,8 +27,15 @@ def test_auto_apply_is_deferred_off_the_clicked_button() -> None:
     assert "_pending_auto_apply" in body
     assert "on_click" in body
     assert "_queue_pending_auto_apply" in body
+    assert "_last_auto_apply" in body
+    assert "_store_auto_apply_result" in body
+    assert "_auto_apply_busy" in body
+    assert "_paint_auto_apply_banner" in body
     assert body.index("_pending_auto_apply") < body.index("st.button(")
     assert "_run_auto_apply_action(" in body.split("st.button(")[0]
+    assert body.index("_run_auto_apply_action(") < body.index('pop("_pending_auto_apply"')
+    assert body.index("_store_auto_apply_result") < body.index('pop("_pending_auto_apply"')
+    assert "st.rerun()" not in body
 
 
 def test_simple_row_uses_expander_instead_of_rerun_toggle() -> None:

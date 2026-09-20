@@ -96,6 +96,11 @@ def test_apply_auto_label_is_honest() -> None:
     assert "_pending_auto_apply" in source
     assert "_queue_pending_auto_apply" in source
     assert "_render_application_mail" in source
+    assert "_last_auto_apply" in source
+    assert "_store_auto_apply_result" in source
+    assert "_render_auto_apply_banner" in source
+    assert "job.apply_auto_last" in fr
+    assert "job.apply_auto_last" in en
     assert "can_apply = bool(user_id and cv_text and user_profile)" in source
     assert "auto_prepared" in source
     assert "job.apply_unexpected" in fr

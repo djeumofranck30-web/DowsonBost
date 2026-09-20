@@ -391,6 +391,26 @@ def test_resolve_apply_email_retries_hunter_after_empty_prefetch() -> None:
         hunter.assert_called_once()
 
 
+def test_resolve_apply_email_can_skip_slow_page_fetch() -> None:
+    job = {
+        "description": "Postulez en ligne.",
+        "company": "Acme",
+        "url": "https://www.acme.fr/jobs/1",
+    }
+    with (
+        patch("services.application.extract_apply_email_from_pages") as pages,
+        patch("services.hunter.find_recruiter_email", return_value="jobs@acme.fr") as hunter,
+    ):
+        assert resolve_apply_email(job, skip_pages=True) == "jobs@acme.fr"
+        pages.assert_not_called()
+        hunter.assert_called_once()
+
+
+def test_auto_apply_click_skips_slow_page_fetch() -> None:
+    source = (ROOT / "services/application.py").read_text(encoding="utf-8")
+    assert "resolve_apply_email(job, skip_job_boards=True, skip_pages=True)" in source
+
+
 def test_prefetch_does_not_stamp_empty_resolved() -> None:
     from services.application import prefetch_recruiter_emails
 

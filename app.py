@@ -4195,36 +4195,8 @@ def _run_auto_apply_action(
                 adapted_cv_text=current_cv,
                 locale=get_locale(),
             )
-        if auto_result.get("success") or auto_result.get("email_body") or auto_result.get("cover_letter"):
-            if result_id:
-                st.session_state[f"apply_pack_{result_id}"] = auto_result
-                st.session_state[f"cover_{result_id}"] = auto_result.get("cover_letter") or ""
-                st.session_state[f"adapted_{result_id}"] = auto_result.get("adapted_cv") or ""
-        if auto_result["success"]:
-            method = str(auto_result.get("method") or "email")
-            if user_id and result_id:
-                save_generated_documents(
-                    user_id,
-                    result_id,
-                    cover_letter_text=auto_result["cover_letter"],
-                    adapted_cv_text=auto_result["adapted_cv"],
-                )
-                record_application(
-                    user_id,
-                    result_id,
-                    "auto_prepared" if method == "prepared" else "auto_email",
-                    status="saved" if method == "prepared" else "applied",
-                    notes=auto_result["message"],
-                )
-            if method == "prepared":
-                st.warning(auto_result["message"])
-            else:
-                st.success(auto_result["message"])
-        else:
-            st.error(auto_result["message"])
         return auto_result
     except Exception as exc:  # noqa: BLE001 — keep the page usable if mail/IA fails
-        st.error(f"{t('job.apply_unexpected')} ({exc})")
         return {"success": False, "message": f"{t('job.apply_unexpected')} ({exc})"}
 
 
@@ -4234,6 +4206,99 @@ def _queue_pending_auto_apply(action_key: str, key_prefix: str) -> None:
         "action_key": str(action_key),
         "key_prefix": str(key_prefix),
     }
+    st.session_state["_auto_apply_busy"] = {"action_key": str(action_key)}
+
+
+def _auto_apply_pack_key(result_id: int | None, action_key: str) -> str:
+    return f"apply_pack_{result_id if result_id is not None else action_key}"
+
+
+def _store_auto_apply_result(
+    *,
+    action_key: str,
+    result_id: int | None,
+    result: dict[str, Any],
+    job: dict[str, Any],
+    user_id: int | None,
+) -> None:
+    """Keep the send outcome in session so a rerun does not look like 'nothing happened'."""
+    payload = {
+        "action_key": str(action_key),
+        "result_id": result_id,
+        "result": result,
+        "title": str(job.get("title") or ""),
+    }
+    st.session_state["_last_auto_apply"] = payload
+    st.session_state[_auto_apply_pack_key(result_id, action_key)] = result
+    if result_id:
+        st.session_state[f"cover_{result_id}"] = result.get("cover_letter") or ""
+        st.session_state[f"adapted_{result_id}"] = result.get("adapted_cv") or ""
+        if user_id and result.get("success"):
+            method = str(result.get("method") or "email")
+            save_generated_documents(
+                user_id,
+                result_id,
+                cover_letter_text=result.get("cover_letter") or "",
+                adapted_cv_text=result.get("adapted_cv") or "",
+            )
+            record_application(
+                user_id,
+                result_id,
+                "auto_prepared" if method == "prepared" else "auto_email",
+                status="saved" if method == "prepared" else "applied",
+                notes=str(result.get("message") or ""),
+            )
+
+
+def _render_auto_apply_feedback(result: dict[str, Any] | None) -> None:
+    if not result:
+        return
+    message = str(result.get("message") or "").strip()
+    if not message:
+        if result.get("success"):
+            if str(result.get("method") or "") == "prepared":
+                message = t("job.apply_auto_prepared_success")
+            else:
+                message = t(
+                    "job.apply_auto_email_sent",
+                    email=str(result.get("email_to") or result.get("apply_email") or ""),
+                    from_email=str(result.get("email_from") or ""),
+                )
+        else:
+            message = t("job.apply_unexpected")
+    if result.get("success"):
+        if str(result.get("method") or "") == "prepared":
+            st.warning(message)
+        else:
+            st.success(message)
+    else:
+        st.error(message)
+
+
+def _paint_auto_apply_banner(slot: Any | None = None) -> None:
+    """Fill the results-top banner; can be called again after send on the same run."""
+    slot = slot if slot is not None else st.session_state.get("_auto_apply_banner_slot")
+    if slot is None:
+        return
+    with slot:
+        busy = st.session_state.get("_auto_apply_busy")
+        if busy:
+            st.info(t("job.apply_auto_running"))
+        last = st.session_state.get("_last_auto_apply") or {}
+        result = last.get("result") or {}
+        if not result:
+            return
+        title = str(last.get("title") or "").strip()
+        if title:
+            st.caption(t("job.apply_auto_last", title=title))
+        _render_auto_apply_feedback(result)
+
+
+def _render_auto_apply_banner() -> None:
+    """Show the last automatic apply at the top of the list (survives spinner reruns)."""
+    slot = st.container()
+    st.session_state["_auto_apply_banner_slot"] = slot
+    _paint_auto_apply_banner(slot)
 
 
 def _render_application_mail(result: dict[str, Any], *, widget_key: str) -> None:
@@ -4302,23 +4367,49 @@ def _render_apply_action_buttons(
         str(pending.get("action_key") or "") == action_key
         and str(pending.get("key_prefix") or "") == str(key_prefix)
     ):
-        st.session_state.pop("_pending_auto_apply", None)
-        auto_result = _run_auto_apply_action(
-            user_id=user_id,
-            result_id=result_id,
-            cv_text=cv_text,
-            job=job,
-            match=match,
-            user_profile=user_profile,
-            cover_letter_text=cover_letter_text,
-            adapted_cv_text=adapted_cv_text,
-        )
-        applied = bool(auto_result.get("success"))
-        if result_id:
-            st.session_state[f"apply_pack_{result_id}"] = {
-                **(st.session_state.get(f"apply_pack_{result_id}") or {}),
-                **auto_result,
-            }
+        st.session_state["_auto_apply_busy"] = {
+            "action_key": action_key,
+            "title": str(job.get("title") or ""),
+        }
+        try:
+            auto_result = _run_auto_apply_action(
+                user_id=user_id,
+                result_id=result_id,
+                cv_text=cv_text,
+                job=job,
+                match=match,
+                user_profile=user_profile,
+                cover_letter_text=cover_letter_text,
+                adapted_cv_text=adapted_cv_text,
+            )
+            if not isinstance(auto_result, dict):
+                auto_result = {
+                    "success": False,
+                    "message": t("job.apply_unexpected"),
+                }
+            _store_auto_apply_result(
+                action_key=action_key,
+                result_id=result_id,
+                result=auto_result,
+                job=job,
+                user_id=user_id,
+            )
+            applied = bool(auto_result.get("success"))
+        except Exception as exc:  # noqa: BLE001 — never leave the click without a visible outcome
+            _store_auto_apply_result(
+                action_key=action_key,
+                result_id=result_id,
+                result={
+                    "success": False,
+                    "message": f"{t('job.apply_unexpected')} ({exc})",
+                },
+                job=job,
+                user_id=user_id,
+            )
+        finally:
+            st.session_state.pop("_auto_apply_busy", None)
+            st.session_state.pop("_pending_auto_apply", None)
+        _paint_auto_apply_banner()
     apply_col1, apply_col2 = st.columns(2)
     with apply_col1:
         if can_apply:
@@ -4356,7 +4447,11 @@ def _render_apply_action_buttons(
                 use_container_width=True,
                 key=f"{key_prefix}_manual_disabled_{action_key}",
             )
-    mail = st.session_state.get(f"apply_pack_{result_id}") if result_id else None
+    mail = st.session_state.get(_auto_apply_pack_key(result_id, action_key))
+    last = st.session_state.get("_last_auto_apply") or {}
+    if str(last.get("action_key") or "") == action_key:
+        mail = last.get("result") or mail
+    _render_auto_apply_feedback(mail)
     if mail:
         _render_application_mail(mail, widget_key=f"{key_prefix}_{action_key}")
     elif not can_apply:
@@ -6383,6 +6478,7 @@ def render_dashboard_page(user: dict[str, Any]) -> None:
         f'<p class="dash-results-line">{html.escape(t("dashboard.results_count", count=len(entries), id=selected_id))}</p>',
         unsafe_allow_html=True,
     )
+    _render_auto_apply_banner()
     visible_entries = _paged_items(
         entries,
         key="dash_page",
@@ -6695,6 +6791,7 @@ def render_analysis_results(analysis: dict[str, Any]) -> None:
         f'<p class="section-title">{t("results.simple_title", count=len(results))}</p>',
         unsafe_allow_html=True,
     )
+    _render_auto_apply_banner()
     user = st.session_state.get("user") or {}
     user_id = int(user["id"]) if user.get("id") else None
     user_profile = analysis.get("user_profile") or (

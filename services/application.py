@@ -260,6 +260,7 @@ def resolve_apply_email(
     *,
     refresh: bool = False,
     skip_job_boards: bool = False,
+    skip_pages: bool = False,
     page_timeout: int = 8,
 ) -> str | None:
     """Listing address first, then the public page, then Hunter.io.
@@ -274,13 +275,14 @@ def resolve_apply_email(
     listed = extract_apply_email(job)
     if listed:
         return listed
-    from_page = extract_apply_email_from_pages(
-        job,
-        timeout=page_timeout,
-        skip_job_boards=skip_job_boards,
-    )
-    if from_page:
-        return from_page
+    if not skip_pages:
+        from_page = extract_apply_email_from_pages(
+            job,
+            timeout=page_timeout,
+            skip_job_boards=skip_job_boards,
+        )
+        if from_page:
+            return from_page
     from services.hunter import find_recruiter_email
 
     return find_recruiter_email(job)
@@ -757,7 +759,7 @@ def submit_application_automatically(
             job_url=job_url,
         )
 
-    apply_email = resolve_apply_email(job)
+    apply_email = resolve_apply_email(job, skip_job_boards=True, skip_pages=True)
     if apply_email:
         _stamp_recruiter_email(
             job,
