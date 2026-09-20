@@ -471,6 +471,7 @@ MESSAGES: dict[str, str] = {
     "analysis.filters_editable": "*(modifiable dans Mon profil)*",
     "analysis.sectors_cv": "CV",
     # Pipeline notices
+    "pipeline.serpapi_exhausted": "Quota SerpAPI épuisé (recherches du mois). L'analyse continue avec Welcome to the Jungle, les sites carrière (ATS) et les autres sources gratuites. Rechargez le forfait SerpAPI ou attendez le renouvellement mensuel.",
     "pipeline.ocr_detected": "PDF scanné détecté — extraction via OCR Gemini Vision.",
     "pipeline.heuristic": "Extraction IA partielle — profil déduit automatiquement du texte du CV.",
     "pipeline.filter_done": "Filtrage terminé — {kept} offre(s) retenue(s) sur {total}",

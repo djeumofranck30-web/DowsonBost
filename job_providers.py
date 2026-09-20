@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ipaddress
 import re
+import threading
 import unicodedata
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Callable
@@ -61,6 +62,24 @@ JOB_PROVIDER_LABELS: dict[str, str] = {
     JOB_PROVIDER_FREELANCE: "Freelance.com — missions",
     JOB_PROVIDER_SERPAPI: "Google Jobs / SerpApi (agrégateur)",
 }
+
+# Engines that spend one SerpAPI search per HTTP call.
+SERPAPI_METERED_PROVIDERS = frozenset(
+    {
+        JOB_PROVIDER_INDEED,
+        JOB_PROVIDER_LINKEDIN,
+        JOB_PROVIDER_GLASSDOOR,
+        JOB_PROVIDER_FRANCE_TRAVAIL,
+        JOB_PROVIDER_FREELANCE,
+        JOB_PROVIDER_SERPAPI,
+    }
+)
+
+
+def provider_uses_serpapi(provider: str) -> bool:
+    """True when this engine bills a SerpAPI search for every query."""
+    return str(provider or "").strip().lower() in SERPAPI_METERED_PROVIDERS
+
 
 JOB_PROVIDER_SIDEBAR_ORDER = (
     JOB_PROVIDER_ALL,
@@ -469,6 +488,66 @@ def _standard_job(
 SERPAPI_SEARCH_URL = "https://serpapi.com/search.json"
 SERPAPI_TIMEOUT_SEC = 25
 SERPAPI_MAX_ATTEMPTS = 2
+SERPAPI_QUOTA_MARKERS = (
+    "searches are exhausted",
+    "run out of searches",
+    "out of searches",
+    "has run out of searches",
+    "your account has run out",
+    "monthly search limit",
+    "search limit reached",
+)
+
+_serpapi_quota_lock = threading.Lock()
+_serpapi_quota_exhausted = False
+
+
+def serpapi_quota_exhausted() -> bool:
+    """True after SerpAPI reports a monthly/search quota error in this process."""
+    return _serpapi_quota_exhausted
+
+
+def mark_serpapi_quota_exhausted() -> None:
+    """Stop further SerpAPI HTTP calls for the rest of this analysis."""
+    global _serpapi_quota_exhausted
+    with _serpapi_quota_lock:
+        _serpapi_quota_exhausted = True
+
+
+def reset_serpapi_quota_state() -> None:
+    """Allow a new analysis (or test) to probe SerpAPI once more."""
+    global _serpapi_quota_exhausted
+    with _serpapi_quota_lock:
+        _serpapi_quota_exhausted = False
+
+
+def _serpapi_error_text(payload: dict[str, Any] | None) -> str:
+    if not isinstance(payload, dict):
+        return ""
+    chunks = [
+        payload.get("error"),
+        payload.get("error_message"),
+        payload.get("message"),
+    ]
+    metadata = payload.get("search_metadata")
+    if isinstance(metadata, dict):
+        chunks.append(metadata.get("status"))
+        chunks.append(metadata.get("error"))
+    return " ".join(str(item) for item in chunks if item).lower()
+
+
+def _serpapi_signals_quota_exhausted(
+    payload: dict[str, Any] | None,
+    status: int = 0,
+) -> bool:
+    try:
+        code = int(status or 0)
+    except (TypeError, ValueError):
+        code = 0
+    if code in {402, 429}:
+        return True
+    text = _serpapi_error_text(payload)
+    return any(marker in text for marker in SERPAPI_QUOTA_MARKERS)
 
 
 def _serpapi_country_gl(country: str) -> str:
@@ -514,18 +593,32 @@ def _serpapi_get(
     """GET SerpApi JSON. Timeouts and network errors return None after one retry.
 
     401/403 still raise so a bad key stays visible in connection tests.
+    Quota / 429 trips a process-wide circuit breaker so later engines skip HTTP.
     Other HTTP errors return None so the rest of the analysis can continue.
     """
+    if serpapi_quota_exhausted():
+        return None
     for attempt in range(SERPAPI_MAX_ATTEMPTS):
         try:
             response = requests.get(SERPAPI_SEARCH_URL, params=params, timeout=timeout)
-            status = getattr(response, "status_code", 0)
+            try:
+                status = int(getattr(response, "status_code", 0) or 0)
+            except (TypeError, ValueError):
+                status = 0
             if status in {401, 403}:
                 response.raise_for_status()
+            payload: dict[str, Any] | None = None
+            try:
+                data = response.json()
+                payload = data if isinstance(data, dict) else None
+            except (ValueError, TypeError):
+                payload = None
+            if _serpapi_signals_quota_exhausted(payload, status):
+                mark_serpapi_quota_exhausted()
+                return None
             if not getattr(response, "ok", False):
                 return None
-            payload = response.json()
-            return payload if isinstance(payload, dict) else None
+            return payload
         except requests.HTTPError:
             raise
         except (requests.RequestException, ValueError, TypeError):
@@ -1153,7 +1246,7 @@ SMARTRECRUITERS_COMPANIES: tuple[tuple[str, str], ...] = tuple(
 
 DIRECT_ATS_MAX_WORKERS = 10
 DIRECT_ATS_PER_BOARD = 8
-CAREER_GOOGLE_QUERY_CAP = 6
+CAREER_GOOGLE_QUERY_CAP = 3
 
 MAJOR_EMPLOYER_SEARCH_TERMS = employer_google_terms()
 
@@ -1752,8 +1845,10 @@ def _search_career_sites_via_google(
             break
         except requests.RequestException:
             break
+        if serpapi_quota_exhausted():
+            break
         if organic is None:
-            # SerpApi timed out or was unreachable — do not stack more waits.
+            # SerpApi timed out, quota-tripped, or was unreachable — do not stack more waits.
             break
         batch: list[dict[str, Any]] = []
         for item in organic:
@@ -1785,13 +1880,17 @@ def search_jobs_career_sites(
     jobs = search_jobs_direct_ats_boards(
         query, location, limit=limit, countries=wanted
     )
-    if api_key.strip():
+    if (
+        api_key.strip()
+        and not serpapi_quota_exhausted()
+        and len(jobs) < int(limit)
+    ):
         n_countries = max(1, len(wanted))
         per_country_limit = max(20, int(limit) // n_countries)
         query_cap = (
             CAREER_GOOGLE_QUERY_CAP
             if n_countries == 1
-            else max(3, CAREER_GOOGLE_QUERY_CAP // n_countries)
+            else max(2, CAREER_GOOGLE_QUERY_CAP // n_countries)
         )
         for search_country in wanted:
             extra = _search_career_sites_via_google(
@@ -1969,8 +2068,8 @@ def search_jobs_freelance_com(
     )
 
 
-FREELANCE_PLATFORM_MAX_WORKERS = 6
-FREELANCE_PLATFORM_CAP = 6
+FREELANCE_PLATFORM_MAX_WORKERS = 4
+FREELANCE_PLATFORM_CAP = 3
 
 
 def search_jobs_freelance_platforms(
@@ -1983,7 +2082,7 @@ def search_jobs_freelance_platforms(
     limit: int = 80,
 ) -> list[dict[str, Any]]:
     """Search country freelance marketplaces (Malt, Upwork, Freelance.com, …)."""
-    if not query.strip() or not api_key.strip():
+    if not query.strip() or not api_key.strip() or serpapi_quota_exhausted():
         return []
     wanted = _search_countries(countries, country)
     platforms = platforms_for_countries(wanted, max_platforms=FREELANCE_PLATFORM_CAP)
@@ -2019,7 +2118,7 @@ def search_jobs_freelance_platforms(
                 continue
             if batch:
                 collected = merge_job_lists([collected, batch])
-            if len(collected) >= limit:
+            if len(collected) >= limit or serpapi_quota_exhausted():
                 break
     return collected[:limit]
 

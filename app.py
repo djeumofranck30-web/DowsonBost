@@ -273,7 +273,10 @@ from job_providers import (
     default_job_provider,
     encode_job_providers,
     parse_job_providers,
+    provider_uses_serpapi,
+    reset_serpapi_quota_state,
     selected_job_providers,
+    serpapi_quota_exhausted,
     uses_provider_fusion,
     job_board_display_name,
     job_board_signup_url,
@@ -2941,6 +2944,7 @@ def search_jobs_for_profile(
     progress: ProgressReporter | None = None,
 ) -> dict[str, Any]:
     """Search title first, then similar titles, then CV skills/missions, and merge."""
+    reset_serpapi_quota_state()
     max_age_days = normalize_job_max_age_days(profile.get("job_max_age_days"))
     countries = profile_countries(profile) or [country or "France"]
     geo_map = merge_profile_geo(profile)
@@ -3215,27 +3219,39 @@ def _search_all_providers_with_fallback(
             )
             return engine, batch or []
 
-        worker_count = min(SEARCH_PROVIDER_MAX_WORKERS, max(1, len(query_list)))
-        if worker_count > 1 and len(query_list) > 1:
-            with ThreadPoolExecutor(max_workers=worker_count) as executor:
-                futures = [executor.submit(_query_engine, engine) for engine in query_list]
-                for future in as_completed(futures):
+        def _collect(engines: list[str]) -> None:
+            nonlocal merged
+            if not engines:
+                return
+            worker_count = min(SEARCH_PROVIDER_MAX_WORKERS, max(1, len(engines)))
+            if worker_count > 1 and len(engines) > 1:
+                with ThreadPoolExecutor(max_workers=worker_count) as executor:
+                    futures = [
+                        executor.submit(_query_engine, engine) for engine in engines
+                    ]
+                    for future in as_completed(futures):
+                        try:
+                            engine, batch = future.result()
+                        except (RuntimeError, requests.RequestException):
+                            continue
+                        if batch:
+                            used.append(engine)
+                            merged = merge_job_lists([merged, batch])
+            else:
+                for engine in engines:
                     try:
-                        engine, batch = future.result()
+                        engine, batch = _query_engine(engine)
                     except (RuntimeError, requests.RequestException):
                         continue
                     if batch:
                         used.append(engine)
                         merged = merge_job_lists([merged, batch])
-        else:
-            for engine in query_list:
-                try:
-                    engine, batch = _query_engine(engine)
-                except (RuntimeError, requests.RequestException):
-                    continue
-                if batch:
-                    used.append(engine)
-                    merged = merge_job_lists([merged, batch])
+
+        free_engines = [key for key in query_list if not provider_uses_serpapi(key)]
+        serp_engines = [key for key in query_list if provider_uses_serpapi(key)]
+        _collect(free_engines)
+        if not merged and serp_engines and not serpapi_quota_exhausted():
+            _collect(serp_engines)
         if merged:
             return {
                 "jobs": merged,
@@ -6853,6 +6869,10 @@ def run_cv_analysis_pipeline(
     _report_progress(progress, 48, t("analysis.progress.filter"))
 
     raw_jobs = search_result["jobs"]
+    if serpapi_quota_exhausted():
+        notices.append(
+            {"level": "warning", "text": t("pipeline.serpapi_exhausted")}
+        )
     if method == "ocr":
         notices.append({"level": "warning", "text": t("pipeline.ocr_detected")})
 

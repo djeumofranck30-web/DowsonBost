@@ -15,6 +15,16 @@ sys.path.insert(0, str(ROOT))
 os.environ.setdefault("DATABASE_URL", "")
 
 
+@pytest.fixture(autouse=True)
+def _reset_serpapi_quota_breaker():
+    """Keep the SerpAPI circuit breaker from leaking between tests."""
+    from job_providers import reset_serpapi_quota_state
+
+    reset_serpapi_quota_state()
+    yield
+    reset_serpapi_quota_state()
+
+
 @pytest.fixture()
 def sqlite_db(tmp_path, monkeypatch):
     """Configure isolated SQLite database for a test."""
