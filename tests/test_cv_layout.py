@@ -8,6 +8,7 @@ from cv_layout import (
     detect_job_family,
     merge_experience_missions,
     parse_adapted_cv,
+    polish_structured_cv,
     prepare_structured_cv,
     public_cv_text,
     render_adapted_cv_pdf,
@@ -452,4 +453,54 @@ Français (natif) | Anglais (C1)
     pdf = render_cv_pdf(cv)
     assert pdf.startswith(b"%PDF")
     assert _pdf_page_count(pdf) == 1
+
+
+def test_merge_drops_near_duplicate_original_and_rewrite():
+    merged = merge_experience_missions(
+        ["Conception d'APIs REST Django pour les clients internes"],
+        ["APIs REST", "Conception d'APIs REST"],
+    )
+    assert len(merged) == 1
+    assert "Django" in merged[0]
+
+
+def test_polish_merges_duplicate_jobs_and_skills():
+    cv = parse_adapted_cv(
+        """
+NOM: Jane Doe
+## COMPETENCES
+Python | python | Django
+## EXPERIENCE
+POSTE: Développeuse
+ENTREPRISE: Acme
+PERIODE: 2022 - 2025
+- APIs REST
+POSTE: Ingénieure backend
+ENTREPRISE: Acme
+PERIODE: 2022 - 2025
+- Conception d'APIs REST Django
+"""
+    )
+    polished = polish_structured_cv(cv)
+    assert len(polished.experiences) == 1
+    assert len(polished.experiences[0].bullets) == 1
+    assert "Django" in polished.experiences[0].bullets[0]
+    folded_skills = [item.lower() for item in polished.skills]
+    assert folded_skills.count("python") == 1
+
+
+def test_html_preview_justifies_phrases():
+    cv = prepare_structured_cv(
+        SAMPLE_IT_CV,
+        job={"title": "Développeur Python"},
+        user_profile={"full_name": "Jane Doe"},
+    )
+    preview = render_cv_html(cv)
+    assert "text-align:justify" in preview
+    assert "Jane Doe" in preview
+    layout = (__import__("pathlib").Path(__file__).resolve().parents[1] / "cv_layout.py").read_text(
+        encoding="utf-8"
+    )
+    assert 'align="J"' in layout
+    assert "sans doublon" in layout or "Une seule puce par mission" in layout
 

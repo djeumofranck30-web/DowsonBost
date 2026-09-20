@@ -116,10 +116,12 @@ Regles CV France 2026 (ATS + recruteur) :
 - Titre du CV = intitule exact du poste vise.
 - En-tete : nom, titre, ville (pas d'adresse complete), telephone, e-mail, LinkedIn si present.
 - Experiences en anti-chronologique, puces orientees resultats chiffres SI le CV original les contient (ne pas inventer).
-- Competences : 5 a 12 mots-cles, termes EXACTS de l'offre seulement s'ils correspondent au parcours.
+- Competences : 5 a 12 mots-cles uniques, termes EXACTS de l'offre seulement s'ils correspondent au parcours.
 - Langues : niveau CECRL (A2/B1/B2/C1) si connu dans le CV.
 - UNE seule page A4 obligatoire : densite maximale, puces courtes (une ligne), pas de remplissage.
 - Verbes d'action en debut de puce. Aucune section « modifications ».
+- Aucun doublon : une mission = une puce ; ne pas reformuler deux fois le meme travail.
+- Le profil ne recopie pas la liste COMPETENCES. 3 a 5 puces max par poste.
 """
 
 
@@ -1715,6 +1717,7 @@ def serialize_locked_experiences(experiences: list[ExperienceEntry]) -> str:
         "Missions : reformule TOUTES les missions ci-dessous (vocabulaire de l'offre).",
         "Ne les supprime pas. Tu PEUX en ajouter si l'offre l'exige et que c'est cohérent",
         "avec le travail réellement fait (pas de fausse mission autour d'une techno absente).",
+        "Une seule puce par mission : reformule, ne duplique pas l'originale à côté.",
     ]
     if not experiences:
         lines.append(
@@ -1800,6 +1803,50 @@ def _mission_tokens(text: str) -> set[str]:
     }
 
 
+def texts_are_redundant(left: str, right: str, *, threshold: float = 0.55) -> bool:
+    """True when two phrases describe the same duty or skill."""
+    a = " ".join((left or "").split())
+    b = " ".join((right or "").split())
+    if not a or not b:
+        return False
+    if _fold(a) == _fold(b):
+        return True
+    ta, tb = _mission_tokens(a), _mission_tokens(b)
+    if not ta or not tb:
+        return False
+    if ta <= tb or tb <= ta:
+        return len(ta & tb) >= max(1, int(min(len(ta), len(tb)) * 0.7))
+    return (len(ta & tb) / len(ta | tb)) >= threshold
+
+
+def _prefer_complete_text(left: str, right: str) -> str:
+    if len(right) >= len(left) + 8:
+        return right
+    if len(left) >= len(right) + 8:
+        return left
+    return left if len(_mission_tokens(left)) >= len(_mission_tokens(right)) else right
+
+
+def dedupe_redundant_texts(items: list[str], *, max_items: int | None = None) -> list[str]:
+    """Keep the most complete wording when two bullets or skills overlap."""
+    kept: list[str] = []
+    for raw in items:
+        text = " ".join((raw or "").split())
+        if not text:
+            continue
+        replaced = False
+        for index, existing in enumerate(kept):
+            if texts_are_redundant(text, existing):
+                kept[index] = _prefer_complete_text(existing, text)
+                replaced = True
+                break
+        if not replaced:
+            kept.append(text)
+    if max_items is not None:
+        return kept[:max_items]
+    return kept
+
+
 def mission_is_covered(generated_bullets: list[str], original_bullet: str) -> bool:
     """True when a rewritten mission still represents the original duty."""
     original = (original_bullet or "").strip()
@@ -1850,7 +1897,7 @@ def merge_experience_missions(generated_bullets: list[str], original_bullets: li
         _add(bullet)
     for bullet in extras:
         _add(bullet)
-    return merged[:8]
+    return dedupe_redundant_texts(merged, max_items=6)
 
 
 def restore_experience_dates_locations(
@@ -1864,9 +1911,9 @@ def restore_experience_dates_locations(
     """
     originals = original.experiences
     if not originals:
-        return generated
+        return polish_structured_cv(generated)
     if not generated.experiences:
-        return replace(generated, experiences=list(originals))
+        return polish_structured_cv(replace(generated, experiences=list(originals)))
     used: set[int] = set()
     updated: list[ExperienceEntry] = []
     for index, job in enumerate(generated.experiences):
@@ -1890,7 +1937,106 @@ def restore_experience_dates_locations(
         )
     leftover = [source for index, source in enumerate(originals) if index not in used]
     updated.extend(leftover)
-    return replace(generated, experiences=updated[:12])
+    return polish_structured_cv(replace(generated, experiences=updated[:12]))
+
+
+def _experience_identity(job: ExperienceEntry) -> str:
+    company = _fold(job.company).strip()
+    period = _fold(job.period).strip()
+    if company:
+        return f"{company}|{period}"
+    title = _fold(job.title).strip()
+    return f"{title}|{period}" if title else ""
+
+
+def _merge_experience_entries(first: ExperienceEntry, second: ExperienceEntry) -> ExperienceEntry:
+    return replace(
+        first,
+        title=first.title or second.title,
+        company=first.company or second.company,
+        period=first.period or second.period,
+        location=first.location or second.location,
+        bullets=dedupe_redundant_texts([*first.bullets, *second.bullets], max_items=6),
+    )
+
+
+def _dedupe_experiences(jobs: list[ExperienceEntry]) -> list[ExperienceEntry]:
+    merged: list[ExperienceEntry] = []
+    index_by_key: dict[str, int] = {}
+    for job in jobs:
+        key = _experience_identity(job)
+        if key and key in index_by_key:
+            slot = index_by_key[key]
+            merged[slot] = _merge_experience_entries(merged[slot], job)
+            continue
+        if key:
+            index_by_key[key] = len(merged)
+        merged.append(
+            replace(job, bullets=dedupe_redundant_texts(list(job.bullets), max_items=6))
+        )
+    return merged[:12]
+
+
+def _polish_profile(profile: str, skills: list[str]) -> str:
+    text = " ".join((profile or "").split())
+    if not text:
+        return ""
+    parts = [part.strip() for part in re.split(r"(?<=[.!?])\s+", text) if part.strip()]
+    cleaned = dedupe_redundant_texts(parts, max_items=4)
+    skill_keys = {_fold(item) for item in skills}
+    kept: list[str] = []
+    for sentence in cleaned:
+        tokens = _mission_tokens(sentence)
+        if tokens and skill_keys and tokens <= skill_keys and len(sentence) < 90:
+            continue
+        kept.append(sentence)
+    return " ".join(kept or cleaned)
+
+
+def polish_structured_cv(cv: StructuredCV) -> StructuredCV:
+    """Drop redundant skills, missions and jobs; keep a compact one-page structure."""
+    skills = dedupe_redundant_texts(list(cv.skills), max_items=12)
+    languages = dedupe_redundant_texts(list(cv.languages), max_items=8)
+    experiences = _dedupe_experiences(list(cv.experiences))
+    education: list[EducationEntry] = []
+    seen_edu: set[str] = set()
+    for item in cv.education:
+        key = f"{_fold(item.diploma)}|{_fold(item.school)}|{_fold(item.period)}"
+        if key in seen_edu:
+            continue
+        seen_edu.add(key)
+        education.append(item)
+    extras: dict[str, list[str]] = {}
+    for key, values in (cv.extras or {}).items():
+        unique = dedupe_redundant_texts(list(values), max_items=8)
+        filtered = [
+            item
+            for item in unique
+            if not any(
+                texts_are_redundant(item, bullet)
+                for job in experiences
+                for bullet in job.bullets
+            )
+        ]
+        if filtered:
+            extras[key] = filtered
+    certs = list(extras.get("certifications") or [])
+    licenses = list(extras.get("licenses") or [])
+    if licenses and certs:
+        extras["certifications"] = [
+            item for item in certs if not any(texts_are_redundant(item, other) for other in licenses)
+        ]
+        if not extras["certifications"]:
+            extras.pop("certifications", None)
+    return replace(
+        cv,
+        profile=_polish_profile(cv.profile, skills),
+        skills=skills,
+        languages=languages,
+        experiences=experiences,
+        education=education[:8],
+        extras=extras,
+    )
 
 
 def labeled_cv_text(cv: StructuredCV, *, fallback: str = "") -> str:
@@ -1993,12 +2139,14 @@ def prepare_structured_cv(
     original_cv: str = "",
 ) -> StructuredCV:
     parsed = parse_adapted_cv(adapted_text)
-    return enrich_structured_cv(
-        parsed,
-        job=job,
-        match=match,
-        user_profile=user_profile,
-        original_cv=original_cv,
+    return polish_structured_cv(
+        enrich_structured_cv(
+            parsed,
+            job=job,
+            match=match,
+            user_profile=user_profile,
+            original_cv=original_cv,
+        )
     )
 
 
@@ -2287,7 +2435,7 @@ def _write_paragraph(pdf: ProfessionCvPdf, text: str) -> None:
     d = pdf.density
     _set_text(pdf, tpl.ink)
     pdf.set_font(tpl.font, "", d.body_pt)
-    pdf.multi_cell(0, d.para_h, pdf_safe_text(text))
+    pdf.multi_cell(0, d.para_h, pdf_safe_text(text), align="J")
     pdf.ln(0.4)
 
 
@@ -2331,7 +2479,7 @@ def _draw_bullets(pdf: ProfessionCvPdf, items: list[str]) -> None:
         _set_fill(pdf, tpl.accent)
         pdf.ellipse(bullet_x + 0.4, y + 1.15, 1.2, 1.2, "F")
         pdf.set_xy(text_x, y)
-        pdf.multi_cell(width, d.bullet_h, pdf_safe_text(item))
+        pdf.multi_cell(width, d.bullet_h, pdf_safe_text(item), align="J")
         pdf.ln(0.15)
 
 
@@ -2378,7 +2526,7 @@ def _draw_education(pdf: ProfessionCvPdf, item: EducationEntry) -> None:
     if item.details:
         pdf.set_font(tpl.font, "", d.bullet_pt)
         _set_text(pdf, tpl.ink)
-        pdf.multi_cell(0, d.bullet_h, pdf_safe_text(item.details))
+        pdf.multi_cell(0, d.bullet_h, pdf_safe_text(item.details), align="J")
     pdf.ln(0.5)
 
 
@@ -2417,6 +2565,31 @@ def _compact_structured_cv(cv: StructuredCV, level: int) -> StructuredCV:
     )
 
 
+def _section_extras(cv: StructuredCV, section_order: tuple[str, ...]) -> dict[str, list[str]]:
+    """Map extra blocks without repeating the same licence/certification twice."""
+    licenses = list(cv.extras.get("licenses") or [])
+    certs = list(cv.extras.get("certifications") or [])
+    has_licenses = "licenses" in section_order
+    has_certs = "certifications" in section_order
+    if has_licenses and not licenses:
+        licenses = list(certs)
+        if has_certs:
+            certs = []
+    elif has_certs and has_licenses and licenses:
+        certs = [
+            item
+            for item in certs
+            if not any(texts_are_redundant(item, other) for other in licenses)
+        ]
+    return {
+        "projects": list(cv.extras.get("projects") or cv.extras.get("autres") or []),
+        "publications": list(cv.extras.get("publications") or []),
+        "licenses": licenses,
+        "certifications": certs,
+        "interests": list(cv.extras.get("interests") or []),
+    }
+
+
 def _paint_cv_pdf(cv: StructuredCV, density: CvDensity) -> ProfessionCvPdf:
     tpl = template_for(cv.family)
     pdf = ProfessionCvPdf(tpl, cv.name or "Candidat", cv.title or tpl.label_fr, density=density)
@@ -2436,13 +2609,7 @@ def _paint_cv_pdf(cv: StructuredCV, density: CvDensity) -> ProfessionCvPdf:
     else:
         _draw_banner_header(pdf, cv)
 
-    extras_alias = {
-        "projects": cv.extras.get("projects") or cv.extras.get("autres") or [],
-        "publications": cv.extras.get("publications") or [],
-        "licenses": cv.extras.get("licenses") or cv.extras.get("certifications") or [],
-        "certifications": cv.extras.get("certifications") or cv.extras.get("licenses") or [],
-        "interests": cv.extras.get("interests") or [],
-    }
+    extras_alias = _section_extras(cv, tpl.section_order)
 
     for key in tpl.section_order:
         title = ats_section_title(key)
@@ -2540,7 +2707,7 @@ def render_cover_letter_pdf(
     _set_text(pdf, tpl.ink)
     pdf.set_font(tpl.font, "", 11)
     body = (letter or "").strip() or "Lettre de motivation."
-    pdf.multi_cell(0, 6, pdf_safe_text(body))
+    pdf.multi_cell(0, 6, pdf_safe_text(body), align="J")
     return bytes(pdf.output())
 
 
@@ -2580,8 +2747,14 @@ def render_cv_html(cv: StructuredCV) -> str:
     def bullets(items: list[str]) -> str:
         if not items:
             return ""
-        lis = "".join(f"<li style='margin:2px 0;'>{esc(item)}</li>" for item in items)
-        return f"<ul style='margin:4px 0 10px 18px;padding:0;color:rgb{tpl.ink};font-size:13px;'>{lis}</ul>"
+        lis = "".join(
+            f"<li style='margin:3px 0;text-align:justify;hyphens:auto;line-height:1.45;'>{esc(item)}</li>"
+            for item in items
+        )
+        return (
+            f"<ul style='margin:4px 0 10px 18px;padding:0;color:rgb{tpl.ink};"
+            f"font-size:13px;text-align:justify;'>{lis}</ul>"
+        )
 
     blocks: list[str] = []
     contact = " · ".join(p for p in (cv.email, cv.phone, cv.location, cv.linkedin or cv.website) if p)
@@ -2612,19 +2785,16 @@ def render_cv_html(cv: StructuredCV) -> str:
         )
     blocks.append(header)
 
-    extras_alias = {
-        "projects": cv.extras.get("projects") or [],
-        "publications": cv.extras.get("publications") or [],
-        "licenses": cv.extras.get("licenses") or cv.extras.get("certifications") or [],
-        "certifications": cv.extras.get("certifications") or [],
-        "interests": cv.extras.get("interests") or [],
-    }
+    extras_alias = _section_extras(cv, tpl.section_order)
     body_parts: list[str] = []
     for key in tpl.section_order:
         title = ats_section_title(key)
         section_html = ""
         if key == "profile" and cv.profile:
-            section_html = f"<p style='margin:6px 0 10px;font-size:13px;line-height:1.45;color:rgb{tpl.ink};'>{esc(cv.profile)}</p>"
+            section_html = (
+                f"<p style='margin:6px 0 10px;font-size:13px;line-height:1.5;"
+                f"text-align:justify;hyphens:auto;color:rgb{tpl.ink};'>{esc(cv.profile)}</p>"
+            )
         elif key == "skills" and cv.skills:
             section_html = chips(cv.skills)
         elif key == "languages" and cv.languages:
@@ -2660,12 +2830,13 @@ def render_cv_html(cv: StructuredCV) -> str:
         )
     if cv.raw_body and not body_parts:
         body_parts.append(
-            f"<p style='white-space:pre-wrap;font-size:13px;color:rgb{tpl.ink};'>{esc(cv.raw_body)}</p>"
+            f"<p style='white-space:pre-wrap;font-size:13px;text-align:justify;hyphens:auto;"
+            f"color:rgb{tpl.ink};'>{esc(cv.raw_body)}</p>"
         )
     inner = "".join(body_parts)
     return (
         f"<div style='font-family:Georgia,Times,serif;background:rgb{tpl.paper};border:1px solid #e5e7eb;"
-        f"border-radius:10px;overflow:hidden;margin:4px 0 12px;'>{''.join(blocks)}"
+        f"border-radius:10px;overflow:hidden;margin:4px 0 12px;text-align:justify;'>{''.join(blocks)}"
         f"<div style='padding:8px 20px 20px;'>{inner}</div></div>"
     )
 

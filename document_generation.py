@@ -156,15 +156,17 @@ Règles strictes :
 4. Intègre les synonymes de l'offre (JS → JavaScript) et les mots-clés manquants.
 5. Missions du CV analysé :
    - Reformule TOUTES les missions d'origine avec le vocabulaire EXACT de l'offre (ne les supprime pas).
+   - UNE seule puce par mission : ne recopie pas l'originale à côté de la version reformulée.
    - Tu PEUX ajouter 1 à 3 missions supplémentaires SI elles correspondent à un travail réel
-     du CV original (ou fortement impliqué), pour coller à l'offre.
+     du CV original (ou fortement impliqué), pour coller à l'offre, et si elles n'existent pas déjà.
    - N'invente pas une mission entière autour d'une techno absente du parcours : elle va dans COMPETENCES.
    - Tu PEUX adapter le champ POSTE (titre) pour coller à l'offre.
    - Tu NE DOIS PAS modifier PERIODE (dates) ni LIEU, ni l'entreprise : recopie-les tels quels.
 6. Ne invente JAMAIS de diplôme, entreprise, date, lieu ou certification.
 7. Réécriture complète (nouvelle structure, nouvelles formulations), pas un copier-coller.
 8. Document FINAL prêt à envoyer (norme France 2026 : UNE page A4, une colonne, titres ATS classiques).
-   Profil court (3-4 lignes). Missions en puces d'une ligne, sans phrases longues.
+   Profil court (3-4 lignes), sans recopie de la liste COMPETENCES.
+   Missions : 3 à 5 puces max par poste, une idée par puce, phrase complète, sans doublon.
    N'ajoute JAMAIS de section « Modifications appliquées », « Modifications à apporter au CV »,
    « MODIFICATIONS APPLIQUÉES » ni aucun journal de changements.
 
@@ -555,7 +557,8 @@ def _rewrite_instruction(kind: str, gaps: list[str]) -> str:
         f"Le {label} précédent n'est PAS encore aligné à 100 % sur l'offre. "
         f"Éléments encore absents :\n{gap_lines}\n\n"
         f"Réécris le {label} COMPLET (pas un diff) en intégrant TOUS ces éléments. "
-        "Garde les missions du CV original (reformulées) ; tu peux en ajouter si besoin. "
+        "Garde les missions du CV original (reformulées, une seule fois chacune) ; "
+        "tu peux en ajouter si besoin, sans doublon. "
         "Ne change pas les dates ni le lieu des expériences ; tu peux adapter le titre du poste."
     )
 
@@ -653,9 +656,11 @@ def generate_adapted_cv(
         "(reformulations, mots-clés, ordre des sections). "
         "Tu PEUX changer le POSTE (titre d'expérience) pour coller à l'offre. "
         "Tu NE CHANGES PAS PERIODE ni LIEU ni l'entreprise. "
-        "Reformule TOUTES les missions du CV analysé, puis ajoute-en si l'offre le demande "
-        "sans inventer un travail jamais fait. "
-        "Le CV tient sur UNE page A4 : puces courtes, pas de paragraphes longs. "
+        "Reformule TOUTES les missions du CV analysé : une puce par mission, "
+        "sans recopier l'originale à côté, puis ajoute-en seulement si l'offre le demande "
+        "sans inventer un travail jamais fait et sans doublon. "
+        "Le CV tient sur UNE page A4 : profil 3-4 lignes, 3 à 5 puces max par poste, "
+        "phrases complètes, pas de paragraphes redondants. "
         "N'ajoute aucune section listant les modifications : le CV s'arrête après les rubriques métier."
     )
     generated = _generate_aligned_document(
