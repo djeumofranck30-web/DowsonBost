@@ -10,18 +10,20 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_theme_uses_saas_palette():
-    assert THEME["primary"] == "#2563EB"
-    assert THEME["primary_dark"] == "#1E3A8A"
-    assert THEME["primary_deep"] == "#1E3A8A"
+    assert THEME["primary"] == "#4A6F8C"
+    assert THEME["primary_dark"] == "#31465A"
+    assert THEME["primary_deep"] == "#31465A"
     assert THEME["surface"] == "#FFFFFF"
     assert THEME["surface_soft"] == "#F3F4F6"
     assert THEME["muted"] == "#374151"
     assert THEME["success"] == "#10B981"
     assert THEME["danger"] == "#EF4444"
-    assert THEME["accent"] == "#2563EB"
+    assert THEME["accent"] == "#4A6F8C"
     config = (ROOT / ".streamlit/config.toml").read_text(encoding="utf-8")
-    assert 'primaryColor = "#2563EB"' in config
+    assert 'primaryColor = "#4A6F8C"' in config
     assert 'backgroundColor = "#FFFFFF"' in config
+    assert "#2563EB" not in config
+    assert "#1E3A8A" not in config
     assert "#7c3aed" not in config
     assert "#0E7490" not in config
     css = (ROOT / "ui/theme.py").read_text(encoding="utf-8")
@@ -48,8 +50,13 @@ def test_theme_has_saas_buttons_and_motion():
 def test_admin_and_auth_follow_the_saas_palette():
     admin = (ROOT / "admin/static/index.html").read_text(encoding="utf-8")
     app = (ROOT / "app.py").read_text(encoding="utf-8")
-    assert "--violet: #2563EB" in admin
+    assert "--violet: #4A6F8C" in admin
+    assert "#2563EB" not in admin
+    assert "#1E3A8A" not in admin
     assert "#7c3aed" not in admin
     assert "#0E7490" not in admin
-    assert 'fill="#1E3A8A"' in app
-    assert 'fill="#2563EB"' in app
+    assert 'fill="#31465A"' in app
+    assert 'fill="#4A6F8C"' in app
+    css = (ROOT / "ui/theme.py").read_text(encoding="utf-8")
+    assert "#2563EB" not in css
+    assert "#1E3A8A" not in css
