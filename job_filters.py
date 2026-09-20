@@ -81,20 +81,13 @@ from world_geo import (
     validate_profile_countries_geo,
 )
 
-GEO_FILTER_MODES = (
-    "ville",
-    "departement",
-)
+GEO_FILTER_MODE_DEFAULT = "departement"
+GEO_FILTER_MODES = (GEO_FILTER_MODE_DEFAULT,)
 
 
 def normalize_geo_filter_mode(mode: str | None) -> str:
-    """Map a stored geo mode onto ville / département. Radius mode is retired."""
-    value = str(mode or "").strip().lower()
-    if value == "rayon":
-        return "departement"
-    if value in GEO_FILTER_MODES:
-        return value
-    return "departement"
+    """Always filter with the selected country, region, department and cities."""
+    return GEO_FILTER_MODE_DEFAULT
 
 JOB_MAX_AGE_DAYS_OPTIONS = (1, 3, 7, 30)
 DEFAULT_JOB_MAX_AGE_DAYS = 7
@@ -1372,7 +1365,6 @@ def job_matches_geography(
     profile: dict[str, Any],
 ) -> bool:
     """Strict filter: selected countries + regions / departments / cities."""
-    mode = normalize_geo_filter_mode(profile.get("geo_filter_mode"))
     geo_map = merge_profile_geo(profile)
 
     if not job_matches_any_selected_country(job, profile):
@@ -1384,7 +1376,7 @@ def job_matches_geography(
             if not job_matches_country(job, country):
                 continue
             fr_profile = sync_france_legacy_fields(
-                {**profile, "country": country, "geo_filter_mode": mode},
+                {**profile, "country": country},
                 geo,
             )
             regions, departments = resolve_multi_geo_from_profile(fr_profile)

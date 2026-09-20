@@ -445,7 +445,7 @@ MESSAGES: dict[str, str] = {
     "analysis.email_not_configured": "Alertes e-mail activées — configurez RESEND_API_KEY ou SMTP dans secrets.",
     # CV profile / results
     "cvprofile.cv_level": "CV: {level}",
-    "cvprofile.geo_filter_line": "Filtrage géographique : **{mode}** · Pays : **{countries}** · Zones : **{regions}** · Subdivisions : **{depts}** · Villes : **{cities}**",
+    "cvprofile.geo_filter_line": "Filtrage géographique : Pays : **{countries}** · Zones : **{regions}** · Subdivisions : **{depts}** · Villes : **{cities}**",
     "cvprofile.geo_rayon": "Zones sélectionnées + rayon {radius} km",
     "results.extraction_native": "Texte natif PDF",
     "results.extraction_ocr": "OCR Gemini Vision",
@@ -477,7 +477,7 @@ MESSAGES: dict[str, str] = {
     "pipeline.search_targeted": "Recherche ciblée **{country}** — zones : **{zones}** via {source}.",
     "pipeline.no_raw_jobs": "Aucune offre trouvée par les moteurs pour ce poste. Essayez « Tous les moteurs » ou modifiez l'intitulé dans Mon profil.",
     "pipeline.query_tested": "Requête testée : `{query}` · Périmètre : `{location}`",
-    "pipeline.no_filtered": "Aucune offre ne correspond à vos filtres stricts ({contract} · {level} · {mode}).",
+    "pipeline.no_filtered": "Aucune offre ne correspond à vos filtres stricts ({contract} · {level} · {countries}).",
     "pipeline.main_block": "Principal blocage : {hint}.",
     "pipeline.rejection_stats": "{total} offre(s) brutes · {contract} rejetées contrat · {geo} rejetées zone · {experience} rejetées niveau · {sector} rejetées secteur · {age} rejetées publication.",
     "pipeline.expanded_search": "Recherche élargie ({strategy}) — `{query}` · {raw} offre(s) brutes, {filtered} après filtrage.",

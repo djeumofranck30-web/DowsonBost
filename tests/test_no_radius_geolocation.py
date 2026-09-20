@@ -17,11 +17,12 @@ def _read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def test_geo_modes_are_ville_and_department_only() -> None:
-    assert GEO_FILTER_MODES == ("ville", "departement")
+def test_geo_mode_is_always_country_region_department() -> None:
+    assert GEO_FILTER_MODES == ("departement",)
+    assert "ville" not in GEO_FILTER_MODES
     assert "rayon" not in GEO_FILTER_MODES
     assert normalize_geo_filter_mode("rayon") == "departement"
-    assert normalize_geo_filter_mode("ville") == "ville"
+    assert normalize_geo_filter_mode("ville") == "departement"
     assert normalize_geo_filter_mode("departement") == "departement"
     assert normalize_geo_filter_mode(None) == "departement"
 
@@ -76,6 +77,9 @@ def test_ui_and_filters_drop_radius_controls() -> None:
     assert "register_wiz_radius" not in app
     assert 't("profile.radius")' not in app
     assert 't("auth.register.radius")' not in app
+    assert 't("profile.geo_mode")' not in app
+    assert 't("auth.register.geo_mode")' not in app
+    assert "register_wiz_geo_mode" not in app
     assert "nominatim.openstreetmap.org" not in filters
     assert "def _coords_from_nominatim" not in filters
     assert "def haversine_km" not in filters

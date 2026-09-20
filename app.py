@@ -48,9 +48,7 @@ from job_filters import (
     CONTRACT_TYPES,
     COUNTRY_OPTIONS,
     EXPERIENCE_LEVELS,
-    GEO_FILTER_MODES,
     SECTOR_OPTIONS,
-    normalize_geo_filter_mode,
     SEARCH_PHASE_TITLE,
     SEARCH_PHASE_SIMILAR,
     SEARCH_PHASE_SKILLS,
@@ -90,7 +88,6 @@ from i18n import (
     application_method_label,
     contract_label,
     experience_label,
-    geo_mode_label,
     get_locale,
     init_locale,
     job_age_label,
@@ -6379,16 +6376,10 @@ def render_cv_profile_summary(criteria: dict[str, Any], user_profile: dict[str, 
         if active_sectors:
             st.caption(f"**{t('cvprofile.sectors')} :** " + ", ".join(active_sectors))
 
-        geo_mode = normalize_geo_filter_mode(user_profile.get("geo_filter_mode"))
-        geo_labels = {
-            "ville": geo_mode_label("ville"),
-            "departement": geo_mode_label("departement", register=True),
-        }
         countries_label = format_countries_summary(user_profile)
         st.caption(
             t(
                 "cvprofile.geo_filter_line",
-                mode=geo_labels.get(geo_mode, "—"),
                 countries=countries_label,
                 regions=region_text,
                 depts=dept_text,
@@ -6841,7 +6832,7 @@ def run_cv_analysis_pipeline(
                     "pipeline.no_filtered",
                     contract=user_profile.get("contract_type"),
                     level=level_label,
-                    mode=user_profile.get("geo_filter_mode"),
+                    countries=format_countries_summary(user_profile),
                 ),
             }
         )
@@ -7812,7 +7803,6 @@ def _render_register_location_step(countries: list[str]) -> dict[str, Any]:
 def _submit_register_wizard(draft: dict[str, Any]) -> None:
     geo = st.session_state.get("register_geo_snapshot") or {}
     countries = draft.get("countries") or ["France"]
-    geo_mode = st.session_state.get("register_wiz_geo_mode", GEO_FILTER_MODES[1])
     full_name = f"{draft.get('first_name', '')} {draft.get('last_name', '')}".strip()
 
     ok, message = register_user(
@@ -7825,7 +7815,7 @@ def _submit_register_wizard(draft: dict[str, Any]) -> None:
         all_cities=bool(geo.get("all_cities")),
         country=countries[0],
         contract_type=st.session_state.get("register_wiz_contract", CONTRACT_TYPES[0]),
-        geo_filter_mode=normalize_geo_filter_mode(geo_mode),
+        geo_filter_mode="departement",
         search_radius_km=20,
         experience_level=st.session_state.get("register_wiz_experience", EXPERIENCE_LEVELS[1]),
         target_sectors=st.session_state.get("register_target_sectors", ["Informatique"]),
@@ -7968,13 +7958,6 @@ def _render_auth_register_form() -> None:
             index=1,
             format_func=experience_label,
             key="register_wiz_experience",
-        )
-        st.selectbox(
-            t("auth.register.geo_mode"),
-            GEO_FILTER_MODES,
-            index=1,
-            format_func=lambda value: geo_mode_label(value, register=True),
-            key="register_wiz_geo_mode",
         )
         st.multiselect(
             t("auth.register.sectors"),
@@ -8429,9 +8412,6 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                 if normalize_work_mode(profile.get("work_mode")) in WORK_MODES
                 else WORK_MODES[0]
             )
-            stored_geo_mode = normalize_geo_filter_mode(profile.get("geo_filter_mode"))
-            if stored_geo_mode not in GEO_FILTER_MODES:
-                stored_geo_mode = GEO_FILTER_MODES[1] if len(GEO_FILTER_MODES) > 1 else GEO_FILTER_MODES[0]
             stored_experience = (
                 profile.get("experience_level", "confirme")
                 if profile.get("experience_level") in EXPERIENCE_LEVELS
@@ -8470,7 +8450,6 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                 profile.get("skills_text") or "",
             )
             seed_session_value(st.session_state, f"{widget_prefix}_experience", stored_experience)
-            seed_session_value(st.session_state, f"{widget_prefix}_geo_mode", stored_geo_mode)
             seed_session_value(
                 st.session_state,
                 f"{widget_prefix}_sectors",
@@ -8572,12 +8551,6 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                     format_func=experience_label,
                     key=f"{widget_prefix}_experience",
                 )
-                geo_mode = st.selectbox(
-                    t("profile.geo_mode"),
-                    GEO_FILTER_MODES,
-                    format_func=lambda mode: geo_mode_label(mode),
-                    key=f"{widget_prefix}_geo_mode",
-                )
             with pref_col2:
                 target_sectors = st.multiselect(
                     t("profile.sectors"),
@@ -8622,7 +8595,7 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                         profile_all_cities,
                         selected_countries[0],
                         contract_type,
-                        geo_mode,
+                        "departement",
                         search_radius,
                         experience_level,
                         target_sectors,
