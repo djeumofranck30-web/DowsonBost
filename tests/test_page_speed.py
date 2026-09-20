@@ -18,6 +18,7 @@ from persistence import (
     record_application,
     save_analysis,
     save_generated_documents,
+    save_result_recruiter_email,
 )
 from auth import authenticate_user, register_user
 
@@ -211,6 +212,12 @@ def test_apply_context_skips_full_analysis_payload(sqlite_db):
     result_id = stored["results"][0]["result_id"]
     record_application(int(user["id"]), result_id, "manual", status="applied")
     assert count_user_applications(int(user["id"])) == 1
+    assert save_result_recruiter_email(
+        int(user["id"]), result_id, "jobs@acme.fr", "hunter"
+    )
+    reloaded = get_analysis_result(int(user["id"]), result_id)
+    assert reloaded["job"]["recruiter_email"] == "jobs@acme.fr"
+    assert reloaded["job"]["recruiter_email_source"] == "hunter"
 
 
 def _save_heavy_analysis(email: str) -> tuple[int, int]:

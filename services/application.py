@@ -234,6 +234,8 @@ def _stamp_recruiter_email(
     """Persist a found recruiter address so Apply can reuse it."""
     cleaned = stored_recruiter_email({"recruiter_email": email or ""}) or ""
     if not cleaned:
+        job["recruiter_email_source"] = source or job.get("recruiter_email_source") or ""
+        job["recruiter_email_resolved"] = True
         return job
     job["recruiter_email"] = cleaned
     job["recruiter_email_source"] = source
@@ -262,12 +264,17 @@ def resolve_apply_email(
     skip_job_boards: bool = False,
     skip_pages: bool = False,
     page_timeout: int = 8,
+    hunter_max_queries: int | None = None,
+    hunter_timeout: int = 8,
 ) -> str | None:
     """Listing address first, then the public page, then Hunter.io.
 
     When analysis already found an address, reuse it. An empty prefetch
     (Indeed/LinkedIn with no public mailbox) must not block a later Hunter lookup.
     """
+    from services.hunter import attach_inferred_company_url, find_recruiter_email
+
+    attach_inferred_company_url(job)
     if not refresh:
         stored = stored_recruiter_email(job)
         if stored:
@@ -283,9 +290,11 @@ def resolve_apply_email(
         )
         if from_page:
             return from_page
-    from services.hunter import find_recruiter_email
-
-    return find_recruiter_email(job)
+    return find_recruiter_email(
+        job,
+        max_queries=hunter_max_queries,
+        timeout=hunter_timeout,
+    )
 
 
 def prefetch_recruiter_emails(
@@ -294,9 +303,13 @@ def prefetch_recruiter_emails(
     max_workers: int = RECRUITER_PREFETCH_MAX_WORKERS,
 ) -> list[dict[str, Any]]:
     """Resolve recruiter addresses during analysis and stamp them on each offer."""
+    from services.hunter import attach_inferred_company_url
+
     stamped = [dict(job or {}) for job in jobs]
     if not stamped:
         return stamped
+    for job in stamped:
+        attach_inferred_company_url(job)
 
     remaining: list[int] = []
     for index, job in enumerate(stamped):
@@ -375,10 +388,9 @@ def prefetch_recruiter_emails(
                     except Exception:  # noqa: BLE001
                         continue
         for indices, email in hunter_rows:
-            if not email:
-                continue
+            source = "hunter" if email else "hunter"
             for index in indices:
-                _stamp_recruiter_email(stamped[index], email, "hunter")
+                _stamp_recruiter_email(stamped[index], email, source)
     return stamped
 
 
@@ -537,6 +549,7 @@ def ensure_application_documents(
     llm_call: Callable[..., str],
     cover_letter_text: str | None = None,
     adapted_cv_text: str | None = None,
+    skip_adapted: bool = False,
 ) -> tuple[str, str]:
     """Generate missing cover letter and adapted CV."""
     letter = (cover_letter_text or "").strip()
@@ -550,13 +563,16 @@ def ensure_application_documents(
             llm_call=llm_call,
         ).strip()
     if not adapted:
-        adapted = generate_adapted_cv(
-            cv_text,
-            job,
-            match,
-            user_profile,
-            llm_call=llm_call,
-        ).strip()
+        if skip_adapted:
+            adapted = (cv_text or "").strip()
+        else:
+            adapted = generate_adapted_cv(
+                cv_text,
+                job,
+                match,
+                user_profile,
+                llm_call=llm_call,
+            ).strip()
     return letter, cv_text_for_candidate(adapted)
 
 
@@ -759,13 +775,22 @@ def submit_application_automatically(
             job_url=job_url,
         )
 
-    apply_email = resolve_apply_email(job, skip_job_boards=True, skip_pages=True)
+    apply_email = resolve_apply_email(
+        job,
+        skip_job_boards=True,
+        skip_pages=False,
+        page_timeout=5,
+        hunter_max_queries=3,
+        hunter_timeout=8,
+    )
     if apply_email:
         _stamp_recruiter_email(
             job,
             apply_email,
             str(job.get("recruiter_email_source") or "lookup"),
         )
+    else:
+        _stamp_recruiter_email(job, None, "hunter")
 
     try:
         letter, adapted = ensure_application_documents(
@@ -776,6 +801,7 @@ def submit_application_automatically(
             llm_call=llm_call,
             cover_letter_text=cover_letter_text,
             adapted_cv_text=adapted_cv_text,
+            skip_adapted=True,
         )
     except Exception as exc:
         return _empty_result(

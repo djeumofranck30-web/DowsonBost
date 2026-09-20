@@ -381,12 +381,12 @@ def pick_recruiter_email(payload: dict[str, Any]) -> str | None:
     return pool[0][1]
 
 
-def _hunter_get(params: dict[str, str]) -> dict[str, Any] | None:
+def _hunter_get(params: dict[str, str], *, timeout: int = 8) -> dict[str, Any] | None:
     try:
         response = requests.get(
             HUNTER_DOMAIN_SEARCH_URL,
             params=params,
-            timeout=15,
+            timeout=max(3, int(timeout or 8)),
         )
     except requests.RequestException:
         return None
@@ -424,7 +424,12 @@ def _hunter_verify(email: str, api_key: str) -> bool:
     return status in {"valid", "accept_all"}
 
 
-def find_generic_hr_inbox(domain: str, *, api_key: str) -> str | None:
+def find_generic_hr_inbox(
+    domain: str,
+    *,
+    api_key: str,
+    max_tries: int = 3,
+) -> str | None:
     """Try public HR local-parts on a known company domain, verified via Hunter."""
     host = (domain or "").strip().lower().lstrip("@")
     if not host or "@" in host:
@@ -433,7 +438,7 @@ def find_generic_hr_inbox(domain: str, *, api_key: str) -> str | None:
     if cache_key in _cache:
         return _cache[cache_key]
     found: str | None = None
-    for local in generic_hr_local_parts():
+    for local in generic_hr_local_parts()[: max(1, int(max_tries or 3))]:
         email = f"{local}@{host}"
         if _hunter_verify(email, api_key):
             found = email
@@ -483,15 +488,34 @@ def _search_queries(job: dict[str, Any]) -> list[dict[str, str]]:
     return queries
 
 
+def attach_inferred_company_url(job: dict[str, Any]) -> dict[str, Any]:
+    """If the listing has no company site, reuse a non-job-board URL from the text."""
+    if str(job.get("company_url") or "").strip():
+        return job
+    blob = str(job.get("description") or "")
+    for host in _domains_from_text(blob):
+        mapped = mailbox_domain_from_host(host)
+        if mapped:
+            job["company_url"] = f"https://{mapped}"
+            return job
+    named = domain_from_company_name(str(job.get("company") or ""))
+    if named:
+        job["company_url"] = f"https://{named}"
+    return job
+
+
 def find_recruiter_email(
     job: dict[str, Any],
     *,
     api_key: str | None = None,
+    max_queries: int | None = None,
+    timeout: int = 8,
 ) -> str | None:
     """Look up a recruiter address on Hunter.io for this listing's company."""
     key = (api_key if api_key is not None else hunter_api_key()).strip()
     if not key:
         return None
+    attach_inferred_company_url(job)
     queries = _search_queries(job)
     if not queries:
         matched = match_priority_employer(job)
@@ -499,6 +523,8 @@ def find_recruiter_email(
             queries = [{"domain": matched.domain, "type": "generic"}, {"domain": matched.domain}]
         else:
             return None
+    if max_queries is not None:
+        queries = queries[: max(1, int(max_queries))]
     cache_key = "|".join(
         f"{item.get('domain') or item.get('company')}:{item.get('type') or '*'}"
         for item in queries
@@ -508,16 +534,17 @@ def find_recruiter_email(
             return _cache[cache_key]
 
     email: str | None = None
+    wait = max(3, int(timeout or 8))
     for extra in queries:
         params = {"api_key": key, "limit": "10", **extra}
-        email = pick_recruiter_email(_hunter_get(params) or {})
+        email = pick_recruiter_email(_hunter_get(params, timeout=wait) or {})
         if email:
             break
     if not email:
         matched = match_priority_employer(job)
         domain = (matched.domain if matched else "") or infer_company_domain(job) or ""
         if domain:
-            email = find_generic_hr_inbox(domain, api_key=key)
+            email = find_generic_hr_inbox(domain, api_key=key, max_tries=3)
     if email:
         with _cache_lock:
             _cache[cache_key] = email

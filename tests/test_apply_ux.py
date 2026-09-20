@@ -99,8 +99,12 @@ def test_apply_auto_label_is_honest() -> None:
     assert "_last_auto_apply" in source
     assert "_store_auto_apply_result" in source
     assert "_render_auto_apply_banner" in source
+    assert "_render_recruiter_email_status" in source
     assert "job.apply_auto_last" in fr
     assert "job.apply_auto_last" in en
+    assert "{source}" in fr["job.recruiter_email_missing"]
+    assert "HUNTER_API_KEY" in fr["job.recruiter_email_hunter_off"]
+    assert "{company}" in fr["job.recruiter_email_not_found"]
     assert "can_apply = bool(user_id and cv_text and user_profile)" in source
     assert "auto_prepared" in source
     assert "job.apply_unexpected" in fr

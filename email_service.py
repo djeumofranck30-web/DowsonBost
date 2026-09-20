@@ -205,6 +205,21 @@ def _send_via_smtp(
 
     candidate_header = _identity_header(from_email, from_name)
     reply = (reply_to or from_email or "").strip() or None
+    candidate_mailbox = (_parse_mailbox(candidate_header or "")[1] or "").lower()
+    platform_mailbox = (_parse_mailbox(platform_header)[1] or "").lower()
+    # Gmail/SMTP will not send as another person's mailbox. Trying it first
+    # often hangs until timeout, so the click looks like it did nothing.
+    can_send_as_candidate = bool(
+        candidate_mailbox and platform_mailbox and candidate_mailbox == platform_mailbox
+    )
+    if can_send_as_candidate and candidate_header:
+        display_from = candidate_header
+    elif from_name and (_from_email() or smtp_user):
+        display_from = formataddr(
+            (str(from_name).strip(), _from_email() or smtp_user)
+        )
+    else:
+        display_from = platform_header
 
     def _build(display_from: str) -> MIMEMultipart:
         if attachments:
@@ -248,10 +263,10 @@ def _send_via_smtp(
             server.sendmail(envelope, [to_email], message.as_string())
 
     try:
-        _transmit(candidate_header or platform_header)
+        _transmit(display_from)
         return True, t("email.sent_smtp", locale=locale)
     except (smtplib.SMTPException, OSError, TimeoutError) as exc:
-        if candidate_header and candidate_header != platform_header:
+        if display_from != platform_header:
             try:
                 _transmit(platform_header)
                 return True, t("email.sent_smtp", locale=locale)

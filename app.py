@@ -201,6 +201,7 @@ from services.frontend_store import (
     request_password_reset_code,
     save_generated_documents,
     save_notification_settings,
+    save_result_recruiter_email,
     update_application_status,
     update_user_preferred_language,
     update_user_profile,
@@ -211,6 +212,7 @@ from services.frontend_store import (
 from services.analysis_worker import (
     kick_embedded_analysis_worker,
 )
+from services.hunter import hunter_configured
 from services.application import (
     auto_apply_readiness,
     build_application_profile,
@@ -4230,6 +4232,23 @@ def _store_auto_apply_result(
     }
     st.session_state["_last_auto_apply"] = payload
     st.session_state[_auto_apply_pack_key(result_id, action_key)] = result
+    found_email = stored_recruiter_email(
+        {"recruiter_email": result.get("apply_email") or ""}
+    ) or ""
+    source = str(job.get("recruiter_email_source") or "hunter")
+    if found_email:
+        job["recruiter_email"] = found_email
+        job["recruiter_email_source"] = source
+        job["recruiter_email_resolved"] = True
+    else:
+        job["recruiter_email_resolved"] = True
+    if result_id and user_id:
+        save_result_recruiter_email(
+            int(user_id),
+            int(result_id),
+            found_email or None,
+            str(job.get("recruiter_email_source") or source),
+        )
     if result_id:
         st.session_state[f"cover_{result_id}"] = result.get("cover_letter") or ""
         st.session_state[f"adapted_{result_id}"] = result.get("adapted_cv") or ""
@@ -4248,6 +4267,29 @@ def _store_auto_apply_result(
                 status="saved" if method == "prepared" else "applied",
                 notes=str(result.get("message") or ""),
             )
+
+
+def _render_recruiter_email_status(job: dict[str, Any]) -> None:
+    """Always say whether a recruiter mailbox is ready, missing, or not configured."""
+    email = stored_recruiter_email(job) or extract_apply_email(job)
+    if email:
+        source = str(job.get("recruiter_email_source") or "")
+        if source == "hunter":
+            st.caption(t("job.recruiter_email_hunter", email=email))
+        elif source:
+            st.caption(t("job.recruiter_email_listing", email=email))
+        else:
+            st.caption(t("job.recruiter_email_ready", email=email))
+        return
+    if not hunter_configured():
+        st.caption(t("job.recruiter_email_hunter_off"))
+        return
+    company = str(job.get("company") or "").strip() or "—"
+    if job.get("recruiter_email_resolved"):
+        st.caption(t("job.recruiter_email_not_found", company=company))
+        return
+    source = str(job.get("source") or "").strip() or "annonce"
+    st.caption(t("job.recruiter_email_missing", source=source, company=company))
 
 
 def _render_auto_apply_feedback(result: dict[str, Any] | None) -> None:
@@ -4410,6 +4452,7 @@ def _render_apply_action_buttons(
             st.session_state.pop("_auto_apply_busy", None)
             st.session_state.pop("_pending_auto_apply", None)
         _paint_auto_apply_banner()
+    _render_recruiter_email_status(job)
     apply_col1, apply_col2 = st.columns(2)
     with apply_col1:
         if can_apply:
@@ -4599,9 +4642,6 @@ def render_simple_job_row(
         key_prefix="analysis",
         widget_key=result_id or rank,
     )
-    ready_email = stored_recruiter_email(job)
-    if ready_email:
-        st.caption(t("job.recruiter_email_ready", email=ready_email))
 
 
 def render_job_card(
@@ -4774,13 +4814,6 @@ def render_job_card(
                     ),
                 )
             )
-    listed_email = stored_recruiter_email(job) or extract_apply_email(job)
-    if listed_email:
-        source = str(job.get("recruiter_email_source") or "")
-        if source == "hunter":
-            st.caption(t("job.recruiter_email_hunter", email=listed_email))
-        else:
-            st.caption(t("job.recruiter_email_listing", email=listed_email))
     if _render_apply_action_buttons(
         job,
         match,
@@ -7227,6 +7260,13 @@ def run_cv_analysis_pipeline(
             ),
         }
     )
+    if not hunter_configured():
+        notices.append(
+            {
+                "level": "warning",
+                "text": t("pipeline.hunter_missing"),
+            }
+        )
 
     _report_progress(progress, 98, t("analysis.progress.match"))
 

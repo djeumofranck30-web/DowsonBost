@@ -443,6 +443,17 @@ def get_analysis_results_by_ids(user_id: int, result_ids: list[int]) -> dict[int
     return {}
 
 
+def save_result_recruiter_email(
+    user_id: int,
+    result_id: int,
+    email: str | None,
+    source: str = "",
+) -> bool:
+    from persistence import save_result_recruiter_email as local
+
+    return local(user_id, result_id, email, source)
+
+
 def save_generated_documents(
     user_id: int,
     result_id: int,

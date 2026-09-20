@@ -1948,6 +1948,44 @@ def get_analysis_results_by_ids(
     return {int(row["result_id"]): _row_to_analysis_result(row) for row in rows}
 
 
+def save_result_recruiter_email(
+    user_id: int,
+    result_id: int,
+    email: str | None,
+    source: str = "",
+) -> bool:
+    """Stamp a recruiter mailbox onto the stored offer so the card can show it."""
+    init_persistence_tables()
+    cleaned = str(email or "").strip()
+    with connect() as conn:
+        row = conn.execute(
+            adapt_sql(
+                "SELECT job_json FROM analysis_results WHERE id = ? AND user_id = ?"
+            ),
+            (result_id, user_id),
+        ).fetchone()
+        if not row:
+            return False
+        job = _json_loads(row["job_json"], {})
+        if not isinstance(job, dict):
+            job = {}
+        if cleaned:
+            job["recruiter_email"] = cleaned
+            job["recruiter_email_source"] = source or job.get("recruiter_email_source") or "lookup"
+            job["recruiter_email_resolved"] = True
+        else:
+            job["recruiter_email_resolved"] = True
+            if source:
+                job["recruiter_email_source"] = source
+        cur = conn.execute(
+            adapt_sql(
+                "UPDATE analysis_results SET job_json = ? WHERE id = ? AND user_id = ?"
+            ),
+            (_json_dumps(job), result_id, user_id),
+        )
+        return bool(getattr(cur, "rowcount", 0))
+
+
 def save_generated_documents(
     user_id: int,
     result_id: int,

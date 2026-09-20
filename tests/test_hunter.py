@@ -12,6 +12,7 @@ from services.application import (
     resolve_apply_email,
 )
 from services.hunter import (
+    attach_inferred_company_url,
     clean_company_name,
     clear_hunter_cache,
     company_slug_from_job,
@@ -406,9 +407,11 @@ def test_resolve_apply_email_can_skip_slow_page_fetch() -> None:
         hunter.assert_called_once()
 
 
-def test_auto_apply_click_skips_slow_page_fetch() -> None:
+def test_auto_apply_click_searches_company_pages_and_hunter() -> None:
     source = (ROOT / "services/application.py").read_text(encoding="utf-8")
-    assert "resolve_apply_email(job, skip_job_boards=True, skip_pages=True)" in source
+    assert "skip_job_boards=True" in source
+    assert "skip_pages=False" in source
+    assert "hunter_max_queries=3" in source
 
 
 def test_prefetch_does_not_stamp_empty_resolved() -> None:
@@ -429,7 +432,7 @@ def test_prefetch_does_not_stamp_empty_resolved() -> None:
     ):
         out = prefetch_recruiter_emails(jobs, max_workers=1)
     assert not out[0].get("recruiter_email")
-    assert out[0].get("recruiter_email_resolved") is not True
+    assert out[0].get("recruiter_email_resolved") is True
 
 
 def test_prefetch_stamps_listing_email_without_hunter() -> None:
@@ -503,3 +506,33 @@ def test_prefetch_results_keep_match_payload() -> None:
         out = prefetch_recruiter_emails_for_results(results)
     assert out[0]["match"]["score_correspondance"] == 88
     assert out[0]["job"]["recruiter_email"] == "rh@acme.fr"
+
+
+def test_attach_inferred_company_url_from_jooble_snippet() -> None:
+    job = {
+        "company": "CFA ITIS",
+        "description": "Plus d'infos sur https://www.cfaitis.fr/alternance",
+        "url": "https://fr.jooble.org/jdp/123",
+        "source": "Jooble",
+    }
+    attach_inferred_company_url(job)
+    assert job["company_url"] == "https://cfaitis.fr"
+
+
+def test_attach_inferred_company_url_does_not_invent_domain() -> None:
+    job = {
+        "company": "CFA ITIS",
+        "description": "Postulez sur Jooble.",
+        "url": "https://fr.jooble.org/jdp/123",
+    }
+    attach_inferred_company_url(job)
+    assert not job.get("company_url")
+
+
+def test_find_recruiter_email_respects_max_queries() -> None:
+    clear_hunter_cache()
+    job = {"company": "Acme", "company_url": "https://www.acme.fr"}
+    with patch("services.hunter._hunter_get", return_value={"data": {"emails": []}}) as mocked:
+        assert find_recruiter_email(job, api_key="hunter-test", max_queries=1) is None
+    assert mocked.call_count == 1
+    clear_hunter_cache()

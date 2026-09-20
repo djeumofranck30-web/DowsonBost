@@ -164,7 +164,9 @@ def test_send_application_email_uses_candidate_from_and_reply_to(mocked_smtp, mo
     assert "jane@example.com" in raw
     assert "Jane Doe" in raw
     assert "Reply-To" in raw
+    assert "From: Jane Doe <jane@example.com>" not in raw
     assert server.sendmail.call_args.args[0] == "me@gmail.com"
+    server.sendmail.assert_called_once()
 
 
 

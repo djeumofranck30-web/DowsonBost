@@ -822,6 +822,10 @@
   "job.recruiter_email_ready": "E-mail recruteur prêt : {email}",
   "job.recruiter_email_listing": "E-mail recruteur dans l'annonce : {email}",
   "job.recruiter_email_hunter": "E-mail recruteur trouvé via Hunter : {email}",
+  "job.recruiter_email_missing": "Aucun e-mail recruteur sur cette annonce {source} ({company}). « Postuler automatiquement » cherche via Hunter, puis envoie le mail.",
+  "job.recruiter_email_hunter_off": "HUNTER_API_KEY n'est pas dans les secrets Streamlit. Sans e-mail dans l'annonce, la candidature part dans votre boîte avec une notification.",
+  "job.recruiter_email_not_found": "Hunter n'a pas trouvé d'e-mail public pour {company}. « Postuler automatiquement » vous envoie le dossier et une notification.",
+  "pipeline.hunter_missing": "Hunter n'est pas configuré : les e-mails recruteur ne peuvent pas être cherchés. Ajoutez HUNTER_API_KEY dans les secrets Streamlit, puis redémarrez.",
   "job.hunter_lookup": "Trouver l'e-mail recruteur (Hunter)",
   "job.hunter_lookup_help": "Cherche une adresse RH / jobs sur Hunter.io à partir du site de l'entreprise. N'envoie rien tout seul.",
   "job.hunter_not_found": "Hunter n'a pas trouvé d'e-mail recruteur pour cette entreprise."
