@@ -18,7 +18,7 @@ from auth import (
 from config import get_admin_accounts
 from database import adapt_sql, connect
 from persistence import _sql_json_text, init_persistence_tables
-from services.admin_events import admin_activity_payload, unread_admin_alert_count
+from services.admin_events import admin_activity_payload
 from services.llm_usage import ensure_llm_usage_table
 from services.support import admin_support_conversations, admin_support_unread
 
@@ -41,6 +41,7 @@ _SCORE_BANDS = (
 ACTIVE_USER_DAYS = 30
 SERIES_DAYS = 30
 ADMIN_INDEX_PATH = Path(__file__).resolve().parents[1] / "admin" / "static" / "index.html"
+_ADMIN_TEMPLATE: str | None = None
 
 
 def _parse_iso(value: str) -> datetime | None:
@@ -87,21 +88,30 @@ def list_registered_users() -> list[dict[str, Any]]:
     """Every registered account with analysis and token totals."""
     init_db()
     ensure_llm_usage_table()
+    user_cols = ", ".join(
+        f"u.{part.strip()}"
+        for part in _USER_SELECT_SQL.replace("\n", " ").split(",")
+        if part.strip()
+    )
     with connect() as conn:
         rows = conn.execute(
             adapt_sql(
                 f"""
-                SELECT {_USER_SELECT_SQL},
-                    COALESCE(
-                        (SELECT SUM(total_tokens) FROM llm_usage WHERE user_id = users.id),
-                        0
-                    ) AS tokens_consumed,
-                    COALESCE(
-                        (SELECT COUNT(*) FROM analyses WHERE user_id = users.id),
-                        0
-                    ) AS analyses_count
-                FROM users
-                ORDER BY created_at DESC
+                SELECT {user_cols},
+                    COALESCE(tok.tokens_consumed, 0) AS tokens_consumed,
+                    COALESCE(an.analyses_count, 0) AS analyses_count
+                FROM users u
+                LEFT JOIN (
+                    SELECT user_id, SUM(total_tokens) AS tokens_consumed
+                    FROM llm_usage
+                    GROUP BY user_id
+                ) tok ON tok.user_id = u.id
+                LEFT JOIN (
+                    SELECT user_id, COUNT(*) AS analyses_count
+                    FROM analyses
+                    GROUP BY user_id
+                ) an ON an.user_id = u.id
+                ORDER BY u.created_at DESC
                 """
             )
         ).fetchall()
@@ -477,7 +487,7 @@ def analysis_queue_snapshot() -> dict[str, Any]:
     }
 
 
-def platform_overview() -> dict[str, Any]:
+def platform_overview(*, include_support: bool = True) -> dict[str, Any]:
     """KPI + chart series for the administration dashboard."""
     init_db()
     init_persistence_tables()
@@ -489,7 +499,7 @@ def platform_overview() -> dict[str, Any]:
     insights = analysis_insights()
     activity = admin_activity_payload()
     queue = analysis_queue_snapshot()
-    unread_alerts = int(activity.get("unread_alerts") or unread_admin_alert_count())
+    unread_alerts = int(activity.get("unread_alerts") or 0)
 
     signups = _fill_series(
         _day_counts(
@@ -578,15 +588,18 @@ def platform_overview() -> dict[str, Any]:
         ],
         "users": [public_user_record(user) for user in users],
         "support": {
-            "unread": admin_support_unread(),
-            "conversations": admin_support_conversations(),
+            "unread": admin_support_unread() if include_support else 0,
+            "conversations": admin_support_conversations() if include_support else [],
         },
     }
 
 
 def dashboard_html(payload: dict[str, Any] | None = None, *, embedded: bool = False) -> str:
     """Return the admin SPA, optionally with data injected for Streamlit."""
-    template = ADMIN_INDEX_PATH.read_text(encoding="utf-8")
+    global _ADMIN_TEMPLATE
+    if _ADMIN_TEMPLATE is None:
+        _ADMIN_TEMPLATE = ADMIN_INDEX_PATH.read_text(encoding="utf-8")
+    template = _ADMIN_TEMPLATE
     data = dict(payload or {})
     data["embedded"] = embedded
     blob = json.dumps(data, ensure_ascii=False).replace("<", "\\u003c")

@@ -122,6 +122,17 @@ def test_job_provider_widget_is_analysis_page_only():
     assert source.count('key="sidebar_job_providers"') == 1
 
 
+def test_admin_dashboard_defers_heavy_overview():
+    dash = (ROOT / "pages" / "dashboard.py").read_text(encoding="utf-8")
+    main = dash.split("def main()", 1)[1]
+    assert main.index("st.radio(") < main.index("_cached_overview(")
+    assert "include_support=False" in dash
+    assert "admin_show_config_tests" in main
+    assert main.index("st.radio(") < main.index("from app import render_config_tests_panel")
+    assert "_cached_overview" in dash
+    assert "_badge_counts" in dash
+
+
 def test_theme_does_not_block_on_google_fonts():
     theme = (ROOT / "ui/theme.py").read_text(encoding="utf-8")
     config = (ROOT / ".streamlit/config.toml").read_text(encoding="utf-8")

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import time
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -10,7 +11,7 @@ import streamlit.components.v1 as components
 from auth import authenticate_admin, init_db, user_is_admin
 from config import get_secret
 from database import DatabaseConfigError, configure_database
-from services.admin import admin_delete_user, dashboard_html, list_registered_users, platform_overview, public_user_record
+from services.admin import admin_delete_user, dashboard_html, platform_overview
 from services.admin_events import (
     KIND_LABELS,
     list_admin_alerts,
@@ -208,8 +209,8 @@ def _space_label(item: dict) -> str:
     return f"{name}{badge}\n{email}\n{preview}"
 
 
-def _render_admin_support(admin: dict) -> None:
-    unread = admin_support_unread()
+def _render_admin_support(admin: dict, unread: int | None = None) -> None:
+    unread = admin_support_unread() if unread is None else int(unread)
     st.markdown(
         f"### Espaces chat{' · ' + str(unread) + ' message(s) non lu(s)' if unread else ''}"
     )
@@ -368,8 +369,45 @@ def _event_who(item: dict) -> str:
     return name or email or "Compte inconnu"
 
 
-def _render_admin_alerts() -> None:
-    unread = unread_admin_alert_count()
+_OVERVIEW_TTL_SEC = 20.0
+_BADGE_TTL_SEC = 8.0
+
+
+def _invalidate_admin_caches() -> None:
+    st.session_state.pop("_admin_overview_pack", None)
+    st.session_state.pop("_admin_badges", None)
+
+
+def _badge_counts() -> tuple[int, int]:
+    now = time.monotonic()
+    cached = st.session_state.get("_admin_badges")
+    if cached and now - float(cached.get("ts") or 0) < _BADGE_TTL_SEC:
+        return int(cached.get("alerts") or 0), int(cached.get("support") or 0)
+    alerts = unread_admin_alert_count()
+    support = admin_support_unread()
+    st.session_state._admin_badges = {"ts": now, "alerts": alerts, "support": support}
+    return alerts, support
+
+
+def _cached_overview(user: dict) -> dict:
+    now = time.monotonic()
+    pack = st.session_state.get("_admin_overview_pack")
+    if pack and now - float(pack.get("ts") or 0) < _OVERVIEW_TTL_SEC and pack.get("data"):
+        overview = dict(pack["data"])
+    else:
+        overview = platform_overview(include_support=False)
+        st.session_state._admin_overview_pack = {"ts": now, "data": overview}
+        overview = dict(overview)
+    overview["viewer"] = {
+        "id": int(user.get("id") or 0),
+        "email": user.get("email") or "",
+        "full_name": user.get("full_name") or "",
+    }
+    return overview
+
+
+def _render_admin_alerts(unread: int | None = None) -> None:
+    unread = unread_admin_alert_count() if unread is None else int(unread)
     st.markdown("### Alertes incidents")
     st.caption(
         "Échecs d’analyse, blocages, limites IA / SerpAPI et candidatures en échec. "
@@ -383,16 +421,21 @@ def _render_admin_alerts() -> None:
         )
         if st.button("Tout marquer comme lu", type="primary", key="admin_alerts_read_all"):
             mark_admin_events_read(all_unread=True)
+            _invalidate_admin_caches()
             st.session_state.admin_stay_on_alerts = True
             st.rerun()
     alerts = list_admin_alerts(limit=80)
     if not alerts:
         st.info("Aucun incident pour le moment. Les erreurs d’analyse et quotas IA apparaîtront ici.")
         return
+    cards: list[str] = []
+    unread_items: list[dict] = []
     for item in alerts:
         severity = str(item.get("severity") or "info")
         unread_flag = bool(item.get("unread"))
-        st.markdown(
+        if unread_flag:
+            unread_items.append(item)
+        cards.append(
             f'<div class="admin-event {html.escape(severity)}">'
             f"<strong>{html.escape(item.get('title') or item.get('kind_label') or 'Incident')}</strong>"
             f'<div class="meta">{html.escape(_format_event_when(item.get("created_at") or ""))}'
@@ -400,17 +443,21 @@ def _render_admin_alerts() -> None:
             f" · {html.escape(item.get('kind_label') or item.get('kind') or '')}"
             f"{' · non lu' if unread_flag else ''}</div>"
             f"<p style='margin:.4rem 0 0'>{html.escape(item.get('message') or '')}</p>"
-            f"</div>",
-            unsafe_allow_html=True,
+            f"</div>"
         )
-        if unread_flag:
-            if st.button("Marquer comme lu", key=f"admin_alert_read_{item['id']}"):
-                mark_admin_events_read([int(item["id"])])
-                st.session_state.admin_stay_on_alerts = True
-                st.rerun()
+    st.markdown("".join(cards), unsafe_allow_html=True)
+    for item in unread_items[:12]:
+        if st.button(
+            f"Marquer comme lu · {item.get('title') or 'Incident'}",
+            key=f"admin_alert_read_{item['id']}",
+        ):
+            mark_admin_events_read([int(item["id"])])
+            _invalidate_admin_caches()
+            st.session_state.admin_stay_on_alerts = True
+            st.rerun()
 
 
-def _render_admin_activity(overview: dict) -> None:
+def _render_admin_activity() -> None:
     st.markdown("### Journal d’activité")
     st.caption(
         "Tout ce que font les candidats : inscriptions, connexions, analyses, "
@@ -420,46 +467,54 @@ def _render_admin_activity(overview: dict) -> None:
         ((kind, label) for kind, label in KIND_LABELS.items()),
         key=lambda item: item[1],
     )
-    filter_col, search_col = st.columns([1, 1.4])
-    with filter_col:
-        selected_kind = st.selectbox(
-            "Filtrer par type",
-            options=[item[0] for item in kind_options],
-            format_func=lambda key: next(label for item, label in kind_options if item == key),
-            key="admin_activity_kind",
-        )
-    with search_col:
-        query = st.text_input(
-            "Rechercher",
-            placeholder="Nom, e-mail, message…",
-            key="admin_activity_query",
-        )
+    with st.form("admin_activity_filters", border=False):
+        filter_col, search_col, apply_col = st.columns([1, 1.4, 0.7])
+        with filter_col:
+            selected_kind = st.selectbox(
+                "Filtrer par type",
+                options=[item[0] for item in kind_options],
+                format_func=lambda key: next(label for item, label in kind_options if item == key),
+                key="admin_activity_kind",
+            )
+        with search_col:
+            query = st.text_input(
+                "Rechercher",
+                placeholder="Nom, e-mail, message…",
+                key="admin_activity_query",
+            )
+        with apply_col:
+            st.markdown("<div style='height:1.7rem'></div>", unsafe_allow_html=True)
+            st.form_submit_button("Filtrer", use_container_width=True)
     kinds = None if selected_kind == "all" else [selected_kind]
-    events = list_admin_events(limit=160, kinds=kinds, query=query or "")
-    counts = (overview.get("activity") or {}).get("kind_counts") or []
-    if counts and selected_kind == "all" and not (query or "").strip():
+    events = list_admin_events(limit=120, kinds=kinds, query=query or "")
+    if selected_kind == "all" and not (query or "").strip() and events:
+        counts: dict[str, int] = {}
+        for item in events:
+            kind = str(item.get("kind") or "")
+            counts[kind] = counts.get(kind, 0) + 1
         chips = " · ".join(
-            f"{item['label']} ({item['count']})" for item in counts[:8]
+            f"{KIND_LABELS.get(kind, kind)} ({count})"
+            for kind, count in sorted(counts.items(), key=lambda pair: (-pair[1], pair[0]))[:8]
         )
-        st.caption(chips)
+        if chips:
+            st.caption(chips)
     if not events:
         st.info("Aucune activité enregistrée pour ce filtre.")
         return
-    current_day = ""
-    st.markdown(
+    rows = [
         '<div class="admin-row admin-row-head"><span>Heure</span><span>Type</span>'
-        "<span>Candidat</span><span>Détail</span></div>",
-        unsafe_allow_html=True,
-    )
+        "<span>Candidat</span><span>Détail</span></div>"
+    ]
+    current_day = ""
     for item in events:
         day = str(item.get("created_at") or "")[:10]
         if day and day != current_day:
             current_day = day
-            st.markdown(f'<div class="admin-day">{html.escape(day)}</div>', unsafe_allow_html=True)
+            rows.append(f'<div class="admin-day">{html.escape(day)}</div>')
         severity = str(item.get("severity") or "info")
         when = _format_event_when(item.get("created_at") or "")
         time_part = when.split(" ")[-1] if " " in when else when
-        st.markdown(
+        rows.append(
             f'<div class="admin-row">'
             f"<span>{html.escape(time_part)}</span>"
             f'<span><span class="admin-pill {html.escape(severity)}">'
@@ -467,9 +522,9 @@ def _render_admin_activity(overview: dict) -> None:
             f"<span>{html.escape(_event_who(item))}</span>"
             f"<span><strong>{html.escape(item.get('title') or '')}</strong><br>"
             f"{html.escape(item.get('message') or '')}</span>"
-            f"</div>",
-            unsafe_allow_html=True,
+            f"</div>"
         )
+    st.markdown("".join(rows), unsafe_allow_html=True)
 
 
 def _render_admin_footer(*, logout_key: str) -> None:
@@ -506,18 +561,6 @@ def main() -> None:
         st.page_link("app.py", label="Retour à l'application", icon="🎯")
         return
 
-    overview = platform_overview()
-    overview["viewer"] = {
-        "id": int(user["id"]),
-        "email": user.get("email") or "",
-        "full_name": user.get("full_name") or "",
-    }
-    accounts = [public_user_record(item) for item in list_registered_users()]
-    actor_id = int(user.get("id") or 0)
-    deletable = [item for item in accounts if int(item["id"]) != actor_id]
-
-    support_unread = admin_support_unread()
-    alert_unread = unread_admin_alert_count()
     if st.session_state.pop("admin_stay_on_support", False):
         st.session_state.admin_main_section = "support"
     if st.session_state.pop("admin_stay_on_alerts", False):
@@ -527,6 +570,7 @@ def main() -> None:
     if st.session_state.pop("admin_clear_reply", False):
         st.session_state.admin_support_reply_body = ""
 
+    alert_unread, support_unread = _badge_counts()
     if alert_unread and st.session_state.get("admin_main_section") not in {"alerts"}:
         st.markdown(
             f'<div class="admin-banner"><strong>{alert_unread} incident(s) à traiter</strong>'
@@ -546,17 +590,22 @@ def main() -> None:
         label_visibility="collapsed",
     )
     if admin_section == "support":
-        _render_admin_support(user)
+        _render_admin_support(user, unread=support_unread)
         _render_admin_footer(logout_key="admin_logout_support")
         return
     if admin_section == "alerts":
-        _render_admin_alerts()
+        _render_admin_alerts(unread=alert_unread)
         _render_admin_footer(logout_key="admin_logout_alerts")
         return
     if admin_section == "activity":
-        _render_admin_activity(overview)
+        _render_admin_activity()
         _render_admin_footer(logout_key="admin_logout_activity")
         return
+
+    overview = _cached_overview(user)
+    accounts = list(overview.get("users") or [])
+    actor_id = int(user.get("id") or 0)
+    deletable = [item for item in accounts if int(item["id"]) != actor_id]
 
     pending = st.session_state.get("admin_delete_target")
     if pending:
@@ -572,6 +621,7 @@ def main() -> None:
             if confirm_col.button("Confirmer la suppression", type="primary"):
                 ok, message = admin_delete_user(user, int(target["id"]))
                 st.session_state.pop("admin_delete_target", None)
+                _invalidate_admin_caches()
                 if ok:
                     st.success(message)
                 else:
@@ -581,7 +631,7 @@ def main() -> None:
                 st.session_state.pop("admin_delete_target", None)
                 st.rerun()
 
-    action_left, action_right = st.columns([3, 1])
+    action_left, action_right, refresh_col = st.columns([2.4, 0.9, 0.9])
     with action_left:
         options = {item["id"]: _user_label(item) for item in deletable}
         selected_id = st.selectbox(
@@ -595,13 +645,19 @@ def main() -> None:
         if st.button("Supprimer", type="primary", disabled=not options, use_container_width=True):
             st.session_state.admin_delete_target = int(selected_id)
             st.rerun()
+    with refresh_col:
+        st.markdown("<div style='height:1.7rem'></div>", unsafe_allow_html=True)
+        if st.button("Actualiser", use_container_width=True, key="admin_refresh_overview"):
+            _invalidate_admin_caches()
+            st.rerun()
 
     components.html(dashboard_html(overview, embedded=True), height=1760, scrolling=True)
 
     st.markdown("---")
-    from app import render_config_tests_panel
+    if st.checkbox("Afficher les tests de configuration", key="admin_show_config_tests"):
+        from app import render_config_tests_panel
 
-    render_config_tests_panel(show_clear_cache=True, expanded=False)
+        render_config_tests_panel(show_clear_cache=True, expanded=True)
     _render_admin_footer(logout_key="admin_logout_overview")
 
 

@@ -237,6 +237,16 @@ def test_estimate_tokens_minimum():
     assert estimate_tokens("abcd" * 10) == 10
 
 
+def test_overview_can_skip_support_inbox(sqlite_db, monkeypatch):
+    monkeypatch.setenv("ADMIN_EMAIL", "boss@example.com")
+    monkeypatch.setenv("ADMIN_PASSWORD", "AdminPass123!")
+    _register("jane@example.com")
+    light = platform_overview(include_support=False)
+    assert light["support"]["conversations"] == []
+    full = platform_overview()
+    assert {item["email"] for item in full["support"]["conversations"]} == {"jane@example.com"}
+
+
 def test_config_tests_only_on_admin_dashboard():
     from pathlib import Path
 
