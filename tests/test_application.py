@@ -147,6 +147,9 @@ def test_submit_application_automatically_prepares_pack_without_recruiter_email(
     assert result["email_to"] == "jane@example.com"
     assert result["email_from"] == "jane@example.com"
     assert result["email_body"]
+    assert "pièces jointes" in result["email_body"]
+    assert "Lettre de motivation générée." not in result["email_body"]
+    assert "---" not in result["email_body"]
     assert "dossier" in result["message"].lower()
     assert "manuellement" in result["message"].lower()
     send_mail.assert_called_once()
@@ -276,6 +279,11 @@ def test_submit_application_automatically_sends_email_when_found(
     assert result["email_from"] == "jane@example.com"
     assert result["email_subject"]
     assert result["email_body"]
+    assert "pièces jointes" in result["email_body"]
+    assert "Document généré." not in result["email_body"]
+    assert "---" not in result["email_body"]
+    assert "Madame, Monsieur," in result["email_body"]
+    assert result["email_body"].count("\n\n") >= 2
     assert result["user_notified"] is True
     _send.assert_called_once()
     assert _send.call_args.kwargs["to_email"] == "recrutement@acme.fr"

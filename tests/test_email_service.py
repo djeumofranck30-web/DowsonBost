@@ -142,6 +142,28 @@ def test_send_application_email_uses_gmail_smtp(mocked_smtp, monkeypatch):
 
 
 @patch("email_service.smtplib.SMTP")
+def test_send_application_email_html_uses_paragraphs(mocked_smtp, monkeypatch):
+    server = mocked_smtp.return_value.__enter__.return_value
+    monkeypatch.setattr("email_service._get_secret", lambda name: {
+        "SMTP_HOST": "smtp.gmail.com",
+        "SMTP_PORT": "587",
+        "SMTP_USER": "me@gmail.com",
+        "SMTP_PASSWORD": "app-pass",
+        "SMTP_FROM": "DowsonBost <me@gmail.com>",
+    }.get(name, ""))
+    ok, _message = send_application_email(
+        "recrutement@acme.fr",
+        "Candidature",
+        "Madame, Monsieur,\n\nVous trouverez en pièces jointes mon CV.\n\nCordialement,\nJane",
+        locale="fr",
+    )
+    assert ok is True
+    raw = server.sendmail.call_args.args[2]
+    assert "text/html" in raw
+    assert "pièces jointes" in raw or "pieces jointes" in raw.lower() or "text/plain" in raw
+
+
+@patch("email_service.smtplib.SMTP")
 def test_send_application_email_uses_candidate_from_and_reply_to(mocked_smtp, monkeypatch):
     server = mocked_smtp.return_value.__enter__.return_value
     monkeypatch.setattr("email_service._get_secret", lambda name: {

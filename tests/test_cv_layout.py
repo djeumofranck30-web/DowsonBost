@@ -7,11 +7,13 @@ from cv_layout import (
     list_cv_templates,
     detect_job_family,
     merge_experience_missions,
+    normalize_cover_letter,
     parse_adapted_cv,
     polish_structured_cv,
     prepare_structured_cv,
     public_cv_text,
     render_adapted_cv_pdf,
+    render_cover_letter_pdf,
     render_cv_html,
     render_cv_pdf,
     restore_experience_dates_locations,
@@ -225,6 +227,7 @@ def test_enrich_uses_profile_and_family():
     assert cv.name == "Paul Durand"
     assert cv.family == "it"
     assert cv.email == "paul@test.fr"
+    assert cv.title == "Développeur Java"
 
 
 def test_render_pdf_is_valid_and_unique_per_template():
@@ -503,4 +506,52 @@ def test_html_preview_justifies_phrases():
     )
     assert 'align="J"' in layout
     assert "sans doublon" in layout or "Une seule puce par mission" in layout
+
+
+def test_normalize_cover_letter_splits_single_paragraph_and_unescapes():
+    wall = (
+        r"Objet : Candidature — ISO 27001\n\nMadame, Monsieur,\n\n"
+        "Actuellement étudiant en Master 2 je candidate chez Galadrim. "
+        "Mon profil combine Windows, Linux et ISO 27001. "
+        "Chez mon employeur actuel j'ai déployé un serveur sécurisé. "
+        "En tant que technicien j'ai configuré des VLAN. "
+        "Mon stage Java a renforcé l'automatisation. "
+        "Je suis autonome et disponible immédiatement. "
+        "Cordialement, Jordan Wankam"
+    )
+    letter = normalize_cover_letter(
+        wall,
+        job={"title": "Alternance Chargé(e) de projet ISO 27001", "company": "Galadrim"},
+        user_profile={"full_name": "Jordan Wankam"},
+    )
+    assert "\\n" not in letter
+    assert "Madame, Monsieur," in letter
+    assert "Cordialement," in letter
+    parts = [part for part in letter.split("\n\n") if part.strip()]
+    assert len(parts) >= 5
+    assert any(part.startswith("Objet") for part in parts)
+
+
+def test_cover_letter_pdf_is_one_page_and_not_a_single_block():
+    letter = normalize_cover_letter(
+        "Madame, Monsieur, je candidate au poste. "
+        "J'ai travaillé sur ISO 27001 et la gouvernance. "
+        "J'ai déployé un firewall et rédigé des politiques. "
+        "Je reste disponible pour un entretien. Cordialement.",
+        job={"title": "Chargé de projet ISO 27001", "company": "Galadrim"},
+        user_profile={"full_name": "Jordan Wankam", "email": "jordan@test.fr"},
+    )
+    pdf = render_cover_letter_pdf(
+        letter,
+        job={"title": "Chargé de projet ISO 27001", "company": "Galadrim"},
+        user_profile={"full_name": "Jordan Wankam", "email": "jordan@test.fr"},
+    )
+    assert pdf.startswith(b"%PDF")
+    assert _pdf_page_count(pdf) == 1
+    import fitz
+
+    text = fitz.open(stream=pdf, filetype="pdf")[0].get_text()
+    assert "Madame, Monsieur" in text
+    assert "Cordialement" in text
+    assert text.count("\n") >= 8
 

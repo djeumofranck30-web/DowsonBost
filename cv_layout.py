@@ -6,6 +6,7 @@ import html
 import re
 import unicodedata
 from dataclasses import dataclass, field, replace
+from datetime import date
 from typing import Any
 
 from fpdf import FPDF
@@ -1681,12 +1682,13 @@ def enrich_structured_cv(
             or (original_head.splitlines()[0].strip() if original_head.strip() else "")
             or "Candidat"
         )
-    if not cv.title:
-        updates["title"] = (
-            str(match.get("titre_cv_recommande") or "").strip()
-            or str(user_profile.get("target_job_title") or "").strip()
-            or str(job.get("title") or "").strip()
-        )
+    offer_title = (
+        str(match.get("titre_cv_recommande") or "").strip()
+        or str(job.get("title") or "").strip()
+        or str(user_profile.get("target_job_title") or "").strip()
+    )
+    if offer_title:
+        updates["title"] = offer_title
     if not cv.email:
         found = _EMAIL_RE.search(original_head)
         updates["email"] = str(user_profile.get("email") or "").strip() or (
@@ -2658,6 +2660,216 @@ def render_cv_pdf(cv: StructuredCV) -> bytes:
     return bytes(pdf.output())
 
 
+def _split_letter_sentences(text: str) -> list[str]:
+    parts = re.split(r"(?<=[.!?])\s+", (text or "").strip())
+    sentences: list[str] = []
+    buffer = ""
+    for part in parts:
+        piece = part.strip()
+        if not piece:
+            continue
+        if buffer:
+            buffer = f"{buffer} {piece}"
+            if len(buffer) >= 40:
+                sentences.append(buffer)
+                buffer = ""
+            continue
+        if len(piece) < 28:
+            buffer = piece
+            continue
+        sentences.append(piece)
+    if buffer:
+        sentences.append(buffer)
+    return sentences
+
+
+def _join_sentences(sentences: list[str]) -> str:
+    return " ".join(item.strip() for item in sentences if item.strip()).strip()
+
+
+def _split_wall_into_letter_paragraphs(text: str) -> list[str]:
+    """Turn a single block into intro / two body paragraphs / conclusion."""
+    sentences = _split_letter_sentences(text)
+    if len(sentences) <= 1:
+        return [text.strip()] if text.strip() else []
+    if len(sentences) == 2:
+        return [_join_sentences(sentences[:1]), _join_sentences(sentences[1:])]
+    if len(sentences) == 3:
+        return [
+            _join_sentences(sentences[:1]),
+            _join_sentences(sentences[1:2]),
+            _join_sentences(sentences[2:]),
+        ]
+    intro_n = 1 if len(sentences) < 8 else 2
+    conc_n = 1 if len(sentences) < 7 else 2
+    intro = _join_sentences(sentences[:intro_n])
+    conclusion = _join_sentences(sentences[-conc_n:])
+    middle = sentences[intro_n:-conc_n]
+    if not middle:
+        return [intro, conclusion]
+    if len(middle) >= 4:
+        mid = max(2, len(middle) // 2)
+        return [
+            intro,
+            _join_sentences(middle[:mid]),
+            _join_sentences(middle[mid:]),
+            conclusion,
+        ]
+    return [intro, _join_sentences(middle), conclusion]
+
+
+_LETTER_OBJECT_RE = re.compile(r"^objet\s*:\s*", re.I)
+_LETTER_GREETING_RE = re.compile(
+    r"^(?:madame\s*,\s*monsieur|monsieur\s*,\s*madame|bonjour|"
+    r"cher(?:e|ère)?\s+(?:madame|monsieur))[,\s.]*",
+    re.I,
+)
+_LETTER_CLOSING_RE = re.compile(
+    r"(cordialement|bien\s+à\s+vous|respectueusement|"
+    r"veuillez\s+agr[eé]er|je\s+vous\s+prie\s+d['']agr[eé]er)\s*,?\s*",
+    re.I,
+)
+
+
+def _default_letter_object(job: dict[str, Any] | None) -> str:
+    title = str((job or {}).get("title") or "").strip()
+    company = str((job or {}).get("company") or "").strip()
+    if title and company:
+        return f"Objet : Candidature au poste de {title} — {company}"
+    if title:
+        return f"Objet : Candidature au poste de {title}"
+    return "Objet : Candidature"
+
+
+def _looks_like_signature(text: str) -> bool:
+    cleaned = re.sub(r"\s+", " ", (text or "").strip())
+    if not cleaned or cleaned.endswith((".", "!", "?")):
+        return False
+    words = cleaned.split()
+    return 1 <= len(words) <= 5 and len(cleaned) <= 60
+
+
+def normalize_cover_letter(
+    letter: str,
+    *,
+    job: dict[str, Any] | None = None,
+    user_profile: dict[str, Any] | None = None,
+) -> str:
+    """Force a modern one-page letter: object, greeting, intro, body, conclusion."""
+    raw = (letter or "").replace("\r\n", "\n")
+    if "\\n" in raw:
+        raw = raw.replace("\\n", "\n")
+    raw = re.sub(r"[*_#>`]+", "", raw).strip().strip('"').strip("'")
+    if raw.startswith("{") and "lettre" in raw.lower()[:40]:
+        raw = re.sub(r'^\{?\s*"?lettre"?\s*[:=]\s*"?', "", raw, flags=re.I)
+        raw = raw.rstrip("}").strip().strip('"')
+    if not raw:
+        return ""
+    parts = [item.strip() for item in re.split(r"\n\s*\n+", raw) if item.strip()]
+    if len(parts) == 1:
+        single = parts[0]
+        greeting_match = _LETTER_GREETING_RE.match(single)
+        if greeting_match:
+            single = single[greeting_match.end() :].strip()
+        object_match = _LETTER_OBJECT_RE.match(single)
+        if object_match:
+            newline = single.find("\n")
+            if newline > 0:
+                single = single[newline:].strip()
+        parts = _split_wall_into_letter_paragraphs(single)
+
+    object_line = ""
+    greeting = "Madame, Monsieur,"
+    closing = "Cordialement,"
+    signature = str((user_profile or {}).get("full_name") or "").strip()
+    body: list[str] = []
+
+    for part in parts:
+        compact = re.sub(r"\s+", " ", part).strip()
+        if not compact:
+            continue
+        if _LETTER_OBJECT_RE.match(compact) and not object_line:
+            object_line = compact
+            remainder = _LETTER_OBJECT_RE.sub("", compact).strip()
+            if remainder and remainder.lower() not in compact.lower()[:80]:
+                pass
+            continue
+        greet = _LETTER_GREETING_RE.match(compact)
+        if greet and len(body) == 0:
+            rest = compact[greet.end() :].strip(" ,")
+            if rest:
+                body.append(rest)
+            continue
+        close = _LETTER_CLOSING_RE.search(compact)
+        if close:
+            before = compact[: close.start()].strip(" ,")
+            after = compact[close.end() :].strip(" ,")
+            if before:
+                body.append(before)
+            if after and _looks_like_signature(after):
+                signature = signature or after
+            continue
+        if _looks_like_signature(compact) and body:
+            signature = signature or compact
+            continue
+        body.append(compact)
+
+    if len(body) == 1:
+        body = _split_wall_into_letter_paragraphs(body[0])
+    elif len(body) == 2:
+        extra = _split_wall_into_letter_paragraphs(body[1])
+        if len(extra) >= 2:
+            body = [body[0], *extra]
+    elif len(body) > 4:
+        intro = body[0]
+        conclusion = body[-1]
+        middle = " ".join(body[1:-1])
+        split_mid = _split_wall_into_letter_paragraphs(middle)
+        if len(split_mid) >= 2:
+            body = [intro, split_mid[0], split_mid[-1], conclusion]
+        else:
+            body = [intro, middle, conclusion]
+
+    if not object_line:
+        object_line = _default_letter_object(job)
+
+    blocks = [object_line, greeting, *body, closing]
+    if signature:
+        blocks.append(signature)
+    return "\n\n".join(block for block in blocks if block)
+
+
+def cover_letter_blocks(letter: str) -> list[str]:
+    return [item.strip() for item in re.split(r"\n\s*\n+", (letter or "").strip()) if item.strip()]
+
+
+def _letter_place_date(user_profile: dict[str, Any] | None) -> str:
+    months = (
+        "janvier",
+        "février",
+        "mars",
+        "avril",
+        "mai",
+        "juin",
+        "juillet",
+        "août",
+        "septembre",
+        "octobre",
+        "novembre",
+        "décembre",
+    )
+    today = date.today()
+    stamped = f"le {today.day} {months[today.month - 1]} {today.year}"
+    location = str(
+        (user_profile or {}).get("location")
+        or (user_profile or {}).get("city")
+        or ""
+    ).strip()
+    if location:
+        return f"{location}, {stamped}"
+    return stamped.capitalize() if stamped.startswith("le ") else stamped
+
+
 def render_cover_letter_pdf(
     letter: str,
     *,
@@ -2666,7 +2878,7 @@ def render_cover_letter_pdf(
     user_profile: dict[str, Any] | None = None,
     family: str | None = None,
 ) -> bytes:
-    """One-page professional letter using the same profession colors as the CV."""
+    """One-page modern letter: introduction, body, conclusion."""
     job = job or {}
     match = match or {}
     user_profile = user_profile or {}
@@ -2674,41 +2886,85 @@ def render_cover_letter_pdf(
     tpl = template_for(detected)
     name = str(user_profile.get("full_name") or "").strip() or "Candidat"
     title = str(match.get("titre_cv_recommande") or job.get("title") or tpl.label_fr)
-    pdf = ProfessionCvPdf(tpl, name, title)
-    pdf.set_left_margin(18)
-    pdf.set_right_margin(18)
-    pdf.add_page()
-    _set_fill(pdf, tpl.primary)
-    pdf.rect(0, 0, 210, 28, "F")
-    _set_fill(pdf, tpl.accent)
-    pdf.rect(0, 28, 210, 2.4, "F")
-    _set_text(pdf, tpl.header_text)
-    pdf.set_xy(18, 8)
-    pdf.set_font(tpl.font, "B", 16)
-    pdf.cell(0, 8, pdf_safe_text(name), align="L")
-    pdf.set_xy(18, 16)
-    pdf.set_font(tpl.font, "", 10)
+    shaped = normalize_cover_letter(letter, job=job, user_profile=user_profile)
+    blocks = cover_letter_blocks(shaped) or ["Lettre de motivation."]
     contact = "  ·  ".join(
-        p
-        for p in (
+        part
+        for part in (
             str(user_profile.get("email") or "").strip(),
             str(user_profile.get("phone") or "").strip(),
         )
-        if p
+        if part
     )
-    pdf.cell(0, 6, pdf_safe_text(contact or title), align="L")
-    pdf.set_y(40)
-    _set_text(pdf, tpl.muted)
-    pdf.set_font(tpl.font, "I", 10)
-    dest = "  ·  ".join(p for p in (str(job.get("company") or "").strip(), str(job.get("title") or "").strip()) if p)
-    if dest:
-        pdf.cell(0, 6, pdf_safe_text(f"Objet : candidature — {dest}"), align="L")
-        pdf.ln(10)
-    _set_text(pdf, tpl.ink)
-    pdf.set_font(tpl.font, "", 11)
-    body = (letter or "").strip() or "Lettre de motivation."
-    pdf.multi_cell(0, 6, pdf_safe_text(body), align="J")
-    return bytes(pdf.output())
+    place_date = _letter_place_date(user_profile)
+
+    def _build(font_pt: float, line_h: float, para_gap: float) -> ProfessionCvPdf:
+        pdf = ProfessionCvPdf(tpl, name, title, show_footer=False)
+        pdf.set_auto_page_break(auto=False, margin=12)
+        pdf.set_left_margin(18)
+        pdf.set_right_margin(18)
+        pdf.add_page()
+        _set_fill(pdf, tpl.primary)
+        pdf.rect(0, 0, 210, 28, "F")
+        _set_fill(pdf, tpl.accent)
+        pdf.rect(0, 28, 210, 2.4, "F")
+        _set_text(pdf, tpl.header_text)
+        pdf.set_xy(18, 8)
+        pdf.set_font(tpl.font, "B", 16)
+        pdf.cell(0, 8, pdf_safe_text(name), align="L")
+        pdf.set_xy(18, 16)
+        pdf.set_font(tpl.font, "", 10)
+        pdf.cell(0, 6, pdf_safe_text(contact or title), align="L")
+        pdf.set_y(36)
+        _set_text(pdf, tpl.muted)
+        pdf.set_font(tpl.font, "I", 10)
+        pdf.cell(0, 5, pdf_safe_text(place_date), align="R")
+        pdf.ln(8)
+        width = _content_width(pdf)
+        for index, block in enumerate(blocks):
+            safe = pdf_safe_text(block)
+            lower = block.strip().lower()
+            is_object = lower.startswith("objet")
+            is_greeting = bool(_LETTER_GREETING_RE.match(block.strip()))
+            is_closing = bool(_LETTER_CLOSING_RE.match(block.strip()))
+            is_sign = _looks_like_signature(block) and index == len(blocks) - 1
+            if is_object:
+                _set_text(pdf, tpl.ink)
+                pdf.set_font(tpl.font, "B", max(10, font_pt - 0.5))
+                pdf.multi_cell(width, line_h, safe, align="L")
+                pdf.ln(para_gap + 1)
+                continue
+            if is_greeting or is_closing:
+                _set_text(pdf, tpl.ink)
+                pdf.set_font(tpl.font, "", font_pt)
+                pdf.multi_cell(width, line_h, safe, align="L")
+                pdf.ln(para_gap)
+                continue
+            if is_sign:
+                _set_text(pdf, tpl.ink)
+                pdf.set_font(tpl.font, "B", font_pt)
+                pdf.multi_cell(width, line_h, safe, align="L")
+                continue
+            _set_text(pdf, tpl.ink)
+            pdf.set_font(tpl.font, "", font_pt)
+            pdf.multi_cell(width, line_h, safe, align="J")
+            pdf.ln(para_gap)
+        return pdf
+
+    chosen = None
+    for font_pt, line_h, para_gap in (
+        (11.0, 5.6, 3.2),
+        (10.5, 5.3, 2.8),
+        (10.0, 5.0, 2.4),
+        (9.5, 4.7, 2.0),
+    ):
+        pdf = _build(font_pt, line_h, para_gap)
+        if pdf.page_no() == 1 and pdf.get_y() <= 282:
+            chosen = pdf
+            break
+        chosen = pdf
+    assert chosen is not None
+    return bytes(chosen.output())
 
 
 def render_adapted_cv_pdf(

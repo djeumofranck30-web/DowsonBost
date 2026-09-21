@@ -395,6 +395,26 @@ def maybe_send_analysis_alert(
     return send_alert_email(user_email, subject, html, locale=lang)
 
 
+def _plain_to_simple_html(text: str) -> str:
+    """Turn a short plain-text mail into readable HTML paragraphs."""
+    blocks = [
+        html.escape(part.strip())
+        for part in (text or "").replace("\r\n", "\n").split("\n\n")
+        if part.strip()
+    ]
+    if not blocks:
+        return ""
+    inner = "".join(
+        f"<p style='margin:0 0 14px 0;line-height:1.55;font-size:15px;'>"
+        f"{block.replace(chr(10), '<br>')}</p>"
+        for block in blocks
+    )
+    return (
+        "<html><body style=\"font-family:Georgia,'Times New Roman',serif;"
+        f'color:#111827;background:#ffffff;padding:4px 2px;">{inner}</body></html>'
+    )
+
+
 def send_application_email(
     to_email: str,
     subject: str,
@@ -412,6 +432,7 @@ def send_application_email(
     ok, detail = _deliver_email(
         to_email,
         subject,
+        html_body=_plain_to_simple_html(body_text),
         text_body=body_text,
         attachments=attachments,
         reply_to=reply_to or sender,

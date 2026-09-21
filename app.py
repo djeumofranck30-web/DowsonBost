@@ -4171,7 +4171,7 @@ def _render_candidate_documents(
 
     if letter:
         with st.expander(t("job.cover_expander"), expanded=False):
-            st.text_area(t("job.letter_field"), letter, height=220, key=f"view_cover_{widget_key}")
+            st.text_area(t("job.letter_field"), letter, height=320, key=f"view_cover_{widget_key}")
             dl_l1, dl_l2 = st.columns(2)
             with dl_l1:
                 if letter_pdf:

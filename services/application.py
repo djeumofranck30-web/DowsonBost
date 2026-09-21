@@ -586,20 +586,44 @@ def _application_subject(job: dict[str, Any], profile: dict[str, str]) -> str:
 
 
 def _application_body(
-    letter: str,
-    profile_text: str,
+    job: dict[str, Any],
+    profile: dict[str, str],
     job_url: str,
     *,
     locale: str,
 ) -> str:
+    """Short recruiter e-mail: the PDF letter and CV are already attached."""
     from i18n import t
 
-    return (
-        f"{letter}\n\n"
-        f"---\n"
-        f"{profile_text}\n\n"
-        f"{t('job.apply_email_footer', locale=locale, url=job_url or '—')}"
+    title = str(job.get("title") or "cette offre").strip()
+    company = str(job.get("company") or "").strip()
+    name = str(profile.get("full_name") or "Candidat").strip()
+    company_bit = f" au sein de {company}" if company else ""
+    lines = [
+        t("job.apply_email_greeting", locale=locale),
+        "",
+        t(
+            "job.apply_email_intro",
+            locale=locale,
+            title=title,
+            company=company_bit,
+        ),
+        "",
+        t("job.apply_email_attachments", locale=locale),
+        "",
+        t("job.apply_email_close", locale=locale),
+        "",
+        t("job.apply_email_signoff", locale=locale),
+        name,
+    ]
+    contact = " · ".join(
+        part for part in (profile.get("phone") or "", profile.get("email") or "") if part
     )
+    if contact:
+        lines.append(contact)
+    if job_url:
+        lines.extend(["", t("job.apply_email_footer", locale=locale, url=job_url)])
+    return "\n".join(lines)
 
 
 def _send_user_application_copy(
@@ -625,9 +649,6 @@ def _send_user_application_copy(
     if not user_email or not email_configured():
         return False, t("job.apply_auto_missing_email", locale=locale)
     title = str(job.get("title") or "Offre").strip()
-    candidature = body_text or _application_body(
-        letter, profile_text, job_url, locale=locale
-    )
     intro = (
         t("job.apply_mail_copy_sent_intro", locale=locale, email=recruiter_email)
         if recruiter_email
@@ -640,9 +661,9 @@ def _send_user_application_copy(
     )
     body = (
         f"{intro}\n\n"
+        f"{t('job.apply_email_attachments', locale=locale)}\n\n"
         f"{next_line}\n"
-        f"{job_url or '—'}\n\n"
-        f"{candidature}"
+        f"{job_url or '—'}\n"
     )
     copy_subject = t(
         "job.apply_mail_copy_subject",
@@ -801,7 +822,7 @@ def submit_application_automatically(
             llm_call=llm_call,
             cover_letter_text=cover_letter_text,
             adapted_cv_text=adapted_cv_text,
-            skip_adapted=True,
+            skip_adapted=False,
         )
     except Exception as exc:
         return _empty_result(
@@ -815,7 +836,7 @@ def submit_application_automatically(
         )
 
     subject = _application_subject(job, profile)
-    body = _application_body(letter, profile_text, job_url, locale=locale)
+    body = _application_body(job, profile, job_url, locale=locale)
     attachments = application_document_attachments(
         letter,
         adapted,

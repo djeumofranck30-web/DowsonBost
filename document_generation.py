@@ -11,6 +11,7 @@ from cv_layout import (
     cv_text_for_candidate,
     detect_job_family,
     labeled_cv_text,
+    normalize_cover_letter,
     parse_adapted_cv,
     restore_experience_dates_locations,
     serialize_locked_experiences,
@@ -108,64 +109,84 @@ _STOPWORDS = {
 }
 
 COVER_LETTER_SYSTEM_PROMPT = """
-Tu es un expert en recrutement francophone. Rédige une lettre de motivation personnalisée,
-professionnelle et convaincante (250 à 400 mots), en français, ALIGNÉE À 100 % SUR L'OFFRE.
+Tu es un expert RH francophone. Avant d'écrire, mets-toi dans la peau du recruteur
+ou de la RH qui ouvrira ce PDF en 8 secondes : le titre, les compétences et la
+première phrase doivent prouver que cette lettre est FAITE pour CETTE offre.
 
-Objectif : le recruteur doit retrouver dans la lettre le vocabulaire, le titre et les
-exigences de l'annonce, tout en restant factuel par rapport au CV.
+Rédige une lettre de motivation MODERNE, sur UNE page A4, ALIGNÉE À 100 % SUR L'OFFRE,
+en français.
 
-Structure :
-- Objet / accroche liée au poste ET à l'entreprise (reprends l'intitulé exact de l'offre)
-- Paragraphe motivation + adéquation profil / offre (reprends le titre CV recommandé)
-- Paragraphe compétences : cite nommément les compétences présentes et partielles de l'analyse ATS
-  et les mots-clés de l'offre que le candidat possède déjà
-- Paragraphe expériences : reformule les missions du CV ANALYSÉ avec le vocabulaire de l'annonce.
-  N'oublie aucune mission importante de ce CV. Tu peux en citer une supplémentaire si l'offre
-  l'exige et que c'est cohérent avec le parcours réel.
-  Tu peux adapter le TITRE du poste ; recopie EXACTEMENT les dates et le lieu du CV original.
-- Conclusion / disponibilité avec appel à l'action
+INTERDIT : un seul paragraphe / un seul bloc. Si tu colles tout ensemble, la lettre est refusée.
 
-Règles :
-- Applique l'intention de CHAQUE « Modification ATS » (mots-clés, angle, priorités) dans le texte.
-- Cite nommément les compétences de l'offre (y compris une techno exigée absente du CV original,
-  uniquement comme compétence, sans inventer un poste).
-- Reformule les missions du CV d'origine (celui de l'analyse) ; ne les néglige pas.
-- Tu peux ajouter une mission seulement si elle reflète un travail déjà présent ou fortement
-  impliqué dans ce CV, pour coller à l'offre — pas de fiction.
-- Ne invente pas de diplômes, employeurs, dates ou certifications.
-- Ne change JAMAIS les dates ni le lieu d'une expérience personnelle (ville, période).
+STRUCTURE OBLIGATOIRE — une ligne blanche réelle entre CHAQUE bloc :
+
+1) Objet : Candidature au poste de [intitulé EXACT de l'offre] — [entreprise]
+2) Madame, Monsieur,
+3) INTRODUCTION (1 paragraphe, 4 à 6 lignes) :
+   accroche claire — pourquoi CE poste, CETTE entreprise, CE type de contrat ;
+   relie le titre CV recommandé à l'intitulé de l'offre.
+4) CORPS 1 — compétences (1 paragraphe, 6 à 8 lignes) :
+   cite nommément les compétences présentes et partielles de l'analyse ATS
+   et les mots-clés de l'offre que le candidat possède déjà (y compris une techno
+   exigée absente du CV original, uniquement comme compétence, sans inventer un poste).
+5) CORPS 2 — expériences (1 paragraphe, 6 à 8 lignes) :
+   reformule les missions du CV ANALYSÉ avec le vocabulaire de l'annonce.
+   N'oublie aucune mission importante. Tu peux en citer une supplémentaire si l'offre
+   l'exige et que c'est cohérent avec le parcours réel.
+   Tu peux adapter le TITRE du poste ; recopie EXACTEMENT les dates et le lieu du CV original.
+6) CONCLUSION (1 paragraphe, 3 à 5 lignes) :
+   disponibilité, demande d'entretien, remerciement — appel à l'action concret.
+7) Cordialement,
+8) Prénom Nom du candidat
+
+Règles de forme :
+- 280 à 380 mots au total. Une page, pas plus.
+- Ton professionnel, vivant, concret : faits du CV, pas de phrases vides.
+- Pas de puces, pas de markdown, pas de titres « Introduction » / « Corps » visibles.
+- Pas de « Je me permets de » en boucle. Varie les ouvertures de paragraphe.
+
+Règles de fond :
+- Applique l'intention de CHAQUE « Modification ATS » (mots-clés, angle, priorités).
+- Reformule les missions du CV d'origine ; ne les néglige pas.
+- N'invente pas de diplômes, employeurs, dates ou certifications.
+- Ne change JAMAIS les dates ni le lieu d'une expérience (ville, période).
 - Si un mot-clé de l'offre correspond à une mission déjà décrite, utilise le mot-clé de l'offre.
 - Retourne UNIQUEMENT le texte de la lettre (pas de JSON, pas de markdown).
 """
 
 ADAPTED_CV_SYSTEM_PROMPT = """
 Tu es un expert ATS et rédacteur de CV francophone.
+Avant d'écrire, mets-toi dans la peau du recruteur / de la RH qui scanne le CV
+en 8 secondes : le TITRE, la première ligne de PROFIL et les compétences doivent
+coller à l'intitulé EXACT de l'offre. Sinon le CV est jeté.
 
 Ta mission : produire un NOUVEAU CV complet, réécrit de zéro, qui correspond à 100 %
-à l'offre ciblée : un ATS doit y retrouver le titre recommandé, toutes les compétences
-présentes/partielles, et l'effet de CHAQUE modification ATS listée.
+à l'offre ciblée : un ATS et un humain doivent y retrouver le titre de l'offre,
+toutes les compétences de l'annonce, et l'effet de CHAQUE modification ATS listée.
 
 Règles strictes :
 1. Chaque modification ATS listée doit être visible dans le CV final (reformulation, section, mot-clé, ordre).
-2. Le champ TITRE doit être exactement le « Titre CV recommandé ».
+2. Le champ TITRE doit être EXACTEMENT l'intitulé de l'offre (ou le « Titre CV recommandé » s'il est plus précis).
 3. Réécris ENTIÈREMENT la section ## COMPETENCES : en tête, TOUTES les compétences
    et technos de l'offre (obligatoires, stack, mots-clés ATS), avec les LIBELLÉS EXACTS
    de l'annonce, séparées par « | ». Si une techno est dans l'offre mais pas dans le CV
    original, AJOUTE-LA quand même dans cette section (c'est la seule invention autorisée :
    le mot-clé, pas un faux job). Ensuite, les autres compétences réelles du CV original.
 4. Intègre les synonymes de l'offre (JS → JavaScript) et les mots-clés manquants.
-5. Missions du CV analysé :
-   - Reformule TOUTES les missions d'origine avec le vocabulaire EXACT de l'offre (ne les supprime pas).
+5. Missions du CV analysé — adapte-les pour captiver le recruteur de CETTE offre :
+   - Reformule TOUTES les missions d'origine avec le vocabulaire EXACT de l'annonce
+     (outils, normes, livrables, verbes de l'offre). Ne les supprime pas.
    - UNE seule puce par mission : ne recopie pas l'originale à côté de la version reformulée.
    - Tu PEUX ajouter 1 à 3 missions supplémentaires SI elles correspondent à un travail réel
      du CV original (ou fortement impliqué), pour coller à l'offre, et si elles n'existent pas déjà.
    - N'invente pas une mission entière autour d'une techno absente du parcours : elle va dans COMPETENCES.
-   - Tu PEUX adapter le champ POSTE (titre) pour coller à l'offre.
+   - Tu PEUX adapter le champ POSTE (titre) pour coller à l'offre (ex. « Technicien support »
+     → « Technicien support — ISO 27001 / conformité » si l'offre le justifie).
    - Tu NE DOIS PAS modifier PERIODE (dates) ni LIEU, ni l'entreprise : recopie-les tels quels.
 6. Ne invente JAMAIS de diplôme, entreprise, date, lieu ou certification.
 7. Réécriture complète (nouvelle structure, nouvelles formulations), pas un copier-coller.
 8. Document FINAL prêt à envoyer (norme France 2026 : UNE page A4, une colonne, titres ATS classiques).
-   Profil court (3-4 lignes), sans recopie de la liste COMPETENCES.
+   Profil court (3-4 lignes) qui paraphrase l'offre, sans recopie de la liste COMPETENCES.
    Missions : 3 à 5 puces max par poste, une idée par puce, phrase complète, sans doublon.
    N'ajoute JAMAIS de section « Modifications appliquées », « Modifications à apporter au CV »,
    « MODIFICATIONS APPLIQUÉES » ni aucun journal de changements.
@@ -553,6 +574,13 @@ def _alignment_checklist(alignment: dict[str, Any], *, kind: str) -> str:
 def _rewrite_instruction(kind: str, gaps: list[str]) -> str:
     label = "CV" if kind == "cv" else "lettre de motivation"
     gap_lines = "\n".join(f"- {gap}" for gap in gaps)
+    structure = ""
+    if kind == "letter":
+        structure = (
+            " Conserve la structure moderne : Objet, Madame, Monsieur, "
+            "INTRODUCTION, CORPS compétences, CORPS expériences, CONCLUSION, "
+            "Cordialement — chaque bloc séparé par une ligne vide. Jamais un seul paragraphe."
+        )
     return (
         f"Le {label} précédent n'est PAS encore aligné à 100 % sur l'offre. "
         f"Éléments encore absents :\n{gap_lines}\n\n"
@@ -560,6 +588,7 @@ def _rewrite_instruction(kind: str, gaps: list[str]) -> str:
         "Garde les missions du CV original (reformulées, une seule fois chacune) ; "
         "tu peux en ajouter si besoin, sans doublon. "
         "Ne change pas les dates ni le lieu des expériences ; tu peux adapter le titre du poste."
+        f"{structure}"
     )
 
 
@@ -601,6 +630,22 @@ def _restore_experience_anchors(generated_text: str, original_cv: str) -> str:
     return labeled_cv_text(restored, fallback=cleaned) or cleaned
 
 
+def _force_offer_title(
+    generated_text: str,
+    job: dict[str, Any],
+    match: dict[str, Any],
+) -> str:
+    """Keep the CV headline identical to the offer the recruiter posted."""
+    title = str(
+        (match or {}).get("titre_cv_recommande") or (job or {}).get("title") or ""
+    ).strip()
+    if not title:
+        return generated_text
+    if re.search(r"(?im)^TITRE\s*:", generated_text or ""):
+        return re.sub(r"(?im)^TITRE\s*:.*$", f"TITRE: {title}", generated_text, count=1)
+    return f"TITRE: {title}\n{generated_text}"
+
+
 def generate_cover_letter(
     cv_text: str,
     job: dict[str, Any],
@@ -614,7 +659,9 @@ def generate_cover_letter(
     user_prompt = (
         f"{_candidate_block(cv_text, match, user_profile)}\n\n"
         f"=== OFFRE CIBLÉE ===\n{_job_block(job)}\n\n"
-        "Rédige la lettre de motivation. Elle doit coller à 100 % à cette offre : "
+        "Rédige la lettre de motivation moderne (introduction / corps / conclusion), "
+        "UNE page, paragraphes séparés par une ligne vide — jamais un seul bloc. "
+        "Elle doit coller à 100 % à cette offre : "
         "reprends le titre, l'entreprise, et cite nommément les compétences de l'offre "
         "(y compris une techno exigée absente du CV original) ainsi que l'intention "
         "de chaque modification ATS. "
@@ -623,13 +670,18 @@ def generate_cover_letter(
         "Tu peux adapter le titre d'un poste ; recopie exactement les dates et le lieu "
         "de chaque expérience. Pas de faux employeur, diplôme, date ou ville."
     )
+
+    def _shape_letter(text: str) -> str:
+        return normalize_cover_letter(text, job=job, user_profile=user_profile)
+
     return _generate_aligned_document(
         kind="letter",
         system_prompt=COVER_LETTER_SYSTEM_PROMPT,
         base_user_prompt=user_prompt,
         llm_call=llm_call,
         alignment=alignment,
-        max_tokens=1600,
+        max_tokens=2000,
+        postprocess=_shape_letter,
     )
 
 
@@ -648,7 +700,8 @@ def generate_adapted_cv(
         f"{_candidate_block(cv_text, match, user_profile)}\n\n"
         f"=== OFFRE CIBLÉE ===\n{_job_block(job)}\n\n"
         "Réécris un CV complet et nouveau, aligné à 100 % sur cette offre. "
-        "Le champ TITRE = titre CV recommandé. "
+        "Mets-toi dans la peau du recruteur : le champ TITRE = l'intitulé EXACT de l'offre "
+        "(ou le titre CV recommandé s'il est plus précis). "
         "Réécris ## COMPETENCES en entier : d'abord TOUTES les technos et compétences "
         "de l'offre (même celles absentes du CV original — ajoute-les seulement dans "
         "cette liste, sans faux poste), libellés exacts séparés par | , puis le reste du CV. "
@@ -670,7 +723,9 @@ def generate_adapted_cv(
         llm_call=llm_call,
         alignment=alignment,
         max_tokens=4800,
-        postprocess=cv_text_for_candidate,
+        postprocess=lambda text: _force_offer_title(
+            cv_text_for_candidate(text), job, match
+        ),
     )
     return _restore_experience_anchors(generated, cv_text)
 

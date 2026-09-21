@@ -302,4 +302,32 @@ def test_generate_cover_letter_prompt_keeps_original_missions():
     )
     assert "NovaTech" in letter
     assert "APIs REST" in letter or "CI/CD" in letter
+    assert "Madame, Monsieur," in letter
+    assert letter.count("\n\n") >= 3
+
+
+def test_cover_letter_prompt_is_structured_for_recruiter():
+    from document_generation import ADAPTED_CV_SYSTEM_PROMPT, COVER_LETTER_SYSTEM_PROMPT
+
+    assert "INTRODUCTION" in COVER_LETTER_SYSTEM_PROMPT
+    assert "CONCLUSION" in COVER_LETTER_SYSTEM_PROMPT
+    assert "recruteur" in COVER_LETTER_SYSTEM_PROMPT.lower()
+    assert "peau du recruteur" in ADAPTED_CV_SYSTEM_PROMPT.lower()
+    assert "intitulé EXACT" in ADAPTED_CV_SYSTEM_PROMPT or "intitulé exact" in ADAPTED_CV_SYSTEM_PROMPT.lower()
+
+
+def test_generate_adapted_cv_forces_offer_title():
+    def fake_llm(system: str, user: str, **kwargs: object) -> str:
+        assert "peau du recruteur" in system.lower() or "intitulé" in user.lower()
+        return ALIGNED_CV.replace("TITRE: Développeuse Python", "TITRE: Ingénieure logiciel")
+
+    result = generate_adapted_cv(
+        ORIGINAL_CV,
+        JOB,
+        FULL_MATCH,
+        {"full_name": "Jane Doe"},
+        llm_call=fake_llm,
+    )
+    assert "TITRE: Développeuse Python" in result
+    assert "TITRE: Ingénieure logiciel" not in result
 
