@@ -1957,6 +1957,12 @@ def _append_llm_switch_notice(from_provider: str, to_provider: str, reason: str)
             ),
         }
     )
+    try:
+        from services.admin_events import record_llm_quota
+
+        record_llm_quota(provider=from_provider, reason=reason, switched_to=to_provider)
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def call_llm(system_prompt: str, user_prompt: str, *, max_tokens: int = 1200) -> str:
@@ -1986,6 +1992,12 @@ def call_llm(system_prompt: str, user_prompt: str, *, max_tokens: int = 1200) ->
                     except Exception:  # noqa: BLE001
                         pass
                     errors.append("Groq : quota / rate limit")
+                    try:
+                        from services.admin_events import record_llm_quota
+
+                        record_llm_quota(provider="groq", reason="quota / rate limit")
+                    except Exception:  # noqa: BLE001
+                        pass
                     continue
                 except Exception as exc:  # noqa: BLE001
                     errors.append(f"{provider} : {str(exc)[:120]}")
@@ -2020,6 +2032,13 @@ def call_llm(system_prompt: str, user_prompt: str, *, max_tokens: int = 1200) ->
             errors.append("Groq : quota / rate limit")
             if idx + 1 < len(chain):
                 _append_llm_switch_notice("groq", chain[idx + 1], "quota atteint")
+            else:
+                try:
+                    from services.admin_events import record_llm_quota
+
+                    record_llm_quota(provider="groq", reason="quota atteint")
+                except Exception:  # noqa: BLE001
+                    pass
             continue
         except RuntimeError as exc:
             err = str(exc)

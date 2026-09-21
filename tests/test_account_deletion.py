@@ -23,6 +23,7 @@ from persistence import (
     save_notification_settings,
     upsert_active_cv_document,
 )
+from services.admin_events import list_admin_events
 from services.profile_photo import save_profile_photo
 
 
@@ -171,6 +172,12 @@ def test_delete_user_account_removes_all_personal_data(sqlite_db):
     assert _count_for_user("analysis_jobs", user_id) == 0
     assert list_analyses(user_id) == []
     assert list_user_applications(user_id) == []
+    leftover = [
+        item for item in list_admin_events(limit=200)
+        if item.get("user_email") == "jane@example.com"
+    ]
+    assert leftover
+    assert all(item.get("user_id") is None for item in leftover)
 
     ok_again, msg_again = register_user(
         "Jane Doe",

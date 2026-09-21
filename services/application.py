@@ -780,8 +780,18 @@ def submit_application_automatically(
     job_url = str(job.get("url") or "").strip()
     profile_text = format_application_profile_text(profile)
 
+    def _tracked(**overrides: Any) -> ApplicationResult:
+        result = _empty_result(**overrides)
+        try:
+            from services.admin_events import record_application_event
+
+            record_application_event(user_profile, job, result)
+        except Exception:  # noqa: BLE001
+            pass
+        return result
+
     if not profile.get("email"):
-        return _empty_result(
+        return _tracked(
             method="missing_profile",
             message=t("job.apply_auto_missing_email", locale=locale),
             profile_text=profile_text,
@@ -789,7 +799,7 @@ def submit_application_automatically(
         )
 
     if not email_configured():
-        return _empty_result(
+        return _tracked(
             method="email_not_configured",
             message=t("job.apply_auto_mail_not_configured", locale=locale),
             profile_text=profile_text,
@@ -825,7 +835,7 @@ def submit_application_automatically(
             skip_adapted=False,
         )
     except Exception as exc:
-        return _empty_result(
+        return _tracked(
             method="generation_error",
             message=t("job.apply_auto_generation_error", locale=locale, error=str(exc)),
             cover_letter=cover_letter_text or "",
@@ -879,7 +889,7 @@ def submit_application_automatically(
                     f"{message} "
                     f"{t('job.apply_user_confirmation_sent', locale=locale, email=sender_email)}"
                 )
-            return _empty_result(
+            return _tracked(
                 success=True,
                 method="email",
                 message=message,
@@ -894,7 +904,7 @@ def submit_application_automatically(
                 email_body=body,
                 email_from=sender_email,
             )
-        return _empty_result(
+        return _tracked(
             method="email_failed",
             message=t("job.apply_auto_email_failed", locale=locale, error=detail),
             cover_letter=letter,
@@ -926,7 +936,7 @@ def submit_application_automatically(
         locale=locale,
     )
     if not pack_ok:
-        return _empty_result(
+        return _tracked(
             method="email_failed",
             message=t("job.apply_auto_email_failed", locale=locale, error=copy_detail),
             cover_letter=letter,
@@ -956,7 +966,7 @@ def submit_application_automatically(
             f"{message} "
             f"{t('job.apply_user_confirmation_sent', locale=locale, email=sender_email)}"
         )
-    return _empty_result(
+    return _tracked(
         success=True,
         method="prepared",
         message=f"{message} {missing}",

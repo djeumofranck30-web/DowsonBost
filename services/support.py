@@ -65,6 +65,12 @@ def send_user_support_message(
         text,
         conversation_id=int(conversation_id) if conversation_id else None,
     )
+    try:
+        from services.admin_events import record_support_message_event
+
+        record_support_message_event(user_id=int(user_id), preview=text)
+    except Exception:  # noqa: BLE001
+        pass
     return True, "Message envoyé.", message
 
 

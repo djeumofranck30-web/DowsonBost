@@ -86,7 +86,10 @@ _PERSISTENCE_SCHEMA_KEY = (
     "user_profile_photos_v1",
     "analysis_jobs_v1",
     "notification_settings_v2",
+    "admin_events_v1",
 )
+_AUDIT_TABLES = frozenset({"admin_events"})
+
 _persistence_initialized_for: tuple[str, ...] | None = None
 
 
@@ -741,8 +744,10 @@ def init_persistence_tables() -> None:
         _create_user_profile_photos_table(conn)
         _create_analysis_jobs_table(conn)
         from services.llm_usage import ensure_llm_usage_table
+        from services.admin_events import ensure_admin_events_table
 
         ensure_llm_usage_table(conn)
+        ensure_admin_events_table(conn)
         _ = existing_columns(conn, "analyses")
     _persistence_initialized_for = _PERSISTENCE_SCHEMA_KEY
 
@@ -803,9 +808,14 @@ def delete_all_user_data(conn: Any, user_id: int) -> None:
         conn.execute(adapt_sql(f"DELETE FROM {table} WHERE user_id = ?"), (user_id,))
         deleted.add(table)
     for table in _tables_with_user_id_column(conn):
-        if table in deleted or table == "users":
+        if table in deleted or table == "users" or table in _AUDIT_TABLES:
             continue
         conn.execute(adapt_sql(f"DELETE FROM {table} WHERE user_id = ?"), (user_id,))
+    if _table_exists(conn, "admin_events"):
+        conn.execute(
+            adapt_sql("UPDATE admin_events SET user_id = NULL WHERE user_id = ?"),
+            (user_id,),
+        )
 
 
 def _delete_users_by_id_or_email(conn: Any, user_id: int, email: str) -> None:

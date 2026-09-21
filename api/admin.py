@@ -11,6 +11,7 @@ from api.deps import current_admin
 from api.security import create_admin_token
 from auth import authenticate_admin, get_user_by_id
 from services.admin import admin_delete_user, list_registered_users, platform_overview, public_user_record
+from services.admin_events import list_admin_alerts, list_admin_events, mark_admin_events_read
 from services.support import (
     admin_support_conversations,
     admin_support_thread,
@@ -38,6 +39,11 @@ class SupportReplyRequest(BaseModel):
     body: str = Field(min_length=1, max_length=4000)
 
 
+class AlertReadRequest(BaseModel):
+    event_ids: list[int] = Field(default_factory=list)
+    all_unread: bool = False
+
+
 @router.post("/login", response_model=AdminTokenResponse)
 def admin_login(body: AdminLoginRequest) -> AdminTokenResponse:
     ok, message, admin = authenticate_admin(body.email, body.password)
@@ -56,6 +62,25 @@ def admin_overview(user: dict[str, Any] = Depends(current_admin)) -> dict[str, A
         "full_name": user.get("full_name") or "",
     }
     return payload
+
+
+@router.get("/events")
+def admin_events(user: dict[str, Any] = Depends(current_admin)) -> dict[str, Any]:
+    return {"events": list_admin_events(limit=200)}
+
+
+@router.get("/alerts")
+def admin_alerts(user: dict[str, Any] = Depends(current_admin)) -> dict[str, Any]:
+    return {"alerts": list_admin_alerts(limit=100)}
+
+
+@router.post("/alerts/read")
+def admin_alerts_read(
+    body: AlertReadRequest,
+    user: dict[str, Any] = Depends(current_admin),
+) -> dict[str, Any]:
+    updated = mark_admin_events_read(body.event_ids, all_unread=body.all_unread)
+    return {"updated": updated, "alerts": list_admin_alerts(limit=100)}
 
 
 @router.get("/users")

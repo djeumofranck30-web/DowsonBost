@@ -1180,6 +1180,12 @@ def register_user(
         sent, _ = send_welcome_email(email, full_name, login_url, locale=language)
     except Exception:  # noqa: BLE001 — registration must succeed even if mail fails
         sent = False
+    try:
+        from services.admin_events import record_user_registered
+
+        record_user_registered(email=email, full_name=full_name)
+    except Exception:  # noqa: BLE001
+        pass
     if sent:
         return True, t("auth.register.success_email_sent", locale=language)
     return True, t("auth.register.success", locale=language)
@@ -1206,8 +1212,20 @@ def authenticate_user(email: str, password: str) -> tuple[bool, str, dict | None
         ).fetchone()
 
     if not row:
+        try:
+            from services.admin_events import record_user_login_failed
+
+            record_user_login_failed(email=email, reason="E-mail inconnu")
+        except Exception:  # noqa: BLE001
+            pass
         return False, t("auth.login.unknown_email"), None
     if not _verify_password(password, row["password_hash"]):
+        try:
+            from services.admin_events import record_user_login_failed
+
+            record_user_login_failed(email=email, reason="Mot de passe incorrect")
+        except Exception:  # noqa: BLE001
+            pass
         return False, t("auth.login.invalid"), None
 
     user = _row_to_user(row, include_created=True)
@@ -1220,6 +1238,16 @@ def authenticate_user(email: str, password: str) -> tuple[bool, str, dict | None
     user["last_login_at"] = now
     user["is_admin"] = False
     user["admin_authenticated"] = False
+    try:
+        from services.admin_events import record_user_login
+
+        record_user_login(
+            user_id=int(user["id"]),
+            email=str(user.get("email") or email),
+            full_name=str(user.get("full_name") or ""),
+        )
+    except Exception:  # noqa: BLE001
+        pass
     return True, t("auth.login.success"), user
 
 
@@ -1426,7 +1454,18 @@ def update_user_profile(
             (user_id,),
         ).fetchone()
 
-    return True, t("auth.profile.updated"), _row_to_user(row, include_created=True)
+    updated = _row_to_user(row, include_created=True)
+    try:
+        from services.admin_events import record_profile_update
+
+        record_profile_update(
+            user_id=int(user_id),
+            email=str(updated.get("email") or ""),
+            full_name=str(updated.get("full_name") or full_name),
+        )
+    except Exception:  # noqa: BLE001
+        pass
+    return True, t("auth.profile.updated"), updated
 
 
 def change_password(

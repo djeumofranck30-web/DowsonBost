@@ -52,7 +52,7 @@
     .brand h1 span { color: var(--violet); }
     .brand p { margin: 0; color: var(--muted); font-size: .78rem; font-weight: 500; }
     .top-actions { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
-    .tabs { display: flex; background: #F3F4F6; padding: 4px; border-radius: 8px; }
+    .tabs { display: flex; background: #F3F4F6; padding: 4px; border-radius: 8px; flex-wrap: wrap; }
     .tabs button {
       border: 0; background: transparent; color: var(--muted); font-weight: 600;
       padding: .28rem .7rem; border-radius: 999px; cursor: pointer; transition: .2s;
@@ -75,6 +75,26 @@
       padding: 1.05rem 1.15rem; box-shadow: var(--shadow); animation: rise .55s ease both;
       position: relative; overflow: hidden;
     }
+    .kpi.warn-kpi .value { color: #B91C1C; }
+    .alert-banner {
+      display: flex; justify-content: space-between; align-items: center; gap: .8rem;
+      background: #FEF2F2; border: 1px solid #FECACA; color: #9F1239;
+      border-radius: 14px; padding: .85rem 1rem; margin: 1rem 0 0;
+    }
+    .alert-banner strong { display: block; }
+    .alert-banner span { font-size: .82rem; }
+    .event-feed { display: flex; flex-direction: column; gap: .55rem; }
+    .event-card {
+      border: 1px solid var(--line); border-radius: 14px; padding: .75rem .9rem;
+      background: #fff; border-left: 4px solid var(--violet);
+    }
+    .event-card.error { border-left-color: #EF4444; background: #FFF7F7; }
+    .event-card.warning { border-left-color: #F59E0B; background: #FFFBEB; }
+    .event-card .meta { color: var(--muted); font-size: .75rem; margin-top: .2rem; }
+    .event-table { width: 100%; border-collapse: collapse; min-width: 640px; }
+    .event-table th, .event-table td { text-align: left; padding: .65rem .5rem; border-bottom: 1px solid #f1f5f9; font-size: .86rem; vertical-align: top; }
+    .event-table th { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
+    .ops { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
     .kpi::after {
       content: ""; position: absolute; inset: auto -20px -30px auto; width: 90px; height: 90px;
       border-radius: 50%; background: linear-gradient(135deg, rgba(14,116,144,.16), transparent);
@@ -232,11 +252,11 @@
       to { opacity: 1; transform: none; }
     }
     @media (max-width: 980px) {
-      .kpis, .grid, .insight-kpis, .bento, .split, .quality-layout { grid-template-columns: 1fr 1fr; }
+      .kpis, .grid, .insight-kpis, .bento, .split, .quality-layout, .ops { grid-template-columns: 1fr 1fr; }
       header.top { flex-direction: column; align-items: stretch; }
     }
     @media (max-width: 640px) {
-      .kpis, .grid, .insight-kpis, .bento, .split, .quality-layout { grid-template-columns: 1fr; }
+      .kpis, .grid, .insight-kpis, .bento, .split, .quality-layout, .ops { grid-template-columns: 1fr; }
       .shell { padding: .85rem .75rem 1.5rem; }
     }
   </style>
@@ -273,6 +293,8 @@
       <div class="top-actions">
         <nav class="tabs">
           <button type="button" class="active" data-tab="overview">Vue d’ensemble</button>
+          <button type="button" data-tab="alerts" id="tab-alerts-btn">Alertes</button>
+          <button type="button" data-tab="activity" id="tab-activity-btn">Activité</button>
           <button type="button" data-tab="users">Utilisateurs</button>
           <button type="button" data-tab="support" id="tab-support-btn">Support</button>
         </nav>
@@ -281,11 +303,12 @@
     </header>
 
     <section id="tab-overview">
+      <div id="alert-banner" class="alert-banner hidden"></div>
       <div class="kpis">
         <article class="kpi"><div class="label">Utilisateurs</div><div class="value" id="kpi-users">0</div><div class="hint" id="kpi-active">actifs</div></article>
         <article class="kpi"><div class="label">Tokens consommés</div><div class="value" id="kpi-tokens">0</div><div class="hint" id="kpi-calls">appels IA</div></article>
         <article class="kpi"><div class="label">Analyses</div><div class="value" id="kpi-analyses">0</div><div class="hint" id="kpi-analyses-hint">matching CV / offres</div></article>
-        <article class="kpi"><div class="label">Administrateurs</div><div class="value" id="kpi-admins">0</div><div class="hint">comptes protégés</div></article>
+        <article class="kpi warn-kpi"><div class="label">Incidents ouverts</div><div class="value" id="kpi-alerts">0</div><div class="hint" id="kpi-queue-hint">file d’analyse</div></article>
       </div>
       <div class="insight-kpis">
         <article class="kpi hero">
@@ -299,6 +322,22 @@
         <article class="kpi"><div class="label">Offres scorées</div><div class="value" id="kpi-matches">0</div><div class="hint">résultats d’analyse</div></article>
         <article class="kpi"><div class="label">Matches forts</div><div class="value" id="kpi-high">0</div><div class="hint">score ≥ 75</div></article>
         <article class="kpi"><div class="label">Candidatures</div><div class="value" id="kpi-applied">0</div><div class="hint" id="kpi-applied-hint">lancées depuis le matching</div></article>
+      </div>
+      <div class="ops">
+        <article class="card">
+          <div class="board-head">
+            <h2>File d’analyse</h2>
+            <p>Tickets en cours et derniers échecs</p>
+          </div>
+          <div id="queue-board"></div>
+        </article>
+        <article class="card">
+          <div class="board-head">
+            <h2>Derniers incidents</h2>
+            <p>Blocages, limites IA, analyses en échec</p>
+          </div>
+          <div id="overview-alerts" class="event-feed"></div>
+        </article>
       </div>
       <div class="bento">
         <article class="card">
@@ -348,6 +387,42 @@
         <article class="card"><h2>Consommation de tokens</h2><canvas id="chart-tokens"></canvas></article>
         <article class="card"><h2>Tokens par utilisateur</h2><canvas id="chart-users"></canvas></article>
       </div>
+    </section>
+
+    <section id="tab-alerts" class="hidden">
+      <article class="card" style="margin-top:1.2rem">
+        <div class="board-head">
+          <h2>Alertes incidents</h2>
+          <p>Notification directe : échec d’analyse, blocage, limite IA / SerpAPI, candidature.</p>
+        </div>
+        <div id="alerts-feed" class="event-feed"></div>
+      </article>
+    </section>
+
+    <section id="tab-activity" class="hidden">
+      <article class="card" style="margin-top:1.2rem">
+        <div class="board-head">
+          <h2>Journal d’activité</h2>
+          <p>Chaque action candidate est horodatée et classée.</p>
+        </div>
+        <div class="toolbar">
+          <input id="activity-search" placeholder="Rechercher un nom, un e-mail, un type d’action…" />
+        </div>
+        <div class="table-wrap">
+          <table class="event-table">
+            <thead>
+              <tr>
+                <th>Quand</th>
+                <th>Type</th>
+                <th>Candidat</th>
+                <th>Détail</th>
+              </tr>
+            </thead>
+            <tbody id="activity-body"></tbody>
+          </table>
+        </div>
+        <div id="activity-empty" class="empty hidden">Aucune activité enregistrée.</div>
+      </article>
     </section>
 
     <section id="tab-users" class="hidden">
@@ -573,7 +648,15 @@
       $("kpi-tokens").textContent = fmt.format(k.tokens_total || 0);
       $("kpi-calls").textContent = `${fmt.format(k.llm_calls || 0)} appels IA`;
       $("kpi-analyses").textContent = fmt.format(k.analyses_total || 0);
-      $("kpi-admins").textContent = fmt.format(k.admins || 0);
+      if ($("kpi-alerts")) $("kpi-alerts").textContent = fmt.format(k.alerts_unread || (data.activity && data.activity.unread_alerts) || 0);
+      if ($("kpi-admins")) $("kpi-admins").textContent = fmt.format(k.admins || 0);
+      const queue = data.queue || {};
+      const queueHint = $("kpi-queue-hint");
+      if (queueHint) {
+        queueHint.textContent = (Number(queue.running || 0) + Number(queue.queued || 0))
+          ? (fmt.format(queue.running || 0) + " en cours · " + fmt.format(queue.queued || 0) + " en file · " + fmt.format(queue.failed || 0) + " échecs")
+          : (fmt.format(k.admins || 0) + " admin · file d’analyse");
+      }
       const insight = (data.analysis && data.analysis.kpis) || {};
       const avg = Number(k.avg_score || insight.avg_score || 0);
       const matches = Number(k.matches_total || insight.matches_total || 0);
@@ -721,6 +804,104 @@
         .replaceAll('"', "&quot;");
     }
 
+    function eventWho(item) {
+      const name = (item && item.user_name) || "";
+      const email = (item && item.user_email) || "";
+      if (name && email) return name + " · " + email;
+      return name || email || "Compte inconnu";
+    }
+
+    function renderEventCard(item) {
+      const severity = escapeHtml(item.severity || "info");
+      return '<article class="event-card ' + severity + '">'
+        + '<strong>' + escapeHtml(item.title || item.kind_label || "Incident") + '</strong>'
+        + '<div class="meta">' + escapeHtml(formatDate(item.created_at)) + ' · '
+        + escapeHtml(eventWho(item)) + ' · ' + escapeHtml(item.kind_label || item.kind || "")
+        + (item.unread ? " · non lu" : "") + '</div>'
+        + '<div style="margin-top:.35rem">' + escapeHtml(item.message || "") + '</div>'
+        + '</article>';
+    }
+
+    function renderQueueBoard(data) {
+      const box = $("queue-board");
+      if (!box) return;
+      const queue = (data && data.queue) || {};
+      const active = queue.active || [];
+      const failed = queue.recent_failures || [];
+      const summary = '<p style="margin:0 0 .7rem;color:var(--muted);font-size:.82rem">'
+        + fmt.format(queue.running || 0) + " en cours · "
+        + fmt.format(queue.queued || 0) + " en file · "
+        + fmt.format(queue.failed || 0) + " échecs · "
+        + fmt.format(queue.completed || 0) + " terminées</p>";
+      const activeHtml = active.length ? active.map((job) => {
+        return '<div class="event-card info"><strong>' + escapeHtml(job.full_name || job.email || "Candidat")
+          + '</strong><div class="meta">' + escapeHtml(job.status || "") + " · "
+          + fmt.format(job.progress_percent || 0) + "% · "
+          + escapeHtml(job.progress_label || job.analysis_depth || "") + '</div></div>';
+      }).join("") : '<p class="empty" style="padding:.4rem 0">Aucune analyse en file.</p>';
+      const failedHtml = failed.length ? '<div style="margin-top:.8rem"><strong style="font-size:.82rem">Derniers échecs</strong>'
+        + failed.map((job) => '<div class="event-card error" style="margin-top:.45rem"><strong>'
+          + escapeHtml(job.full_name || job.email || "Candidat") + '</strong>'
+          + '<div class="meta">' + escapeHtml(formatDate(job.created_at)) + '</div>'
+          + '<div style="margin-top:.3rem">' + escapeHtml(job.error_message || "Analyse impossible") + '</div></div>'
+        ).join("") + '</div>' : "";
+      box.innerHTML = summary + activeHtml + failedHtml;
+    }
+
+    function renderAlerts(data) {
+      const activity = (data && data.activity) || {};
+      const alerts = activity.alerts || [];
+      const unread = Number(activity.unread_alerts || 0);
+      const banner = $("alert-banner");
+      if (banner) {
+        if (unread > 0) {
+          banner.classList.remove("hidden");
+          banner.innerHTML = "<div><strong>" + fmt.format(unread) + " incident(s) à traiter</strong>"
+            + "<span>Un candidat a rencontré un problème (analyse, blocage ou limite IA).</span></div>";
+        } else {
+          banner.classList.add("hidden");
+          banner.innerHTML = "";
+        }
+      }
+      const btn = $("tab-alerts-btn");
+      if (btn) btn.textContent = unread > 0 ? ("Alertes (" + unread + ")") : "Alertes";
+      const overviewBox = $("overview-alerts");
+      if (overviewBox) {
+        const preview = alerts.slice(0, 4);
+        overviewBox.innerHTML = preview.length
+          ? preview.map(renderEventCard).join("")
+          : emptyInsight("Aucun incident", "Les erreurs d’analyse et quotas IA apparaîtront ici.");
+      }
+      const feed = $("alerts-feed");
+      if (feed) {
+        feed.innerHTML = alerts.length
+          ? alerts.map(renderEventCard).join("")
+          : emptyInsight("Aucun incident", "Les erreurs d’analyse, blocages et limites IA seront notifiés ici.");
+      }
+    }
+
+    function renderActivity() {
+      const body = $("activity-body");
+      if (!body) return;
+      const query = (($("activity-search") && $("activity-search").value) || "").trim().toLowerCase();
+      const events = (((state.data && state.data.activity) || {}).events) || [];
+      const rows = events.filter((item) => {
+        if (!query) return true;
+        return [item.user_name, item.user_email, item.title, item.message, item.kind, item.kind_label]
+          .join(" ").toLowerCase().includes(query);
+      });
+      const empty = $("activity-empty");
+      if (empty) show(empty, rows.length === 0);
+      body.innerHTML = rows.map((item) => {
+        return "<tr><td>" + escapeHtml(formatDate(item.created_at)) + "</td>"
+          + "<td><span class=\"pill " + (item.severity === "error" ? "off" : item.severity === "warning" ? "admin" : "on") + "\">"
+          + escapeHtml(item.kind_label || item.kind || "") + "</span></td>"
+          + "<td>" + escapeHtml(eventWho(item)) + "</td>"
+          + "<td><strong>" + escapeHtml(item.title || "") + "</strong><small style=\"display:block;color:var(--muted)\">"
+          + escapeHtml(item.message || "") + "</small></td></tr>";
+      }).join("");
+    }
+
     function renderApp(data) {
       state.data = data;
       show($("login-view"), false);
@@ -733,7 +914,10 @@
       renderKpis(data);
       renderCharts(data);
       renderAnalysisBoard(data);
+      renderQueueBoard(data);
+      renderAlerts(data);
       renderUsers();
+      renderActivity();
       renderSupportBadge();
       renderSupportInbox();
     }
@@ -746,7 +930,10 @@
       show($("tab-overview"), name === "overview");
       show($("tab-users"), name === "users");
       show($("tab-support"), name === "support");
+      if ($("tab-alerts")) show($("tab-alerts"), name === "alerts");
+      if ($("tab-activity")) show($("tab-activity"), name === "activity");
       if (name === "support") renderSupportInbox();
+      if (name === "activity") renderActivity();
     }
 
     function renderSupportBadge() {
@@ -963,6 +1150,9 @@
       btn.addEventListener("click", () => setTab(btn.dataset.tab));
     });
     $("user-search").addEventListener("input", renderUsers);
+    if ($("activity-search")) {
+      $("activity-search").addEventListener("input", renderActivity);
+    }
     if ($("support-user-search")) {
       $("support-user-search").addEventListener("input", renderSupportInbox);
     }

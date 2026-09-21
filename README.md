@@ -9,7 +9,7 @@ Plateforme de recherche d'emploi et matching CV par intelligence artificielle.
 - Tableau de bord candidatures et historique
 - Recherche automatique planifiée (cron)
 - API REST (`api/main.py`)
-- Espace administrateur (`/dashboard`) : comptes, tokens IA, graphiques d'activité
+- Espace administrateur (`/dashboard`) : comptes, journal d'activité, alertes incidents (analyse, quota IA, blocage), tokens IA
 
 ## Lancer l'application
 
@@ -62,7 +62,7 @@ ADMIN_PASSWORDS = ["mot-de-passe-1", "mot-de-passe-2"]
 
 Ce mot de passe admin est indépendant des comptes candidats. Après modification des secrets, faites un **Reboot** de l'application.
 
-Depuis ce tableau de bord vous pouvez consulter tous les comptes inscrits, voir les tokens consommés par utilisateur, suivre l'activité (inscriptions, analyses, consommation IA) et supprimer un compte. Le panneau **Configuration & tests** est aussi réservé à cet espace.
+Depuis ce tableau de bord vous pouvez consulter tous les comptes inscrits, suivre **chaque action candidate** (inscription, connexion, analyse, candidature, support), être **notifié dans le compte admin** dès qu'un candidat bloque (échec d'analyse, limite IA, SerpAPI, candidature) et supprimer un compte. Le panneau **Configuration & tests** est aussi réservé à cet espace.
 
 Si vous lancez l'API (`python scripts/run_api.py`), le même espace est servi sur `http://localhost:8000/dashboard`.
 

@@ -510,8 +510,17 @@ def serpapi_quota_exhausted() -> bool:
 def mark_serpapi_quota_exhausted() -> None:
     """Stop further SerpAPI HTTP calls for the rest of this analysis."""
     global _serpapi_quota_exhausted
+    newly = False
     with _serpapi_quota_lock:
+        newly = not _serpapi_quota_exhausted
         _serpapi_quota_exhausted = True
+    if newly:
+        try:
+            from services.admin_events import record_search_quota
+
+            record_search_quota()
+        except Exception:  # noqa: BLE001
+            pass
 
 
 def reset_serpapi_quota_state() -> None:

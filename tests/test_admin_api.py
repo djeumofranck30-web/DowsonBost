@@ -69,7 +69,13 @@ def test_admin_overview_and_delete(sqlite_db, monkeypatch):
     assert body["kpis"]["tokens_total"] == 80
     assert "support" in body
     assert "analysis" in body
+    assert "activity" in body
+    assert "queue" in body
     assert "matches_total" in body["kpis"]
+    assert "alerts_unread" in body["kpis"]
+    events = client.get("/api/admin/events", headers=headers)
+    assert events.status_code == 200
+    assert any(item["kind"] == "user.register" for item in events.json()["events"])
     dashboard = client.get("/dashboard")
     assert dashboard.status_code == 200
     assert "DowsonBost" in dashboard.text

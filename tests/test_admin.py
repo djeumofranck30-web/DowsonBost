@@ -107,6 +107,10 @@ def test_overview_includes_users_and_tokens(sqlite_db, monkeypatch):
     jane = next(item for item in overview["users"] if item["email"] == "jane@example.com")
     assert jane["tokens_consumed"] == 150
     assert overview["support"]["unread"] == 0
+    assert overview["activity"]["unread_alerts"] == 0
+    kinds = {item["kind"] for item in overview["activity"]["events"]}
+    assert "user.register" in kinds
+    assert "user.login" in kinds
     spaces = overview["support"]["conversations"]
     assert {item["email"] for item in spaces} == {"jane@example.com"}
     assert spaces[0]["has_messages"] is False
@@ -162,6 +166,9 @@ def test_overview_surfaces_analysis_results(sqlite_db, monkeypatch):
     assert overview["kpis"]["matches_total"] == 2
     assert overview["kpis"]["high_matches"] == 1
     assert overview["kpis"]["avg_score"] == 64.5
+    assert overview["kpis"]["alerts_unread"] == 0
+    assert "activity" in overview
+    assert "queue" in overview
     bands = {item["key"]: item["count"] for item in overview["analysis"]["score_bands"]}
     assert bands == {"high": 1, "mid": 0, "low": 1}
     assert overview["analysis"]["recent_runs"][0]["target_job_title"] == "Développeuse Python"
@@ -215,6 +222,14 @@ def test_dashboard_html_injects_payload(sqlite_db, monkeypatch):
     assert "chart-score-bands" in html
     assert "chart-quality" in html
     assert "renderAnalysisBoard" in html
+    assert "data-tab=\"alerts\"" in html
+    assert "data-tab=\"activity\"" in html
+    assert "id=\"alerts-feed\"" in html
+    assert "id=\"activity-body\"" in html
+    assert "id=\"kpi-alerts\"" in html
+    assert "renderAlerts" in html
+    assert "renderActivity" in html
+    assert "renderQueueBoard" in html
 
 
 def test_estimate_tokens_minimum():

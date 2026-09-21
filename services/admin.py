@@ -18,6 +18,7 @@ from auth import (
 from config import get_admin_accounts
 from database import adapt_sql, connect
 from persistence import _sql_json_text, init_persistence_tables
+from services.admin_events import admin_activity_payload, unread_admin_alert_count
 from services.llm_usage import ensure_llm_usage_table
 from services.support import admin_support_conversations, admin_support_unread
 
@@ -400,6 +401,82 @@ def analysis_insights() -> dict[str, Any]:
     }
 
 
+def analysis_queue_snapshot() -> dict[str, Any]:
+    """Live analysis tickets for the admin operations board."""
+    init_persistence_tables()
+    with connect() as conn:
+        status_rows = conn.execute(
+            adapt_sql(
+                """
+                SELECT status, COUNT(*) AS n
+                FROM analysis_jobs
+                GROUP BY status
+                """
+            )
+        ).fetchall()
+        failed_rows = conn.execute(
+            adapt_sql(
+                """
+                SELECT j.id, j.created_at, j.finished_at, j.error_message, j.analysis_depth,
+                       j.job_provider, j.user_id, u.full_name, u.email
+                FROM analysis_jobs j
+                LEFT JOIN users u ON u.id = j.user_id
+                WHERE j.status = 'failed'
+                ORDER BY COALESCE(j.finished_at, j.created_at) DESC, j.id DESC
+                LIMIT 8
+                """
+            )
+        ).fetchall()
+        active_rows = conn.execute(
+            adapt_sql(
+                """
+                SELECT j.id, j.status, j.created_at, j.progress_percent, j.progress_label,
+                       j.analysis_depth, j.job_provider, j.user_id, u.full_name, u.email
+                FROM analysis_jobs j
+                LEFT JOIN users u ON u.id = j.user_id
+                WHERE j.status IN ('queued', 'running')
+                ORDER BY j.id DESC
+                LIMIT 8
+                """
+            )
+        ).fetchall()
+    counts = {str(row["status"] or ""): _scalar(row, "n") for row in status_rows}
+    return {
+        "queued": int(counts.get("queued") or 0),
+        "running": int(counts.get("running") or 0),
+        "failed": int(counts.get("failed") or 0),
+        "completed": int(counts.get("completed") or 0),
+        "active": [
+            {
+                "id": int(row["id"]),
+                "status": str(row["status"] or ""),
+                "created_at": str(row["created_at"] or ""),
+                "progress_percent": _scalar(row, "progress_percent"),
+                "progress_label": str(row["progress_label"] or ""),
+                "analysis_depth": str(row["analysis_depth"] or ""),
+                "job_provider": str(row["job_provider"] or ""),
+                "user_id": int(row["user_id"] or 0),
+                "full_name": str(row["full_name"] or ""),
+                "email": str(row["email"] or ""),
+            }
+            for row in active_rows
+        ],
+        "recent_failures": [
+            {
+                "id": int(row["id"]),
+                "created_at": str(row["finished_at"] or row["created_at"] or ""),
+                "error_message": str(row["error_message"] or ""),
+                "analysis_depth": str(row["analysis_depth"] or ""),
+                "job_provider": str(row["job_provider"] or ""),
+                "user_id": int(row["user_id"] or 0),
+                "full_name": str(row["full_name"] or ""),
+                "email": str(row["email"] or ""),
+            }
+            for row in failed_rows
+        ],
+    }
+
+
 def platform_overview() -> dict[str, Any]:
     """KPI + chart series for the administration dashboard."""
     init_db()
@@ -410,6 +487,9 @@ def platform_overview() -> dict[str, Any]:
     total_tokens = sum(int(user.get("tokens_consumed") or 0) for user in users)
     total_analyses = sum(int(user.get("analyses_count") or 0) for user in users)
     insights = analysis_insights()
+    activity = admin_activity_payload()
+    queue = analysis_queue_snapshot()
+    unread_alerts = int(activity.get("unread_alerts") or unread_admin_alert_count())
 
     signups = _fill_series(
         _day_counts(
@@ -477,6 +557,10 @@ def platform_overview() -> dict[str, Any]:
             "avg_score": insights["kpis"]["avg_score"],
             "high_matches": insights["kpis"]["high_matches"],
             "applied_total": insights["kpis"]["applied_total"],
+            "alerts_unread": unread_alerts,
+            "jobs_queued": queue["queued"],
+            "jobs_running": queue["running"],
+            "jobs_failed": queue["failed"],
         },
         "series": {
             "signups": signups,
@@ -485,6 +569,8 @@ def platform_overview() -> dict[str, Any]:
             "quality": insights["quality"],
         },
         "analysis": insights,
+        "queue": queue,
+        "activity": activity,
         "tokens_by_user": top_tokens,
         "tokens_by_provider": [
             {"provider": str(row["provider"] or "unknown"), "tokens": _scalar(row, "n")}

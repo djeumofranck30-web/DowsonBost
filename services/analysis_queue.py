@@ -111,14 +111,17 @@ def enqueue_analysis_job(
     init_persistence_tables()
     active = get_active_analysis_job(user_id)
     if active:
+        _notify_analysis_blocked(user_id, "Une analyse est déjà en cours.", user_profile)
         return int(active["id"]), "already"
 
     depth = analysis_depth if analysis_depth in ANALYSIS_DEPTH_POOL else "standard"
     pdf = bytes(pdf_bytes) if pdf_bytes else None
     text = _db_text(cv_text).strip()
     if pdf and len(pdf) > ANALYSIS_JOB_MAX_PDF_BYTES:
+        _notify_analysis_blocked(user_id, "CV trop volumineux pour lancer l'analyse.", user_profile)
         return None, "pdf_too_large"
     if not pdf and not text:
+        _notify_analysis_blocked(user_id, "CV manquant : l'analyse n'a pas pu démarrer.", user_profile)
         return None, "missing_cv"
 
     now = utc_now_iso()
@@ -156,8 +159,34 @@ def enqueue_analysis_job(
             cursor = conn.execute(insert_sql, values)
             job_id = int(cursor.lastrowid or 0)
     if job_id <= 0:
+        _notify_analysis_blocked(user_id, "Impossible de mettre l'analyse en file.", user_profile)
         return None, "enqueue_failed"
+    try:
+        from services.admin_events import record_analysis_started
+
+        record_analysis_started(
+            user_id=int(user_id),
+            job_id=job_id,
+            depth=depth,
+            provider=str(job_provider or "all"),
+            actor=user_profile if isinstance(user_profile, dict) else None,
+        )
+    except Exception:  # noqa: BLE001
+        pass
     return job_id, ""
+
+
+def _notify_analysis_blocked(user_id: int, reason: str, actor: dict[str, Any] | None) -> None:
+    try:
+        from services.admin_events import record_analysis_blocked
+
+        record_analysis_blocked(
+            user_id=int(user_id),
+            reason=reason,
+            actor=actor if isinstance(actor, dict) else None,
+        )
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def update_analysis_job_progress(job_id: int, percent: int, label: str) -> None:
@@ -206,6 +235,17 @@ def complete_analysis_job(
                 int(job_id),
             ),
         )
+    try:
+        from services.admin_events import record_analysis_finished
+
+        record_analysis_finished(
+            job_id=int(job_id),
+            analysis_id=int(analysis_id),
+            success=True,
+            notices=notices,
+        )
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def fail_analysis_job(job_id: int, error: str, notices: list[dict[str, str]] | None = None) -> None:
@@ -233,6 +273,17 @@ def fail_analysis_job(job_id: int, error: str, notices: list[dict[str, str]] | N
                 int(job_id),
             ),
         )
+    try:
+        from services.admin_events import record_analysis_finished
+
+        record_analysis_finished(
+            job_id=int(job_id),
+            success=False,
+            error=error or "Analyse impossible",
+            notices=notices,
+        )
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def _requeue_stale_jobs(conn: Any) -> None:
