@@ -789,7 +789,9 @@ def extract_text_native(pdf_bytes: bytes) -> str:
             page_text = page.extract_text()
             if page_text:
                 text_parts.append(page_text)
-    return "\n".join(text_parts).strip()
+    from cv_layout import normalize_extracted_cv_text
+
+    return normalize_extracted_cv_text("\n".join(text_parts))
 
 
 def _extract_gemini_text(data: dict[str, Any]) -> str:

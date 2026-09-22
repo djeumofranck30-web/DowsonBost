@@ -18,9 +18,24 @@ from fpdf import FPDF
 _PDF_CHAR_REPLACEMENTS = {
     "\u2014": "-",
     "\u2013": "-",
+    "\u2012": "-",
+    "\u2010": "-",
+    "\u2011": "-",
     "\u2212": "-",
     "\u00b7": "-",
     "\u2022": "-",
+    "\u2023": "-",
+    "\u2043": "-",
+    "\u2219": "-",
+    "\u25aa": "-",
+    "\u25ab": "-",
+    "\u25cf": "-",
+    "\u25e6": "-",
+    "\u25b6": "-",
+    "\u25b8": "-",
+    "\u25ba": "-",
+    "\u27a2": "-",
+    "\u27a4": "-",
     "\u2026": "...",
     "\u2019": "'",
     "\u2018": "'",
@@ -36,16 +51,51 @@ _PDF_CHAR_REPLACEMENTS = {
     "\u0153": "oe",
 }
 
+# Word/Wingdings list bullets (private-use) plus common dingbats. In Times/Georgia
+# they render as "?" — that is the "?" in front of every generated mission.
+_DECORATIVE_BULLET_RE = re.compile(
+    r"^[\s?¿¡·•●○■□▪▫►▶▸➢➤✓✔☑◆◇→⇒∙‣⁃–—‐‑‒−*-]+|^["
+    "\uf000-\uf8ff]+"
+)
+_EXTRACTED_BULLET_RE = re.compile(r"[●○■□▪▫►▶▸➢➤✓✔☑◆◇∙‣⁃]|[" "\uf000-\uf8ff]")
+
 
 def pdf_safe_text(value: Any, default: str = "") -> str:
     """Make text safe for Helvetica/Times core fonts (Latin-1)."""
     text = str(value).strip() if value is not None else ""
     if not text:
         return default
+    text = _EXTRACTED_BULLET_RE.sub("", text)
     for src, dst in _PDF_CHAR_REPLACEMENTS.items():
         text = text.replace(src, dst)
     text = unicodedata.normalize("NFKC", text)
     return text.encode("latin-1", errors="replace").decode("latin-1")
+
+
+def clean_cv_bullet(text: str) -> str:
+    """Drop Word/PDF dingbat bullets and the '?' they become in the preview."""
+    cleaned = (text or "").replace("\u00a0", " ").strip()
+    while cleaned:
+        next_one = _DECORATIVE_BULLET_RE.sub("", cleaned).strip()
+        if next_one == cleaned:
+            break
+        cleaned = next_one
+    if cleaned.startswith("?") and len(cleaned) > 1 and cleaned[1].isalpha():
+        cleaned = cleaned[1:].lstrip()
+    return cleaned
+
+
+def normalize_extracted_cv_text(text: str) -> str:
+    """Turn symbol-font list markers into plain dashes before the LLM sees them."""
+    if not text:
+        return ""
+    lines: list[str] = []
+    for raw in str(text).replace("\r\n", "\n").split("\n"):
+        line = _EXTRACTED_BULLET_RE.sub("", raw)
+        line = clean_cv_bullet(line)
+        if line:
+            lines.append(line)
+    return "\n".join(lines).strip()
 
 
 def _fold(value: str) -> str:
@@ -1384,11 +1434,18 @@ def cv_text_for_candidate(text: str) -> str:
 
 
 def _is_bullet(line: str) -> bool:
-    return bool(re.match(r"^\s*(?:[-•*–—]|·|\d+[.)])\s+", line))
+    stripped = (line or "").strip()
+    if not stripped:
+        return False
+    if re.match(r"^\s*(?:[-•*–—]|·|\d+[.)])\s+", line):
+        return True
+    cleaned = clean_cv_bullet(stripped)
+    return bool(cleaned) and cleaned != stripped
 
 
 def _strip_bullet(line: str) -> str:
-    return re.sub(r"^\s*(?:[-•*–—]|·|\d+[.)])\s+", "", line).strip()
+    stripped = re.sub(r"^\s*(?:[-•*–—]|·|\d+[.)])\s+", "", line or "").strip()
+    return clean_cv_bullet(stripped)
 
 
 def _split_skills(block: str) -> list[str]:
@@ -1602,9 +1659,11 @@ def _parse_experiences(lines: list[str]) -> list[ExperienceEntry]:
             flush()
             current = parsed
         elif current is not None:
-            current.bullets.append(stripped)
+            mission = clean_cv_bullet(stripped)
+            if mission:
+                current.bullets.append(mission)
         else:
-            current = ExperienceEntry(title=stripped)
+            current = ExperienceEntry(title=clean_cv_bullet(stripped) or stripped)
     flush()
     return jobs[:12]
 
@@ -1652,9 +1711,9 @@ def _parse_education(lines: list[str]) -> list[EducationEntry]:
                 details=parsed.location,
             )
         elif current is None:
-            current = EducationEntry(diploma=stripped)
+            current = EducationEntry(diploma=clean_cv_bullet(stripped) or stripped)
         else:
-            current.details = stripped
+            current.details = clean_cv_bullet(stripped) or stripped
     flush()
     return items[:8]
 
@@ -1870,8 +1929,16 @@ def merge_experience_missions(generated_bullets: list[str], original_bullets: li
 
     Original duties take priority over extra generated bullets when the list is capped.
     """
-    generated = [(bullet or "").strip() for bullet in generated_bullets if (bullet or "").strip()]
-    original = [(bullet or "").strip() for bullet in original_bullets if (bullet or "").strip()]
+    generated = [
+        clean_cv_bullet(bullet)
+        for bullet in generated_bullets
+        if clean_cv_bullet(bullet)
+    ]
+    original = [
+        clean_cv_bullet(bullet)
+        for bullet in original_bullets
+        if clean_cv_bullet(bullet)
+    ]
 
     covering: list[str] = []
     extras: list[str] = []
@@ -1999,7 +2066,19 @@ def polish_structured_cv(cv: StructuredCV) -> StructuredCV:
     """Drop redundant skills, missions and jobs; keep a compact one-page structure."""
     skills = dedupe_redundant_texts(list(cv.skills), max_items=12)
     languages = dedupe_redundant_texts(list(cv.languages), max_items=8)
-    experiences = _dedupe_experiences(list(cv.experiences))
+    experiences = _dedupe_experiences(
+        [
+            replace(
+                job,
+                bullets=[
+                    clean_cv_bullet(bullet)
+                    for bullet in job.bullets
+                    if clean_cv_bullet(bullet)
+                ],
+            )
+            for job in cv.experiences
+        ]
+    )
     education: list[EducationEntry] = []
     seen_edu: set[str] = set()
     for item in cv.education:
@@ -2481,7 +2560,7 @@ def _draw_bullets(pdf: ProfessionCvPdf, items: list[str]) -> None:
         _set_fill(pdf, tpl.accent)
         pdf.ellipse(bullet_x + 0.4, y + 1.15, 1.2, 1.2, "F")
         pdf.set_xy(text_x, y)
-        pdf.multi_cell(width, d.bullet_h, pdf_safe_text(item), align="J")
+        pdf.multi_cell(width, d.bullet_h, pdf_safe_text(clean_cv_bullet(item)), align="J")
         pdf.ln(0.15)
 
 
@@ -3004,8 +3083,10 @@ def render_cv_html(cv: StructuredCV) -> str:
         if not items:
             return ""
         lis = "".join(
-            f"<li style='margin:3px 0;text-align:justify;hyphens:auto;line-height:1.45;'>{esc(item)}</li>"
+            f"<li style='margin:3px 0;text-align:justify;hyphens:auto;line-height:1.45;'>"
+            f"{esc(clean_cv_bullet(item))}</li>"
             for item in items
+            if clean_cv_bullet(item)
         )
         return (
             f"<ul style='margin:4px 0 10px 18px;padding:0;color:rgb{tpl.ink};"

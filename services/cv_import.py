@@ -56,16 +56,20 @@ def extract_docx_text(data: bytes) -> str:
         line = "".join(parts).strip()
         if line:
             paragraphs.append(line)
-    return "\n".join(paragraphs).strip()
+    from cv_layout import normalize_extracted_cv_text
+
+    return normalize_extracted_cv_text("\n".join(paragraphs))
 
 
 def extract_plain_text(data: bytes) -> str:
+    from cv_layout import normalize_extracted_cv_text
+
     for encoding in ("utf-8", "utf-16", "latin-1"):
         try:
-            return data.decode(encoding).strip()
+            return normalize_extracted_cv_text(data.decode(encoding))
         except UnicodeDecodeError:
             continue
-    return data.decode("utf-8", errors="ignore").strip()
+    return normalize_extracted_cv_text(data.decode("utf-8", errors="ignore"))
 
 
 def extract_document_text(data: bytes, filename: str = "") -> tuple[str, str]:

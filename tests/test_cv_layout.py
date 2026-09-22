@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from cv_layout import (
+    clean_cv_bullet,
     cv_text_for_candidate,
     list_cv_templates,
     detect_job_family,
@@ -554,4 +555,79 @@ def test_cover_letter_pdf_is_one_page_and_not_a_single_block():
     assert "Madame, Monsieur" in text
     assert "Cordialement" in text
     assert text.count("\n") >= 8
+
+
+def test_clean_cv_bullet_strips_word_dingbat_and_question_mark():
+    from cv_layout import normalize_extracted_cv_text
+
+    assert clean_cv_bullet("?Déploiement TLS via PKI interne") == "Déploiement TLS via PKI interne"
+    assert clean_cv_bullet("? Rédaction de la documentation") == "Rédaction de la documentation"
+    assert clean_cv_bullet("\uf0b7Configuration des VLAN") == "Configuration des VLAN"
+    assert clean_cv_bullet("● Mise en place de Nagios") == "Mise en place de Nagios"
+    assert clean_cv_bullet("- Conception d'APIs REST") == "Conception d'APIs REST"
+    raw = (
+        "Stagiaire Administrateur\n"
+        "\uf0b7Déploiement TLS via PKI interne\n"
+        "?Rédaction de la documentation\n"
+    )
+    cleaned = normalize_extracted_cv_text(raw)
+    assert "?Déploiement" not in cleaned
+    assert "?Rédaction" not in cleaned
+    assert "Déploiement TLS via PKI interne" in cleaned
+    assert "Rédaction de la documentation" in cleaned
+
+
+def test_parse_and_html_drop_leading_question_marks_on_missions():
+    text = """
+NOM: Jordan
+TITRE: Administrateur systèmes
+## EXPERIENCE
+POSTE: Stagiaire Administrateur systèmes et réseaux
+ENTREPRISE: Thales
+PERIODE: 2024
+- ?Déploiement TLS via PKI interne
+- \uf0b7Rédaction de la documentation
+- ●Mise en réseau LAN
+"""
+    parsed = parse_adapted_cv(text)
+    bullets = parsed.experiences[0].bullets
+    assert bullets
+    assert all(not item.startswith("?") for item in bullets)
+    assert "Déploiement TLS via PKI interne" in bullets
+    assert "Rédaction de la documentation" in bullets
+    html_preview = render_cv_html(parsed)
+    assert "?Déploiement" not in html_preview
+    assert "?Rédaction" not in html_preview
+    assert "Déploiement TLS via PKI interne" in html_preview
+
+
+def test_restore_missions_strips_question_marks_from_original():
+    generated = parse_adapted_cv(
+        """
+NOM: Jordan
+TITRE: Administrateur
+## EXPERIENCE
+POSTE: Stagiaire
+ENTREPRISE: Thales
+PERIODE: 2024
+- Configuration VLAN
+"""
+    )
+    original = parse_adapted_cv(
+        """
+NOM: Jordan
+TITRE: Administrateur
+## EXPERIENCE
+POSTE: Stagiaire
+ENTREPRISE: Thales
+PERIODE: 2024
+- ?Déploiement TLS via PKI interne
+- ?Rédaction de la documentation
+"""
+    )
+    restored = restore_experience_dates_locations(generated, original)
+    blob = " ".join(restored.experiences[0].bullets)
+    assert "?" not in blob
+    assert "Déploiement TLS via PKI interne" in blob
+    assert "Rédaction de la documentation" in blob
 
