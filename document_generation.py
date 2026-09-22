@@ -602,10 +602,13 @@ def _generate_aligned_document(
     max_tokens: int,
     postprocess: Callable[[str], str] | None = None,
 ) -> str:
+    from services.llm_errors import is_llm_unavailable_error
+
     user_prompt = f"{base_user_prompt}\n\n{_alignment_checklist(alignment, kind=kind)}"
     text = _invoke_llm(llm_call, system_prompt, user_prompt, max_tokens=max_tokens)
     if postprocess:
         text = postprocess(text)
+    first_draft = text
     for _attempt in range(MAX_ALIGNMENT_REWRITES):
         gaps = missing_alignment_gaps(text, alignment, kind=kind)
         if not gaps:
@@ -615,7 +618,12 @@ def _generate_aligned_document(
             f"=== DOCUMENT PRÉCÉDENT (incomplet) ===\n{text[:8000]}\n\n"
             f"{_rewrite_instruction(kind, gaps)}"
         )
-        text = _invoke_llm(llm_call, system_prompt, rewrite_prompt, max_tokens=max_tokens)
+        try:
+            text = _invoke_llm(llm_call, system_prompt, rewrite_prompt, max_tokens=max_tokens)
+        except Exception as exc:  # noqa: BLE001
+            if first_draft and is_llm_unavailable_error(exc):
+                return first_draft
+            raise
         if postprocess:
             text = postprocess(text)
     return text
@@ -646,6 +654,133 @@ def _force_offer_title(
     return f"TITRE: {title}\n{generated_text}"
 
 
+_DOCUMENT_FALLBACK_NOTICE = ""
+
+
+def consume_document_fallback_notice() -> str:
+    """Return and clear the last template-fallback warning, if any."""
+    global _DOCUMENT_FALLBACK_NOTICE
+    notice = _DOCUMENT_FALLBACK_NOTICE
+    _DOCUMENT_FALLBACK_NOTICE = ""
+    return notice
+
+
+def _mark_document_fallback(reason: str = "") -> None:
+    global _DOCUMENT_FALLBACK_NOTICE
+    _DOCUMENT_FALLBACK_NOTICE = (
+        "Les moteurs IA étaient saturés : documents préparés à partir du CV "
+        "et de l'offre, sans inventer de missions."
+    )
+    try:
+        from services.admin_events import record_llm_quota
+
+        record_llm_quota(provider="document", reason=(reason or "fallback")[:160])
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def _original_mission_lines(cv_text: str, *, limit: int = 4) -> list[str]:
+    """Missions already written on the CV — never invent new ones."""
+    parsed = parse_adapted_cv(cv_text)
+    lines: list[str] = []
+    for experience in parsed.experiences:
+        for bullet in experience.bullets:
+            cleaned = str(bullet).strip(" -•\t")
+            if len(cleaned) < 8 or cleaned in lines:
+                continue
+            lines.append(cleaned[:180])
+            if len(lines) >= limit:
+                return lines
+    return lines[:limit]
+
+
+def fallback_cover_letter(
+    cv_text: str,
+    job: dict[str, Any],
+    match: dict[str, Any],
+    user_profile: dict[str, Any],
+) -> str:
+    """Structured letter from the CV + offer when every LLM key is down."""
+    alignment = collect_alignment_terms(cv_text, job, match)
+    name = str(user_profile.get("full_name") or "").strip() or "Candidat"
+    title = str(
+        alignment.get("job_title") or alignment.get("title") or job.get("title") or "cette offre"
+    ).strip()
+    company = str(alignment.get("company") or job.get("company") or "votre entreprise").strip()
+    skills = [
+        str(item).strip()
+        for item in (alignment.get("adapted_skills") or alignment.get("required_terms") or [])
+        if str(item).strip()
+    ]
+    skill_bit = ", ".join(skills[:8])
+    missions = _original_mission_lines(cv_text)
+    if missions:
+        mission_block = "Parmi les missions déjà réalisées : " + " ; ".join(missions[:3]) + "."
+    else:
+        mission_block = (
+            "Mon parcours est détaillé dans le CV joint, sans aucune mission inventée."
+        )
+    skill_sentence = (
+        f"Les compétences visées par l'offre ({skill_bit}) correspondent à mon profil. "
+        if skill_bit
+        else "Mon profil correspond aux attendus de cette offre. "
+    )
+    letter = (
+        f"Objet : Candidature — {title} — {company}\n\n"
+        "Madame, Monsieur,\n\n"
+        f"Je vous adresse ma candidature pour le poste de {title} au sein de {company}.\n\n"
+        f"{skill_sentence}{mission_block}\n\n"
+        "Je reste à votre disposition pour un échange.\n\n"
+        f"Cordialement,\n{name}\n"
+    )
+    return normalize_cover_letter(letter, job=job, user_profile=user_profile)
+
+
+def fallback_adapted_cv(
+    cv_text: str,
+    job: dict[str, Any],
+    match: dict[str, Any],
+    user_profile: dict[str, Any],
+) -> str:
+    """Keep original missions and dates; only retitle and merge offer skills."""
+    alignment = collect_alignment_terms(cv_text, job, match)
+    parsed = parse_adapted_cv(cv_text)
+    title = str(
+        alignment.get("title") or job.get("title") or parsed.title or ""
+    ).strip()
+    if title:
+        parsed.title = title
+    if not parsed.name:
+        parsed.name = str(user_profile.get("full_name") or "").strip()
+    if not parsed.email:
+        parsed.email = str(user_profile.get("email") or "").strip()
+    if not parsed.phone:
+        parsed.phone = str(user_profile.get("phone") or "").strip()
+    if not parsed.location:
+        parsed.location = str(
+            user_profile.get("city") or job.get("location") or ""
+        ).strip()
+    merged: list[str] = []
+    seen: set[str] = set()
+    for term in list(alignment.get("adapted_skills") or []) + list(parsed.skills or []):
+        key = _fold(str(term))
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        merged.append(str(term).strip())
+    parsed.skills = merged
+    if not parsed.profile:
+        company = str(alignment.get("company") or "").strip()
+        parsed.profile = (
+            f"Candidature pour {title}"
+            + (f" chez {company}" if company else "")
+            + "."
+        ).strip(" .") + "."
+    generated = labeled_cv_text(parsed, fallback=cv_text)
+    generated = _force_offer_title(generated, job, match)
+    return _restore_experience_anchors(generated, cv_text)
+
+
 def generate_cover_letter(
     cv_text: str,
     job: dict[str, Any],
@@ -674,15 +809,23 @@ def generate_cover_letter(
     def _shape_letter(text: str) -> str:
         return normalize_cover_letter(text, job=job, user_profile=user_profile)
 
-    return _generate_aligned_document(
-        kind="letter",
-        system_prompt=COVER_LETTER_SYSTEM_PROMPT,
-        base_user_prompt=user_prompt,
-        llm_call=llm_call,
-        alignment=alignment,
-        max_tokens=2000,
-        postprocess=_shape_letter,
-    )
+    try:
+        return _generate_aligned_document(
+            kind="letter",
+            system_prompt=COVER_LETTER_SYSTEM_PROMPT,
+            base_user_prompt=user_prompt,
+            llm_call=llm_call,
+            alignment=alignment,
+            max_tokens=2000,
+            postprocess=_shape_letter,
+        )
+    except Exception as exc:  # noqa: BLE001
+        from services.llm_errors import is_llm_unavailable_error
+
+        if is_llm_unavailable_error(exc):
+            _mark_document_fallback(str(exc))
+            return fallback_cover_letter(cv_text, job, match, user_profile)
+        raise
 
 
 def generate_adapted_cv(
@@ -716,17 +859,25 @@ def generate_adapted_cv(
         "phrases complètes, pas de paragraphes redondants. "
         "N'ajoute aucune section listant les modifications : le CV s'arrête après les rubriques métier."
     )
-    generated = _generate_aligned_document(
-        kind="cv",
-        system_prompt=ADAPTED_CV_SYSTEM_PROMPT + build_cv_system_addon(family),
-        base_user_prompt=user_prompt,
-        llm_call=llm_call,
-        alignment=alignment,
-        max_tokens=4800,
-        postprocess=lambda text: _force_offer_title(
-            cv_text_for_candidate(text), job, match
-        ),
-    )
+    try:
+        generated = _generate_aligned_document(
+            kind="cv",
+            system_prompt=ADAPTED_CV_SYSTEM_PROMPT + build_cv_system_addon(family),
+            base_user_prompt=user_prompt,
+            llm_call=llm_call,
+            alignment=alignment,
+            max_tokens=4800,
+            postprocess=lambda text: _force_offer_title(
+                cv_text_for_candidate(text), job, match
+            ),
+        )
+    except Exception as exc:  # noqa: BLE001
+        from services.llm_errors import is_llm_unavailable_error
+
+        if is_llm_unavailable_error(exc):
+            _mark_document_fallback(str(exc))
+            return fallback_adapted_cv(cv_text, job, match, user_profile)
+        raise
     return _restore_experience_anchors(generated, cv_text)
 
 

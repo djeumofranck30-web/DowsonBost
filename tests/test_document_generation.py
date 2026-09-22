@@ -331,3 +331,70 @@ def test_generate_adapted_cv_forces_offer_title():
     assert "TITRE: Développeuse Python" in result
     assert "TITRE: Ingénieure logiciel" not in result
 
+
+def _boom_quota(*_args: object, **_kwargs: object) -> str:
+    raise RuntimeError(
+        "gemini-3-flash-preview/SDK: 429 RESOURCE_EXHAUSTED "
+        "{'error': {'code': 429, 'message': 'quota'}}"
+    )
+
+
+def test_generate_cover_letter_falls_back_when_llm_quota_exhausted():
+    from document_generation import consume_document_fallback_notice
+
+    consume_document_fallback_notice()
+    letter = generate_cover_letter(
+        STRUCTURED_ORIGINAL_CV,
+        JOB,
+        FULL_MATCH,
+        {"full_name": "Jane Doe"},
+        llm_call=_boom_quota,
+    )
+    assert "NovaTech" in letter
+    assert "Développeuse Python" in letter
+    assert "Jane Doe" in letter
+    assert "APIs REST" in letter or "CI/CD" in letter
+    assert consume_document_fallback_notice()
+
+
+def test_generate_adapted_cv_fallback_keeps_original_dates():
+    from document_generation import consume_document_fallback_notice
+
+    consume_document_fallback_notice()
+    result = generate_adapted_cv(
+        STRUCTURED_ORIGINAL_CV,
+        JOB,
+        FULL_MATCH,
+        {"full_name": "Jane Doe"},
+        llm_call=_boom_quota,
+    )
+    parsed = parse_adapted_cv(result)
+    assert parsed.experiences
+    assert parsed.experiences[0].period == "2022 - 2025"
+    assert parsed.experiences[0].location == "Lyon"
+    assert "Conception d'APIs REST" in result
+    assert "Kubernetes" in result or "Python" in result
+    assert "TITRE: Développeuse Python" in result
+    assert consume_document_fallback_notice()
+
+
+def test_generate_adapted_cv_keeps_first_draft_when_rewrite_hits_quota():
+    calls: list[str] = []
+
+    def fake_llm(_system: str, user: str, **_kwargs: object) -> str:
+        calls.append(user)
+        if len(calls) == 1:
+            return WEAK_CV
+        raise RuntimeError("429 RESOURCE_EXHAUSTED")
+
+    result = generate_adapted_cv(
+        ORIGINAL_CV,
+        JOB,
+        FULL_MATCH,
+        {"full_name": "Jane Doe"},
+        llm_call=fake_llm,
+    )
+    assert len(calls) >= 2
+    assert "Jane Doe" in result
+    assert "Développeuse Python" in result
+

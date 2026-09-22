@@ -176,3 +176,114 @@ def test_locale_keys_for_parallel_matching_exist() -> None:
         assert "analysis.progress.match_keys" in data
         assert "analysis.parallel_keys" in data
         assert "analysis.parallel_keys_hint" in data
+        assert "job.document_fallback" in data
+
+
+def test_call_llm_races_every_key_not_sequential_chain() -> None:
+    import inspect
+
+    import app as app_mod
+
+    src = inspect.getsource(app_mod.call_llm)
+    assert "collect_parallel_llm_slots()" in src
+    assert "_first_llm_slot_per_provider" not in src
+    assert "get_llm_provider_chain()" not in src
+
+
+def test_call_llm_backend_uses_numbered_groq_key(monkeypatch) -> None:
+    import app as app_mod
+
+    monkeypatch.setattr(
+        app_mod,
+        "get_provider_api_keys",
+        lambda provider: ["gsk_secondary"] if provider == "groq" else [],
+    )
+    seen: dict[str, str] = {}
+
+    def fake_groq(*_args, api_key=None, **_kwargs):
+        seen["key"] = api_key
+        return "ok-groq"
+
+    monkeypatch.setattr(app_mod, "call_groq_text", fake_groq)
+    text = app_mod._call_llm_backend("groq", "sys", "user")
+    assert text == "ok-groq"
+    assert seen["key"] == "gsk_secondary"
+
+
+def test_call_llm_retries_gemini_after_quota(monkeypatch) -> None:
+    import app as app_mod
+
+    monkeypatch.setattr(
+        app_mod,
+        "collect_parallel_llm_slots",
+        lambda: [("gemini", "k1"), ("groq", "k2")],
+    )
+    seen = {"gemini": 0}
+
+    def fake_direct(provider, *_args, **_kwargs):
+        if provider == "groq":
+            raise RuntimeError("Réponse Groq vide.")
+        seen["gemini"] += 1
+        if seen["gemini"] == 1:
+            raise RuntimeError("429 RESOURCE_EXHAUSTED")
+        return "ok-gemini"
+
+    monkeypatch.setattr(app_mod, "call_llm_direct", fake_direct)
+    monkeypatch.setattr(app_mod.time, "sleep", lambda *_a, **_k: None)
+    assert app_mod.call_llm("sys", "user") == "ok-gemini"
+    assert seen["gemini"] == 2
+
+
+def test_call_llm_raises_public_quota_message(monkeypatch) -> None:
+    import pytest
+
+    import app as app_mod
+
+    monkeypatch.setattr(
+        app_mod,
+        "collect_parallel_llm_slots",
+        lambda: [("gemini", "k1")],
+    )
+
+    def fake_direct(*_args, **_kwargs):
+        raise RuntimeError(
+            "gemini-3-flash-preview/SDK: 429 RESOURCE_EXHAUSTED "
+            "{'error': {'code': 429, 'message': 'You exceeded your current quota'}}"
+        )
+
+    monkeypatch.setattr(app_mod, "call_llm_direct", fake_direct)
+    monkeypatch.setattr(app_mod.time, "sleep", lambda *_a, **_k: None)
+    with pytest.raises(RuntimeError) as exc:
+        app_mod.call_llm("sys", "user")
+    message = str(exc.value)
+    assert "Limite IA" in message
+    assert "{" not in message
+    assert "RESOURCE_EXHAUSTED" not in message
+
+
+def test_gemini_skips_rest_after_sdk_quota(monkeypatch) -> None:
+    import hashlib
+
+    import app as app_mod
+
+    app_mod._GEMINI_WORKING_MODEL.clear()
+    key = "AIza" + "x" * 32
+    key_fp = hashlib.sha256(key.encode()).hexdigest()[:20]
+    app_mod._GEMINI_WORKING_MODEL[key_fp] = "gemini-3-flash-preview"
+    rest_models: list[str] = []
+
+    def fake_sdk(_parts, _system, model, api_key=None):
+        return None, f"{model}/SDK: 429 RESOURCE_EXHAUSTED"
+
+    def fake_rest(_parts, _system, model, api_key=None):
+        rest_models.append(model)
+        if model == "gemini-2.5-flash-lite":
+            return "ok-lite", None
+        return None, f"{model}/REST: 429"
+
+    monkeypatch.setattr(app_mod, "_gemini_via_sdk", fake_sdk)
+    monkeypatch.setattr(app_mod, "_gemini_via_rest", fake_rest)
+    monkeypatch.setattr(app_mod, "_fetch_gemini_models_from_api", lambda *_a, **_k: ([], False))
+    text = app_mod._gemini_generate_content([{"text": "hi"}], api_key=key)
+    assert text == "ok-lite"
+    assert "gemini-3-flash-preview" not in rest_models

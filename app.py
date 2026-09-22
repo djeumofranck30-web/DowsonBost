@@ -394,6 +394,7 @@ from database import (
     format_database_exception,
 )
 from document_generation import (
+    consume_document_fallback_notice,
     generate_adapted_cv,
     generate_cover_letter,
     generate_followup_message,
@@ -1487,6 +1488,14 @@ def _gemini_via_interactions(
         return None, f"{model}/Interactions: {str(exc)[:160]}"
 
 
+def _gemini_is_quota_error(err: str) -> bool:
+    lower = (err or "").lower()
+    return any(
+        token in lower
+        for token in ("429", "resource_exhausted", "quota", "rate limit", "rate_limit")
+    )
+
+
 def _gemini_via_sdk(
     parts: list[dict[str, Any]],
     system_prompt: str | None,
@@ -1612,6 +1621,7 @@ def _gemini_generate_content(
         models_to_try = list(GEMINI_PREFERRED_MODELS)
 
     errors: list[str] = []
+    quota_hit = False
     for model in models_to_try:
         text, err = _gemini_via_sdk(parts, system_prompt, model, api_key=gemini_key)
         if text:
@@ -1620,6 +1630,12 @@ def _gemini_generate_content(
                 st.session_state.active_llm_provider = f"Gemini ({model}, SDK, {key_label})"
             return text
         if err:
+            if _gemini_is_quota_error(err):
+                quota_hit = True
+                if working == model:
+                    _GEMINI_WORKING_MODEL.pop(key_fp, None)
+                errors.append(f"{model}: quota / 429")
+                continue
             errors.append(err)
 
         text, err = _gemini_via_rest(parts, system_prompt, model, api_key=gemini_key)
@@ -1629,7 +1645,28 @@ def _gemini_generate_content(
                 st.session_state.active_llm_provider = f"Gemini ({model}, REST, {key_label})"
             return text
         if err:
+            if _gemini_is_quota_error(err):
+                quota_hit = True
+                if working == model:
+                    _GEMINI_WORKING_MODEL.pop(key_fp, None)
+                errors.append(f"{model}: quota / 429")
+                continue
             errors.append(err)
+
+    if quota_hit:
+        for model in (
+            "gemini-2.5-flash-lite",
+            "gemini-2.0-flash-lite",
+            "gemini-2.5-flash",
+        ):
+            if model in models_to_try[:1]:
+                continue
+            text, err = _gemini_via_rest(parts, system_prompt, model, api_key=gemini_key)
+            if text:
+                _GEMINI_WORKING_MODEL[key_fp] = model
+                return text
+            if err:
+                errors.append(err)
 
     if not working:
         live_models, live_from_api = _fetch_gemini_models_from_api(gemini_key)
@@ -1908,24 +1945,46 @@ def _call_llm_backend(
         bind_current_user_from_streamlit()
     except Exception:  # noqa: BLE001
         pass
-    if provider == "groq":
-        if not api_key:
-            st.session_state.active_llm_provider = "Groq (gratuit)"
-        return call_groq_text(
-            system_prompt,
-            user_prompt,
-            api_key=api_key,
-            max_tokens=max_tokens,
-        )
-    if provider == "gemini":
-        if not api_key:
-            st.session_state.active_llm_provider = "Gemini"
-        return call_gemini_text(system_prompt, user_prompt, api_key=api_key)
-    if provider == "openai":
-        if not api_key:
-            st.session_state.active_llm_provider = "OpenAI"
-        return call_openai_text(system_prompt, user_prompt, api_key=api_key)
-    raise RuntimeError(f"Moteur IA inconnu : {provider}")
+    keys = [api_key] if api_key else get_provider_api_keys(provider)
+    if not keys:
+        labels = {
+            "groq": "GROQ_API_KEY absente des secrets.",
+            "gemini": "GEMINI_API_KEY absente des secrets.",
+            "openai": "OPENAI_API_KEY absente des secrets.",
+        }
+        raise RuntimeError(labels.get(provider, f"Aucune clé pour {provider}."))
+
+    last_error = ""
+    for index, key in enumerate(keys):
+        try:
+            if provider == "groq":
+                if index == 0 and not api_key:
+                    st.session_state.active_llm_provider = "Groq (gratuit)"
+                text = call_groq_text(
+                    system_prompt,
+                    user_prompt,
+                    api_key=key,
+                    max_tokens=max_tokens,
+                )
+            elif provider == "gemini":
+                if index == 0 and not api_key:
+                    st.session_state.active_llm_provider = "Gemini"
+                text = call_gemini_text(system_prompt, user_prompt, api_key=key)
+            elif provider == "openai":
+                if index == 0 and not api_key:
+                    st.session_state.active_llm_provider = "OpenAI"
+                text = call_openai_text(system_prompt, user_prompt, api_key=key)
+            else:
+                raise RuntimeError(f"Moteur IA inconnu : {provider}")
+            if text and str(text).strip():
+                return text
+            last_error = f"{provider} : réponse vide"
+        except GroqRateLimitError:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            last_error = f"{provider} : {str(exc)[:160]}"
+            continue
+    raise RuntimeError(last_error or f"{provider} indisponible")
 
 
 def call_llm_direct(
@@ -1966,11 +2025,19 @@ def _append_llm_switch_notice(from_provider: str, to_provider: str, reason: str)
 
 
 def call_llm(system_prompt: str, user_prompt: str, *, max_tokens: int = 1200) -> str:
-    """Race every configured backend (Gemini + Groq + OpenAI) and keep the first reply."""
-    race_slots = _first_llm_slot_per_provider()
+    """Race every configured key (all Gemini + Groq + OpenAI) and keep the first reply."""
+    from services.llm_errors import public_llm_error
+
+    race_slots = collect_parallel_llm_slots()
+    if not race_slots:
+        raise RuntimeError(
+            "Aucune clé IA utilisable. Ajoutez GROQ_API_KEY, GEMINI_API_KEY ou OPENAI_API_KEY."
+        )
+
     errors: list[str] = []
-    if len(race_slots) > 1:
-        with ThreadPoolExecutor(max_workers=len(race_slots)) as executor:
+
+    def _race(slots: list[tuple[str, str]]) -> str | None:
+        with ThreadPoolExecutor(max_workers=max(1, len(slots))) as executor:
             futures = {
                 executor.submit(
                     call_llm_direct,
@@ -1980,7 +2047,7 @@ def call_llm(system_prompt: str, user_prompt: str, *, max_tokens: int = 1200) ->
                     api_key=key,
                     max_tokens=max_tokens,
                 ): provider
-                for provider, key in race_slots
+                for provider, key in slots
             }
             for future in as_completed(futures):
                 provider = futures[future]
@@ -2005,60 +2072,22 @@ def call_llm(system_prompt: str, user_prompt: str, *, max_tokens: int = 1200) ->
                 if result:
                     _remember_llm_provider(provider)
                     return result
+        return None
 
-    chain = get_llm_provider_chain()
-    if not chain and not race_slots:
-        raise RuntimeError(
-            "Aucune clé IA utilisable. Ajoutez GROQ_API_KEY, GEMINI_API_KEY ou OPENAI_API_KEY."
-        )
+    result = _race(race_slots)
+    if result:
+        return result
 
-    for idx, provider in enumerate(chain):
-        try:
-            result = _call_llm_backend(
-                provider,
-                system_prompt,
-                user_prompt,
-                max_tokens=max_tokens,
-            )
-            _remember_llm_provider(provider)
-            return result
-        except GroqRateLimitError:
-            try:
-                st.session_state.groq_quota_exhausted = True
-                if st.session_state.get("llm_backend_active") == "groq":
-                    st.session_state.pop("llm_backend_active", None)
-            except Exception:  # noqa: BLE001
-                pass
-            errors.append("Groq : quota / rate limit")
-            if idx + 1 < len(chain):
-                _append_llm_switch_notice("groq", chain[idx + 1], "quota atteint")
-            else:
-                try:
-                    from services.admin_events import record_llm_quota
+    joined = " ".join(errors).lower()
+    if any(marker in joined for marker in ("429", "resource_exhausted", "quota", "rate limit")):
+        gemini_slots = [(provider, key) for provider, key in race_slots if provider == "gemini"]
+        if gemini_slots:
+            time.sleep(1.2)
+            result = _race(gemini_slots)
+            if result:
+                return result
 
-                    record_llm_quota(provider="groq", reason="quota atteint")
-                except Exception:  # noqa: BLE001
-                    pass
-            continue
-        except RuntimeError as exc:
-            err = str(exc)
-            errors.append(f"{provider} : {err[:120]}")
-            if "401" in err or "invalid api key" in err.lower():
-                if provider == "groq":
-                    try:
-                        st.session_state.groq_quota_exhausted = True
-                    except Exception:  # noqa: BLE001
-                        pass
-            if idx + 1 < len(chain):
-                _append_llm_switch_notice(provider, chain[idx + 1], "erreur")
-            continue
-
-    raise RuntimeError(
-        "Aucun moteur IA disponible pour cette requête.\n"
-        + "\n".join(errors[:4])
-        + "\n\nAjoutez plusieurs clés (Groq + Gemini AQ./AIza…) pour les lancer ensemble, "
-        "ou attendez 1–2 minutes si seul Groq est configuré."
-    )
+    raise RuntimeError(public_llm_error("\n".join(errors[:4]) or "Aucun moteur IA disponible"))
 
 
 CRITERIA_PLACEHOLDER_HINTS = (
@@ -4925,20 +4954,34 @@ def render_job_card(
         with gen_col1:
             if st.button(t("job.cover_letter"), key=f"gen_cover_{result_id}", use_container_width=True):
                 with st.spinner(t("job.writing_letter")):
-                    letter = generate_cover_letter(
-                        cv_text,
-                        job,
-                        match,
-                        user_profile,
-                        llm_call=call_llm,
-                    )
-                    save_generated_documents(
-                        user_id,
-                        result_id,
-                        cover_letter_text=letter,
-                    )
-                    st.session_state[f"cover_{result_id}"] = letter
-                    st.success(t("job.cover_ready"))
+                    try:
+                        letter = generate_cover_letter(
+                            cv_text,
+                            job,
+                            match,
+                            user_profile,
+                            llm_call=call_llm,
+                        )
+                    except Exception as exc:  # noqa: BLE001
+                        from services.llm_errors import public_llm_error
+
+                        st.error(
+                            t(
+                                "job.apply_auto_generation_error",
+                                error=public_llm_error(exc),
+                            )
+                        )
+                    else:
+                        save_generated_documents(
+                            user_id,
+                            result_id,
+                            cover_letter_text=letter,
+                        )
+                        st.session_state[f"cover_{result_id}"] = letter
+                        if consume_document_fallback_notice():
+                            st.warning(t("job.document_fallback"))
+                        else:
+                            st.success(t("job.cover_ready"))
         with gen_col2:
             if st.button(
                 t("job.adapted_cv"),
@@ -4947,20 +4990,34 @@ def render_job_card(
                 help=t("job.adapted_cv_help"),
             ):
                 with st.spinner(t("job.adapting_cv")):
-                    adapted = generate_adapted_cv(
-                        cv_text,
-                        job,
-                        match,
-                        user_profile,
-                        llm_call=call_llm,
-                    )
-                    save_generated_documents(
-                        user_id,
-                        result_id,
-                        adapted_cv_text=adapted,
-                    )
-                    st.session_state[f"adapted_{result_id}"] = adapted
-                    st.success(t("job.cv_ready"))
+                    try:
+                        adapted = generate_adapted_cv(
+                            cv_text,
+                            job,
+                            match,
+                            user_profile,
+                            llm_call=call_llm,
+                        )
+                    except Exception as exc:  # noqa: BLE001
+                        from services.llm_errors import public_llm_error
+
+                        st.error(
+                            t(
+                                "job.apply_auto_generation_error",
+                                error=public_llm_error(exc),
+                            )
+                        )
+                    else:
+                        save_generated_documents(
+                            user_id,
+                            result_id,
+                            adapted_cv_text=adapted,
+                        )
+                        st.session_state[f"adapted_{result_id}"] = adapted
+                        if consume_document_fallback_notice():
+                            st.warning(t("job.document_fallback"))
+                        else:
+                            st.success(t("job.cv_ready"))
 
         freelance_job = is_freelance_mode(user_profile) or str(
             job.get("listing_kind") or job.get("inferred_contract") or job.get("contract_type") or ""

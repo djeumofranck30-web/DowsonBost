@@ -11,7 +11,11 @@ from urllib.parse import urlparse
 
 import requests
 
-from document_generation import generate_adapted_cv, generate_cover_letter
+from document_generation import (
+    consume_document_fallback_notice,
+    generate_adapted_cv,
+    generate_cover_letter,
+)
 from email_service import (
     email_configured,
     send_application_confirmation_email,
@@ -823,6 +827,7 @@ def submit_application_automatically(
     else:
         _stamp_recruiter_email(job, None, "hunter")
 
+    fallback_notice = ""
     try:
         letter, adapted = ensure_application_documents(
             cv_text,
@@ -834,16 +839,28 @@ def submit_application_automatically(
             adapted_cv_text=adapted_cv_text,
             skip_adapted=False,
         )
+        fallback_notice = consume_document_fallback_notice()
     except Exception as exc:
+        from services.llm_errors import public_llm_error
+
         return _tracked(
             method="generation_error",
-            message=t("job.apply_auto_generation_error", locale=locale, error=str(exc)),
+            message=t(
+                "job.apply_auto_generation_error",
+                locale=locale,
+                error=public_llm_error(exc),
+            ),
             cover_letter=cover_letter_text or "",
             adapted_cv=adapted_cv_text or "",
             apply_email=apply_email,
             job_url=job_url,
             profile_text=profile_text,
         )
+
+    def _with_fallback(message: str) -> str:
+        if not fallback_notice:
+            return message
+        return f"{message} {t('job.document_fallback', locale=locale)}"
 
     subject = _application_subject(job, profile)
     body = _application_body(job, profile, job_url, locale=locale)
@@ -892,7 +909,7 @@ def submit_application_automatically(
             return _tracked(
                 success=True,
                 method="email",
-                message=message,
+                message=_with_fallback(message),
                 cover_letter=letter,
                 adapted_cv=adapted,
                 apply_email=apply_email,
@@ -969,7 +986,7 @@ def submit_application_automatically(
     return _tracked(
         success=True,
         method="prepared",
-        message=f"{message} {missing}",
+        message=_with_fallback(f"{message} {missing}"),
         cover_letter=letter,
         adapted_cv=adapted,
         apply_email=None,
@@ -1004,6 +1021,7 @@ def prepare_manual_application(
     job_url = str(job.get("url") or "").strip()
     letter = (cover_letter_text or "").strip()
     adapted = (adapted_cv_text or "").strip()
+    fallback_notice = ""
 
     if generate_documents and cv_text and user_profile:
         try:
@@ -1016,16 +1034,31 @@ def prepare_manual_application(
                 cover_letter_text=letter or None,
                 adapted_cv_text=adapted or None,
             )
+            fallback_notice = consume_document_fallback_notice()
         except Exception as exc:
+            from services.llm_errors import public_llm_error
+
             return _empty_result(
                 method="generation_error",
-                message=t("job.apply_auto_generation_error", locale=locale, error=str(exc)),
+                message=t(
+                    "job.apply_auto_generation_error",
+                    locale=locale,
+                    error=public_llm_error(exc),
+                ),
                 cover_letter=letter,
                 adapted_cv=adapted,
                 apply_email=resolve_apply_email(job),
                 job_url=job_url,
                 profile_text=profile_text,
             )
+        else:
+            if fallback_notice:
+                # Surface on the pack that the IA rewrite was skipped.
+                profile_text = (
+                    f"{profile_text}\n\n{t('job.document_fallback', locale=locale)}"
+                    if profile_text
+                    else t("job.document_fallback", locale=locale)
+                )
 
     if not job_url:
         return _empty_result(
@@ -1038,10 +1071,13 @@ def prepare_manual_application(
             profile_text=profile_text,
         )
 
+    ready = t("job.apply_manual_ready", locale=locale)
+    if fallback_notice:
+        ready = f"{ready} {t('job.document_fallback', locale=locale)}"
     return _empty_result(
         success=True,
         method="manual",
-        message=t("job.apply_manual_ready", locale=locale),
+        message=ready,
         cover_letter=letter,
         adapted_cv=adapted,
         apply_email=resolve_apply_email(job),

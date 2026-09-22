@@ -502,6 +502,7 @@
   "job.apply_auto_ready": "Automatic apply is ready: Hunter, outbound e-mail and AI are configured.",
   "job.apply_auto_setup": "To apply automatically, add these Streamlit secrets: {missing}. Then reboot the app.",
   "job.apply_auto_generation_error": "Could not generate documents: {error}",
+  "job.document_fallback": "AI engines were saturated: the pack was prepared from your CV and the listing, without inventing missions. Retry in 1–2 minutes for an AI version.",
   "job.apply_auto_email_sent": "Application sent from {from_email} to {email}.",
   "job.apply_auto_email_failed": "Automatic send failed: {error}",
   "job.apply_auto_prepared_success": "Pack ready: profile, letter and adapted CV. Submit them on the listing site.",

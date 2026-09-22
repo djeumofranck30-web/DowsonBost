@@ -502,6 +502,7 @@
   "job.apply_auto_ready": "Candidature automatique prête : Hunter, e-mail sortant et IA sont configurés.",
   "job.apply_auto_setup": "Pour postuler automatiquement, ajoutez dans les secrets Streamlit : {missing}. Puis redémarrez l'app.",
   "job.apply_auto_generation_error": "Impossible de générer les documents : {error}",
+  "job.document_fallback": "Les moteurs IA étaient saturés : dossier préparé à partir de votre CV et de l'offre, sans inventer de missions. Réessayez dans 1 à 2 minutes pour une version IA.",
   "job.apply_auto_email_sent": "Candidature envoyée depuis {from_email} à {email}.",
   "job.apply_auto_email_failed": "Échec de l'envoi automatique : {error}",
   "job.apply_auto_prepared_success": "Dossier préparé : profil, lettre et CV adaptés. Envoyez-les sur le site de l'offre.",

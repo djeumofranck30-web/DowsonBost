@@ -159,6 +159,63 @@ def test_submit_application_automatically_prepares_pack_without_recruiter_email(
     assert notify_user.call_args.kwargs["method"] == "auto_prepared"
 
 
+@patch("services.application.notify_candidate_application", return_value=True)
+@patch("services.application.send_application_email", return_value=(True, "ok"))
+@patch("services.hunter.hunter_configured", return_value=True)
+@patch("services.application.email_configured", return_value=True)
+@patch("services.application.resolve_apply_email", return_value=None)
+def test_submit_application_uses_fallback_docs_when_llm_quota_exhausted(
+    _resolve: object,
+    _mail: object,
+    _hunter: object,
+    send_mail: object,
+    notify_user: object,
+):
+    job = {
+        "title": "Développeuse Python",
+        "company": "NovaTech",
+        "location": "Paris",
+        "description": "Python Django APIs REST",
+        "url": "https://example.com/jobs/1",
+    }
+    match = {
+        "score_correspondance": 80,
+        "titre_cv_recommande": "Développeuse Python",
+        "analyse_competences": {"offre_technos": ["Python", "Django"]},
+    }
+    user = {
+        "full_name": "Jane Doe",
+        "email": "jane@example.com",
+        "phone": "+33600000000",
+        "target_job_title": "Développeuse Python",
+    }
+    cv = (
+        "NOM: Jane Doe\nTITRE: Développeuse\n## EXPERIENCE\n"
+        "POSTE: Développeuse Python\nENTREPRISE: Acme\nPERIODE: 2022 - 2025\n"
+        "LIEU: Lyon\n- Conception d'APIs REST\n"
+    )
+
+    def boom(*_args: object, **_kwargs: object) -> str:
+        raise RuntimeError("429 RESOURCE_EXHAUSTED {'error': {'code': 429}}")
+
+    result = submit_application_automatically(
+        cv,
+        job,
+        match,
+        user,
+        llm_call=boom,
+        locale="fr",
+    )
+    assert result["success"] is True
+    assert "NovaTech" in result["cover_letter"]
+    assert "2022 - 2025" in result["adapted_cv"]
+    assert "{" not in result["message"]
+    assert "RESOURCE_EXHAUSTED" not in result["message"]
+    assert "saturés" in result["message"].lower() or "fallback" in result["message"].lower()
+    send_mail.assert_called_once()
+    notify_user.assert_called_once()
+
+
 def test_enrich_application_profile_fills_account_email():
     with patch(
         "auth.get_user_by_id",
