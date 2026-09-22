@@ -82,7 +82,7 @@
   "auth.register.wizard.job": "Job",
   "auth.register.wizard.location": "Areas",
   "auth.register.wizard.preferences": "Preferences",
-  "auth.register.wizard.identity_hint": "Enter your details to create your account.",
+  "auth.register.wizard.identity_hint": "Enter your details. First and last names are stored exactly as you type them (capitals and lowercase).",
   "auth.register.first_name_required": "First name must be at least 2 characters.",
   "auth.register.last_name_required": "Last name must be at least 2 characters.",
   "auth.register.countries_required": "Select at least one country.",

@@ -7,8 +7,12 @@ from unittest.mock import patch
 from auth import (
     authenticate_user,
     create_password_reset_token,
+    get_user_by_id,
+    join_full_name,
+    preserve_person_name,
     register_user,
     reset_password_with_token,
+    split_full_name,
 )
 
 
@@ -76,6 +80,30 @@ def test_register_sends_welcome_email(sqlite_db):
     assert mock_send.call_args.args[0] == "alice@example.com"
     assert mock_send.call_args.args[1] == "Alice Doe"
     assert "confirmation" in msg.lower()
+
+
+def test_preserve_person_name_keeps_user_capitals():
+    assert preserve_person_name("  jean-PIERRE   de GAULLE ") == "jean-PIERRE de GAULLE"
+    assert preserve_person_name("McDonald") == "McDonald"
+    assert join_full_name("jean-PIERRE", "de GAULLE") == "jean-PIERRE de GAULLE"
+    first, last = split_full_name("jean-PIERRE de GAULLE")
+    assert first == "jean-PIERRE"
+    assert last == "de GAULLE"
+
+
+def test_register_stores_name_exactly_as_typed(sqlite_db):
+    ok, msg = register_user(
+        "jean-PIERRE de GAULLE",
+        "pierre.case@example.com",
+        "Secret123!",
+        **_register_kwargs(),
+    )
+    assert ok, msg
+    ok_login, _, user = authenticate_user("pierre.case@example.com", "Secret123!")
+    assert ok_login
+    assert user["full_name"] == "jean-PIERRE de GAULLE"
+    stored = get_user_by_id(int(user["id"]))
+    assert stored["full_name"] == "jean-PIERRE de GAULLE"
 
 
 def test_register_succeeds_when_welcome_email_fails(sqlite_db):

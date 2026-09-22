@@ -80,6 +80,27 @@ def test_register_opens_as_full_page_form():
     assert "nav_back, nav_next = st.columns(2)" not in register_fn
 
 
+def test_register_success_reruns_to_login_with_flash():
+    source = (ROOT / "app.py").read_text(encoding="utf-8")
+    submit_fn = source[
+        source.index("def _submit_register_wizard(") : source.index(
+            "def _render_auth_register_form()"
+        )
+    ]
+    assert "join_full_name" in submit_fn
+    assert "preserve_person_name" in submit_fn
+    assert 'st.session_state.auth_view = "login"' in submit_fn
+    assert "login_flash" in submit_fn
+    assert "st.rerun()" in submit_fn
+    login_fn = source[
+        source.index("def _render_auth_login_form()") : source.index(
+            "def _render_auth_reset_form()"
+        )
+    ]
+    assert "_render_login_flash()" in login_fn
+    assert 'key="login_email"' in login_fn
+
+
 def test_auth_footer_locale_keys_exist():
     for locale in ("fr", "en"):
         data = json.loads((ROOT / f"locales/{locale}.json").read_text(encoding="utf-8"))
@@ -87,3 +108,4 @@ def test_auth_footer_locale_keys_exist():
         assert data["auth.footer.create"]
         assert data["auth.login.submit"]
         assert data["auth.login.forgot"]
+        assert "majuscules" in data["auth.register.wizard.identity_hint"].lower() or "capitals" in data["auth.register.wizard.identity_hint"].lower()

@@ -381,6 +381,7 @@ from auth import (
     format_member_since,
     init_db,
     join_full_name,
+    preserve_person_name,
     reset_code_seconds_remaining,
     split_full_name,
     user_is_admin,
@@ -7934,9 +7935,16 @@ def _render_account_deleted_notice() -> None:
         st.success(t("auth.account.deleted"))
 
 
+def _render_login_flash() -> None:
+    message = str(st.session_state.pop("login_flash", "") or "").strip()
+    if message:
+        st.success(message)
+
+
 def _render_auth_login_form() -> None:
     """Login form stacked like a 2026 sign-in card."""
     _render_account_deleted_notice()
+    _render_login_flash()
     headline, sub = _auth_time_greeting()
     st.markdown(
         f'<p class="auth-greeting-main">{html.escape(headline)}</p>',
@@ -8227,8 +8235,8 @@ def _validate_register_wizard_step(step: int) -> tuple[bool, str]:
         if not countries:
             return False, t("auth.register.countries_required")
     elif step == 2:
-        first = (st.session_state.get("register_wiz_first_name") or "").strip()
-        last = (st.session_state.get("register_wiz_last_name") or "").strip()
+        first = preserve_person_name(st.session_state.get("register_wiz_first_name") or "")
+        last = preserve_person_name(st.session_state.get("register_wiz_last_name") or "")
         email = (st.session_state.get("register_wiz_email") or "").strip().lower()
         password = st.session_state.get("register_wiz_password") or ""
         password2 = st.session_state.get("register_wiz_password2") or ""
@@ -8259,8 +8267,12 @@ def _persist_register_wizard_step(step: int, draft: dict[str, Any]) -> None:
             st.session_state.get("register_selected_countries") or ["France"]
         )
     elif step == 2:
-        draft["first_name"] = (st.session_state.get("register_wiz_first_name") or "").strip()
-        draft["last_name"] = (st.session_state.get("register_wiz_last_name") or "").strip()
+        draft["first_name"] = preserve_person_name(
+            st.session_state.get("register_wiz_first_name") or ""
+        )
+        draft["last_name"] = preserve_person_name(
+            st.session_state.get("register_wiz_last_name") or ""
+        )
         draft["email"] = (st.session_state.get("register_wiz_email") or "").strip().lower()
         draft["phone"] = (st.session_state.get("register_wiz_phone") or "").strip()
         draft["password"] = st.session_state.get("register_wiz_password") or ""
@@ -8313,7 +8325,13 @@ def _render_register_location_step(countries: list[str]) -> dict[str, Any]:
 def _submit_register_wizard(draft: dict[str, Any]) -> None:
     geo = st.session_state.get("register_geo_snapshot") or {}
     countries = draft.get("countries") or ["France"]
-    full_name = f"{draft.get('first_name', '')} {draft.get('last_name', '')}".strip()
+    first_name = preserve_person_name(
+        draft.get("first_name") or st.session_state.get("register_wiz_first_name") or ""
+    )
+    last_name = preserve_person_name(
+        draft.get("last_name") or st.session_state.get("register_wiz_last_name") or ""
+    )
+    full_name = join_full_name(first_name, last_name)
 
     ok, message = register_user(
         full_name,
@@ -8337,11 +8355,15 @@ def _submit_register_wizard(draft: dict[str, Any]) -> None:
         phone=draft.get("phone", ""),
     )
     if ok:
-        st.success(message)
+        email = str(draft.get("email") or "").strip().lower()
         st.session_state.auth_view = "login"
+        st.session_state.login_flash = message
+        if email:
+            st.session_state.login_email = email
         st.session_state.pop("account_deleted_notice", None)
         st.session_state.pop("prefill_register_email", None)
         _reset_register_wizard()
+        st.rerun()
     else:
         st.error(message)
 
@@ -8527,7 +8549,12 @@ def _render_auth_register_form() -> None:
             use_container_width=True,
             key="register_wizard_submit",
         ):
-            _submit_register_wizard(draft)
+            valid, error = _validate_register_wizard_step(step)
+            if not valid:
+                st.error(error)
+            else:
+                _persist_register_wizard_step(step, draft)
+                _submit_register_wizard(draft)
     st.markdown("</div>", unsafe_allow_html=True)
 
 
@@ -9113,8 +9140,8 @@ def render_profile_page(user: dict[str, Any], job_provider: str) -> None:
                 use_container_width=True,
                 type="primary",
             ):
-                first_name = profile_first_name.strip()
-                last_name = profile_last_name.strip()
+                first_name = preserve_person_name(profile_first_name)
+                last_name = preserve_person_name(profile_last_name)
                 if len(first_name) < 2:
                     st.error(t("auth.register.first_name_required"))
                 elif len(last_name) < 2:

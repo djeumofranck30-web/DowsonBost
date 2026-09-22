@@ -100,9 +100,14 @@ _USER_COLUMNS = [
 ]
 
 
+def preserve_person_name(value: str) -> str:
+    """Keep every capital and lowercase the user typed; only collapse spaces."""
+    return " ".join((value or "").replace("\u00a0", " ").split())
+
+
 def split_full_name(full_name: str) -> tuple[str, str]:
     """Split stored full name into first and last name."""
-    normalized = " ".join((full_name or "").split())
+    normalized = preserve_person_name(full_name)
     if not normalized:
         return "", ""
     parts = normalized.split(" ", 1)
@@ -112,8 +117,8 @@ def split_full_name(full_name: str) -> tuple[str, str]:
 
 
 def join_full_name(first_name: str, last_name: str) -> str:
-    """Combine first and last name for storage."""
-    return " ".join(f"{first_name} {last_name}".split())
+    """Combine first and last name for storage without changing case."""
+    return preserve_person_name(f"{first_name} {last_name}")
 
 
 @contextmanager
@@ -1040,7 +1045,7 @@ def register_user(
     phone: str = "",
 ) -> tuple[bool, str]:
     """Register a new user. Returns (success, message)."""
-    full_name = " ".join(full_name.strip().split())
+    full_name = preserve_person_name(full_name)
     email = email.strip().lower()
     password = password.strip()
     home_city = " ".join(home_city.strip().split())
@@ -1280,7 +1285,7 @@ def update_user_profile(
     portfolio_url: str = "",
 ) -> tuple[bool, str, dict | None]:
     """Update user profile and job-matching preferences."""
-    full_name = " ".join(full_name.strip().split())
+    full_name = preserve_person_name(full_name)
     phone_clean = " ".join(phone.strip().split()) if phone is not None else None
     home_city = " ".join(home_city.strip().split())
     regions = [r.strip() for r in (admin_regions or []) if r.strip()]

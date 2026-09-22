@@ -84,7 +84,7 @@
   "auth.register.wizard.job": "Poste",
   "auth.register.wizard.location": "Zones",
   "auth.register.wizard.preferences": "Préférences",
-  "auth.register.wizard.identity_hint": "Renseignez vos coordonnées pour créer votre compte.",
+  "auth.register.wizard.identity_hint": "Renseignez vos coordonnées. Le prénom et le nom sont enregistrés tels que vous les saisissez (majuscules et minuscules).",
   "auth.register.first_name_required": "Le prénom doit contenir au moins 2 caractères.",
   "auth.register.last_name_required": "Le nom doit contenir au moins 2 caractères.",
   "auth.register.countries_required": "Sélectionnez au moins un pays.",

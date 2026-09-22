@@ -1889,6 +1889,12 @@ def render_auth_styles() -> None:
         [data-testid="stTextAreaRootElement"] {{
             min-height: 6.5rem !important;
         }}
+        [class*="st-key-register_wiz_first_name"] input,
+        [class*="st-key-register_wiz_last_name"] input,
+        [class*="st-key-register_wiz_first_name"] [data-testid="stTextInputField"],
+        [class*="st-key-register_wiz_last_name"] [data-testid="stTextInputField"] {{
+            text-transform: none !important;
+        }}
         [data-testid="stTextInputField"],
         [data-testid="stNumberInputField"],
         [data-testid="stTextInput"] input,
