@@ -7,19 +7,19 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <style>
     :root {
-      --violet: #2563EB;
-      --violet-dark: #1E3A8A;
-      --ink: #1E3A8A;
+      --violet: #4A6F8C;
+      --violet-dark: #31465A;
+      --ink: #31465A;
       --muted: #374151;
-      --line: rgba(37, 99, 235, 0.14);
+      --line: rgba(74, 111, 140, 0.14);
       --bg: #F3F4F6;
       --card: #ffffff;
       --ok: #10B981;
-      --warn: #2563EB;
+      --warn: #4A6F8C;
       --danger: #EF4444;
       --shadow: 0 8px 24px rgba(17, 24, 39, 0.08);
       --radius: 10px;
-      --accent: #2563EB;
+      --accent: #4A6F8C;
     }
     * { box-sizing: border-box; }
     html, body {
@@ -28,8 +28,8 @@
       font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
       color: var(--ink);
       background:
-        radial-gradient(ellipse 80% 50% at 8% 0%, rgba(37,99,235,.10), transparent 55%),
-        radial-gradient(ellipse 60% 45% at 100% 10%, rgba(30,58,138,.08), transparent 50%),
+        radial-gradient(ellipse 80% 50% at 8% 0%, rgba(74,111,140,.06), transparent 55%),
+        radial-gradient(ellipse 60% 45% at 100% 10%, rgba(49,70,90,.05), transparent 50%),
         linear-gradient(180deg, #FFFFFF 0%, #F3F4F6 100%);
     }
     button, input, textarea, select { font-family: inherit; }
@@ -46,7 +46,7 @@
     .logo {
       width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center;
       background: linear-gradient(135deg, var(--violet), var(--violet-dark)); color: #fff;
-      font-weight: 800; box-shadow: 0 8px 18px rgba(37,99,235,.28);
+      font-weight: 800; box-shadow: 0 8px 18px rgba(74,111,140,.28);
     }
     .brand h1 { margin: 0; font-size: 1.05rem; letter-spacing: -.02em; }
     .brand h1 span { color: var(--violet); }
@@ -151,12 +151,12 @@
       background: linear-gradient(135deg, var(--violet), var(--violet-dark));
     }
     .score-pill.high { background: #10B981; }
-    .score-pill.mid { background: #2563EB; color: #fff; }
+    .score-pill.mid { background: #4A6F8C; color: #fff; }
     .score-pill.low { background: #EF4444; }
     .run strong, .match strong { font-size: .92rem; }
     .run small, .match small { color: var(--muted); font-size: .75rem; }
     .run .facts, .match .facts { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .28rem; }
-    .chip { display: inline-flex; align-items: center; border-radius: 6px; padding: .12rem .5rem; font-size: .7rem; font-weight: 700; background: #F3F4F6; color: #1E3A8A; }
+    .chip { display: inline-flex; align-items: center; border-radius: 6px; padding: .12rem .5rem; font-size: .7rem; font-weight: 700; background: #F3F4F6; color: #31465A; }
     .empty-insight { color: var(--muted); text-align: center; padding: 1.6rem .8rem; }
     .empty-insight strong { display: block; color: var(--ink); margin-bottom: .25rem; }
     .grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1rem; }
@@ -176,13 +176,13 @@
     .avatar {
       width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center;
       color: #fff; font-weight: 800; font-size: .8rem;
-      background: linear-gradient(135deg, #2563EB, #1E3A8A);
+      background: linear-gradient(135deg, #4A6F8C, #31465A);
     }
     .who small { display: block; color: var(--muted); }
     .pill { display: inline-flex; align-items: center; border-radius: 999px; padding: .2rem .55rem; font-size: .72rem; font-weight: 700; }
     .pill.on { background: #ecfdf5; color: #047857; }
     .pill.off { background: #f1f5f9; color: #64748b; }
-    .pill.admin { background: #EFF6FF; color: #1E3A8A; }
+    .pill.admin { background: #EEF2F5; color: #31465A; }
     .toolbar { display: flex; gap: .7rem; align-items: center; margin-bottom: .8rem; flex-wrap: wrap; }
     .toolbar input {
       flex: 1; min-width: 220px; border: 1.5px solid var(--line); border-radius: 12px;
@@ -225,8 +225,8 @@
     }
     .support-thread { display: flex; flex-direction: column; gap: .65rem; max-height: 360px; overflow: auto; padding: .2rem; }
     .support-bubble { max-width: 88%; padding: .7rem .9rem; border-radius: 14px; font-size: .88rem; line-height: 1.45; }
-    .support-bubble.user { align-self: flex-end; background: #2563EB; color: #fff; }
-    .support-bubble.admin { align-self: flex-start; background: #F3F4F6; color: #1E3A8A; border: 1px solid #E5E7EB; }
+    .support-bubble.user { align-self: flex-end; background: #4A6F8C; color: #fff; }
+    .support-bubble.admin { align-self: flex-start; background: #F3F4F6; color: #31465A; border: 1px solid #E5E7EB; }
     .support-bubble .who { font-size: .68rem; font-weight: 700; opacity: .85; margin-bottom: .2rem; }
     .support-bubble .meta { font-size: .72rem; opacity: .75; margin-top: .35rem; }
     .support-compose { display: flex; flex-direction: column; gap: .5rem; }
@@ -510,8 +510,8 @@
 
     function chartColors() {
       return {
-        violet: "#2563EB",
-        indigo: "#1E3A8A",
+        violet: "#4A6F8C",
+        indigo: "#31465A",
         fill: "rgba(14,116,144,.18)",
         fill2: "rgba(232,185,35,.16)",
       };
@@ -577,7 +577,7 @@
 
     function scoreRingColor(score) {
       const tone = scoreTone(score);
-      return tone === "high" ? "#10B981" : tone === "mid" ? "#2563EB" : "#EF4444";
+      return tone === "high" ? "#10B981" : tone === "mid" ? "#4A6F8C" : "#EF4444";
     }
 
     function renderCharts(data) {
@@ -637,7 +637,7 @@
       makeChart("chart-score-bands", doughnutConfig(
         bands.map((b) => b.label),
         bands.map((b) => Number(b.count || 0)),
-        ["#10B981", "#2563EB", "#EF4444"]
+        ["#10B981", "#4A6F8C", "#EF4444"]
       ));
     }
 
@@ -1031,7 +1031,7 @@
       pane.innerHTML =
         '<div><strong>Espace de ' + escapeHtml(user.full_name || user.email || ("#" + userId)) + '</strong>'
         + '<div style="color:var(--muted);font-size:.85rem">' + escapeHtml(user.email || "") + '</div>'
-        + '<div style="color:#2563EB;font-size:.78rem;font-weight:600;margin-top:.25rem">Fil privé — seul ce candidat voit vos messages.</div></div>'
+        + '<div style="color:#4A6F8C;font-size:.78rem;font-weight:600;margin-top:.25rem">Fil privé — seul ce candidat voit vos messages.</div></div>'
         + '<div class="support-thread">' + thread + '</div>'
         + '<form class="support-compose" id="support-reply-form">'
         + '<textarea id="support-reply-body" required maxlength="4000" placeholder="Répondre uniquement à ce candidat…"></textarea>'

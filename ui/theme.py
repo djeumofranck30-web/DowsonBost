@@ -7,23 +7,23 @@ from pathlib import Path
 
 import streamlit as st
 
-# SaaS tokens — Stripe / Linear / Notion: blue + green only as strong colors
+# SaaS tokens — muted slate-blue; green/red only for success/danger
 THEME = {
     "bg_gradient": "linear-gradient(180deg, #FFFFFF 0%, #F3F4F6 100%)",
     "bg_mesh": (
-        "radial-gradient(ellipse 70% 50% at 8% 0%, rgba(37,99,235,0.10), transparent 55%), "
-        "radial-gradient(ellipse 55% 45% at 96% 6%, rgba(30,58,138,0.08), transparent 50%)"
+        "radial-gradient(ellipse 70% 50% at 8% 0%, rgba(74,111,140,0.06), transparent 55%), "
+        "radial-gradient(ellipse 55% 45% at 96% 6%, rgba(49,70,90,0.05), transparent 50%)"
     ),
-    "primary": "#2563EB",
-    "primary_dark": "#1E3A8A",
-    "primary_deep": "#1E3A8A",
+    "primary": "#4A6F8C",
+    "primary_dark": "#31465A",
+    "primary_deep": "#31465A",
     "surface": "#FFFFFF",
     "surface_soft": "#F3F4F6",
     "surface_glass": "rgba(255, 255, 255, 0.92)",
     "muted": "#374151",
-    "accent": "#2563EB",
+    "accent": "#4A6F8C",
     "success": "#10B981",
-    "warning": "#2563EB",
+    "warning": "#4A6F8C",
     "danger": "#EF4444",
     "radius_sm": "6px",
     "radius_md": "8px",
@@ -81,8 +81,8 @@ def _shared_components_css(t: dict[str, str]) -> str:
             to {{ transform: translateX(220%) skewX(-12deg); }}
         }}
         @keyframes db-pulse-ring {{
-            0%, 100% {{ box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.28); }}
-            50% {{ box-shadow: 0 0 0 7px rgba(37, 99, 235, 0); }}
+            0%, 100% {{ box-shadow: 0 0 0 0 rgba(74, 111, 140, 0.28); }}
+            50% {{ box-shadow: 0 0 0 7px rgba(74, 111, 140, 0); }}
         }}
         @keyframes db-skeleton {{
             0% {{ background-position: 100% 0; }}
@@ -175,7 +175,7 @@ def _shared_components_css(t: dict[str, str]) -> str:
         .stLinkButton a:hover,
         [data-testid^="stBaseLinkButton-"]:hover {{
             filter: brightness(1.04) !important;
-            background: #EFF6FF !important;
+            background: #EEF2F5 !important;
             border-color: {t["primary"]} !important;
             box-shadow: {t["shadow_sm"]} !important;
         }}
@@ -198,12 +198,12 @@ def _shared_components_css(t: dict[str, str]) -> str:
         div[data-testid="stNumberInput"] input:focus,
         div[data-testid="stTextArea"] textarea:focus {{
             border-color: {t["primary"]} !important;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+            box-shadow: 0 0 0 3px rgba(74, 111, 140, 0.12) !important;
         }}
 
         span[data-baseweb="tag"],
         [data-baseweb="tag"] {{
-            background: rgba(37, 99, 235, 0.12) !important;
+            background: rgba(74, 111, 140, 0.12) !important;
             color: {t["primary_dark"]} !important;
         }}
         [data-baseweb="tag"] span {{
@@ -233,7 +233,7 @@ def _shared_components_css(t: dict[str, str]) -> str:
         /* —— Metrics —— */
         [data-testid="stMetric"] {{
             background: linear-gradient(145deg, {t["surface"]} 0%, {t["surface_soft"]} 100%);
-            border: 1px solid rgba(37, 99, 235, 0.08);
+            border: 1px solid rgba(74, 111, 140, 0.08);
             border-radius: {t["radius_md"]};
             padding: 0.75rem 1rem;
             box-shadow: {t["shadow_sm"]};
@@ -262,7 +262,7 @@ def _shared_components_css(t: dict[str, str]) -> str:
         details[data-testid="stExpander"] {{
             background: {t["surface"]};
             border-radius: {t["radius_md"]};
-            border: 1px solid rgba(37, 99, 235, 0.08);
+            border: 1px solid rgba(74, 111, 140, 0.08);
             box-shadow: {t["shadow_sm"]};
         }}
         div[data-testid="stElementContainer"]:has(details[data-testid="stExpander"]) {{
@@ -302,7 +302,7 @@ def _shared_components_css(t: dict[str, str]) -> str:
         }}
         .support-thread {{
             background: {t["surface"]};
-            border: 1px solid rgba(37, 99, 235, 0.08);
+            border: 1px solid rgba(74, 111, 140, 0.08);
             border-radius: {t["radius_lg"]};
             padding: 1rem 1.1rem 1.15rem;
             max-height: 28rem;
@@ -325,7 +325,7 @@ def _shared_components_css(t: dict[str, str]) -> str:
             margin-right: auto;
             background: {t["surface_soft"]};
             color: {t["primary_deep"]};
-            border: 1px solid rgba(37, 99, 235, 0.12);
+            border: 1px solid rgba(74, 111, 140, 0.12);
             border-bottom-left-radius: 6px;
         }}
         .support-bubble .meta {{
@@ -375,14 +375,14 @@ def _shared_components_css(t: dict[str, str]) -> str:
         }}
         .msg-conv-item {{
             background: {t["surface"]};
-            border: 1px solid rgba(37, 99, 235, 0.12);
+            border: 1px solid rgba(74, 111, 140, 0.12);
             border-radius: 12px;
             padding: 0.75rem 0.85rem;
             cursor: default;
         }}
         .msg-conv-item.active {{
-            background: rgba(37, 99, 235, 0.08);
-            border-color: rgba(37, 99, 235, 0.28);
+            background: rgba(74, 111, 140, 0.08);
+            border-color: rgba(74, 111, 140, 0.28);
         }}
         .msg-conv-item strong {{ display: block; color: {t["primary_deep"]}; }}
         .msg-conv-item small {{ color: {t["muted"]}; }}
@@ -406,11 +406,11 @@ def _shared_components_css(t: dict[str, str]) -> str:
         @keyframes db-chat-pulse {{
             0%, 100% {{
                 transform: scale(1);
-                box-shadow: 0 0 0 3px {t["accent"]}, 0 12px 26px rgba(37, 99, 235, 0.42);
+                box-shadow: 0 0 0 3px {t["accent"]}, 0 12px 26px rgba(74, 111, 140, 0.42);
             }}
             50% {{
                 transform: scale(1.07);
-                box-shadow: 0 0 0 3px {t["accent"]}, 0 16px 32px rgba(37, 99, 235, 0.5);
+                box-shadow: 0 0 0 3px {t["accent"]}, 0 16px 32px rgba(74, 111, 140, 0.5);
             }}
         }}
         #db-chat-fab {{
@@ -431,7 +431,7 @@ def _shared_components_css(t: dict[str, str]) -> str:
             pointer-events: auto !important;
             overflow: hidden !important;
             background: linear-gradient(135deg, {t["primary"]}, {t["primary_dark"]}) !important;
-            box-shadow: 0 0 0 3px {t["accent"]}, 0 12px 26px rgba(37, 99, 235, 0.42) !important;
+            box-shadow: 0 0 0 3px {t["accent"]}, 0 12px 26px rgba(74, 111, 140, 0.42) !important;
             animation: db-chat-pulse 2.2s ease-in-out infinite !important;
         }}
         #db-chat-fab svg {{
@@ -454,7 +454,7 @@ def _shared_components_css(t: dict[str, str]) -> str:
             padding: 0 6px;
             border-radius: 999px;
             background: {t["accent"]};
-            color: #1E3A8A;
+            color: #FFFFFF;
             font: 800 11px/20px system-ui, sans-serif;
             display: flex;
             align-items: center;
@@ -477,7 +477,7 @@ def _shared_components_css(t: dict[str, str]) -> str:
             background: {t["primary"]} !important;
             color: #fff !important;
             border: 0 !important;
-            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28) !important;
+            box-shadow: 0 6px 16px rgba(74, 111, 140, 0.28) !important;
         }}
         .st-key-support_new button:hover {{
             filter: brightness(1.06);
@@ -526,8 +526,8 @@ def render_app_styles() -> None:
             transform: none !important;
             overflow: hidden !important;
             background:
-                radial-gradient(ellipse 80% 40% at 50% 0%, rgba(37,99,235,0.22), transparent 55%),
-                linear-gradient(180deg, #1E3A8A 0%, #172554 100%) !important;
+                radial-gradient(ellipse 80% 40% at 50% 0%, rgba(74,111,140,0.10), transparent 55%),
+                linear-gradient(180deg, #31465A 0%, #1E2C38 100%) !important;
             backdrop-filter: none;
             -webkit-backdrop-filter: none;
             border-right: 1px solid rgba(255, 255, 255, 0.06);
@@ -545,8 +545,8 @@ def render_app_styles() -> None:
             overflow-y: auto !important;
             padding-top: 1.1rem;
             background:
-                radial-gradient(ellipse 80% 40% at 50% 0%, rgba(37,99,235,0.22), transparent 55%),
-                linear-gradient(180deg, #1E3A8A 0%, #172554 100%) !important;
+                radial-gradient(ellipse 80% 40% at 50% 0%, rgba(74,111,140,0.10), transparent 55%),
+                linear-gradient(180deg, #31465A 0%, #1E2C38 100%) !important;
         }}
         [data-testid="stSidebarUserContent"] {{
             flex: 1 1 auto !important;
@@ -603,7 +603,7 @@ def render_app_styles() -> None:
             align-items: center;
             justify-content: center;
             font-size: 1.35rem;
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+            box-shadow: 0 8px 20px rgba(74, 111, 140, 0.35);
         }}
         [data-testid="stSidebar"] .sidebar-brand-name {{
             font-size: 1.05rem;
@@ -739,7 +739,7 @@ def render_app_styles() -> None:
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, {t["primary"]}, {t["accent"]}, #2563EB);
+            background: linear-gradient(90deg, {t["primary"]}, {t["accent"]}, #4A6F8C);
         }}
         .app-page-hero h1 {{
             margin: 0 0 0.4rem 0;
@@ -759,7 +759,7 @@ def render_app_styles() -> None:
             display: inline-flex;
             align-items: center;
             gap: 0.35rem;
-            background: rgba(37, 99, 235, 0.10);
+            background: rgba(74, 111, 140, 0.10);
             color: {t["primary"]};
             font-size: 0.7rem;
             font-weight: 700;
@@ -768,13 +768,13 @@ def render_app_styles() -> None:
             padding: 0.3rem 0.75rem;
             border-radius: 999px;
             margin-bottom: 0.75rem;
-            border: 1px solid rgba(37, 99, 235, 0.12);
+            border: 1px solid rgba(74, 111, 140, 0.12);
         }}
 
         [data-testid="stVerticalBlockBorderWrapper"] {{
             background: {t["surface"]} !important;
             border-radius: {t["radius_lg"]} !important;
-            border: 1px solid rgba(37, 99, 235, 0.06) !important;
+            border: 1px solid rgba(74, 111, 140, 0.06) !important;
             box-shadow: {t["shadow_md"]} !important;
             padding: 0.5rem 0.65rem 0.85rem !important;
         }}
@@ -800,7 +800,7 @@ def render_app_styles() -> None:
         }}
         .job-match-card:hover {{
             box-shadow: {t["shadow_md"]};
-            border-color: rgba(37, 99, 235, 0.28);
+            border-color: rgba(74, 111, 140, 0.28);
         }}
         .job-match-card h3 {{
             color: {t["primary_deep"]};
@@ -822,7 +822,7 @@ def render_app_styles() -> None:
             margin-bottom: 1.35rem;
             border-radius: {t["radius_lg"]};
             background: {t["surface"]};
-            border: 1px solid rgba(37, 99, 235, 0.08);
+            border: 1px solid rgba(74, 111, 140, 0.08);
             box-shadow: {t["shadow_md"]};
             animation: db-rise 0.16s ease both;
         }}
@@ -839,7 +839,7 @@ def render_app_styles() -> None:
             justify-content: center;
             flex-shrink: 0;
             overflow: hidden;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18), 0 8px 20px rgba(37, 99, 235, 0.18);
+            box-shadow: 0 0 0 3px rgba(74, 111, 140, 0.18), 0 8px 20px rgba(74, 111, 140, 0.18);
         }}
         .profile-avatar img {{
             width: 100%;
@@ -860,7 +860,7 @@ def render_app_styles() -> None:
             display: inline-block;
             padding: 0.28rem 0.7rem;
             border-radius: 999px;
-            background: rgba(37, 99, 235, 0.08);
+            background: rgba(74, 111, 140, 0.08);
             color: {t["primary_dark"]};
             font-size: 0.78rem;
             font-weight: 600;
@@ -881,7 +881,7 @@ def render_app_styles() -> None:
             align-items: center;
             padding: 0.28rem 0.7rem;
             border-radius: 999px;
-            background: rgba(37, 99, 235, 0.08);
+            background: rgba(74, 111, 140, 0.08);
             color: {t["primary_dark"]};
             font-size: 0.78rem;
             font-weight: 600;
@@ -901,7 +901,7 @@ def render_app_styles() -> None:
             border: 0;
             height: 1px;
             margin: 1.4rem 0 1.1rem;
-            background: linear-gradient(90deg, rgba(37,99,235,0.25), transparent);
+            background: linear-gradient(90deg, rgba(74,111,140,0.25), transparent);
         }}
         .job-match-card {{
             padding: 18px;
@@ -978,7 +978,7 @@ def render_app_styles() -> None:
         }}
         .stat-card {{
             background: {t["surface"]};
-            border: 1px solid rgba(37, 99, 235, 0.1);
+            border: 1px solid rgba(74, 111, 140, 0.1);
             border-radius: {t["radius_md"]};
             padding: 1rem 1.1rem 0.95rem;
             box-shadow: {t["shadow_sm"]};
@@ -998,7 +998,7 @@ def render_app_styles() -> None:
             width: 64px;
             height: 64px;
             border-radius: 50%;
-            background: linear-gradient(135deg, rgba(37,99,235,0.12), transparent);
+            background: linear-gradient(135deg, rgba(74,111,140,0.12), transparent);
         }}
         .stat-card-label {{
             margin: 0;
@@ -1026,7 +1026,7 @@ def render_app_styles() -> None:
             border-radius: {t["radius_xl"]};
             padding: 2.4rem 1.5rem;
             box-shadow: {t["shadow_md"]};
-            border: 1px solid rgba(37, 99, 235, 0.08);
+            border: 1px solid rgba(74, 111, 140, 0.08);
             margin-bottom: 1rem;
             animation: db-rise 0.18s ease both;
         }}
@@ -1054,7 +1054,7 @@ def render_app_styles() -> None:
             align-items: center;
             padding: 0.22rem 0.7rem;
             border-radius: 999px;
-            background: rgba(37, 99, 235, 0.08);
+            background: rgba(74, 111, 140, 0.08);
             color: {t["primary_deep"]};
             font-size: 0.78rem;
             font-weight: 600;
@@ -1075,7 +1075,7 @@ def render_app_styles() -> None:
         }}
         .dash-chart-panel {{
             background: {t["surface"]};
-            border: 1px solid rgba(37, 99, 235, 0.08);
+            border: 1px solid rgba(74, 111, 140, 0.08);
             border-radius: {t["radius_lg"]};
             padding: 0.75rem 0.85rem 0.45rem;
             box-shadow: {t["shadow_sm"]};
@@ -1130,7 +1130,7 @@ def render_app_styles() -> None:
         }}
         .dash-quality-panel {{
             background: {t["surface"]};
-            border: 1px solid rgba(37, 99, 235, 0.08);
+            border: 1px solid rgba(74, 111, 140, 0.08);
             border-radius: {t["radius_lg"]};
             padding: 0.95rem 1rem 1rem;
             box-shadow: {t["shadow_sm"]};
@@ -1184,7 +1184,7 @@ def render_app_styles() -> None:
             align-items: center;
             padding: 0.55rem 0.65rem;
             border-radius: 14px;
-            border: 1px solid rgba(37, 99, 235, 0.08);
+            border: 1px solid rgba(74, 111, 140, 0.08);
             background: linear-gradient(180deg, #fff, {t["surface_soft"]});
         }}
         .dash-top-match strong {{
@@ -1284,7 +1284,7 @@ def render_app_styles() -> None:
             padding: 0.28rem 0.65rem;
             border-radius: 999px;
             background: {t["surface_soft"]};
-            border: 1px solid rgba(37, 99, 235, 0.1);
+            border: 1px solid rgba(74, 111, 140, 0.1);
             color: {t["primary_deep"]};
             font-size: 0.78rem;
             font-weight: 700;
@@ -1294,7 +1294,7 @@ def render_app_styles() -> None:
             background: rgba(255,255,255,0.55);
             padding: 0.35rem;
             border-radius: 999px;
-            border: 1px solid rgba(37, 99, 235, 0.08);
+            border: 1px solid rgba(74, 111, 140, 0.08);
             margin-bottom: 0.85rem;
         }}
         .stTabs [data-baseweb="tab"] {{
@@ -1385,7 +1385,7 @@ def render_app_styles() -> None:
         /* —— Support chat —— */
         .support-thread {{
             background: {t["surface"]};
-            border: 1px solid rgba(37, 99, 235, 0.08);
+            border: 1px solid rgba(74, 111, 140, 0.08);
             border-radius: {t["radius_lg"]};
             padding: 1rem 1.1rem 1.15rem;
             box-shadow: {t["shadow_sm"]};
@@ -1410,7 +1410,7 @@ def render_app_styles() -> None:
             margin-right: auto;
             background: {t["surface_soft"]};
             color: {t["primary_deep"]};
-            border: 1px solid rgba(37, 99, 235, 0.12);
+            border: 1px solid rgba(74, 111, 140, 0.12);
             border-bottom-left-radius: 6px;
         }}
         .support-bubble .meta {{
@@ -1430,7 +1430,7 @@ def render_app_styles() -> None:
         .support-inbox-item {{
             padding: 0.75rem 0.85rem;
             border-radius: 14px;
-            border: 1px solid rgba(37, 99, 235, 0.1);
+            border: 1px solid rgba(74, 111, 140, 0.1);
             background: {t["surface"]};
             margin-bottom: 0.5rem;
         }}
@@ -1438,7 +1438,7 @@ def render_app_styles() -> None:
         .support-inbox-item small {{ color: {t["muted"]}; }}
         .support-space-header {{
             background: {t["surface"]};
-            border: 1px solid rgba(37, 99, 235, 0.12);
+            border: 1px solid rgba(74, 111, 140, 0.12);
             border-radius: {t["radius_lg"]};
             padding: 0.85rem 1rem 0.95rem;
             margin-bottom: 0.7rem;
@@ -1451,7 +1451,7 @@ def render_app_styles() -> None:
         /* —— File uploader —— */
         [data-testid="stFileUploader"] section {{
             background: {t["surface_soft"]};
-            border: 2px dashed rgba(37, 99, 235, 0.2);
+            border: 2px dashed rgba(74, 111, 140, 0.2);
             border-radius: {t["radius_lg"]};
             padding: 0.75rem;
             transition: border-color 0.2s ease;
@@ -1577,7 +1577,7 @@ def render_app_styles() -> None:
         }}
         [class*="st-key-delete_account_no"] button {{
             background: #fff !important;
-            color: #1E3A8A !important;
+            color: #31465A !important;
             border: 1.5px solid rgba(11, 18, 32, 0.12) !important;
             box-shadow: none !important;
         }}
@@ -1730,12 +1730,12 @@ def render_auth_styles() -> None:
             align-items: center;
         }}
         .auth-illustration-wrap {{
-            background: linear-gradient(165deg, #2563EB 0%, #1E3A8A 100%);
+            background: linear-gradient(165deg, #4A6F8C 0%, #31465A 100%);
             border-radius: 22px;
             padding: 1.4rem 1.15rem 1.55rem;
             margin-bottom: 1.45rem;
             width: min(100%, 320px);
-            box-shadow: 0 18px 40px rgba(37, 99, 235, 0.22);
+            box-shadow: 0 18px 40px rgba(74, 111, 140, 0.22);
         }}
         .auth-illustration {{
             width: min(100%, 270px);
@@ -1864,7 +1864,7 @@ def render_auth_styles() -> None:
         [data-testid="stWidgetLabel"] p {{
             font-size: 0.84rem !important;
             font-weight: 650 !important;
-            color: #1E3A8A !important;
+            color: #31465A !important;
         }}
         [data-testid="stTextInputRootElement"],
         [data-testid="stNumberInputContainer"],
@@ -1875,7 +1875,7 @@ def render_auth_styles() -> None:
             min-height: 3.15rem !important;
             height: 3.15rem !important;
             background: #ffffff !important;
-            color: #1E3A8A !important;
+            color: #31465A !important;
             border: 1px solid #D0D5DD !important;
             border-radius: 12px !important;
             box-shadow: none !important;
@@ -1905,7 +1905,7 @@ def render_auth_styles() -> None:
             width: 100% !important;
             min-height: calc(3.15rem - 2px) !important;
             background: transparent !important;
-            color: #1E3A8A !important;
+            color: #31465A !important;
             border: none !important;
             box-shadow: none !important;
             font-size: 0.98rem !important;
@@ -1922,7 +1922,7 @@ def render_auth_styles() -> None:
         [data-testid="stSelectbox"] .react-aria-Group:focus-within,
         [data-testid="stMultiSelect"] .react-aria-Group:focus-within {{
             border-color: {t["primary"]} !important;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14) !important;
+            box-shadow: 0 0 0 3px rgba(74, 111, 140, 0.14) !important;
         }}
         [data-testid="stTextInput"] input:disabled,
         [data-testid="stNumberInput"] input:disabled,
@@ -1988,7 +1988,7 @@ def render_auth_styles() -> None:
             font-weight: 700 !important;
             letter-spacing: 0.01em !important;
             background: {t["primary"]} !important;
-            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.22) !important;
+            box-shadow: 0 6px 16px rgba(74, 111, 140, 0.22) !important;
         }}
         {split_right} div[data-testid="stFormSubmitButton"] button,
         [data-testid="stAppViewContainer"]:has(#auth-fullpage) div[data-testid="stFormSubmitButton"] button {{
@@ -2078,7 +2078,7 @@ def render_auth_styles() -> None:
             background: {t["primary"]} !important;
             color: #fff !important;
             border: none !important;
-            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.22) !important;
+            box-shadow: 0 6px 16px rgba(74, 111, 140, 0.22) !important;
         }}
         [class*="st-key-register_wizard_back"] button,
         [class*="st-key-auth_register_back_login"] button {{

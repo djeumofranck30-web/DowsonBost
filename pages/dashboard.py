@@ -44,8 +44,8 @@ def _inject_admin_chrome() -> None:
         <style>
         html, body, [data-testid="stAppViewContainer"] {
             background:
-                radial-gradient(ellipse 80% 50% at 8% 0%, rgba(37,99,235,.10), transparent 55%),
-                radial-gradient(ellipse 50% 40% at 100% 0%, rgba(30,58,138,.08), transparent 50%),
+                radial-gradient(ellipse 80% 50% at 8% 0%, rgba(74,111,140,.06), transparent 55%),
+                radial-gradient(ellipse 50% 40% at 100% 0%, rgba(49,70,90,.05), transparent 50%),
                 linear-gradient(180deg, #FFFFFF 0%, #F3F4F6 100%) !important;
             font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
         }
@@ -56,7 +56,7 @@ def _inject_admin_chrome() -> None:
         iframe { border: 0 !important; }
         .support-space-header {
             background: #fff;
-            border: 1px solid rgba(37, 99, 235, 0.12);
+            border: 1px solid rgba(74, 111, 140, 0.12);
             border-radius: 16px;
             padding: 0.85rem 1rem 0.95rem;
             margin-bottom: 0.7rem;
@@ -64,7 +64,7 @@ def _inject_admin_chrome() -> None:
         .support-space-header strong {
             display: block;
             font-size: 1.05rem;
-            color: #1E3A8A;
+            color: #31465A;
         }
         .support-space-header small {
             display: block;
@@ -74,7 +74,7 @@ def _inject_admin_chrome() -> None:
         .support-space-header span {
             display: block;
             font-size: 0.78rem;
-            color: #2563EB;
+            color: #4A6F8C;
             font-weight: 600;
         }
         [data-testid="stRadio"] p { white-space: pre-line; line-height: 1.25; }
@@ -148,8 +148,8 @@ def _render_login() -> None:
         """
         <div style="max-width:420px;margin:8vh auto 0;background:#fff;border-radius:24px;
                     padding:1.6rem 1.4rem;box-shadow:0 18px 40px rgba(11,18,32,.10);
-                    border:1px solid rgba(37,99,235,.14)">
-          <p style="margin:0;font-size:.8rem;font-weight:700;color:#2563EB;letter-spacing:.04em">DOWSONBOST</p>
+                    border:1px solid rgba(74,111,140,.14)">
+          <p style="margin:0;font-size:.8rem;font-weight:700;color:#4A6F8C;letter-spacing:.04em">DOWSONBOST</p>
           <h1 style="margin:.2rem 0 .4rem;font-size:1.6rem">Espace administrateur</h1>
           <p style="margin:0 0 1rem;color:#64748b">Accès réservé. Utilisez l’e-mail et le mot de passe ajoutés dans les secrets Streamlit (<code>ADMIN_EMAIL</code> + <code>ADMIN_PASSWORD</code>).</p>
         </div>

@@ -4137,7 +4137,7 @@ def _score_color(score: int) -> str:
     if score >= 75:
         return "#10B981"
     if score >= 50:
-        return "#2563EB"
+        return "#4A6F8C"
     return "#EF4444"
 
 
@@ -5915,11 +5915,11 @@ def render_floating_chat_fab(*, unread: int = 0, current_page: str = "") -> None
     @keyframes dbChatPulse {{
       0%, 100% {{
         transform: scale(1);
-        box-shadow: 0 0 0 3px {accent}, 0 16px 32px rgba(37, 99, 235, 0.42), 0 0 0 0 rgba(37, 99, 235, 0.35);
+        box-shadow: 0 0 0 3px {accent}, 0 16px 32px rgba(74, 111, 140, 0.42), 0 0 0 0 rgba(74, 111, 140, 0.35);
       }}
       50% {{
         transform: scale(1.07);
-        box-shadow: 0 0 0 3px {accent}, 0 16px 32px rgba(37, 99, 235, 0.5), 0 0 0 10px rgba(37, 99, 235, 0);
+        box-shadow: 0 0 0 3px {accent}, 0 16px 32px rgba(74, 111, 140, 0.5), 0 0 0 10px rgba(74, 111, 140, 0);
       }}
     }}
   `;
@@ -6128,9 +6128,9 @@ _SCORE_CHART_BUCKETS = (
 )
 _STATUS_CHART_COLORS = (
     "#94a3b8",
-    "#2563EB",
+    "#4A6F8C",
     "#10B981",
-    "#1E3A8A",
+    "#31465A",
     "#34D399",
     "#EF4444",
     "#64748b",
@@ -6217,7 +6217,7 @@ def _score_ring_color(score: float) -> str:
     if tone == "high":
         return "#10B981"
     if tone == "mid":
-        return "#2563EB"
+        return "#4A6F8C"
     return "#EF4444"
 
 
@@ -6363,7 +6363,7 @@ def _render_dashboard_insight_charts(
             st.caption(t("dashboard.chart_scores"))
             score_chart = (
                 alt.Chart(pd.DataFrame(score_rows))
-                .mark_bar(cornerRadiusEnd=8, color="#2563EB", size=22)
+                .mark_bar(cornerRadiusEnd=8, color="#4A6F8C", size=22)
                 .encode(
                     x=alt.X("band:N", sort=[row["band"] for row in score_rows], title=None),
                     y=alt.Y("count:Q", title=None),
@@ -7888,13 +7888,13 @@ def _auth_illustration_svg() -> str:
     """Dusk city illustration for the left auth panel."""
     return """
 <svg class="auth-illustration" viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <rect width="320" height="220" fill="#1E3A8A"/>
-  <circle cx="248" cy="52" r="34" fill="#2563EB"/>
-  <ellipse cx="210" cy="58" rx="38" ry="18" fill="#2563EB"/>
-  <ellipse cx="255" cy="62" rx="30" ry="14" fill="#3B82F6"/>
-  <path d="M0 150 Q80 120 160 145 T320 138 L320 220 L0 220 Z" fill="#172554"/>
-  <path d="M0 170 Q90 145 180 168 T320 158 L320 220 L0 220 Z" fill="#2563EB"/>
-  <path d="M0 188 Q100 165 200 185 T320 176 L320 220 L0 220 Z" fill="#1D4ED8"/>
+  <rect width="320" height="220" fill="#31465A"/>
+  <circle cx="248" cy="52" r="34" fill="#4A6F8C"/>
+  <ellipse cx="210" cy="58" rx="38" ry="18" fill="#4A6F8C"/>
+  <ellipse cx="255" cy="62" rx="30" ry="14" fill="#6B8AA6"/>
+  <path d="M0 150 Q80 120 160 145 T320 138 L320 220 L0 220 Z" fill="#1E2C38"/>
+  <path d="M0 170 Q90 145 180 168 T320 158 L320 220 L0 220 Z" fill="#4A6F8C"/>
+  <path d="M0 188 Q100 165 200 185 T320 176 L320 220 L0 220 Z" fill="#3D5A73"/>
   <line x1="40" y1="28" x2="58" y2="8" stroke="#F3F4F6" stroke-width="2" stroke-linecap="round"/>
   <line x1="120" y1="18" x2="128" y2="2" stroke="#F3F4F6" stroke-width="2" stroke-linecap="round"/>
   <line x1="180" y1="36" x2="198" y2="16" stroke="#F3F4F6" stroke-width="2" stroke-linecap="round"/>
