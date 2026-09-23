@@ -101,6 +101,24 @@ def test_register_success_reruns_to_login_with_flash():
     assert 'key="login_email"' in login_fn
 
 
+def test_register_next_is_disabled_until_step_is_complete():
+    source = (ROOT / "app.py").read_text(encoding="utf-8")
+    register_fn = source[
+        source.index("def _render_auth_register_form()") : source.index("def render_auth_page()")
+    ]
+    assert "disabled=not step_ok" in register_fn
+    assert "_validate_register_wizard_complete" in register_fn
+    assert "_validate_register_location" in source
+    validator = source[
+        source.index("def _validate_register_wizard_step(") : source.index(
+            "def _validate_register_wizard_complete("
+        )
+    ]
+    assert "auth.register.phone_required" in validator
+    assert "auth.register.location_required" in source
+    assert "auth.register.sectors_required" in validator
+
+
 def test_auth_footer_locale_keys_exist():
     for locale in ("fr", "en"):
         data = json.loads((ROOT / f"locales/{locale}.json").read_text(encoding="utf-8"))
