@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>DowsonBost — Flyer 03 Lifestyle</title>
+  <link rel="stylesheet" href="../assets/shared.css" />
+  <style>
+    .flyer {
+      background: #0b1220 url("../assets/bg-cafe-cv.png") center / cover no-repeat;
+    }
+    .scrim {
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(11,18,32,.18) 0%, rgba(11,18,32,.15) 38%, rgba(11,18,32,.88) 100%);
+    }
+    .inner {
+      position: relative;
+      height: 100%;
+      padding: 64px 72px;
+      display: flex;
+      flex-direction: column;
+      color: #fff;
+    }
+    .chip {
+      align-self: flex-start;
+      background: rgba(255,255,255,.16);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.22);
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      padding: 10px 16px;
+      border-radius: 999px;
+    }
+    .bottom { margin-top: auto; }
+    h1 { font-size: 92px; color: #fff; max-width: 980px; }
+    .lead {
+      margin: 24px 0 36px;
+      font-size: 28px;
+      line-height: 1.35;
+      color: rgba(255,255,255,.86);
+      max-width: 720px;
+      font-weight: 500;
+    }
+    .row { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+    .url, .fine { color: rgba(255,255,255,.78); }
+    .url { color: #fff; }
+  </style>
+</head>
+<body>
+  <article class="flyer">
+    <div class="scrim"></div>
+    <div class="inner">
+      <div class="mark">
+        <div class="mark-sq">DB</div>
+        <div class="mark-name light">Dowson<span>Bost</span></div>
+      </div>
+      <div class="bottom">
+        <div class="chip">Café, métro, canapé — ça marche partout</div>
+        <h1 style="margin-top:22px">Votre CV travaille<br>pendant que vous vivez.</h1>
+        <p class="lead">L’IA parcourt les job boards et les sites carrière, classe les offres, et prépare des candidatures qui collent au poste.</p>
+        <div class="row">
+          <div>
+            <div class="cta">Déposer mon CV</div>
+            <div class="url" style="margin-top:18px">dowsonbost.streamlit.app</div>
+            <div class="fine">Gratuit pour commencer · Compte en quelques minutes</div>
+          </div>
+          <img class="qr" src="../assets/qr-dark.png" alt="QR DowsonBost" />
+        </div>
+      </div>
+    </div>
+  </article>
+</body>
+</html>

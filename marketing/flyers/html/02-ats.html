@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>DowsonBost — Flyer 02 ATS</title>
+  <link rel="stylesheet" href="../assets/shared.css" />
+  <style>
+    .flyer {
+      background:
+        radial-gradient(ellipse 80% 40% at 50% 0%, rgba(232,185,35,.16), transparent 55%),
+        linear-gradient(180deg, #0B1628 0%, #0A1220 100%);
+      color: #f8fafc;
+      padding: 72px 80px 64px;
+      display: flex;
+      flex-direction: column;
+    }
+    .watermark {
+      position: absolute;
+      right: -40px;
+      top: 220px;
+      font-size: 420px;
+      font-weight: 800;
+      letter-spacing: -.08em;
+      color: rgba(255,255,255,.04);
+      line-height: 1;
+      pointer-events: none;
+    }
+    .eyebrow { color: var(--gold); }
+    h1 { font-size: 96px; color: #fff; margin-top: 18px; }
+    h1 span { color: var(--gold); }
+    .lead {
+      margin-top: 28px;
+      font-size: 28px;
+      line-height: 1.4;
+      color: rgba(248,250,252,.72);
+      max-width: 760px;
+      font-weight: 500;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 40px;
+      margin-top: 72px;
+      align-items: center;
+    }
+    .score {
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background:
+        conic-gradient(var(--gold) 0 338deg, rgba(255,255,255,.12) 338deg 360deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 0 12px rgba(232,185,35,.12);
+    }
+    .score inner, .score-inner {
+      width: 214px;
+      height: 214px;
+      border-radius: 50%;
+      background: #0B1628;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .pct { font-size: 72px; font-weight: 800; letter-spacing: -.06em; color: var(--gold); }
+    .pct-l { font-size: 14px; letter-spacing: .16em; text-transform: uppercase; color: rgba(248,250,252,.55); font-weight: 700; }
+    ul { list-style: none; }
+    li {
+      display: flex;
+      gap: 18px;
+      padding: 18px 0;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -.02em;
+    }
+    .dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--gold); margin-top: 10px; flex-shrink: 0;
+    }
+    .foot { margin-top: auto; color: #fff; }
+    .url { color: #fff; }
+    .fine { color: rgba(248,250,252,.55); }
+  </style>
+</head>
+<body>
+  <article class="flyer">
+    <div class="watermark">ATS</div>
+    <div class="mark">
+      <div class="mark-sq">DB</div>
+      <div class="mark-name light">Dowson<span>Bost</span></div>
+    </div>
+    <div class="eyebrow" style="margin-top:72px">Compatibilité CV × offre</div>
+    <h1>Passez le<br>filtre <span>ATS</span>.</h1>
+    <p class="lead">Les logiciels de recrutement filtrent avant un humain. DowsonBost note chaque offre, reprend vos missions, et aligne le vocabulaire — sans inventer votre parcours.</p>
+    <div class="row">
+      <div class="score"><div class="score-inner"><div class="pct">94</div><div class="pct-l">Score ATS</div></div></div>
+      <ul>
+        <li><span class="dot"></span>Mots-clés de l’offre repris dans le CV</li>
+        <li><span class="dot"></span>Missions d’origine conservées, reformulées</li>
+        <li><span class="dot"></span>Une seule page A4, lisible en 8 secondes</li>
+        <li><span class="dot"></span>Lettre de motivation calée sur le poste</li>
+      </ul>
+    </div>
+    <div class="foot">
+      <img class="qr" src="../assets/qr-light.png" alt="QR DowsonBost" />
+      <div>
+        <div class="cta">Tester avec votre CV</div>
+        <div class="url" style="margin-top:16px">dowsonbost.streamlit.app</div>
+        <div class="fine">Matching intelligent · CV adapté · Candidatures suivies</div>
+      </div>
+    </div>
+  </article>
+</body>
+</html>
