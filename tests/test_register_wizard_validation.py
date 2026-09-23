@@ -98,6 +98,29 @@ def test_preferences_step_requires_sector(monkeypatch):
     assert app_mod._validate_register_wizard_step(5)[0] is True
 
 
+def test_seed_from_draft_keeps_edits_when_returning(monkeypatch):
+    app_mod, state = _bind_state(monkeypatch)
+    draft = {
+        "first_name": "Jean",
+        "last_name": "Dupont",
+        "email": "jean@test.fr",
+        "phone": "+33612345678",
+        "password": "Secret123!",
+        "countries": ["France"],
+        "target_job": "Dev Python",
+    }
+    app_mod._seed_register_step_from_draft(2, draft)
+    assert state["register_wiz_first_name"] == "Jean"
+    assert state["register_wiz_last_name"] == "Dupont"
+    state["register_wiz_first_name"] = "jean-PIERRE"
+    app_mod._seed_register_step_from_draft(2, draft)
+    assert state["register_wiz_first_name"] == "jean-PIERRE"
+    app_mod._seed_register_step_from_draft(1, draft)
+    assert state["register_selected_countries"] == ["France"]
+    app_mod._seed_register_step_from_draft(3, draft)
+    assert state["register_wiz_target_job"] == "Dev Python"
+
+
 def test_complete_wizard_checks_every_step(monkeypatch):
     app_mod, _state = _bind_state(
         monkeypatch,

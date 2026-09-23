@@ -8322,6 +8322,79 @@ def _validate_register_wizard_complete(
     return True, ""
 
 
+def _seed_register_step_from_draft(step: int, draft: dict[str, Any]) -> None:
+    """Keep previously typed values when the user comes back to a step."""
+    if step == 0:
+        seed_session_value(
+            st.session_state,
+            "register_wiz_locale",
+            draft.get("locale") or get_locale(),
+        )
+    elif step == 1:
+        seed_session_value(
+            st.session_state,
+            "register_selected_countries",
+            list(draft.get("countries") or []),
+        )
+    elif step == 2:
+        seed_session_value(
+            st.session_state, "register_wiz_first_name", draft.get("first_name") or ""
+        )
+        seed_session_value(
+            st.session_state, "register_wiz_last_name", draft.get("last_name") or ""
+        )
+        seed_session_value(
+            st.session_state, "register_wiz_email", draft.get("email") or ""
+        )
+        seed_session_value(
+            st.session_state, "register_wiz_phone", draft.get("phone") or ""
+        )
+        seed_session_value(
+            st.session_state, "register_wiz_password", draft.get("password") or ""
+        )
+        seed_session_value(
+            st.session_state, "register_wiz_password2", draft.get("password") or ""
+        )
+    elif step == 3:
+        seed_session_value(
+            st.session_state, "register_wiz_target_job", draft.get("target_job") or ""
+        )
+    elif step == 5:
+        seed_session_value(
+            st.session_state,
+            "register_wiz_contract",
+            draft.get("contract") or CONTRACT_TYPES[0],
+        )
+        seed_session_value(
+            st.session_state,
+            "register_wiz_experience",
+            draft.get("experience") or EXPERIENCE_LEVELS[1],
+        )
+        seed_session_value(
+            st.session_state,
+            "register_target_sectors",
+            list(draft.get("sectors") or ["Informatique"]),
+        )
+        seed_session_value(
+            st.session_state,
+            "register_wiz_publication_age",
+            draft.get("publication_age", 7),
+        )
+
+
+def _register_geo_profile(countries: list[str]) -> dict[str, Any]:
+    snap = st.session_state.get("register_geo_snapshot") or {}
+    return {
+        "country": countries[0] if countries else "",
+        "selected_countries": countries,
+        "admin_regions": snap.get("admin_regions") or [],
+        "selected_departments": snap.get("departments") or [],
+        "selected_cities": snap.get("cities") or [],
+        "all_cities": bool(snap.get("all_cities")),
+        "geo_by_country": snap.get("geo_by_country") or {},
+    }
+
+
 def _persist_register_wizard_step(
     step: int,
     draft: dict[str, Any],
@@ -8362,14 +8435,15 @@ def _render_register_location_step(countries: list[str]) -> dict[str, Any]:
     all_cities = False
     geo_by_country: dict[str, dict[str, Any]] = {}
 
+    profile = _register_geo_profile(countries)
     if "France" in countries:
         with st.expander("France — régions, départements & villes", expanded=True):
             admin_regions, departments = render_region_department_selectors(
-                {},
+                profile,
                 key_prefix="register",
             )
             cities, all_cities = render_city_selector(
-                {},
+                profile,
                 key_prefix="register",
                 selected_departments=departments,
                 country="France",
@@ -8384,7 +8458,7 @@ def _render_register_location_step(countries: list[str]) -> dict[str, Any]:
         ):
             geo_by_country[country] = render_international_geo_selectors(
                 country,
-                {},
+                profile,
                 key_prefix="register",
             )
 
@@ -8452,6 +8526,7 @@ def _render_auth_register_form() -> None:
     total = len(REGISTER_WIZARD_STEPS)
     draft = st.session_state.setdefault("register_draft", {})
     pending_geo: dict[str, Any] | None = None
+    _seed_register_step_from_draft(step, draft)
 
     st.markdown(
         f'<p class="auth-greeting-main">{html.escape(t("auth.register.welcome"))}</p>',
@@ -8472,15 +8547,9 @@ def _render_auth_register_form() -> None:
             f'<p class="auth-form-title">{html.escape(t("auth.register.wizard.language"))}</p>',
             unsafe_allow_html=True,
         )
-        current = draft.get("locale") or get_locale()
-        try:
-            locale_index = SUPPORTED_LOCALES.index(current)
-        except ValueError:
-            locale_index = 0
         st.selectbox(
             t("language.label"),
             SUPPORTED_LOCALES,
-            index=locale_index,
             format_func=lambda code: LOCALE_LABELS.get(code, code),
             key="register_wiz_locale",
         )
@@ -8489,9 +8558,13 @@ def _render_auth_register_form() -> None:
             f'<p class="auth-form-title">{html.escape(t("auth.register.wizard.countries"))}</p>',
             unsafe_allow_html=True,
         )
-        if "register_selected_countries" not in st.session_state:
-            st.session_state.register_selected_countries = []
-        render_countries_multiselect({"country": "", "selected_countries": []}, key_prefix="register")
+        render_countries_multiselect(
+            {
+                "country": "",
+                "selected_countries": list(draft.get("countries") or []),
+            },
+            key_prefix="register",
+        )
     elif step == 2:
         st.markdown(
             f'<p class="auth-form-title">{html.escape(t("auth.register.wizard.identity"))}</p>',
@@ -8561,35 +8634,28 @@ def _render_auth_register_form() -> None:
         st.selectbox(
             t("auth.register.contract"),
             CONTRACT_TYPES,
-            index=0,
             key="register_wiz_contract",
         )
         st.selectbox(
             t("auth.register.experience"),
             EXPERIENCE_LEVELS,
-            index=1,
             format_func=experience_label,
             key="register_wiz_experience",
         )
         st.multiselect(
             t("auth.register.sectors"),
             SECTOR_OPTIONS,
-            default=["Informatique"],
             key="register_target_sectors",
         )
         st.radio(
             t("auth.register.publication"),
             JOB_MAX_AGE_DAYS_OPTIONS,
-            index=JOB_MAX_AGE_DAYS_OPTIONS.index(7),
             format_func=job_age_label,
             help=t("auth.register.publication_help"),
             key="register_wiz_publication_age",
             horizontal=True,
         )
 
-    step_ok, step_error = _validate_register_wizard_step(step, geo=pending_geo)
-    if not step_ok:
-        st.warning(step_error or t("auth.register.step_incomplete"))
     st.markdown('<div class="reg-wizard-nav">', unsafe_allow_html=True)
     _nav_sp_l, nav_back, nav_next, _nav_sp_r = st.columns([1.25, 1.05, 1.05, 1.25])
     with nav_back:
@@ -8599,6 +8665,7 @@ def _render_auth_register_form() -> None:
                 use_container_width=True,
                 key="register_wizard_back",
             ):
+                _persist_register_wizard_step(step, draft, geo=pending_geo)
                 st.session_state.register_wizard_step = step - 1
                 st.rerun()
         elif st.button(
@@ -8616,12 +8683,10 @@ def _render_auth_register_form() -> None:
                 type="primary",
                 use_container_width=True,
                 key="register_wizard_next",
-                disabled=not step_ok,
-                help=step_error if not step_ok else "",
             ):
                 valid, error = _validate_register_wizard_step(step, geo=pending_geo)
                 if not valid:
-                    st.error(error)
+                    st.error(error or t("auth.register.step_incomplete"))
                 else:
                     _persist_register_wizard_step(step, draft, geo=pending_geo)
                     st.session_state.register_wizard_step = step + 1
@@ -8631,12 +8696,10 @@ def _render_auth_register_form() -> None:
             type="primary",
             use_container_width=True,
             key="register_wizard_submit",
-            disabled=not step_ok,
-            help=step_error if not step_ok else "",
         ):
             valid, error = _validate_register_wizard_complete(pending_geo)
             if not valid:
-                st.error(error)
+                st.error(error or t("auth.register.step_incomplete"))
             else:
                 _persist_register_wizard_step(step, draft, geo=pending_geo)
                 _submit_register_wizard(draft)
